@@ -139,13 +139,6 @@ class VehicleRequestsTable
                             ->success()
                             ->send();
                     }),
-                Action::make('view_document')
-                    ->label('View CEO Form')
-                    ->icon('heroicon-o-document-magnifying-glass')
-                    ->color('info')
-                    ->visible(fn ($record) => $record->document !== null)
-                    ->url(fn ($record) => asset('storage/' . $record->document))
-                    ->openUrlInNewTab(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
