@@ -31,6 +31,9 @@ class DriverPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Orange,
             ])
+            ->brandLogo(asset('csu-logo.png'))
+            ->brandLogoHeight('2.5rem')
+            ->favicon(asset('csu-logo.png'))
             ->font('Outfit')
             ->discoverResources(in: app_path('Filament/Driver/Resources'), for: 'App\Filament\Driver\Resources')
             ->discoverPages(in: app_path('Filament/Driver/Pages'), for: 'App\Filament\Driver\Pages')

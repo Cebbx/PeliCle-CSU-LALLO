@@ -29,6 +29,9 @@ class EmployeePanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
+            ->brandLogo(asset('csu-logo.png'))
+            ->brandLogoHeight('2.5rem')
+            ->favicon(asset('csu-logo.png'))
             ->font('Outfit')
             ->discoverResources(in: app_path('Filament/Employee/Resources'), for: 'App\Filament\Employee\Resources')
             ->discoverPages(in: app_path('Filament/Employee/Pages'), for: 'App\Filament\Employee\Pages')
