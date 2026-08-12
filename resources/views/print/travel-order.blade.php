@@ -82,36 +82,36 @@
             </div>
         </div>
 
-        <!-- Form Fields -->
+        <!-- Form Fields (Interactive & Editable) -->
         <div class="space-y-4 mt-6 text-xs text-black leading-loose">
             
             <div class="flex items-end">
                 <span class="w-20 font-bold">Name:</span>
-                <span class="flex-grow form-line font-bold text-sm h-6">{{ $name ?: '____________________________________' }}</span>
+                <input type="text" value="{{ $name }}" class="flex-grow border-b border-black outline-none px-2 font-bold text-sm h-6 bg-transparent" placeholder="Enter Full Name" />
             </div>
 
             <div class="flex items-end">
                 <span class="w-20 font-bold">Position:</span>
-                <span class="flex-grow form-line h-6">{{ $position ?: '____________________________________' }}</span>
+                <input type="text" value="{{ $position }}" class="flex-grow border-b border-black outline-none px-2 h-6 bg-transparent" placeholder="Enter Position" />
             </div>
 
             <div class="flex items-end gap-4">
                 <span class="w-20 font-bold">Departure:</span>
-                <span class="flex-grow form-line h-6">{{ $departure }}</span>
+                <input type="text" value="{{ $departure }}" class="flex-grow border-b border-black outline-none px-2 h-6 bg-transparent" placeholder="Departure Date/Time" />
                 <span class="font-bold">Arrival:</span>
-                <span class="flex-grow form-line h-6">{{ $arrival }}</span>
+                <input type="text" value="{{ $arrival }}" class="flex-grow border-b border-black outline-none px-2 h-6 bg-transparent" placeholder="Arrival Date/Time" />
             </div>
 
             <div class="flex items-end gap-4">
                 <span class="w-20 font-bold">Station:</span>
-                <span class="flex-grow form-line h-6">CSU Lal-lo Campus</span>
+                <input type="text" value="CSU Lal-lo Campus" class="flex-grow border-b border-black outline-none px-2 h-6 bg-transparent" />
                 <span class="font-bold">Destination:</span>
-                <span class="flex-grow form-line h-6 font-bold">{{ $destination ?: '____________________________________' }}</span>
+                <input type="text" value="{{ $destination }}" class="flex-grow border-b border-black outline-none px-2 h-6 bg-transparent font-bold" placeholder="Destination" />
             </div>
 
             <div class="flex flex-col mt-2">
                 <span class="font-bold mb-1">Purpose:</span>
-                <span class="form-line w-full min-h-[48px] pt-1 block">{{ $purpose ?: '____________________________________________________________________________________' }}</span>
+                <textarea class="w-full border-b border-black outline-none px-2 py-1 min-h-[48px] bg-transparent resize-none leading-relaxed" placeholder="Purpose of Travel">{{ $purpose }}</textarea>
             </div>
 
             <!-- Checkboxes and Details -->
@@ -129,7 +129,7 @@
                 <div class="space-y-3">
                     <div class="flex items-end">
                         <span class="w-36 font-semibold">Transportation Allowed:</span>
-                        <span class="flex-grow form-line h-5 font-bold">{{ $vehicleName ?: 'Government Vehicle' }}</span>
+                        <input type="text" value="{{ $vehicleName ?: 'Government Vehicle' }}" class="flex-grow border-b border-black outline-none px-2 h-5 bg-transparent font-bold" placeholder="Assigned Vehicle" />
                     </div>
                 </div>
             </div>
@@ -137,33 +137,33 @@
             <div class="grid grid-cols-2 gap-8 pt-2">
                 <div class="flex items-end">
                     <span class="w-36 font-semibold">Travel Charged Against:</span>
-                    <span class="flex-grow form-line h-5">Local/GAA Funds</span>
+                    <input type="text" value="Local/GAA Funds" class="flex-grow border-b border-black outline-none px-2 h-5 bg-transparent" placeholder="Charged Against" />
                 </div>
                 <div class="flex items-end">
                     <span class="w-16 font-semibold">Remarks:</span>
-                    <span class="flex-grow form-line h-5">Subject to usual accounting rules</span>
+                    <input type="text" value="Subject to usual accounting rules" class="flex-grow border-b border-black outline-none px-2 h-5 bg-transparent" placeholder="Remarks" />
                 </div>
             </div>
 
         </div>
 
-        <!-- Approvals Row -->
+        <!-- Approvals Row (Editable Signatories) -->
         <div class="mt-12 text-xs text-black">
             
             <div class="grid grid-cols-2 gap-16 mt-8">
                 
                 <!-- Recommending Approval -->
-                <div class="flex flex-col justify-end min-h-[80px]">
-                    <span class="text-[9px] uppercase font-bold text-gray-500 mb-6">Recommending Approval:</span>
-                    <span class="text-xs font-bold text-black border-b border-black pb-0.5 inline-block text-center w-full uppercase">Joel A. Tumamao</span>
-                    <span class="text-[9px] text-black text-center font-bold uppercase mt-1">GSO / Immediate Supervisor</span>
+                <div class="flex flex-col justify-end min-h-[80px] text-center">
+                    <span class="text-[9px] uppercase font-bold text-gray-500 mb-6 text-left">Recommending Approval:</span>
+                    <input type="text" value="Joel A. Tumamao" class="text-xs font-bold text-black border-b border-black pb-0.5 text-center w-full uppercase bg-transparent outline-none" />
+                    <input type="text" value="GSO / Immediate Supervisor" class="text-[9px] text-black text-center font-bold uppercase mt-1 bg-transparent outline-none" />
                 </div>
 
                 <!-- Approved -->
-                <div class="flex flex-col justify-end min-h-[80px]">
-                    <span class="text-[9px] uppercase font-bold text-gray-500 mb-6">Approved:</span>
-                    <span class="text-xs font-bold text-black border-b border-black pb-0.5 inline-block text-center w-full uppercase">James B. Cabildo, PhD, ASEAN Engr.</span>
-                    <span class="text-[9px] text-black text-center font-bold uppercase mt-1">Campus Executive Officer</span>
+                <div class="flex flex-col justify-end min-h-[80px] text-center">
+                    <span class="text-[9px] uppercase font-bold text-gray-500 mb-6 text-left">Approved:</span>
+                    <input type="text" value="James B. Cabildo, PhD, ASEAN Engr." class="text-xs font-bold text-black border-b border-black pb-0.5 text-center w-full uppercase bg-transparent outline-none" />
+                    <input type="text" value="Campus Executive Officer" class="text-[9px] text-black text-center font-bold uppercase mt-1 bg-transparent outline-none" />
                 </div>
 
             </div>
@@ -178,14 +178,14 @@
                 <div class="border-r border-gray-300 pr-4">
                     <div class="flex justify-between items-end mb-6">
                         <span class="font-bold">Date:</span>
-                        <span class="w-2/3 border-b border-black h-4 block"></span>
+                        <input type="text" class="w-2/3 border-b border-black h-4 bg-transparent outline-none px-2" />
                     </div>
                     <div class="border-t border-black text-center pt-1 text-[9px] uppercase font-bold">Signature</div>
                 </div>
                 <div>
                     <div class="flex justify-between items-end mb-6">
                         <span class="font-bold">Name:</span>
-                        <span class="w-2/3 border-b border-black h-4 block"></span>
+                        <input type="text" class="w-2/3 border-b border-black h-4 bg-transparent outline-none px-2" />
                     </div>
                     <div class="border-t border-black text-center pt-1 text-[9px] uppercase font-bold">Name & Signature of Person Visited</div>
                 </div>
