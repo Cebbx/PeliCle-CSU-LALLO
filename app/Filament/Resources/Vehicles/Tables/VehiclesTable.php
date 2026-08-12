@@ -28,12 +28,12 @@ class VehiclesTable
                     ->color(fn (string $state, $record): string => 
                         $state === 'maintenance' 
                             ? 'danger' 
-                            : (\App\Models\TripTicket::where('vehicle', $record->plate_number)->where('status', 'active')->exists() ? 'info' : 'success')
+                            : (\App\Models\TripTicket::where('vehicle', 'like', '%' . $record->plate_number . '%')->where('status', 'active')->exists() ? 'info' : 'success')
                     )
                     ->formatStateUsing(fn (string $state, $record): string => 
                         $state === 'maintenance' 
                             ? 'Under Maintenance' 
-                            : (\App\Models\TripTicket::where('vehicle', $record->plate_number)->where('status', 'active')->exists() ? 'On Trip' : 'Available')
+                            : (\App\Models\TripTicket::where('vehicle', 'like', '%' . $record->plate_number . '%')->where('status', 'active')->exists() ? 'On Trip' : 'Available')
                     )
                     ->searchable(),
                 TextColumn::make('created_at')

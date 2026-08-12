@@ -160,11 +160,11 @@ class TripTicketForm
 
                         $isScheduled = false;
                         if ($travelDate) {
-                            $isScheduled = TripTicket::where('vehicle', $value)
-                                ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                ->where('status', '!=', 'cancelled')
-                                ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
-                                ->exists();
+                            $isScheduled = TripTicket::where('vehicle', 'like', '%' . $value . '%')
+                                 ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
+                                 ->where('status', '!=', 'cancelled')
+                                 ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                                 ->exists();
                         }
 
                         $dbVehicle = \App\Models\Vehicle::where('plate_number', $value)->first();
@@ -191,11 +191,11 @@ class TripTicketForm
 
                             $isScheduled = false;
                             if ($travelDate) {
-                                $isScheduled = TripTicket::where('vehicle', $value)
-                                    ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                    ->where('status', '!=', 'cancelled')
-                                    ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
-                                    ->exists();
+                                 $isScheduled = TripTicket::where('vehicle', 'like', '%' . $value . '%')
+                                     ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
+                                     ->where('status', '!=', 'cancelled')
+                                     ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                                     ->exists();
                             }
 
                             $dbVehicle = \App\Models\Vehicle::where('plate_number', $value)->first();
