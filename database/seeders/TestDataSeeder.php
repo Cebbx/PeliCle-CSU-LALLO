@@ -135,6 +135,7 @@ class TestDataSeeder extends Seeder
                 'number_of_passengers' => count($passengers),
                 'passenger_names' => $passengers,
                 'status' => $status,
+                'document' => in_array($status, ['on_trip', 'completed']) ? 'request-documents/dummy.pdf' : null,
             ]);
 
             // Create corresponding Trip Ticket if approved, on_trip, or completed
@@ -159,6 +160,12 @@ class TestDataSeeder extends Seeder
                     'vehicle' => $vehicle,
                     'status' => $ttStatus,
                 ]);
+
+                // Ensure correct status if completed
+                if ($status === 'completed') {
+                    $ticket->update(['status' => 'completed']);
+                    $request->update(['status' => 'completed']);
+                }
 
                 // Create a Withdrawal Slip for completed or on_trip tickets
                 if (in_array($status, ['on_trip', 'completed'])) {

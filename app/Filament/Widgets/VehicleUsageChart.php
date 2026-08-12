@@ -56,7 +56,15 @@ class VehicleUsageChart extends ChartWidget
             $dbVehicle = \App\Models\Vehicle::where('plate_number', $vehiclePlate)->first();
             $label = $dbVehicle ? "{$dbVehicle->brand} - {$vehiclePlate}" : $vehiclePlate;
             $labels[] = $label;
-            $chartData[] = $data[$vehiclePlate] ?? 0;
+            
+            // Find count by checking if the vehicle name in our query results contains the plate number
+            $count = 0;
+            foreach ($data as $vehicleKey => $val) {
+                if (str_contains(strtoupper($vehicleKey), strtoupper($vehiclePlate))) {
+                    $count += $val;
+                }
+            }
+            $chartData[] = $count;
         }
 
         return [
