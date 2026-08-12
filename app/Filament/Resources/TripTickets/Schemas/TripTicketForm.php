@@ -51,7 +51,7 @@ class TripTicketForm
                             }
                         }
                     })
-                    ->disabled(fn (string $operation, ?TripTicket $record) => $operation === 'edit' || request()->has('vehicle_request_id'))
+                    ->disabled(fn (string $operation, ?TripTicket $record) => $operation === 'edit')
                     ->dehydrated()
                     ->required(),
 
