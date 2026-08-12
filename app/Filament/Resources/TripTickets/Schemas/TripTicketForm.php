@@ -83,6 +83,13 @@ class TripTicketForm
                             ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
                             ->pluck('vehicle')
                             ->filter()
+                            ->map(function ($v) {
+                                if (str_contains($v, ' - ')) {
+                                    $parts = explode(' - ', $v);
+                                    return trim(end($parts));
+                                }
+                                return trim($v);
+                            })
                             ->toArray();
 
                         $scheduledVehicles = [];
@@ -153,6 +160,13 @@ class TripTicketForm
                             ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
                             ->pluck('vehicle')
                             ->filter()
+                            ->map(function ($v) {
+                                if (str_contains($v, ' - ')) {
+                                    $parts = explode(' - ', $v);
+                                    return trim(end($parts));
+                                }
+                                return trim($v);
+                            })
                             ->toArray();
 
                         $requestId = $get('vehicle_request_id');
@@ -162,9 +176,9 @@ class TripTicketForm
                         if ($travelDate) {
                             $isScheduled = TripTicket::where('vehicle', 'like', '%' . $value . '%')
                                  ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                 ->where('status', '!=', 'cancelled')
-                                 ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
-                                 ->exists();
+                                ->where('status', '!=', 'cancelled')
+                                ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                                ->exists();
                         }
 
                         $dbVehicle = \App\Models\Vehicle::where('plate_number', $value)->first();
@@ -184,6 +198,13 @@ class TripTicketForm
                                 ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
                                 ->pluck('vehicle')
                                 ->filter()
+                                ->map(function ($v) {
+                                    if (str_contains($v, ' - ')) {
+                                        $parts = explode(' - ', $v);
+                                        return trim(end($parts));
+                                    }
+                                    return trim($v);
+                                })
                                 ->toArray();
 
                             $requestId = $get('vehicle_request_id');
