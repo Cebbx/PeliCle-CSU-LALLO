@@ -59,6 +59,12 @@ class AnalyticsOverview extends StatsOverviewWidget
                 ->sum('amount');
         }
 
+        // Daily, Weekly, and Monthly fuel expenses
+        $now = Carbon::now('Asia/Manila');
+        $gasToday = WithdrawalSlip::whereDate('created_at', $now->toDateString())->sum('amount');
+        $gasThisWeek = WithdrawalSlip::where('created_at', '>=', $now->copy()->startOfWeek()->toDateTimeString())->sum('amount');
+        $gasThisMonth = WithdrawalSlip::where('created_at', '>=', $now->copy()->startOfMonth()->toDateTimeString())->sum('amount');
+
         return [
             Stat::make('Total Trips Assigned', $totalTrips)
                 ->description('Total trips during this period')
@@ -71,8 +77,23 @@ class AnalyticsOverview extends StatsOverviewWidget
                 ->color('info'),
 
             Stat::make('Total Fuel Expenses', '₱' . number_format($totalGas, 2))
-                ->description('Gas spent for these trips')
+                ->description('Gas spent (filtered period)')
                 ->descriptionIcon('heroicon-m-currency-dollar')
+                ->color('warning'),
+
+            Stat::make('Fuel Expenses Today', '₱' . number_format($gasToday, 2))
+                ->description('Total gas spent today')
+                ->descriptionIcon('heroicon-m-clock')
+                ->color('warning'),
+
+            Stat::make('Fuel Expenses This Week', '₱' . number_format($gasThisWeek, 2))
+                ->description('Total gas spent this week')
+                ->descriptionIcon('heroicon-m-calendar')
+                ->color('warning'),
+
+            Stat::make('Fuel Expenses This Month', '₱' . number_format($gasThisMonth, 2))
+                ->description('Total gas spent this month')
+                ->descriptionIcon('heroicon-m-arrow-trending-up')
                 ->color('warning'),
         ];
     }
