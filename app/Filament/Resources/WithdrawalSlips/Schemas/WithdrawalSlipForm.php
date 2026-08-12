@@ -33,11 +33,18 @@ class WithdrawalSlipForm
                             ->orderBy('created_at', 'desc')
                             ->value('id');
                     })
-                    ->relationship('tripTicket', 'ticket_number', function ($query) {
+                    ->relationship('tripTicket', 'ticket_number', function ($query, $record) {
                         $tripId = request()->query('trip_ticket_id');
                         return $query->with(['driver', 'vehicleRequest'])
-                            ->when($tripId, fn ($q) => $q->orWhere('id', $tripId))
-                            ->whereDoesntHave('withdrawalSlips')
+                            ->where(function ($q) use ($tripId, $record) {
+                                $q->whereDoesntHave('withdrawalSlips');
+                                if ($tripId) {
+                                    $q->orWhere('id', $tripId);
+                                }
+                                if ($record && $record->trip_ticket_id) {
+                                    $q->orWhere('id', $record->trip_ticket_id);
+                                }
+                            })
                             ->orderBy('created_at', 'desc');
                     })
                     ->getOptionLabelFromRecordUsing(function ($record) {
