@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Vehicle Dispatch & Fleet Management System</title>
+        <title>Pelicle-Pelicans' & Trip Management System</title>
         
         <!-- Google Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -153,7 +153,7 @@
                     <span class="bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-400 bg-clip-text text-transparent text-glow">Pelicle Portal Access</span>
                 </h1>
                 <p class="text-stone-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed font-light">
-                    Welcome to the PeliCle Vehicle & Trip Management System. Please select your portal below to log in and get started.
+                    Welcome to the Pelicle-Pelicans' & Trip Management System. Please select your portal below to log in and get started.
                 </p>
             </div>
 
@@ -260,7 +260,7 @@
         <!-- Footer -->
         <footer class="w-full max-w-7xl mx-auto px-6 py-8 border-t border-stone-900 text-center text-xs text-stone-500 flex flex-col gap-2 justify-center items-center z-10">
             <p>&copy; {{ date('Y') }} Cagayan State University Lal-lo Campus. All rights reserved.</p>
-            <p class="font-display opacity-50">PeliCle System</p>
+            <p class="font-display opacity-50">Pelicle-Pelicans' System</p>
         </footer>
 
     </body>
