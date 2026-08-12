@@ -176,6 +176,7 @@ class TestDataSeeder extends Seeder
                         'purpose' => 'Fuel Refill & Toll Fees',
                         'requested_items' => "1. Refuel 30 Liters Diesel\n2. Tollway RFID Load",
                         'status' => $status === 'completed' ? 'approved' : 'pending',
+                        'amount' => $status === 'completed' ? rand(1500, 4500) : 0,
                     ]);
                 }
             }
