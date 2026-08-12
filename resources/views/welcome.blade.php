@@ -95,14 +95,20 @@
                 0%, 100% { opacity: 0.4; }
                 50% { opacity: 0.8; }
             }
-            .animate-orb-1 {
-                animation: float-orb-1 20s infinite alternate ease-in-out;
+            .animate-orb-1, .animate-orb-2, .animate-pulse-slow {
+                will-change: transform;
+                transform: translate3d(0, 0, 0);
             }
-            .animate-orb-2 {
-                animation: float-orb-2 25s infinite alternate ease-in-out;
-            }
-            .animate-pulse-slow {
-                animation: pulse-slow 4s infinite ease-in-out;
+            @media (min-width: 768px) {
+                .animate-orb-1 {
+                    animation: float-orb-1 20s infinite alternate ease-in-out;
+                }
+                .animate-orb-2 {
+                    animation: float-orb-2 25s infinite alternate ease-in-out;
+                }
+                .animate-pulse-slow {
+                    animation: pulse-slow 4s infinite ease-in-out;
+                }
             }
         </style>
     </head>
