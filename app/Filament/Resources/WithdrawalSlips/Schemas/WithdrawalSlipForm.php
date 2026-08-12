@@ -148,6 +148,11 @@ class WithdrawalSlipForm
                             ->numeric(),
                     ])
                     ->columns(2),
+                TextInput::make('amount')
+                    ->label('Actual Amount Spent')
+                    ->numeric()
+                    ->prefix('₱')
+                    ->placeholder('0.00'),
                 \Filament\Forms\Components\Hidden::make('status')
                     ->default('approved')
                     ->dehydrated(),

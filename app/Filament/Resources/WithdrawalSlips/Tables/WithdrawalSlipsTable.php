@@ -24,6 +24,11 @@ class WithdrawalSlipsTable
                     ->default('N/A'),
                 TextColumn::make('tripTicket.ticket_number')
                     ->label('Trip ID'),
+                TextColumn::make('amount')
+                    ->label('Amount Spent')
+                    ->money('PHP')
+                    ->sortable()
+                    ->default('₱0.00'),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
