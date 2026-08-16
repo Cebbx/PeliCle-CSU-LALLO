@@ -16,14 +16,6 @@ Route::get('/trip-tickets/{ticket_number}/complete-via-qr', [App\Http\Controller
 Route::get('/guard/scanner', [App\Http\Controllers\QrCodeController::class, 'scannerPage'])->name('guard.scanner');
 Route::post('/guard/verify-pin', [App\Http\Controllers\QrCodeController::class, 'verifyPin'])->name('guard.verify-pin');
 
-Route::get('/clear-cache-now', function () {
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    \Illuminate\Support\Facades\Artisan::call('route:clear');
-    return "All Laravel caches cleared successfully!";
-});
-
 Route::middleware(['auth'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
     Route::view('post','livewire.post.index')->name('post.index');
