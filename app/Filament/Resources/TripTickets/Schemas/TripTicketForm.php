@@ -118,6 +118,19 @@ class TripTicketForm
                     })
                     ->label('Vehicle')
                     ->disableOptionWhen(function (string $value, callable $get, ?TripTicket $record) {
+                        $activeVehicles = TripTicket::where('status', 'active')
+                            ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                            ->pluck('vehicle')
+                            ->filter()
+                            ->map(function ($v) {
+                                if (str_contains($v, ' - ')) {
+                                    $parts = explode(' - ', $v);
+                                    return trim(end($parts));
+                                }
+                                return trim($v);
+                            })
+                            ->toArray();
+
                         $requestId = $get('vehicle_request_id');
                         $travelDate = $requestId ? VehicleRequest::where('id', $requestId)->value('date') : null;
 
@@ -133,11 +146,24 @@ class TripTicketForm
                         $dbVehicle = \App\Models\Vehicle::where('plate_number', $value)->first();
                         $isMaintenance = $dbVehicle && $dbVehicle->status === 'maintenance';
 
-                        return $isMaintenance || $isScheduled;
+                        return in_array($value, $activeVehicles) || $isMaintenance || $isScheduled;
                     })
                     ->helperText("Showing all vehicles. (Note: Busy or under maintenance vehicles are disabled).")
                     ->rules([
                         fn (callable $get, ?TripTicket $record): \Closure => function (string $attribute, $value, \Closure $fail) use ($get, $record) {
+                            $activeVehicles = TripTicket::where('status', 'active')
+                                ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                                ->pluck('vehicle')
+                                ->filter()
+                                ->map(function ($v) {
+                                    if (str_contains($v, ' - ')) {
+                                        $parts = explode(' - ', $v);
+                                        return trim(end($parts));
+                                    }
+                                    return trim($v);
+                                })
+                                ->toArray();
+
                             $requestId = $get('vehicle_request_id');
                             $travelDate = $requestId ? VehicleRequest::where('id', $requestId)->value('date') : null;
 
@@ -153,12 +179,16 @@ class TripTicketForm
                             $dbVehicle = \App\Models\Vehicle::where('plate_number', $value)->first();
                             $isMaintenance = $dbVehicle && $dbVehicle->status === 'maintenance';
 
+                            if (in_array($value, $activeVehicles)) {
+                                $fail("This vehicle is currently on a trip. Please select another vehicle.");
+                            }
+
                             if ($isMaintenance) {
-                                    $fail("This vehicle is currently under maintenance. Please select another vehicle.");
+                                $fail("This vehicle is currently under maintenance. Please select another vehicle.");
                             }
 
                             if ($isScheduled) {
-                                    $fail("This vehicle is already scheduled for another trip on this date. Please select another vehicle.");
+                                $fail("This vehicle is already scheduled for another trip on this date. Please select another vehicle.");
                             }
                         }
                     ])
@@ -204,8 +234,10 @@ class TripTicketForm
                         }
 
                         $isUnavailable = \App\Models\Driver::where('id', $value)->where('status', 'unavailable')->exists();
+                        $isOnTrip = \App\Models\Driver::where('id', $value)->where('status', 'on_trip')->exists() 
+                            && (!$record || $record->driver_id != $value);
 
-                        return $isScheduled || $isUnavailable;
+                        return $isScheduled || $isOnTrip || $isUnavailable;
                     })
                     ->label('Driver')
                     ->helperText(function (callable $get, ?TripTicket $record) {
@@ -269,16 +301,21 @@ class TripTicketForm
                                         ->exists();
                                 }
 
-                                $driver = \App\Models\Driver::find($value);
-                                $isUnavailable = $driver && $driver->status === 'unavailable';
+                                 $driver = \App\Models\Driver::find($value);
+                                 $isUnavailable = $driver && $driver->status === 'unavailable';
+                                 $isOnTrip = $driver && $driver->status === 'on_trip' && (!$record || $record->driver_id !== $driver->id);
 
-                                if ($isUnavailable) {
-                                    $fail("This driver is currently Offline (Off-Duty). Please select another driver.");
-                                }
+                                 if ($isUnavailable) {
+                                     $fail("This driver is currently Offline (Off-Duty). Please select another driver.");
+                                 }
 
-                                if ($isScheduled) {
-                                    $fail("This driver is already scheduled for another trip on this date. Please select another driver.");
-                                }
+                                 if ($isOnTrip) {
+                                     $fail("This driver is currently on a trip. Please select another driver.");
+                                 }
+
+                                 if ($isScheduled) {
+                                     $fail("This driver is already scheduled for another trip on this date. Please select another driver.");
+                                 }
                             }
                         }
                     ])
