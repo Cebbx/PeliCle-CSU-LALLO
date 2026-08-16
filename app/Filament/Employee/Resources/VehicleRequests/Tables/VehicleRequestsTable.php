@@ -91,8 +91,8 @@ class VehicleRequestsTable
                 EditAction::make()
                     ->visible(fn ($record) => $record->status === 'pending' && !$record->document),
                 Action::make('print')
-                    ->label('Print Form')
-                    ->icon('heroicon-o-printer')
+                    ->label('View Form Request')
+                    ->icon('heroicon-o-document-text')
                     ->color('info')
                     ->url(fn ($record) => route('vehicle-requests.print', $record->id))
                     ->openUrlInNewTab(),

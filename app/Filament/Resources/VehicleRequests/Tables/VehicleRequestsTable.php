@@ -109,8 +109,8 @@ class VehicleRequestsTable
                         $record->update(['status' => 'rejected']);
                     }),
                 Action::make('print')
-                    ->label('Print Form')
-                    ->icon('heroicon-o-printer')
+                    ->label('View Form Request')
+                    ->icon('heroicon-o-document-text')
                     ->color('info')
                     ->url(fn ($record) => route('vehicle-requests.print', $record->id))
                     ->openUrlInNewTab(),
