@@ -25,7 +25,31 @@ class StatsOverview extends StatsOverviewWidget
         $filterStatus = $this->filters['status'] ?? null;
 
         $totalDrivers = Driver::count();
-        $availDrivers = Driver::where('status', 'available')->count();
+        $activeDriverIds = TripTicket::where('status', 'active')
+            ->pluck('driver_id')
+            ->filter()
+            ->unique()
+            ->toArray();
+        $activeDriversCount = count($activeDriverIds);
+        $unavailableDriversCount = Driver::where('status', 'unavailable')->count();
+        $availDrivers = max(0, $totalDrivers - $activeDriversCount - $unavailableDriversCount);
+
+        $totalVehicles = Vehicle::count();
+        $activeVehiclePlates = TripTicket::where('status', 'active')
+            ->pluck('vehicle')
+            ->filter()
+            ->map(function ($v) {
+                if (str_contains($v, ' - ')) {
+                    $parts = explode(' - ', $v);
+                    return trim(end($parts));
+                }
+                return trim($v);
+            })
+            ->unique()
+            ->toArray();
+        $activeVehiclesCount = count($activeVehiclePlates);
+        $maintenanceVehiclesCount = Vehicle::where('status', 'maintenance')->count();
+        $availVehicles = max(0, $totalVehicles - $activeVehiclesCount - $maintenanceVehiclesCount);
 
         // 1. Pending Vehicle Requests
         $pendingQuery = VehicleRequest::where('status', 'pending');
@@ -108,11 +132,17 @@ class StatsOverview extends StatsOverviewWidget
         $thisMonthGasFormatted = number_format($thisMonthGas, 2);
 
         return [
-            Stat::make('Active Drivers', "{$availDrivers} / {$totalDrivers} Available")
-                ->description('Drivers currently active')
+            Stat::make('Driver Availability', "{$availDrivers} / {$totalDrivers} Available")
+                ->description('Drivers ready for dispatch')
                 ->descriptionIcon('heroicon-m-users')
                 ->color('success')
                 ->url(\App\Filament\Resources\Drivers\DriverResource::getUrl()),
+
+            Stat::make('Vehicle Availability', "{$availVehicles} / {$totalVehicles} Available")
+                ->description('Vehicles ready for dispatch')
+                ->descriptionIcon('heroicon-m-truck')
+                ->color('success')
+                ->url(\App\Filament\Resources\Vehicles\VehicleResource::getUrl()),
                 
             Stat::make('Pending Vehicle Requests', $pendingRequests)
                 ->description('Requests awaiting admin review')
