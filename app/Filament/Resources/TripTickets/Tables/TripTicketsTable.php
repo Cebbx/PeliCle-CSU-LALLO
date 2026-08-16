@@ -141,7 +141,7 @@ class TripTicketsTable
                     ->label('Resend SMS')
                     ->icon('heroicon-o-paper-airplane')
                     ->color('warning')
-                    ->visible(fn ($record) => $record->status === 'pending')
+                    ->visible(fn ($record) => in_array($record->status, ['pending', 'active']))
                     ->action(function ($record) {
                         $record->sendSmsNotification();
                         \Filament\Notifications\Notification::make()
