@@ -147,10 +147,6 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-8 mb-4 mt-4">
-            <div class="border-t border-black text-center pt-2 text-xs font-bold text-black uppercase">Passenger's Signature</div>
-            <div class="border-t border-black text-center pt-2 text-xs font-bold text-black uppercase">Driver's Signature</div>
-        </div>
 
         <!-- Itinerary to be filled by driver -->
         <div class="border border-black p-3 mb-3">
