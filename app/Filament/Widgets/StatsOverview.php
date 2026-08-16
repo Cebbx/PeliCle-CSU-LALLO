@@ -17,6 +17,8 @@ class StatsOverview extends StatsOverviewWidget
 
     protected static ?int $sort = 1;
 
+    protected static ?string $pollingInterval = '15s';
+
     protected function getStats(): array
     {
         $startDate = $this->filters['startDate'] ?? null;
