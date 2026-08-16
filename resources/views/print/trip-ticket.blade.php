@@ -132,7 +132,7 @@
         <div class="mb-6 text-xs">
             <p class="italic font-semibold mb-6">I CERTIFY that the vehicle is in GOOD RUNNING CONDITION:</p>
             
-            <div class="grid grid-cols-3 gap-6 text-center mt-4">
+            <div class="grid grid-cols-2 gap-6 text-center mt-4">
                 <div class="flex flex-col justify-end min-h-[65px]">
                     <span class="text-xs font-bold text-black">JOEL A. TUMAMAO</span>
                     <span class="text-[9px] text-black uppercase font-semibold">General Services Officer</span>
@@ -143,11 +143,6 @@
                     <span class="text-xs font-bold text-black">ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.</span>
                     <span class="text-[9px] text-black uppercase font-semibold">Campus Executive Officer</span>
                     <div class="border-t border-black pt-1 mt-1 text-[9px] uppercase font-bold text-black">Approved by:</div>
-                </div>
-
-                <div class="flex flex-col justify-end min-h-[65px]">
-                    <div class="h-6 border-b border-gray-300 w-11/12 mx-auto"></div>
-                    <div class="border-t border-black pt-1 mt-1 text-[9px] uppercase font-bold text-black">Driver's Signature:</div>
                 </div>
             </div>
         </div>
