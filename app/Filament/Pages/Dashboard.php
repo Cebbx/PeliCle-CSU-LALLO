@@ -9,6 +9,7 @@ class Dashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
+            \App\Filament\Widgets\WelcomeBanner::class,
             \App\Filament\Widgets\StatsOverview::class,
         ];
     }
