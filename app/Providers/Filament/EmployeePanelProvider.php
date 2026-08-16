@@ -29,7 +29,7 @@ class EmployeePanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->brandLogo(new \Illuminate\Support\HtmlString('<div class="flex items-center gap-2"><img src="' . asset('csu-logo.png') . '" style="height: 2.2rem;" /><span class="brand-title-text font-bold text-xl tracking-wider text-slate-800 dark:text-white" style="font-family: \'Outfit\', sans-serif;">PeliCle</span><style>.fi-simple-layout .brand-title-text { display: none !important; }</style></div>'))
+            ->brandLogo(new \Illuminate\Support\HtmlString('<div class="flex items-center gap-2"><img src="' . asset('csu-logo.png') . '" style="height: 2.2rem;" /><span class="brand-title-text font-bold text-xl tracking-wider text-slate-800 dark:text-white" style="font-family: \'Outfit\', sans-serif;">PeliCle</span><style>.fi-simple-layout .brand-title-text { display: none !important; } .fi-simple-layout img { height: 4.5rem !important; }</style></div>'))
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('csu-logo.png'))
             ->font('Outfit')
