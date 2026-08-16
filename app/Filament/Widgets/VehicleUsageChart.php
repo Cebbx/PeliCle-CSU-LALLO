@@ -27,6 +27,12 @@ class VehicleUsageChart extends ChartWidget
         $filterVehicle = $this->filters['vehicle'] ?? null;
         $filterStatus = $this->filters['status'] ?? null;
 
+        $matchedVehicleName = null;
+        if ($filterVehicle) {
+            $dbVehicle = \App\Models\Vehicle::where('plate_number', $filterVehicle)->first();
+            $matchedVehicleName = $dbVehicle ? $dbVehicle->brand : $filterVehicle;
+        }
+
         $query = VehicleRequest::whereIn('status', ['approved', 'on_trip', 'completed'])
             ->whereNotNull('vehicle');
 
@@ -36,8 +42,8 @@ class VehicleUsageChart extends ChartWidget
         if ($endDate) {
             $query->where('date', '<=', $endDate);
         }
-        if ($filterVehicle) {
-            $query->where('vehicle', $filterVehicle);
+        if ($matchedVehicleName) {
+            $query->where('vehicle', 'like', '%' . $matchedVehicleName . '%');
         }
         if ($filterStatus) {
             $query->where('status', $filterStatus);

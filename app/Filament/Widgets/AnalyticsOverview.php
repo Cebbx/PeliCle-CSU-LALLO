@@ -25,19 +25,19 @@ class AnalyticsOverview extends StatsOverviewWidget
         // Base query for trip tickets
         $tripQuery = TripTicket::query();
 
-        if ($startDate || $endDate || $filterVehicle || $filterStatus) {
-            $tripQuery->whereHas('vehicleRequest', function ($q) use ($startDate, $endDate, $filterVehicle, $filterStatus) {
+        if ($filterVehicle) {
+            $tripQuery->where('vehicle', 'like', '%' . $filterVehicle . '%');
+        }
+        if ($filterStatus) {
+            $tripQuery->where('status', $filterStatus);
+        }
+        if ($startDate || $endDate) {
+            $tripQuery->whereHas('vehicleRequest', function ($q) use ($startDate, $endDate) {
                 if ($startDate) {
                     $q->where('date', '>=', $startDate);
                 }
                 if ($endDate) {
                     $q->where('date', '<=', $endDate);
-                }
-                if ($filterVehicle) {
-                    $q->where('vehicle', $filterVehicle);
-                }
-                if ($filterStatus) {
-                    $q->where('status', $filterStatus);
                 }
             });
         }

@@ -31,19 +31,19 @@ class DriverUsageChart extends ChartWidget
         $query = TripTicket::query()
             ->whereNotNull('driver_id');
 
-        if ($startDate || $endDate || $filterVehicle || $filterStatus) {
-            $query->whereHas('vehicleRequest', function ($q) use ($startDate, $endDate, $filterVehicle, $filterStatus) {
+        if ($filterVehicle) {
+            $query->where('vehicle', 'like', '%' . $filterVehicle . '%');
+        }
+        if ($filterStatus) {
+            $query->where('status', $filterStatus);
+        }
+        if ($startDate || $endDate) {
+            $query->whereHas('vehicleRequest', function ($q) use ($startDate, $endDate) {
                 if ($startDate) {
                     $q->where('date', '>=', $startDate);
                 }
                 if ($endDate) {
                     $q->where('date', '<=', $endDate);
-                }
-                if ($filterVehicle) {
-                    $q->where('vehicle', $filterVehicle);
-                }
-                if ($filterStatus) {
-                    $q->where('status', $filterStatus);
                 }
             });
         }

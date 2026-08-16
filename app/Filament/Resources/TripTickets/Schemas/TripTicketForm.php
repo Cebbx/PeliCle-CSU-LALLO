@@ -55,10 +55,6 @@ class TripTicketForm
                     ->dehydrated()
                     ->required(),
 
-                \Filament\Forms\Components\Checkbox::make('show_all_vehicles')
-                    ->label('Do you want to see/assign other busy or under maintenance cars?')
-                    ->live(),
-
                 Select::make('vehicle')
                     ->default(function () {
                         $reqId = request()->query('vehicle_request_id');
@@ -118,41 +114,7 @@ class TripTicketForm
                             }
                         }
 
-                        if ($get('show_all_vehicles')) {
-                            return $vehiclesFormatted;
-                        }
-
-                        $availableVehicles = [];
-                        foreach ($allVehicles as $vehicle) {
-                            $fullName = "{$vehicle->brand} - {$vehicle->plate_number}";
-                            $isBusy = in_array($vehicle->plate_number, $activeVehicles);
-                            $isScheduled = in_array($vehicle->plate_number, $scheduledVehicles);
-                            $isMaintenance = $vehicle->status === 'maintenance';
-
-                            if (!$isBusy && !$isMaintenance && !$isScheduled) {
-                                $availableVehicles[$vehicle->plate_number] = $fullName;
-                            }
-                        }
-
-                        if ($record && $record->vehicle && !isset($availableVehicles[$record->vehicle])) {
-                            $dbVehicle = \App\Models\Vehicle::where('plate_number', $record->vehicle)->first();
-                            $fullName = $dbVehicle ? "{$dbVehicle->brand} - {$dbVehicle->plate_number}" : $record->vehicle;
-                            
-                            $isScheduled = in_array($record->vehicle, $scheduledVehicles);
-
-                            $statusLabel = 'Unavailable';
-                            if (in_array($record->vehicle, $activeVehicles)) {
-                                $statusLabel = 'On Trip';
-                            } elseif ($dbVehicle && $dbVehicle->status === 'maintenance') {
-                                $statusLabel = 'Under Maintenance';
-                            } elseif ($isScheduled) {
-                                $statusLabel = 'Scheduled on this date';
-                            }
-
-                            $availableVehicles[$record->vehicle] = "{$fullName} ({$statusLabel})";
-                        }
-
-                        return $availableVehicles;
+                        return $vehiclesFormatted;
                     })
                     ->label('Vehicle')
                     ->disableOptionWhen(function (string $value, callable $get, ?TripTicket $record) {
@@ -186,12 +148,7 @@ class TripTicketForm
 
                         return in_array($value, $activeVehicles) || $isMaintenance || $isScheduled;
                     })
-                    ->helperText(function (callable $get) {
-                        if ($get('show_all_vehicles')) {
-                            return "Showing all vehicles. (Note: Some of these might currently be on a trip or under maintenance).";
-                        }
-                        return "Showing only available vehicles.";
-                    })
+                    ->helperText("Showing all vehicles. (Note: Busy or under maintenance vehicles are disabled).")
                     ->rules([
                         fn (callable $get, ?TripTicket $record): \Closure => function (string $attribute, $value, \Closure $fail) use ($get, $record) {
                             $activeVehicles = TripTicket::where('status', 'active')

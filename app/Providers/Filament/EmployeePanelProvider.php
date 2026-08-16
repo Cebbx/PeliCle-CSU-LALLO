@@ -29,7 +29,7 @@ class EmployeePanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->brandLogo(asset('csu-logo.png'))
+            ->brandLogo(new \Illuminate\Support\HtmlString('<div class="flex items-center gap-2"><img src="' . asset('csu-logo.png') . '" style="height: 2.2rem;" /><span class="font-bold text-xl tracking-wider text-slate-800 dark:text-white" style="font-family: \'Outfit\', sans-serif;">PeliCle</span></div>'))
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('csu-logo.png'))
             ->font('Outfit')
@@ -38,8 +38,9 @@ class EmployeePanelProvider extends PanelProvider
             ->pages([
                 \App\Filament\Employee\Pages\Dashboard::class,
             ])
+            ->discoverWidgets(in: app_path('Filament/Employee/Widgets'), for: 'App\Filament\Employee\Widgets')
             ->widgets([
-                // Completely empty dashboard
+                \App\Filament\Employee\Widgets\EmployeeStatsOverview::class,
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -22,6 +22,11 @@ class TripTicketResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'ticket_number';
 
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
     public static function getEloquentQuery(): Builder
     {
         $driverId = auth()->user()->driver?->id ?? 0;

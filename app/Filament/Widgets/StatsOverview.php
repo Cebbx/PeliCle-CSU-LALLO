@@ -36,7 +36,7 @@ class StatsOverview extends StatsOverviewWidget
             $pendingQuery->where('date', '<=', $endDate);
         }
         if ($filterVehicle) {
-            $pendingQuery->where('vehicle', $filterVehicle);
+            $pendingQuery->where('vehicle', 'like', '%' . $filterVehicle . '%');
         }
         $pendingRequests = $pendingQuery->count();
 
@@ -49,7 +49,7 @@ class StatsOverview extends StatsOverviewWidget
             $approvedQuery->where('date', '<=', $endDate);
         }
         if ($filterVehicle) {
-            $approvedQuery->where('vehicle', $filterVehicle);
+            $approvedQuery->where('vehicle', 'like', '%' . $filterVehicle . '%');
         }
         $approvedRequests = $approvedQuery->count();
 
@@ -66,7 +66,7 @@ class StatsOverview extends StatsOverviewWidget
             });
         }
         if ($filterVehicle) {
-            $activeTripsQuery->where('vehicle', $filterVehicle);
+            $activeTripsQuery->where('vehicle', 'like', '%' . $filterVehicle . '%');
         }
         $activeTrips = $activeTripsQuery->count();
 
@@ -84,7 +84,7 @@ class StatsOverview extends StatsOverviewWidget
         }
         if ($filterVehicle) {
             $pendingSlipsQuery->whereHas('tripTicket', function ($q) use ($filterVehicle) {
-                $q->where('vehicle', $filterVehicle);
+                $q->where('vehicle', 'like', '%' . $filterVehicle . '%');
             });
         }
         $pendingSlips = $pendingSlipsQuery->count();

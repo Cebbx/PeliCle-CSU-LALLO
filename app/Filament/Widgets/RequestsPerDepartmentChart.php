@@ -26,6 +26,12 @@ class RequestsPerDepartmentChart extends ChartWidget
         $endDate = $this->filters['endDate'] ?? null;
         $filterVehicle = $this->filters['vehicle'] ?? null;
 
+        $matchedVehicleName = null;
+        if ($filterVehicle) {
+            $dbVehicle = \App\Models\Vehicle::where('plate_number', $filterVehicle)->first();
+            $matchedVehicleName = $dbVehicle ? $dbVehicle->brand : $filterVehicle;
+        }
+
         $query = VehicleRequest::query();
 
         if ($startDate) {
@@ -34,8 +40,8 @@ class RequestsPerDepartmentChart extends ChartWidget
         if ($endDate) {
             $query->where('date', '<=', $endDate);
         }
-        if ($filterVehicle) {
-            $query->where('vehicle', $filterVehicle);
+        if ($matchedVehicleName) {
+            $query->where('vehicle', 'like', '%' . $matchedVehicleName . '%');
         }
 
         $data = $query->groupBy('department')
