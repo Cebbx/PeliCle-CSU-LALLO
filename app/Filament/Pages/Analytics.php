@@ -42,6 +42,10 @@ class Analytics extends BaseDashboard
                     ])
                     ->placeholder('Select a vehicle')
                     ->label('Vehicle'),
+                Select::make('driver')
+                    ->options(\App\Models\Driver::pluck('name', 'id'))
+                    ->placeholder('Select a driver')
+                    ->label('Driver'),
                 Select::make('status')
                     ->options([
                         'pending' => 'Pending',

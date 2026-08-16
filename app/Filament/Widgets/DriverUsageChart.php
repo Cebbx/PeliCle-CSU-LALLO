@@ -26,6 +26,7 @@ class DriverUsageChart extends ChartWidget
         $startDate = $this->filters['startDate'] ?? null;
         $endDate = $this->filters['endDate'] ?? null;
         $filterVehicle = $this->filters['vehicle'] ?? null;
+        $filterDriver = $this->filters['driver'] ?? null;
         $filterStatus = $this->filters['status'] ?? null;
 
         $query = TripTicket::query()
@@ -33,6 +34,9 @@ class DriverUsageChart extends ChartWidget
 
         if ($filterVehicle) {
             $query->where('vehicle', 'like', '%' . $filterVehicle . '%');
+        }
+        if ($filterDriver) {
+            $query->where('driver_id', $filterDriver);
         }
         if ($filterStatus) {
             $query->where('status', $filterStatus);
@@ -54,7 +58,10 @@ class DriverUsageChart extends ChartWidget
             ->pluck('count', 'driver_id')
             ->toArray();
 
-        $allDrivers = Driver::all();
+        $allDrivers = Driver::query()
+            ->when($filterDriver, fn ($q) => $q->where('id', $filterDriver))
+            ->get();
+
         $chartData = [];
         $labels = [];
         

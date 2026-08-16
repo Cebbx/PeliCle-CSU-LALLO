@@ -20,6 +20,7 @@ class AnalyticsOverview extends StatsOverviewWidget
         $startDate = $this->filters['startDate'] ?? null;
         $endDate = $this->filters['endDate'] ?? null;
         $filterVehicle = $this->filters['vehicle'] ?? null;
+        $filterDriver = $this->filters['driver'] ?? null;
         $filterStatus = $this->filters['status'] ?? null;
 
         // Base query for trip tickets
@@ -27,6 +28,9 @@ class AnalyticsOverview extends StatsOverviewWidget
 
         if ($filterVehicle) {
             $tripQuery->where('vehicle', 'like', '%' . $filterVehicle . '%');
+        }
+        if ($filterDriver) {
+            $tripQuery->where('driver_id', $filterDriver);
         }
         if ($filterStatus) {
             $tripQuery->where('status', $filterStatus);
@@ -55,15 +59,48 @@ class AnalyticsOverview extends StatsOverviewWidget
         $tripIds = $trips->pluck('id')->toArray();
         $totalGas = 0;
         if (!empty($tripIds)) {
-            $totalGas = WithdrawalSlip::whereIn('trip_ticket_id', $tripIds)
+            $totalGas = WithdrawalSlip::where('status', 'approved')
+                ->whereIn('trip_ticket_id', $tripIds)
                 ->sum('amount');
         }
 
         // Daily, Weekly, and Monthly fuel expenses
         $now = Carbon::now('Asia/Manila');
-        $gasToday = WithdrawalSlip::whereDate('created_at', $now->toDateString())->sum('amount');
-        $gasThisWeek = WithdrawalSlip::where('created_at', '>=', $now->copy()->startOfWeek()->toDateTimeString())->sum('amount');
-        $gasThisMonth = WithdrawalSlip::where('created_at', '>=', $now->copy()->startOfMonth()->toDateTimeString())->sum('amount');
+
+        $gasTodayQuery = WithdrawalSlip::where('status', 'approved')
+            ->whereDate('created_at', $now->toDateString());
+        $gasThisWeekQuery = WithdrawalSlip::where('status', 'approved')
+            ->where('created_at', '>=', $now->copy()->startOfWeek()->toDateTimeString());
+        $gasThisMonthQuery = WithdrawalSlip::where('status', 'approved')
+            ->where('created_at', '>=', $now->copy()->startOfMonth()->toDateTimeString());
+
+        if ($filterVehicle) {
+            $gasTodayQuery->whereHas('tripTicket', function ($q) use ($filterVehicle) {
+                $q->where('vehicle', 'like', '%' . $filterVehicle . '%');
+            });
+            $gasThisWeekQuery->whereHas('tripTicket', function ($q) use ($filterVehicle) {
+                $q->where('vehicle', 'like', '%' . $filterVehicle . '%');
+            });
+            $gasThisMonthQuery->whereHas('tripTicket', function ($q) use ($filterVehicle) {
+                $q->where('vehicle', 'like', '%' . $filterVehicle . '%');
+            });
+        }
+
+        if ($filterDriver) {
+            $gasTodayQuery->whereHas('tripTicket', function ($q) use ($filterDriver) {
+                $q->where('driver_id', $filterDriver);
+            });
+            $gasThisWeekQuery->whereHas('tripTicket', function ($q) use ($filterDriver) {
+                $q->where('driver_id', $filterDriver);
+            });
+            $gasThisMonthQuery->whereHas('tripTicket', function ($q) use ($filterDriver) {
+                $q->where('driver_id', $filterDriver);
+            });
+        }
+
+        $gasToday = $gasTodayQuery->sum('amount');
+        $gasThisWeek = $gasThisWeekQuery->sum('amount');
+        $gasThisMonth = $gasThisMonthQuery->sum('amount');
 
         return [
             Stat::make('Total Trips Assigned', $totalTrips)

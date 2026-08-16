@@ -25,6 +25,7 @@ class VehicleUsageChart extends ChartWidget
         $startDate = $this->filters['startDate'] ?? null;
         $endDate = $this->filters['endDate'] ?? null;
         $filterVehicle = $this->filters['vehicle'] ?? null;
+        $filterDriver = $this->filters['driver'] ?? null;
         $filterStatus = $this->filters['status'] ?? null;
 
         $matchedVehicleName = null;
@@ -44,6 +45,11 @@ class VehicleUsageChart extends ChartWidget
         }
         if ($matchedVehicleName) {
             $query->where('vehicle', 'like', '%' . $matchedVehicleName . '%');
+        }
+        if ($filterDriver) {
+            $query->whereHas('tripTicket', function ($q) use ($filterDriver) {
+                $q->where('driver_id', $filterDriver);
+            });
         }
         if ($filterStatus) {
             $query->where('status', $filterStatus);

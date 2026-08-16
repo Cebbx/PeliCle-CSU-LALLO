@@ -4,9 +4,12 @@ namespace App\Filament\Widgets;
 
 use App\Models\WithdrawalSlip;
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 
 class FuelExpensesChart extends ChartWidget
 {
+    use InteractsWithPageFilters;
+
     protected ?string $heading = 'Fuel Expenses by Vehicle (₱)';
 
     protected static ?int $sort = 5; // Put below vehicle usage and driver trips
@@ -18,13 +21,40 @@ class FuelExpensesChart extends ChartWidget
 
     protected function getData(): array
     {
-        $slips = WithdrawalSlip::with('tripTicket')
-            ->where('status', 'approved')
-            ->get();
+        $startDate = $this->filters['startDate'] ?? null;
+        $endDate = $this->filters['endDate'] ?? null;
+        $filterVehicle = $this->filters['vehicle'] ?? null;
+        $filterDriver = $this->filters['driver'] ?? null;
+
+        $query = WithdrawalSlip::with(['tripTicket.driver'])
+            ->where('status', 'approved');
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+        if ($filterVehicle) {
+            $query->whereHas('tripTicket', function ($q) use ($filterVehicle) {
+                $q->where('vehicle', 'like', '%' . $filterVehicle . '%');
+            });
+        }
+        if ($filterDriver) {
+            $query->whereHas('tripTicket', function ($q) use ($filterDriver) {
+                $q->where('driver_id', $filterDriver);
+            });
+        }
+
+        $slips = $query->get();
 
         $vehicleExpenses = [];
         foreach ($slips as $slip) {
             $vehicle = $slip->tripTicket->vehicle ?? 'Other/Unknown';
+            if (str_contains($vehicle, ' - ')) {
+                $parts = explode(' - ', $vehicle);
+                $vehicle = trim($parts[0]); // Use brand name for nicer chart labels
+            }
             if (!isset($vehicleExpenses[$vehicle])) {
                 $vehicleExpenses[$vehicle] = 0.00;
             }
