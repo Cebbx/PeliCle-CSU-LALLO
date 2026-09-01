@@ -60,6 +60,28 @@ class Dashboard extends BaseDashboard
             ->send();
     }
 
+    public function completeActiveTrip()
+    {
+        $activeTrip = $this->getActiveTrip();
+        if (!$activeTrip) {
+            return;
+        }
+
+        $activeTrip->update(['status' => 'completed']);
+        if ($activeTrip->vehicleRequest) {
+            $activeTrip->vehicleRequest->update(['status' => 'completed']);
+        }
+        if ($activeTrip->driver) {
+            $activeTrip->driver->update(['status' => 'available']);
+        }
+
+        \Filament\Notifications\Notification::make()
+            ->title('Trip Completed Successfully')
+            ->body("Trip {$activeTrip->ticket_number} marked as completed! Driver and vehicle are now available.")
+            ->success()
+            ->send();
+    }
+
     public function reportBreakdown($reason = 'Mechanical / Engine Breakdown')
     {
         $activeTrip = $this->getActiveTrip();

@@ -520,11 +520,16 @@
                 </div>
 
                 <!-- Embedded Home QR Code -->
-                <div class="flex flex-col items-center justify-center p-5 bg-amber-500/5 dark:bg-amber-400/5 border border-amber-500/20 rounded-2xl my-4 max-w-[260px] mx-auto gap-3 text-center shadow-inner">
-                    <img src="{{ $qrCodeUrl }}" alt="Trip QR Code" class="w-40 h-40 rounded-xl shadow-md border-2 border-white dark:border-slate-800 bg-white p-1" />
+                <div class="flex flex-col items-center justify-center p-5 bg-amber-500/5 dark:bg-amber-400/5 border border-amber-500/20 rounded-2xl my-4 max-w-[280px] mx-auto gap-3 text-center shadow-inner">
+                    <a href="{{ $completionUrl }}" target="_blank" title="Click to test Gate Clearance">
+                        <img src="{{ $qrCodeUrl }}" alt="Trip QR Code" class="w-40 h-40 rounded-xl shadow-md border-2 border-white dark:border-slate-800 bg-white p-1 hover:scale-105 transition cursor-pointer" />
+                    </a>
                     <div>
                         <p class="text-[11px] text-amber-800 dark:text-amber-200 font-extrabold uppercase tracking-wider">Gate Clearance QR Code</p>
                         <p class="text-[10px] text-amber-700/85 dark:text-amber-300/80 mt-1">Present this QR code to the Security Guard at the campus gate.</p>
+                        <a href="{{ $completionUrl }}" target="_blank" class="mt-2 inline-block text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+                            ⚡ Click QR to Complete Trip
+                        </a>
                     </div>
                 </div>
                 
@@ -542,6 +547,10 @@
                             🛬 Log Arrival
                         </button>
                     @endif
+
+                    <button wire:click="completeActiveTrip" onclick="confirm('Are you sure you want to mark this trip as completed?') || event.stopImmediatePropagation()" class="btn-milestone" style="background: linear-gradient(135deg, #059669 0%, #0d9488 100%); color: #ffffff; border: 1px solid #10b981;">
+                        🏁 Complete Trip
+                    </button>
 
                     <button onclick="confirm('Are you sure you want to report a vehicle breakdown?\nThis will cancel the active trip ticket and alert GSO Admin.') && @this.reportBreakdown()" class="btn-emergency">
                         ⚠️ Report Breakdown
