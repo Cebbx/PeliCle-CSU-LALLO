@@ -158,7 +158,7 @@
             </div>
 
             <!-- Portal Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl mb-8">
                 
                 <!-- Admin Control Panel -->
                 <a href="/admin" class="glass glass-hover p-6 rounded-[1.5rem] transition-all duration-300 flex flex-col justify-between group">
@@ -223,16 +223,27 @@
                     </div>
                 </a>
 
-            </div>
-
-            <!-- Security Guard Scanner Link -->
-            <div class="mt-2 mb-8 text-center z-10">
-                <a href="/guard/scanner" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900/60 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900/90 text-xs font-semibold text-slate-400 hover:text-emerald-400 transition-all shadow-lg hover:shadow-emerald-950/20">
-                    <svg class="w-4 h-4 text-emerald-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Campus Security Guard Scanner Portal
+                <!-- Security Guard Scanner Portal -->
+                <a href="/guard/scanner" class="glass glass-hover p-6 rounded-[1.5rem] transition-all duration-300 flex flex-col justify-between group">
+                    <!-- Top accent line -->
+                    <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-emerald-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div>
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300 border border-emerald-500/20 group-hover:bg-emerald-500/20">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h2 class="text-lg font-bold font-display text-stone-100 group-hover:text-emerald-400 transition-colors duration-300 mb-2">Guard Scanner</h2>
+                        <p class="text-xs text-stone-400 leading-relaxed mb-4">
+                            Scan driver trip QR codes at the gate, verify vehicle departure/arrival clearances, and log campus entries live.
+                        </p>
+                    </div>
+                    <div class="flex items-center text-xs font-semibold text-emerald-400 gap-1 group-hover:translate-x-2 transition-transform duration-300">
+                        Launch QR Scanner 
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </div>
                 </a>
+
             </div>
 
             <!-- Stats Overview Banner -->
