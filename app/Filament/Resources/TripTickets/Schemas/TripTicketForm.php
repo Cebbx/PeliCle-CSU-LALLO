@@ -220,7 +220,7 @@ class TripTicketForm
                         if ($travelDate) {
                             $isScheduled = TripTicket::where('driver_id', $record->id)
                                 ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                ->where('status', '!=', 'cancelled')
+                                ->whereIn('status', ['pending', 'active'])
                                 ->when($ticketRecord, fn ($q) => $q->where('id', '!=', $ticketRecord->id))
                                 ->exists();
                         }
@@ -242,7 +242,7 @@ class TripTicketForm
                         if ($travelDate) {
                             $isScheduled = TripTicket::where('driver_id', $value)
                                 ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                ->where('status', '!=', 'cancelled')
+                                ->whereIn('status', ['pending', 'active'])
                                 ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
                                 ->exists();
                         }
@@ -269,11 +269,11 @@ class TripTicketForm
 
                         $travelDate = $request->date;
                         
-                        // Get busy drivers on this date
+                        // Get busy drivers on this date (only pending and active trips)
                         $busyDriverIds = TripTicket::whereHas('vehicleRequest', function ($q) use ($travelDate) {
                                 $q->where('date', $travelDate);
                             })
-                            ->where('status', '!=', 'cancelled')
+                            ->whereIn('status', ['pending', 'active'])
                             ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
                             ->pluck('driver_id')
                             ->filter()
@@ -310,7 +310,7 @@ class TripTicketForm
                                 if ($travelDate) {
                                     $isScheduled = TripTicket::where('driver_id', $value)
                                         ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                        ->where('status', '!=', 'cancelled')
+                                        ->whereIn('status', ['pending', 'active'])
                                         ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
                                         ->exists();
                                 }
@@ -319,16 +319,16 @@ class TripTicketForm
                                  $isUnavailable = $driver && $driver->status === 'unavailable';
                                  $isOnTrip = $driver && $driver->status === 'on_trip' && (!$record || $record->driver_id !== $driver->id);
 
-                                 if ($isUnavailable) {
-                                     $fail("This driver is currently Offline (Off-Duty). Please select another driver.");
-                                 }
-
                                  if ($isOnTrip) {
                                      $fail("This driver is currently on a trip. Please select another driver.");
                                  }
 
+                                 if ($isUnavailable) {
+                                     $fail("This driver is currently marked as offline/unavailable.");
+                                 }
+
                                  if ($isScheduled) {
-                                     $fail("This driver is already scheduled for another trip on this date. Please select another driver.");
+                                     $fail("This driver is already scheduled for another active trip on this date. Please select another driver.");
                                  }
                             }
                         }
