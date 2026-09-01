@@ -15,8 +15,10 @@ class Dashboard extends BaseDashboard
         $driverId = auth()->user()->driver?->id ?? 0;
         
         return TripTicket::where('driver_id', $driverId)
-            ->whereIn('status', ['pending', 'active'])
-            ->latest()
+            ->orderByRaw("CASE WHEN status = 'active' THEN 1 WHEN status = 'pending' THEN 2 ELSE 3 END")
+            ->latest('updated_at')
+            ->latest('created_at')
+            ->limit(30)
             ->get();
     }
 
@@ -87,6 +89,16 @@ class Dashboard extends BaseDashboard
         $driver = auth()->user()->driver;
         if ($driver) {
             $driver->update(['status' => 'unavailable']);
+        }
+
+        // 5. Send real-time database notification to all GSO Admins
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        if ($admins->isNotEmpty()) {
+            \Filament\Notifications\Notification::make()
+                ->title('🚨 Emergency Vehicle Breakdown!')
+                ->body("Driver " . auth()->user()->name . " reported a breakdown for vehicle {$activeTrip->vehicle}. Trip {$activeTrip->ticket_number} cancelled and vehicle sent to maintenance.")
+                ->danger()
+                ->sendToDatabase($admins);
         }
 
         \Filament\Notifications\Notification::make()

@@ -154,16 +154,20 @@
                 
                 <!-- Recommending Approval -->
                 <div class="flex flex-col justify-end min-h-[80px] text-center">
-                    <span class="text-[9px] uppercase font-bold text-gray-500 mb-6 text-left">Recommending Approval:</span>
+                    <span class="text-[9px] uppercase font-bold text-gray-500 mb-4 text-left">Recommending Approval:</span>
                     <input type="text" value="Joel A. Tumamao" class="text-xs font-bold text-black border-b border-black pb-0.5 text-center w-full uppercase bg-transparent outline-none" />
                     <input type="text" value="GSO / Immediate Supervisor" class="text-[9px] text-black text-center font-bold uppercase mt-1 bg-transparent outline-none" />
+                    <span class="text-[8px] font-mono text-gray-600 mt-1">Recommended: {{ \Carbon\Carbon::parse($ticket->created_at)->format('M d, Y - h:i A') }}</span>
                 </div>
 
                 <!-- Approved -->
                 <div class="flex flex-col justify-end min-h-[80px] text-center">
-                    <span class="text-[9px] uppercase font-bold text-gray-500 mb-6 text-left">Approved:</span>
+                    <span class="text-[9px] uppercase font-bold text-gray-500 mb-4 text-left">Approved:</span>
                     <input type="text" value="James B. Cabildo, PhD, ASEAN Engr." class="text-xs font-bold text-black border-b border-black pb-0.5 text-center w-full uppercase bg-transparent outline-none" />
                     <input type="text" value="Campus Executive Officer" class="text-[9px] text-black text-center font-bold uppercase mt-1 bg-transparent outline-none" />
+                    <span class="text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-1 py-0.5 rounded mt-1 inline-block">
+                        ✓ Approved Timestamp: {{ \Carbon\Carbon::parse($ticket->created_at)->format('M d, Y - h:i:s A') }}
+                    </span>
                 </div>
 
             </div>

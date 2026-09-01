@@ -26,6 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/trip-tickets/{id}/print', [App\Http\Controllers\PrintController::class, 'printTicket'])->name('trip-tickets.print');
     Route::get('/trip-tickets/{id}/print-travel-order', [App\Http\Controllers\PrintController::class, 'printTravelOrder'])->name('trip-tickets.print-travel-order');
     Route::get('/withdrawal-slips/{id}/print', [App\Http\Controllers\PrintController::class, 'printSlip'])->name('withdrawal-slips.print');
+    Route::get('/analytics/print', [App\Http\Controllers\PrintController::class, 'printAnalyticsReport'])->name('analytics.print');
 });
 
 require __DIR__.'/settings.php';

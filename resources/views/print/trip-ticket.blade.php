@@ -137,12 +137,18 @@
                     <span class="text-xs font-bold text-black">JOEL A. TUMAMAO</span>
                     <span class="text-[9px] text-black uppercase font-semibold">General Services Officer</span>
                     <div class="border-t border-black pt-1 mt-1 text-[9px] uppercase font-bold text-black">Prepared by:</div>
+                    <span class="text-[8px] font-mono text-gray-600 mt-1">Prepared: {{ \Carbon\Carbon::parse($ticket->created_at)->format('M d, Y - h:i A') }}</span>
                 </div>
                 
                 <div class="flex flex-col justify-end min-h-[65px]">
                     <span class="text-xs font-bold text-black">ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.</span>
                     <span class="text-[9px] text-black uppercase font-semibold">Campus Executive Officer</span>
                     <div class="border-t border-black pt-1 mt-1 text-[9px] uppercase font-bold text-black">Approved by:</div>
+                    @if(in_array($ticket->status, ['pending', 'active', 'completed']))
+                        <span class="text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-1 py-0.5 rounded mt-1 inline-block">
+                            ✓ Approved Timestamp: {{ \Carbon\Carbon::parse($ticket->created_at)->format('M d, Y - h:i:s A') }}
+                        </span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -179,6 +185,21 @@
                     @endfor
                 </tbody>
             </table>
+
+            @if($ticket->start_odometer || $ticket->end_odometer)
+                <div class="mt-2 p-1.5 bg-gray-50 border border-black text-[9px] flex justify-between items-center font-mono">
+                    <div>
+                        <span class="font-bold">Starting Odometer:</span> {{ $ticket->start_odometer ? number_format($ticket->start_odometer) . ' km' : 'N/A' }}
+                    </div>
+                    <div>
+                        <span class="font-bold">Arrival Odometer:</span> {{ $ticket->end_odometer ? number_format($ticket->end_odometer) . ' km' : 'N/A' }}
+                    </div>
+                    <div>
+                        <span class="font-bold">Total Distance Traveled:</span> 
+                        <span class="font-bold text-black underline">{{ $ticket->distance_traveled ? number_format($ticket->distance_traveled) . ' km' : 'N/A' }}</span>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- Post-travel Certification -->
@@ -197,8 +218,17 @@
                 </div>
                 
                 <div class="flex flex-col items-center w-64">
-                    <div class="h-6 border-b border-gray-300 w-11/12 mx-auto mb-1"></div>
+                    <div class="h-6 border-b border-gray-300 w-11/12 mx-auto mb-1 flex items-center justify-center">
+                        @if($ticket->status === 'completed')
+                            <span class="text-[10px] font-bold text-black uppercase tracking-wider">{{ $ticket->driver?->name }}</span>
+                        @endif
+                    </div>
                     <div class="w-full border-t border-black text-center pt-1 text-[10px] font-bold text-black uppercase">Driver's Signature</div>
+                    @if($ticket->status === 'completed')
+                        <span class="text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-1 py-0.5 rounded mt-1 inline-block">
+                            ✓ Trip Completed: {{ \Carbon\Carbon::parse($ticket->updated_at)->format('M d, Y - h:i A') }}
+                        </span>
+                    @endif
                 </div>
             </div>
         </div>

@@ -35,19 +35,84 @@
             margin: 0;
             font-family: monospace;
         }
-        .btn-logout {
-            background: #ef4444;
-            color: #ffffff;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
+        .hero-status-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 12px 18px;
+            min-width: 220px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25);
         }
-        .btn-logout:hover {
-            background: #dc2626;
+        .status-badge-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            display: block;
+        }
+        .status-badge-val {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-top: 2px;
+            display: block;
+            line-height: 1.2;
+        }
+        .status-val-available {
+            color: #4ade80 !important;
+            text-shadow: 0 0 12px rgba(74, 222, 128, 0.4);
+        }
+        .status-val-unavailable {
+            color: #f87171 !important;
+            text-shadow: 0 0 12px rgba(248, 113, 113, 0.4);
+        }
+        .status-val-ontrip {
+            color: #fbbf24 !important;
+            text-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
+        }
+        .status-emoji-icon {
+            font-size: 24px;
+        }
+        .btn-toggle-status-banner {
+            background: rgba(30, 41, 59, 0.95);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-toggle-available {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.4) !important;
+        }
+        .btn-toggle-available:hover {
+            background: linear-gradient(135deg, #047857 0%, #065f46 100%) !important;
+            transform: translateY(-1px);
+        }
+        .btn-toggle-unavailable {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4) !important;
+        }
+        .btn-toggle-unavailable:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%) !important;
+            transform: translateY(-1px);
         }
 
         /* Alert Active Trip Card */
@@ -309,6 +374,22 @@
             background: #172554;
             color: #dbeafe;
         }
+        .badge-completed {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .dark .badge-completed {
+            background: #14532d;
+            color: #bbf7d0;
+        }
+        .badge-cancelled {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .dark .badge-cancelled {
+            background: #7f1d1d;
+            color: #fecaca;
+        }
 
         /* Action Buttons */
         .btn-view {
@@ -379,12 +460,42 @@
                 <p>License ID: {{ auth()->user()->email }} &nbsp;|&nbsp; Duty: Official Driver</p>
             </div>
             
-            <form action="{{ filament()->getPanel('driver')->getLogoutUrl() }}" method="post">
-                @csrf
-                <button type="submit" class="btn-logout">
-                    Exit Portal
-                </button>
-            </form>
+            @php
+                $driverStatus = auth()->user()->driver?->status ?? 'available';
+            @endphp
+            <!-- Duty Status Card inside Banner matching screenshot -->
+            <div class="hero-status-card">
+                <div>
+                    <span class="status-badge-title">DUTY STATUS</span>
+                    <span class="status-badge-val {{ $driverStatus === 'on_trip' ? 'status-val-ontrip' : ($driverStatus === 'unavailable' ? 'status-val-unavailable' : 'status-val-available') }}">
+                        @if($driverStatus === 'on_trip')
+                            On Trip
+                        @elseif($driverStatus === 'unavailable')
+                            Offline (Off-Duty)
+                        @else
+                            Available
+                        @endif
+                    </span>
+                    @if($driverStatus !== 'on_trip')
+                        <button wire:click="toggleDutyStatus" class="btn-toggle-status-banner {{ $driverStatus === 'unavailable' ? 'btn-toggle-available' : 'btn-toggle-unavailable' }}">
+                            @if($driverStatus === 'unavailable')
+                                🟢 <span>Go Online (Available)</span>
+                            @else
+                                🔴 <span>Go Offline (Off-Duty)</span>
+                            @endif
+                        </button>
+                    @endif
+                </div>
+                <div class="status-emoji-icon">
+                    @if($driverStatus === 'on_trip')
+                        🚗
+                    @elseif($driverStatus === 'unavailable')
+                        🔴
+                    @else
+                        🟢
+                    @endif
+                </div>
+            </div>
         </div>
 
         <!-- Alert Active Trip & Interactive Logs -->
@@ -443,21 +554,10 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div>
-                    <span class="stat-label">Duty Status</span>
-                    <span class="stat-val">
-                        @if(auth()->user()->driver?->status === 'on_trip')
-                            On Trip
-                        @elseif(auth()->user()->driver?->status === 'unavailable')
-                            Offline (Off-Duty)
-                        @else
-                            Available
-                        @endif
-                    </span>
-                    <button wire:click="toggleDutyStatus" class="btn-toggle-duty">
-                        🔄 Toggle Status
-                    </button>
+                    <span class="stat-label">Assigned Trips</span>
+                    <span class="stat-val">{{ count($this->getAssignedTrips()) }}</span>
                 </div>
-                <div class="stat-emoji">🚦</div>
+                <div class="stat-emoji">📋</div>
             </div>
 
             <div class="stat-card">
@@ -482,8 +582,11 @@
             
             <!-- Left: Assigned Trips Table -->
             <div class="card-panel">
-                <div class="card-header">
-                    Assigned Trips and Schedules
+                <div class="card-header flex justify-between items-center">
+                    <span>Recent Trip Activities & Schedules</span>
+                    <a href="{{ \App\Filament\Driver\Resources\TripTickets\TripTicketResource::getUrl('index') }}" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+                        View All Trips &rarr;
+                    </a>
                 </div>
                 <div class="table-container">
                     <table class="trip-table">
@@ -516,8 +619,8 @@
                                         {{ $trip->vehicle }}
                                     </td>
                                     <td>
-                                        <span class="badge-status {{ $trip->status === 'active' ? 'badge-active' : 'badge-pending' }}">
-                                            {{ $trip->status }}
+                                        <span class="badge-status {{ $trip->status === 'active' ? 'badge-active' : ($trip->status === 'completed' ? 'badge-completed' : ($trip->status === 'cancelled' ? 'badge-cancelled' : 'badge-pending')) }}">
+                                            {{ $trip->status === 'active' ? 'On Trip' : ucfirst($trip->status) }}
                                         </span>
                                     </td>
                                     <td style="text-align: center;">
@@ -529,7 +632,7 @@
                             @empty
                                 <tr>
                                     <td colspan="6" style="text-align: center; padding: 32px; color: #94a3b8; font-style: italic;">
-                                        No active or pending trips assigned currently.
+                                        No recent trips or activities found.
                                     </td>
                                 </tr>
                             @endforelse

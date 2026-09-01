@@ -80,6 +80,8 @@ class VehicleRequestForm
                             ->filter()
                             ->toArray();
 
+                        $onTripDbPlates = \App\Models\Vehicle::where('status', 'on_trip')->pluck('plate_number')->toArray();
+
                         $underMaintenanceVehicles = \App\Models\Vehicle::where('status', 'maintenance')
                             ->pluck('plate_number')
                             ->toArray();
@@ -87,12 +89,25 @@ class VehicleRequestForm
                         $allVehiclesFormatted = [];
                         foreach ($allVehicles as $key => $value) {
                             $parts = explode(' - ', $key);
-                            $plate = $parts[1] ?? $key;
+                            $brand = trim($parts[0] ?? '');
+                            $plate = trim($parts[1] ?? $key);
 
-                            if (in_array($plate, $onTripVehicles)) {
-                                $allVehiclesFormatted[$key] = "{$value} (On Trip)";
-                            } elseif (in_array($plate, $underMaintenanceVehicles)) {
+                            $isOnTrip = in_array($plate, $onTripDbPlates);
+                            if (!$isOnTrip) {
+                                foreach ($onTripVehicles as $activeV) {
+                                    if (str_contains($activeV, $plate) || (filled($brand) && str_contains($activeV, $brand))) {
+                                        $isOnTrip = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            $isMaintenance = in_array($plate, $underMaintenanceVehicles) || \App\Models\Vehicle::where('status', 'maintenance')->where('brand', 'like', "%{$brand}%")->exists();
+
+                            if ($isMaintenance) {
                                 $allVehiclesFormatted[$key] = "{$value} (Under Maintenance)";
+                            } elseif ($isOnTrip) {
+                                $allVehiclesFormatted[$key] = "{$value} (On Trip)";
                             } else {
                                 $allVehiclesFormatted[$key] = $value;
                             }
@@ -113,14 +128,31 @@ class VehicleRequestForm
                             ->filter()
                             ->toArray();
 
+                        $onTripDbPlates = \App\Models\Vehicle::where('status', 'on_trip')->pluck('plate_number')->toArray();
+
                         $underMaintenanceVehicles = \App\Models\Vehicle::where('status', 'maintenance')
                             ->pluck('plate_number')
                             ->toArray();
 
                         $parts = explode(' - ', $value);
-                        $plate = $parts[1] ?? $value;
+                        $brand = trim($parts[0] ?? '');
+                        $plate = trim($parts[1] ?? $value);
 
-                        return in_array($plate, $onTripVehicles) || in_array($plate, $underMaintenanceVehicles);
+                        if (in_array($plate, $onTripDbPlates)) {
+                            return true;
+                        }
+
+                        foreach ($onTripVehicles as $activeV) {
+                            if (str_contains($activeV, $plate) || (filled($brand) && str_contains($activeV, $brand))) {
+                                return true;
+                            }
+                        }
+
+                        if (in_array($plate, $underMaintenanceVehicles) || \App\Models\Vehicle::where('status', 'maintenance')->where('brand', 'like', "%{$brand}%")->exists()) {
+                            return true;
+                        }
+
+                        return false;
                     })
                     ->helperText(function (callable $get, ?\App\Models\VehicleRequest $record) {
                         $vehicle = $get('vehicle');
@@ -216,6 +248,7 @@ class VehicleRequestForm
                     ])
                     ->required(),
                 Fieldset::make('Destination Address')
+                    ->columnSpan(1)
                     ->schema([
                         Select::make('region_code')
                             ->label('Region')
@@ -311,72 +344,80 @@ class VehicleRequestForm
                             }),
                     ])
                     ->columns(2),
-                Select::make('purpose_select')
-                    ->label('Purpose')
-                    ->options([
-                        'Meeting' => 'Meeting',
-                        'Seminar' => 'Seminar',
-                        'Workshop' => 'Workshop',
-                        'Outreach' => 'Outreach',
-                        'Business Visit' => 'Business Visit',
-                        'Others' => 'Others (Specify below)',
+
+                Fieldset::make('Trip Purpose & Schedule')
+                    ->columnSpan(1)
+                    ->schema([
+                        Select::make('purpose_select')
+                            ->label('Purpose')
+                            ->options([
+                                'Meeting' => 'Meeting',
+                                'Seminar' => 'Seminar',
+                                'Workshop' => 'Workshop',
+                                'Outreach' => 'Outreach',
+                                'Business Visit' => 'Business Visit',
+                                'Others' => 'Others (Specify below)',
+                            ])
+                            ->live()
+                            ->dehydrated(false)
+                            ->columnSpanFull()
+                            ->afterStateHydrated(function ($state, callable $set, $record) {
+                                if ($record) {
+                                    $predefined = ['Meeting', 'Seminar', 'Workshop', 'Outreach', 'Business Visit'];
+                                    if (in_array($record->purpose, $predefined)) {
+                                        $set('purpose_select', $record->purpose);
+                                    } elseif ($record->purpose) {
+                                        $set('purpose_select', 'Others');
+                                        $set('other_purpose', $record->purpose);
+                                    }
+                                }
+                            })
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if ($state !== 'Others') {
+                                    $set('purpose', $state);
+                                } else {
+                                    $set('purpose', null);
+                                }
+                            })
+                            ->required(),
+                        TextInput::make('other_purpose')
+                            ->label('Specify Purpose')
+                            ->placeholder('Type custom purpose here')
+                            ->visible(fn (callable $get) => $get('purpose_select') === 'Others')
+                            ->required(fn (callable $get) => $get('purpose_select') === 'Others')
+                            ->live(onBlur: true)
+                            ->dehydrated(false)
+                            ->columnSpanFull()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $set('purpose', $state);
+                            }),
+                        \Filament\Forms\Components\Hidden::make('purpose')
+                            ->dehydrated()
+                            ->required(),
+                        DatePicker::make('date')
+                            ->label('Travel Date')
+                            ->default(now())
+                            ->minDate(now()->startOfDay())
+                            ->live()
+                            ->required(),
+                        TimePicker::make('time')
+                            ->label('Travel Time')
+                            ->default(now())
+                            ->live()
+                            ->required(),
+                        DatePicker::make('return_date')
+                            ->label('Expected Return Date')
+                            ->default(now())
+                            ->minDate(fn (callable $get) => \Carbon\Carbon::parse($get('date') ?? now())->startOfDay())
+                            ->live()
+                            ->required(),
+                        TimePicker::make('return_time')
+                            ->label('Expected Return Time')
+                            ->default(now())
+                            ->live()
+                            ->required(),
                     ])
-                    ->live()
-                    ->dehydrated(false)
-                    ->afterStateHydrated(function ($state, callable $set, $record) {
-                        if ($record) {
-                            $predefined = ['Meeting', 'Seminar', 'Workshop', 'Outreach', 'Business Visit'];
-                            if (in_array($record->purpose, $predefined)) {
-                                $set('purpose_select', $record->purpose);
-                            } elseif ($record->purpose) {
-                                $set('purpose_select', 'Others');
-                                $set('other_purpose', $record->purpose);
-                            }
-                        }
-                    })
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        if ($state !== 'Others') {
-                            $set('purpose', $state);
-                        } else {
-                            $set('purpose', null);
-                        }
-                    })
-                    ->required(),
-                TextInput::make('other_purpose')
-                    ->label('Specify Purpose')
-                    ->placeholder('Type custom purpose here')
-                    ->visible(fn (callable $get) => $get('purpose_select') === 'Others')
-                    ->required(fn (callable $get) => $get('purpose_select') === 'Others')
-                    ->live(onBlur: true)
-                    ->dehydrated(false)
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        $set('purpose', $state);
-                    }),
-                \Filament\Forms\Components\Hidden::make('purpose')
-                    ->dehydrated()
-                    ->required(),
-                DatePicker::make('date')
-                    ->label('Travel Date')
-                    ->default(now())
-                    ->minDate(now()->startOfDay())
-                    ->live()
-                    ->required(),
-                TimePicker::make('time')
-                    ->label('Travel Time')
-                    ->default(now())
-                    ->live()
-                    ->required(),
-                DatePicker::make('return_date')
-                    ->label('Expected Return Date')
-                    ->default(now())
-                    ->minDate(fn (callable $get) => \Carbon\Carbon::parse($get('date') ?? now())->startOfDay())
-                    ->live()
-                    ->required(),
-                TimePicker::make('return_time')
-                    ->label('Expected Return Time')
-                    ->default(now())
-                    ->live()
-                    ->required(),
+                    ->columns(2),
                 \Filament\Forms\Components\Repeater::make('passenger_names')
                     ->schema([
                         \Filament\Forms\Components\TextInput::make('name')
@@ -395,7 +436,7 @@ class VehicleRequestForm
                     ->label('Total Passengers')
                     ->numeric()
                     ->default(1)
-                    ->readOnly()
+                    ->disabled()
                     ->dehydrated()
                     ->required(),
                 Select::make('status')

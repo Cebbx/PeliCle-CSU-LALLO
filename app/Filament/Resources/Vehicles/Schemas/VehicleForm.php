@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Vehicles\Schemas;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
 
 class VehicleForm
@@ -35,6 +37,17 @@ class VehicleForm
                     ])
                     ->required()
                     ->default('available'),
+                DatePicker::make('last_pms_date')
+                    ->label('Last Maintenance / PMS Date')
+                    ->placeholder('Select last PMS date'),
+                DatePicker::make('next_pms_date')
+                    ->label('Next PMS Due Date')
+                    ->placeholder('Select next PMS due date')
+                    ->helperText('System will alert when approaching or overdue.'),
+                Textarea::make('maintenance_notes')
+                    ->label('Maintenance & Service Notes')
+                    ->placeholder('e.g. Change Oil, Brake Pad Replacement, Battery Check')
+                    ->columnSpanFull(),
             ]);
     }
 }

@@ -156,11 +156,11 @@
             </div>
 
             <!-- Right: Approved / Disapproved checkboxes and Joel Tumamao signature -->
-            <div class="col-span-6 flex flex-col gap-6 pl-6">
+            <div class="col-span-6 flex flex-col gap-4 pl-6">
                 <!-- Checkboxes -->
                 <div class="flex items-center gap-6 text-xs font-bold text-black">
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 accent-black" {{ $request->status === 'approved' || $request->status === 'completed' || $request->status === 'on_trip' ? 'checked' : '' }} />
+                        <input type="checkbox" class="w-4 h-4 accent-black" {{ in_array($request->status, ['approved', 'completed', 'on_trip']) ? 'checked' : '' }} />
                         <span>Approved</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
@@ -169,13 +169,32 @@
                     </label>
                 </div>
 
-                <!-- GSO signature -->
-                <div class="flex flex-col items-center mt-6">
+                <!-- GSO signature & Timestamp -->
+                <div class="flex flex-col items-center mt-2">
                     <span class="text-sm font-extrabold text-black">JOEL A. TUMAMAO</span>
                     <span class="text-[10px] text-black uppercase font-semibold">GSO</span>
-                    <div class="w-full border-t border-black text-center mt-2 pt-1">
-                        <span class="text-[10px] font-bold text-black uppercase">Received by:</span>
+                    <div class="w-full border-t border-black text-center mt-1 pt-1">
+                        <span class="text-[10px] font-bold text-black uppercase">Received / Acted by:</span>
                     </div>
+                    @if(in_array($request->status, ['approved', 'on_trip', 'completed']))
+                        <div class="mt-2 text-center w-full">
+                            <span class="text-[9px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-400 px-2 py-0.5 rounded block">
+                                ✓ Approved & Signed on: {{ \Carbon\Carbon::parse($request->updated_at)->format('F d, Y \a\t g:i:s A') }}
+                            </span>
+                        </div>
+                    @elseif($request->status === 'rejected')
+                        <div class="mt-2 text-center w-full">
+                            <span class="text-[9px] font-mono font-bold text-red-800 bg-red-50 border border-red-400 px-2 py-0.5 rounded block">
+                                ✗ Disapproved on: {{ \Carbon\Carbon::parse($request->updated_at)->format('F d, Y \a\t g:i:s A') }}
+                            </span>
+                        </div>
+                    @else
+                        <div class="mt-2 text-center w-full">
+                            <span class="text-[9px] font-mono text-amber-700 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded block">
+                                ⏳ Pending Approval (Filed: {{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y - h:i A') }})
+                            </span>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

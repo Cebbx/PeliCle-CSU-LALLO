@@ -18,7 +18,50 @@ class TripTicket extends Model
         'vehicle',
         'status',
         'document',
+        'start_odometer',
+        'end_odometer',
     ];
+
+    public function getDistanceTraveledAttribute(): ?int
+    {
+        if ($this->start_odometer !== null && $this->end_odometer !== null && $this->end_odometer >= $this->start_odometer) {
+            return (int) ($this->end_odometer - $this->start_odometer);
+        }
+        return null;
+    }
+
+    public static function estimateDistance(string $destination): int
+    {
+        $dest = strtolower($destination);
+
+        if (str_contains($dest, 'tuguegarao')) {
+            return 185;
+        } elseif (str_contains($dest, 'aparri')) {
+            return 65;
+        } elseif (str_contains($dest, 'lal-lo') || str_contains($dest, 'lallo')) {
+            return 90;
+        } elseif (str_contains($dest, 'claveria')) {
+            return 30;
+        } elseif (str_contains($dest, 'sta ana') || str_contains($dest, 'santa ana')) {
+            return 125;
+        } elseif (str_contains($dest, 'solana')) {
+            return 175;
+        } elseif (str_contains($dest, 'manila') || str_contains($dest, 'quezon')) {
+            return 620;
+        } elseif (str_contains($dest, 'baguio')) {
+            return 450;
+        } elseif (str_contains($dest, 'ballesteros')) {
+            return 40;
+        } elseif (str_contains($dest, 'pamplona')) {
+            return 20;
+        } elseif (str_contains($dest, 'lasam')) {
+            return 75;
+        } elseif (str_contains($dest, 'allacapan')) {
+            return 50;
+        }
+
+        return 45;
+    }
 
     protected static function booted(): void
     {
@@ -41,6 +84,23 @@ class TripTicket extends Model
         });
 
         static::saving(function ($tripTicket) {
+            // Auto-compute Odometer if completed and left empty
+            if ($tripTicket->status === 'completed' && (!$tripTicket->start_odometer || !$tripTicket->end_odometer)) {
+                $tripTicket->loadMissing('vehicleRequest');
+                $dest = $tripTicket->vehicleRequest?->destination ?? '';
+                $roundtripKm = static::estimateDistance($dest) * 2;
+                
+                // Get last known odometer for this vehicle or standard base
+                $lastKnownOdo = static::where('vehicle', $tripTicket->vehicle)
+                    ->where('id', '!=', $tripTicket->id)
+                    ->whereNotNull('end_odometer')
+                    ->max('end_odometer');
+
+                $startOdo = $lastKnownOdo ?: 42150;
+                $tripTicket->start_odometer = $tripTicket->start_odometer ?: $startOdo;
+                $tripTicket->end_odometer = $tripTicket->end_odometer ?: ($startOdo + $roundtripKm);
+            }
+
             // Check if driver changed
             if ($tripTicket->isDirty('driver_id')) {
                 $oldDriverId = $tripTicket->getOriginal('driver_id');
@@ -109,6 +169,9 @@ class TripTicket extends Model
                 }
             }
 
+            // Sync Vehicle status in vehicles table
+            self::syncVehicleStatus($tripTicket->vehicle);
+
             // If document was just added and it is active, send SMS notification
             if ($tripTicket->wasChanged('document') && $tripTicket->document && $tripTicket->status === 'active') {
                 $tripTicket->sendSmsNotification();
@@ -131,23 +194,41 @@ class TripTicket extends Model
                 }
             }
 
+            // Sync Vehicle status
+            self::syncVehicleStatus($tripTicket->vehicle);
+
             $tripTicket->loadMissing('vehicleRequest');
             if ($tripTicket->vehicleRequest) {
-                $tripTicket->vehicleRequest->update(['status' => 'pending']);
+                $tripTicket->vehicleRequest->updateQuietly(['status' => 'pending']);
             }
         });
+    }
 
-        static::created(function ($tripTicket) {
-            $tripTicket->loadMissing(['driver', 'vehicleRequest']);
+    public static function syncVehicleStatus(?string $vehicleIdentifier): void
+    {
+        if (empty($vehicleIdentifier)) return;
 
-            if ($tripTicket->vehicleRequest) {
-                $tripTicket->vehicleRequest->update(['status' => 'approved']);
-            }
+        $plate = $vehicleIdentifier;
+        if (str_contains($plate, ' - ')) {
+            $parts = explode(' - ', $plate);
+            $plate = trim(end($parts));
+        }
 
-            if ($tripTicket->document && $tripTicket->status === 'active') {
-                $tripTicket->sendSmsNotification();
-            }
-        });
+        $vehicle = Vehicle::where('plate_number', $plate)
+            ->orWhere('brand', 'like', '%' . $vehicleIdentifier . '%')
+            ->orWhere('model', 'like', '%' . $vehicleIdentifier . '%')
+            ->first();
+
+        if ($vehicle && $vehicle->status !== 'maintenance') {
+            $hasActiveTrip = TripTicket::where('status', 'active')
+                ->where(function ($q) use ($vehicle) {
+                    $q->where('vehicle', 'like', '%' . $vehicle->plate_number . '%')
+                      ->orWhere('vehicle', 'like', '%' . $vehicle->brand . '%');
+                })
+                ->exists();
+
+            $vehicle->update(['status' => $hasActiveTrip ? 'on_trip' : 'available']);
+        }
     }
 
     public function sendSmsNotification(): void

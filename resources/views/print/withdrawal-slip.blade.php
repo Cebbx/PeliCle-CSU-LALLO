@@ -191,6 +191,9 @@
                     <div class="pl-12 mt-4">
                         <p class="font-bold uppercase tracking-wide">ENGR. JAMES B. CABILDO, ASEAN ENGR.</p>
                         <p class="text-[13px] text-gray-800">Campus Executive Officer</p>
+                        <span class="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded mt-1 inline-block">
+                            ✓ Approved Timestamp: {{ \Carbon\Carbon::parse($slip->updated_at ?? $slip->created_at)->format('F d, Y \a\t g:i:s A') }}
+                        </span>
                     </div>
                 </div>
             </div>

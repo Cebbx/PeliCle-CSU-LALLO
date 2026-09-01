@@ -50,6 +50,7 @@ class TripTicketsTable
                     ->formatStateUsing(fn (string $state) => ucfirst($state))
                     ->searchable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 //
             ])
@@ -71,6 +72,9 @@ class TripTicketsTable
                     ->icon('heroicon-o-check-circle')
                     ->color('primary')
                     ->requiresConfirmation()
+                    ->modalHeading('Complete Trip')
+                    ->modalDescription('Are you sure you want to mark this trip as completed?')
+                    ->modalSubmitActionLabel('Yes, Complete Trip')
                     ->visible(fn ($record) => $record->status === 'active')
                     ->action(function ($record) {
                         $record->update(['status' => 'completed']);

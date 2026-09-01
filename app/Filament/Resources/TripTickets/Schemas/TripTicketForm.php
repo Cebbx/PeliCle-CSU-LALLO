@@ -69,6 +69,8 @@ class TripTicketForm
                         }
                         return null;
                     })
+                    ->disabled(fn (callable $get) => filled($get('vehicle_request_id')) || request()->has('vehicle_request_id'))
+                    ->dehydrated()
                     ->options(function (callable $get, ?TripTicket $record) {
                         $allVehicles = \App\Models\Vehicle::all();
 
@@ -91,7 +93,7 @@ class TripTicketForm
                         $scheduledVehicles = [];
                         if ($travelDate) {
                             $scheduledVehicles = TripTicket::whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                ->where('status', '!=', 'cancelled')
+                                ->whereIn('status', ['pending', 'active'])
                                 ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
                                 ->pluck('vehicle')
                                 ->filter()
@@ -101,11 +103,17 @@ class TripTicketForm
                         $vehiclesFormatted = [];
                         foreach ($allVehicles as $vehicle) {
                             $fullName = "{$vehicle->brand} - {$vehicle->plate_number}";
-                            $isScheduled = in_array($vehicle->plate_number, $scheduledVehicles);
+                            $isScheduled = false;
+                            foreach ($scheduledVehicles as $sV) {
+                                if (str_contains($sV, $vehicle->plate_number) || str_contains($sV, $vehicle->brand)) {
+                                    $isScheduled = true;
+                                    break;
+                                }
+                            }
 
                             if ($vehicle->status === 'maintenance') {
                                 $vehiclesFormatted[$vehicle->plate_number] = "{$fullName} (Under Maintenance)";
-                            } elseif (in_array($vehicle->plate_number, $activeVehicles)) {
+                            } elseif ($vehicle->status === 'on_trip' || in_array($vehicle->plate_number, $activeVehicles)) {
                                 $vehiclesFormatted[$vehicle->plate_number] = "{$fullName} (On Trip)";
                             } elseif ($isScheduled) {
                                 $vehiclesFormatted[$vehicle->plate_number] = "{$fullName} (Scheduled on this date)";
@@ -136,17 +144,20 @@ class TripTicketForm
 
                         $isScheduled = false;
                         if ($travelDate) {
-                            $isScheduled = TripTicket::where('vehicle', 'like', '%' . $value . '%')
-                                 ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                ->where('status', '!=', 'cancelled')
+                            $isScheduled = TripTicket::where(function ($q) use ($value) {
+                                    $q->where('vehicle', 'like', '%' . $value . '%');
+                                })
+                                ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
+                                ->whereIn('status', ['pending', 'active'])
                                 ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
                                 ->exists();
                         }
 
                         $dbVehicle = \App\Models\Vehicle::where('plate_number', $value)->first();
                         $isMaintenance = $dbVehicle && $dbVehicle->status === 'maintenance';
+                        $isOnTrip = ($dbVehicle && $dbVehicle->status === 'on_trip') || in_array($value, $activeVehicles);
 
-                        return in_array($value, $activeVehicles) || $isMaintenance || $isScheduled;
+                        return $isOnTrip || $isMaintenance || $isScheduled;
                     })
                     ->helperText("Showing all vehicles. (Note: Busy or under maintenance vehicles are disabled).")
                     ->rules([
@@ -169,17 +180,20 @@ class TripTicketForm
 
                             $isScheduled = false;
                             if ($travelDate) {
-                                 $isScheduled = TripTicket::where('vehicle', 'like', '%' . $value . '%')
-                                     ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                     ->where('status', '!=', 'cancelled')
-                                     ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
-                                     ->exists();
+                                $isScheduled = TripTicket::where(function ($q) use ($value) {
+                                        $q->where('vehicle', 'like', '%' . $value . '%');
+                                    })
+                                    ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
+                                    ->whereIn('status', ['pending', 'active'])
+                                    ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                                    ->exists();
                             }
 
                             $dbVehicle = \App\Models\Vehicle::where('plate_number', $value)->first();
                             $isMaintenance = $dbVehicle && $dbVehicle->status === 'maintenance';
+                            $isOnTrip = ($dbVehicle && $dbVehicle->status === 'on_trip') || in_array($value, $activeVehicles);
 
-                            if (in_array($value, $activeVehicles)) {
+                            if ($isOnTrip) {
                                 $fail("This vehicle is currently on a trip. Please select another vehicle.");
                             }
 
@@ -188,7 +202,7 @@ class TripTicketForm
                             }
 
                             if ($isScheduled) {
-                                $fail("This vehicle is already scheduled for another trip on this date. Please select another vehicle.");
+                                $fail("This vehicle is already scheduled for another trip on the selected travel date.");
                             }
                         }
                     ])

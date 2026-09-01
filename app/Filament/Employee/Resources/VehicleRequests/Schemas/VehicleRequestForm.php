@@ -35,9 +35,13 @@ class VehicleRequestForm
                 TextInput::make('employee_name')
                     ->default(fn () => auth()->user()?->name)
                     ->required(),
-                Select::make('department')
+                TextInput::make('department')
                     ->default(function () {
-                        $email = auth()->user()?->email ?? '';
+                        $user = auth()->user();
+                        if (!empty($user?->department)) {
+                            return $user->department;
+                        }
+                        $email = $user?->email ?? '';
                         $prefix = strtolower(explode('@', $email)[0]);
                         $validDepts = [
                             'ceo' => 'Office of the CEO',
@@ -59,28 +63,10 @@ class VehicleRequestForm
                             'cafevalena' => 'Café Valena',
                             'csc' => 'Campus Student Council'
                         ];
-                        return isset($validDepts[$prefix]) ? $validDepts[$prefix] : null;
+                        return $validDepts[$prefix] ?? null;
                     })
-                    ->options([
-                        'Office of the CEO' => 'Office of the CEO (Campus Executive Officer)',
-                        'HRMO' => 'HRMO (Human Resource Management Office)',
-                        'Accounting Office' => 'Accounting Office',
-                        'Budget Office' => 'Budget Office',
-                        'Property and Supply Office' => 'Property and Supply Office',
-                        'Records Office' => 'Records Office',
-                        'Planning Office' => 'Planning Office',
-                        'MIS Office' => 'MIS Office (Management Information System / System Admin)',
-                        'Office of the Campus Registrar' => 'Office of the Campus Registrar',
-                        'Campus Admission Office' => 'Campus Admission Office',
-                        'Campus Publication Office' => 'Campus Publication Office',
-                        'University Library' => 'University Library',
-                        'CICS' => 'CICS (College of Information and Computing Sciences)',
-                        'CTE' => 'CTE (College of Teacher Education)',
-                        'CHM' => 'CHM (College of Hospitality Management)',
-                        'COA' => 'COA (College of Agriculture)',
-                        'Café Valena' => 'Café Valena (CoffeeHub Café)',
-                        'Campus Student Council' => 'Campus Student Council (CSC)',
-                    ])
+                    ->disabled()
+                    ->dehydrated()
                     ->required(),
                 Select::make('vehicle')
                     ->options(function (Get $get) {
@@ -113,36 +99,45 @@ class VehicleRequestForm
                                 ->toArray();
 
                             // 1. Check if vehicle is active on the road right now (On Trip)
-                            $isActiveNow = \App\Models\TripTicket::where('status', 'active')
-                                ->whereIn('vehicle', $plates)
+                            $isActiveNow = \App\Models\Vehicle::where('status', 'on_trip')
+                                ->where(function ($q) use ($type) {
+                                    $q->where('brand', 'like', '%' . $type . '%')
+                                      ->orWhere('model', 'like', '%' . $type . '%');
+                                })
+                                ->exists()
+                                || \App\Models\TripTicket::where('status', 'active')
+                                ->where(function ($q) use ($type, $plates) {
+                                    $q->where('vehicle', 'like', '%' . $type . '%');
+                                    foreach ($plates as $plate) {
+                                        $q->orWhere('vehicle', 'like', '%' . $plate . '%');
+                                    }
+                                })
                                 ->exists();
 
-                            $isToday = $date ? \Carbon\Carbon::parse($date)->isToday() : true;
-
-                            if ($isActiveNow && $isToday) {
-                                $vehicleTypes[$type] = "{$type} (Currently On Trip)";
+                            if ($isActiveNow) {
+                                $vehicleTypes[$type] = "{$type} (On Trip)";
                                 continue;
                             }
 
-                            // 2. Check if scheduled on this specific date
-                            if ($date && !empty($plates)) {
-                                $isScheduled = \App\Models\TripTicket::where('status', 'active')
-                                    ->whereIn('vehicle', $plates)
+                            // 2. Check if scheduled on this specific date (Pending or Active, NOT completed or cancelled)
+                            if ($date) {
+                                $isScheduled = \App\Models\TripTicket::whereIn('status', ['pending', 'active'])
+                                    ->where(function ($q) use ($type, $plates) {
+                                        $q->where('vehicle', 'like', '%' . $type . '%');
+                                        foreach ($plates as $plate) {
+                                            $q->orWhere('vehicle', 'like', '%' . $plate . '%');
+                                        }
+                                    })
                                     ->whereHas('vehicleRequest', function ($q) use ($date) {
                                         $q->where('date', $date);
                                     })
                                     ->exists();
 
                                 if ($isScheduled) {
-                                    $vehicleTypes[$type] = "{$type} (Busy on this date)";
+                                    $vehicleTypes[$type] = "{$type} (Scheduled on this date)";
                                 }
                             }
                         }
-
-                        \Illuminate\Support\Facades\Log::info('Vehicle Options Evaluated', [
-                            'date' => $date,
-                            'resolved_options' => $vehicleTypes
-                        ]);
 
                         return $vehicleTypes;
                     })
@@ -167,21 +162,35 @@ class VehicleRequestForm
                             ->pluck('plate_number')
                             ->toArray();
 
-                        // Check if active today
-                        $isActiveNow = \App\Models\TripTicket::where('status', 'active')
-                            ->whereIn('vehicle', $plates)
+                        // Check if active on trip
+                        $isActiveNow = \App\Models\Vehicle::where('status', 'on_trip')
+                            ->where(function ($q) use ($value) {
+                                $q->where('brand', 'like', '%' . $value . '%')
+                                  ->orWhere('model', 'like', '%' . $value . '%');
+                            })
+                            ->exists()
+                            || \App\Models\TripTicket::where('status', 'active')
+                            ->where(function ($q) use ($value, $plates) {
+                                $q->where('vehicle', 'like', '%' . $value . '%');
+                                foreach ($plates as $plate) {
+                                    $q->orWhere('vehicle', 'like', '%' . $plate . '%');
+                                }
+                            })
                             ->exists();
 
-                        $isToday = $date ? \Carbon\Carbon::parse($date)->isToday() : true;
-
-                        if ($isActiveNow && $isToday) {
+                        if ($isActiveNow) {
                             return true;
                         }
 
-                        // Check if scheduled
-                        if ($date && !empty($plates)) {
-                            $isScheduled = \App\Models\TripTicket::where('status', 'active')
-                                ->whereIn('vehicle', $plates)
+                        // Check if scheduled (Pending/Active only)
+                        if ($date) {
+                            $isScheduled = \App\Models\TripTicket::whereIn('status', ['pending', 'active'])
+                                ->where(function ($q) use ($value, $plates) {
+                                    $q->where('vehicle', 'like', '%' . $value . '%');
+                                    foreach ($plates as $plate) {
+                                        $q->orWhere('vehicle', 'like', '%' . $plate . '%');
+                                    }
+                                })
                                 ->whereHas('vehicleRequest', function ($q) use ($date) {
                                     $q->where('date', $date);
                                 })
@@ -195,7 +204,7 @@ class VehicleRequestForm
                         return false;
                     })
                     ->label('Requested Vehicle Type')
-                    ->helperText('Select the type of vehicle you prefer for this trip.')
+                    ->helperText('Select the type of vehicle you prefer for this trip. (Note: Vehicles on trip or under maintenance cannot be selected).')
                     ->rules([
                         fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
                             $date = $get('date');
@@ -219,32 +228,41 @@ class VehicleRequestForm
 
                             // Check active now
                             $isActiveNow = \App\Models\TripTicket::where('status', 'active')
-                                ->whereIn('vehicle', $plates)
+                                ->where(function ($q) use ($value, $plates) {
+                                    $q->where('vehicle', 'like', '%' . $value . '%');
+                                    foreach ($plates as $plate) {
+                                        $q->orWhere('vehicle', 'like', '%' . $plate . '%');
+                                    }
+                                })
                                 ->exists();
 
-                            $isToday = $date ? \Carbon\Carbon::parse($date)->isToday() : true;
-
-                            if ($isActiveNow && $isToday) {
-                                $fail("The preferred vehicle type '{$value}' is currently active on a trip. Please select another vehicle.");
+                            if ($isActiveNow) {
+                                $fail("The preferred vehicle type '{$value}' is currently on a trip. Please select another vehicle.");
                             }
 
                             // Check scheduled
-                            if ($date && !empty($plates)) {
-                                $isScheduled = \App\Models\TripTicket::where('status', 'active')
-                                    ->whereIn('vehicle', $plates)
+                            if ($date) {
+                                $isScheduled = \App\Models\TripTicket::where('status', '!=', 'cancelled')
+                                    ->where(function ($q) use ($value, $plates) {
+                                        $q->where('vehicle', 'like', '%' . $value . '%');
+                                        foreach ($plates as $plate) {
+                                            $q->orWhere('vehicle', 'like', '%' . $plate . '%');
+                                        }
+                                    })
                                     ->whereHas('vehicleRequest', function ($q) use ($date) {
                                         $q->where('date', $date);
                                     })
                                     ->exists();
 
                                 if ($isScheduled) {
-                                    $fail("The preferred vehicle type '{$value}' is already busy on the selected travel date.");
+                                    $fail("The preferred vehicle type '{$value}' is already scheduled for another trip on the selected travel date.");
                                 }
                             }
                         }
                     ])
                     ->required(),
                 Fieldset::make('Destination Address')
+                    ->columnSpan(1)
                     ->schema([
                         Select::make('region_code')
                             ->label('Region')
@@ -340,72 +358,80 @@ class VehicleRequestForm
                             }),
                     ])
                     ->columns(2),
-                Select::make('purpose_select')
-                    ->label('Purpose')
-                    ->options([
-                        'Meeting' => 'Meeting',
-                        'Seminar' => 'Seminar',
-                        'Workshop' => 'Workshop',
-                        'Outreach' => 'Outreach',
-                        'Business Visit' => 'Business Visit',
-                        'Others' => 'Others (Specify below)',
+
+                Fieldset::make('Trip Purpose & Schedule')
+                    ->columnSpan(1)
+                    ->schema([
+                        Select::make('purpose_select')
+                            ->label('Purpose')
+                            ->options([
+                                'Meeting' => 'Meeting',
+                                'Seminar' => 'Seminar',
+                                'Workshop' => 'Workshop',
+                                'Outreach' => 'Outreach',
+                                'Business Visit' => 'Business Visit',
+                                'Others' => 'Others (Specify below)',
+                            ])
+                            ->live()
+                            ->dehydrated(false)
+                            ->columnSpanFull()
+                            ->afterStateHydrated(function ($state, callable $set, $record) {
+                                if ($record) {
+                                    $predefined = ['Meeting', 'Seminar', 'Workshop', 'Outreach', 'Business Visit'];
+                                    if (in_array($record->purpose, $predefined)) {
+                                        $set('purpose_select', $record->purpose);
+                                    } elseif ($record->purpose) {
+                                        $set('purpose_select', 'Others');
+                                        $set('other_purpose', $record->purpose);
+                                    }
+                                }
+                            })
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if ($state !== 'Others') {
+                                    $set('purpose', $state);
+                                } else {
+                                    $set('purpose', null);
+                                }
+                            })
+                            ->required(),
+                        TextInput::make('other_purpose')
+                            ->label('Specify Purpose')
+                            ->placeholder('Type custom purpose here')
+                            ->visible(fn (callable $get) => $get('purpose_select') === 'Others')
+                            ->required(fn (callable $get) => $get('purpose_select') === 'Others')
+                            ->live(onBlur: true)
+                            ->dehydrated(false)
+                            ->columnSpanFull()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $set('purpose', $state);
+                            }),
+                        Hidden::make('purpose')
+                            ->dehydrated()
+                            ->required(),
+                        DatePicker::make('date')
+                            ->label('Travel Date')
+                            ->default(now())
+                            ->minDate(now()->startOfDay())
+                            ->live()
+                            ->required(),
+                        TimePicker::make('time')
+                            ->label('Travel Time')
+                            ->default(now())
+                            ->live()
+                            ->required(),
+                        DatePicker::make('return_date')
+                            ->label('Expected Return Date')
+                            ->default(now())
+                            ->minDate(fn (callable $get) => \Carbon\Carbon::parse($get('date') ?? now())->startOfDay())
+                            ->live()
+                            ->required(),
+                        TimePicker::make('return_time')
+                            ->label('Expected Return Time')
+                            ->default(now())
+                            ->live()
+                            ->required(),
                     ])
-                    ->live()
-                    ->dehydrated(false)
-                    ->afterStateHydrated(function ($state, callable $set, $record) {
-                        if ($record) {
-                            $predefined = ['Meeting', 'Seminar', 'Workshop', 'Outreach', 'Business Visit'];
-                            if (in_array($record->purpose, $predefined)) {
-                                $set('purpose_select', $record->purpose);
-                            } elseif ($record->purpose) {
-                                $set('purpose_select', 'Others');
-                                $set('other_purpose', $record->purpose);
-                            }
-                        }
-                    })
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        if ($state !== 'Others') {
-                            $set('purpose', $state);
-                        } else {
-                            $set('purpose', null);
-                        }
-                    })
-                    ->required(),
-                TextInput::make('other_purpose')
-                    ->label('Specify Purpose')
-                    ->placeholder('Type custom purpose here')
-                    ->visible(fn (callable $get) => $get('purpose_select') === 'Others')
-                    ->required(fn (callable $get) => $get('purpose_select') === 'Others')
-                    ->live(onBlur: true)
-                    ->dehydrated(false)
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        $set('purpose', $state);
-                    }),
-                Hidden::make('purpose')
-                    ->dehydrated()
-                    ->required(),
-                DatePicker::make('date')
-                    ->label('Travel Date')
-                    ->default(now())
-                    ->minDate(now()->startOfDay())
-                    ->live()
-                    ->required(),
-                TimePicker::make('time')
-                    ->label('Travel Time')
-                    ->default(now())
-                    ->live()
-                    ->required(),
-                DatePicker::make('return_date')
-                    ->label('Expected Return Date')
-                    ->default(now())
-                    ->minDate(fn (callable $get) => \Carbon\Carbon::parse($get('date') ?? now())->startOfDay())
-                    ->live()
-                    ->required(),
-                TimePicker::make('return_time')
-                    ->label('Expected Return Time')
-                    ->default(now())
-                    ->live()
-                    ->required(),
+                    ->columns(2),
                 \Filament\Forms\Components\Repeater::make('passenger_names')
                     ->schema([
                         \Filament\Forms\Components\TextInput::make('name')
@@ -424,7 +450,7 @@ class VehicleRequestForm
                     ->label('Total Passengers')
                     ->numeric()
                     ->default(1)
-                    ->readOnly()
+                    ->disabled()
                     ->dehydrated()
                     ->required(),
                 Hidden::make('status')

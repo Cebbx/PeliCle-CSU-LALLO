@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\VehicleRequests\Tables;
 
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -88,57 +88,63 @@ class VehicleRequestsTable
                     ]),
             ])
             ->recordActions([
-                Action::make('approve_and_ticket')
-                    ->label('Approve & Ticket')
-                    ->icon('heroicon-o-ticket')
-                    ->color('success')
-                    ->visible(fn ($record) => !$record->tripTicket()->exists() && ($record->status === 'pending' || $record->status === 'approved'))
-                    ->action(function ($record) {
-                        $record->update(['status' => 'approved']);
-                    })
-                    ->url(fn ($record) => \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('create', [
-                        'vehicle_request_id' => $record->id,
-                    ])),
-                Action::make('reject')
-                    ->label('Reject')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->visible(fn ($record) => $record->status === 'pending')
-                    ->action(function ($record) {
-                        $record->update(['status' => 'rejected']);
-                    }),
-                Action::make('print')
-                    ->label('View Form Request')
-                    ->icon('heroicon-o-document-text')
-                    ->color('info')
-                    ->url(fn ($record) => route('vehicle-requests.print', $record->id))
-                    ->openUrlInNewTab(),
-                Action::make('upload_document')
-                    ->label('Upload Document')
-                    ->icon('heroicon-o-document-arrow-up')
-                    ->color('success')
-                    ->visible(fn ($record) => ($record->status === 'pending' || $record->status === 'approved') && !$record->document)
-                    ->form([
-                        \Filament\Forms\Components\FileUpload::make('document')
-                            ->label('Upload CEO Signed Document')
-                            ->disk('public')
-                            ->directory('request-documents')
-                            ->visibility('public')
-                            ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
-                            ->required(),
-                    ])
-                    ->action(function ($record, array $data) {
-                        $record->update([
-                            'document' => $data['document'],
-                        ]);
-                        
-                        \Filament\Notifications\Notification::make()
-                            ->title('Document Uploaded')
-                            ->body('CEO Signed Document uploaded successfully! Trip ticket is now active!')
-                            ->success()
-                            ->send();
-                    }),
+                ActionGroup::make([
+                    Action::make('approve_and_ticket')
+                        ->label('Approve & Ticket')
+                        ->icon('heroicon-o-ticket')
+                        ->color('success')
+                        ->visible(fn ($record) => !$record->tripTicket()->exists() && ($record->status === 'pending' || $record->status === 'approved'))
+                        ->action(function ($record) {
+                            $record->update(['status' => 'approved']);
+                        })
+                        ->url(fn ($record) => \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('create', [
+                            'vehicle_request_id' => $record->id,
+                        ])),
+                    Action::make('reject')
+                        ->label('Reject')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->visible(fn ($record) => $record->status === 'pending')
+                        ->action(function ($record) {
+                            $record->update(['status' => 'rejected']);
+                        }),
+                    Action::make('print')
+                        ->label('View Form Request')
+                        ->icon('heroicon-o-document-text')
+                        ->color('info')
+                        ->url(fn ($record) => route('vehicle-requests.print', $record->id))
+                        ->openUrlInNewTab(),
+                    Action::make('upload_document')
+                        ->label('Upload Document')
+                        ->icon('heroicon-o-document-arrow-up')
+                        ->color('success')
+                        ->visible(fn ($record) => ($record->status === 'pending' || $record->status === 'approved') && !$record->document)
+                        ->form([
+                            \Filament\Forms\Components\FileUpload::make('document')
+                                ->label('Upload CEO Signed Document')
+                                ->disk('public')
+                                ->directory('request-documents')
+                                ->visibility('public')
+                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                                ->required(),
+                        ])
+                        ->action(function ($record, array $data) {
+                            $record->update([
+                                'document' => $data['document'],
+                            ]);
+                            
+                            \Filament\Notifications\Notification::make()
+                                ->title('Document Uploaded')
+                                ->body('CEO Signed Document uploaded successfully! Trip ticket is now active!')
+                                ->success()
+                                ->send();
+                        }),
+                ])
+                ->label('Actions')
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray')
+                ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

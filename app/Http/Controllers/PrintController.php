@@ -101,4 +101,66 @@ class PrintController extends Controller
 
         return view('print.travel-order', compact('ticket', 'type', 'name', 'position', 'departure', 'arrival', 'destination', 'purpose', 'vehicleName'));
     }
+
+    public function printAnalyticsReport(Request $request)
+    {
+        $startDate = $request->query('startDate');
+        $endDate = $request->query('endDate');
+        $status = $request->query('status');
+        $department = $request->query('department');
+
+        $query = VehicleRequest::with(['tripTicket.driver'])
+            ->latest('date');
+
+        if ($startDate) {
+            $query->where('date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->where('date', '<=', $endDate);
+        }
+        if ($status) {
+            $query->where('status', $status);
+        }
+        if ($department) {
+            $query->where('department', $department);
+        }
+
+        $requests = $query->get();
+
+        $totalRequests = $requests->count();
+        $approvedCount = $requests->whereIn('status', ['approved', 'on_trip', 'completed'])->count();
+        $rejectedCount = $requests->where('status', 'rejected')->count();
+        $approvalRate = $totalRequests > 0 ? round(($approvedCount / $totalRequests) * 100, 1) : 0;
+        $totalPassengers = $requests->sum('number_of_passengers');
+
+        // Fuel expenses
+        $slipQuery = \App\Models\WithdrawalSlip::where('status', 'approved');
+        if ($startDate) $slipQuery->whereDate('created_at', '>=', $startDate);
+        if ($endDate) $slipQuery->whereDate('created_at', '<=', $endDate);
+        $totalFuel = $slipQuery->sum('amount');
+        $avgFuelPerTrip = $approvedCount > 0 ? round($totalFuel / $approvedCount, 2) : 0;
+
+        // Breakdown by department
+        $deptBreakdown = $requests->groupBy('department')->map->count();
+
+        // Breakdown by vehicle
+        $vehicleBreakdown = $requests->groupBy('vehicle')->map->count();
+
+        return view('print.analytics-report', compact(
+            'requests',
+            'totalRequests',
+            'approvedCount',
+            'rejectedCount',
+            'approvalRate',
+            'totalPassengers',
+            'totalFuel',
+            'avgFuelPerTrip',
+            'deptBreakdown',
+            'vehicleBreakdown',
+            'startDate',
+            'endDate',
+            'status',
+            'department'
+        ));
+    }
 }
