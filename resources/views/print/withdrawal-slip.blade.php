@@ -67,14 +67,19 @@
             }
         }
 
-        // Helper to safely fetch value from array items
+        // Helper to safely fetch value from array items (supports both repeater list and assoc array)
         $getVal = function ($key) use ($items) {
             if (is_array($items)) {
-                $val = $items[$key] ?? '';
-                if (is_array($val)) {
-                    return implode(', ', $val);
+                // Check direct assoc key
+                if (isset($items[$key]) && !is_array($items[$key]) && filled($items[$key])) {
+                    return (string) $items[$key];
                 }
-                return (string) $val;
+                // Check repeater array list: [['item' => 'diesel', 'quantity' => 30], ...]
+                foreach ($items as $row) {
+                    if (is_array($row) && isset($row['item']) && $row['item'] === $key && !empty($row['quantity'])) {
+                        return (string) $row['quantity'];
+                    }
+                }
             }
             return '';
         };

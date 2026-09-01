@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\WithdrawalSlips\Schemas;
 
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Hidden;
 use Filament\Schemas\Schema;
 
 class WithdrawalSlipForm
@@ -110,7 +111,7 @@ class WithdrawalSlipForm
                     ->disabled()
                     ->dehydrated(false)
                     ->placeholder('Select a Trip Ticket to view destination details'),
-                \Filament\Forms\Components\Hidden::make('purpose')
+                Hidden::make('purpose')
                     ->default(function () {
                         $tripId = request()->query('trip_ticket_id');
                         if (!$tripId) {
@@ -125,42 +126,82 @@ class WithdrawalSlipForm
                         return 'Official Business';
                     })
                     ->dehydrated(),
-                \Filament\Schemas\Components\Fieldset::make('requested_items')
-                    ->label('Requested Items (Fill in quantities as needed)')
-                    ->statePath('requested_items')
+                Repeater::make('requested_items')
+                    ->label('Requested Items (Drag to reorder or add items)')
+                    ->helperText('Select the fuel, oil, or fluid items required. Drag items to reorder.')
+                    ->reorderableWithDragAndDrop(true)
+                    ->reorderable(true)
+                    ->collapsible()
+                    ->defaultItems(1)
                     ->schema([
-                        TextInput::make('diesel')
-                            ->label('Diesel (Liters)')
-                            ->numeric(),
-                        TextInput::make('gasoline_regular')
-                            ->label('Gasoline Regular (Liters)')
-                            ->numeric(),
-                        TextInput::make('gasoline_premium')
-                            ->label('Gasoline Premium (Liters)')
-                            ->numeric(),
-                        TextInput::make('lubricant_40')
-                            ->label('Lubricant Oil 40 (Liters)')
-                            ->numeric(),
-                        TextInput::make('lubricant_30')
-                            ->label('Lubricant Oil 30 (Liters)')
-                            ->numeric(),
-                        TextInput::make('brake_fluid')
-                            ->label('Brake Fluid (Liters)')
-                            ->numeric(),
-                        TextInput::make('grease_atf')
-                            ->label('2T / Grease / ATF (Liters)')
-                            ->numeric(),
-                        TextInput::make('gear_oil')
-                            ->label('Gear Oil (Liters)')
-                            ->numeric(),
+                        Select::make('item')
+                            ->label('Item Type')
+                            ->options([
+                                'diesel' => '⛽ Diesel',
+                                'gasoline_regular' => '⛽ Gasoline (Regular)',
+                                'gasoline_premium' => '⛽ Gasoline (Premium)',
+                                'lubricant_40' => '🛢️ Lubricant Oil 40',
+                                'lubricant_30' => '🛢️ Lubricant Oil 30',
+                                'brake_fluid' => '🛑 Brake Fluid',
+                                'grease_atf' => '⚙️ 2T / Grease / ATF',
+                                'gear_oil' => '🔧 Gear Oil',
+                            ])
+                            ->default('diesel')
+                            ->required()
+                            ->searchable(),
+                        TextInput::make('quantity')
+                            ->label('Quantity (Liters)')
+                            ->numeric()
+                            ->minValue(0.5)
+                            ->maxValue(500)
+                            ->step(1)
+                            ->suffix('Liters')
+                            ->default(20)
+                            ->required(),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->addActionLabel('+ Add Requested Item')
+                    ->itemLabel(fn (array $state): ?string => match ($state['item'] ?? null) {
+                        'diesel' => '⛽ Diesel: ' . ($state['quantity'] ?? 0) . ' Liters',
+                        'gasoline_regular' => '⛽ Gasoline (Regular): ' . ($state['quantity'] ?? 0) . ' Liters',
+                        'gasoline_premium' => '⛽ Gasoline (Premium): ' . ($state['quantity'] ?? 0) . ' Liters',
+                        'lubricant_40' => '🛢️ Lubricant Oil 40: ' . ($state['quantity'] ?? 0) . ' Liters',
+                        'lubricant_30' => '🛢️ Lubricant Oil 30: ' . ($state['quantity'] ?? 0) . ' Liters',
+                        'brake_fluid' => '🛑 Brake Fluid: ' . ($state['quantity'] ?? 0) . ' Liters',
+                        'grease_atf' => '⚙️ 2T / Grease / ATF: ' . ($state['quantity'] ?? 0) . ' Liters',
+                        'gear_oil' => '🔧 Gear Oil: ' . ($state['quantity'] ?? 0) . ' Liters',
+                        default => null,
+                    })
+                    ->afterStateHydrated(function ($state, callable $set) {
+                        if (is_array($state)) {
+                            // Convert old flat associative array if present
+                            $isAssoc = false;
+                            foreach ($state as $k => $v) {
+                                if (is_string($k) && !is_numeric($k)) {
+                                    $isAssoc = true;
+                                    break;
+                                }
+                            }
+                            if ($isAssoc) {
+                                $converted = [];
+                                foreach ($state as $k => $v) {
+                                    if (!empty($v) && (float)$v > 0) {
+                                        $converted[] = [
+                                            'item' => $k,
+                                            'quantity' => $v,
+                                        ];
+                                    }
+                                }
+                                $set('requested_items', !empty($converted) ? $converted : [['item' => 'diesel', 'quantity' => 20]]);
+                            }
+                        }
+                    }),
                 TextInput::make('amount')
                     ->label('Actual Amount Spent')
                     ->numeric()
                     ->prefix('₱')
                     ->placeholder('0.00'),
-                \Filament\Forms\Components\Hidden::make('status')
+                Hidden::make('status')
                     ->default('approved')
                     ->dehydrated(),
             ]);
