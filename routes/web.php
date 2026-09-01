@@ -2,12 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 
-try {
-    \Illuminate\Support\Facades\DB::connection()->getPdo();
-} catch (\Throwable $e) {
-    Route::get('/', function () use ($e) {
-        return response('<h1>Database Connection Error</h1><p>Please check your credentials in Render Environment variables.</p><pre>' . $e->getMessage() . '</pre>', 500);
-    });
+// Ensure SQLite database file exists if using sqlite
+if (config('database.default') === 'sqlite') {
+    $dbPath = config('database.connections.sqlite.database');
+    if ($dbPath && !file_exists($dbPath) && $dbPath !== ':memory:') {
+        @mkdir(dirname($dbPath), 0755, true);
+        @touch($dbPath);
+    }
 }
 
 Route::view('/', 'welcome')->name('home');
