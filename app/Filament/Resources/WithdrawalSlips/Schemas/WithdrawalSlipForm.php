@@ -133,6 +133,46 @@ class WithdrawalSlipForm
                     ->reorderable(true)
                     ->collapsible()
                     ->defaultItems(1)
+                    ->formatStateUsing(function ($state) {
+                        if (is_string($state)) {
+                            $decoded = json_decode($state, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                $state = $decoded;
+                            } else {
+                                return [
+                                    ['item' => 'diesel', 'quantity' => 20]
+                                ];
+                            }
+                        }
+
+                        if (is_array($state)) {
+                            $isAssoc = false;
+                            foreach ($state as $k => $v) {
+                                if (is_string($k) && !is_numeric($k)) {
+                                    $isAssoc = true;
+                                    break;
+                                }
+                            }
+                            if ($isAssoc) {
+                                $converted = [];
+                                foreach ($state as $k => $v) {
+                                    if (!empty($v) && (float)$v > 0) {
+                                        $converted[] = [
+                                            'item' => $k,
+                                            'quantity' => (float)$v,
+                                        ];
+                                    }
+                                }
+                                return !empty($converted) ? $converted : [['item' => 'diesel', 'quantity' => 20]];
+                            }
+
+                            return $state;
+                        }
+
+                        return [
+                            ['item' => 'diesel', 'quantity' => 20]
+                        ];
+                    })
                     ->schema([
                         Select::make('item')
                             ->label('Item Type')
@@ -171,30 +211,6 @@ class WithdrawalSlipForm
                         'grease_atf' => '⚙️ 2T / Grease / ATF: ' . ($state['quantity'] ?? 0) . ' Liters',
                         'gear_oil' => '🔧 Gear Oil: ' . ($state['quantity'] ?? 0) . ' Liters',
                         default => null,
-                    })
-                    ->afterStateHydrated(function ($state, callable $set) {
-                        if (is_array($state)) {
-                            // Convert old flat associative array if present
-                            $isAssoc = false;
-                            foreach ($state as $k => $v) {
-                                if (is_string($k) && !is_numeric($k)) {
-                                    $isAssoc = true;
-                                    break;
-                                }
-                            }
-                            if ($isAssoc) {
-                                $converted = [];
-                                foreach ($state as $k => $v) {
-                                    if (!empty($v) && (float)$v > 0) {
-                                        $converted[] = [
-                                            'item' => $k,
-                                            'quantity' => $v,
-                                        ];
-                                    }
-                                }
-                                $set('requested_items', !empty($converted) ? $converted : [['item' => 'diesel', 'quantity' => 20]]);
-                            }
-                        }
                     }),
                 TextInput::make('amount')
                     ->label('Actual Amount Spent')
