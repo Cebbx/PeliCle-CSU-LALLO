@@ -77,29 +77,29 @@ class AdminPanelProvider extends PanelProvider
                             min-height: 44px !important;
                             max-height: 44px !important;
                         }
-                        html.dark .fi-global-search,
-                        html.dark .fi-global-search-field,
-                        html.dark .fi-global-search-field > div,
+                        html.dark .fi-global-search-field input,
                         html.dark .fi-topbar input, 
                         html.dark .fi-global-search-input, 
                         html.dark .fi-global-search-input-field {
-                            background: transparent !important;
-                            background-color: transparent !important;
-                            border: none !important;
-                            box-shadow: none !important;
+                            background-color: #121826 !important;
+                            border: 1px solid #1e293b !important;
+                            border-radius: 8px !important;
                             color: #ffffff !important;
-                            height: 28px !important;
+                            height: 30px !important;
                             font-size: 12px !important;
-                            padding: 2px 8px !important;
+                            padding-left: 32px !important;
+                            padding-right: 10px !important;
+                            width: 220px !important;
                         }
                         html.dark .fi-topbar input::placeholder {
-                            color: #64748b !important;
+                            color: #94a3b8 !important;
                             font-size: 11.5px !important;
                         }
-                        html.dark .fi-topbar input:focus {
-                            outline: none !important;
-                            box-shadow: none !important;
-                            border: none !important;
+                        html.dark .fi-global-search svg,
+                        html.dark .fi-global-search-field svg {
+                            color: #94a3b8 !important;
+                            width: 15px !important;
+                            height: 15px !important;
                         }
                         html.dark .fi-user-avatar {
                             background-color: #1e293b !important;
@@ -209,29 +209,29 @@ class AdminPanelProvider extends PanelProvider
                             min-height: 44px !important;
                             max-height: 44px !important;
                         }
-                        html:not(.dark) .fi-global-search,
-                        html:not(.dark) .fi-global-search-field,
-                        html:not(.dark) .fi-global-search-field > div,
+                        html:not(.dark) .fi-global-search-field input,
                         html:not(.dark) .fi-topbar input, 
                         html:not(.dark) .fi-global-search-input, 
                         html:not(.dark) .fi-global-search-input-field {
-                            background: transparent !important;
-                            background-color: transparent !important;
-                            border: none !important;
-                            box-shadow: none !important;
+                            background-color: #f1f5f9 !important;
+                            border: 1px solid #cbd5e1 !important;
+                            border-radius: 8px !important;
                             color: #0f172a !important;
-                            height: 28px !important;
+                            height: 30px !important;
                             font-size: 12px !important;
-                            padding: 2px 8px !important;
+                            padding-left: 32px !important;
+                            padding-right: 10px !important;
+                            width: 220px !important;
                         }
                         html:not(.dark) .fi-topbar input::placeholder {
-                            color: #94a3b8 !important;
+                            color: #64748b !important;
                             font-size: 11.5px !important;
                         }
-                        html:not(.dark) .fi-topbar input:focus {
-                            outline: none !important;
-                            box-shadow: none !important;
-                            border: none !important;
+                        html:not(.dark) .fi-global-search svg,
+                        html:not(.dark) .fi-global-search-field svg {
+                            color: #64748b !important;
+                            width: 15px !important;
+                            height: 15px !important;
                         }
                         html:not(.dark) .fi-user-avatar {
                             background-color: #f1f5f9 !important;
