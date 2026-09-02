@@ -37,35 +37,55 @@ class EmployeePanelProvider extends PanelProvider
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn () => new \Illuminate\Support\HtmlString('
                     <style>
-                        /* Eliminate yellow outline/ring and highlight on locked, readonly, and disabled boxes */
-                        input:disabled,
-                        input[readonly],
-                        .fi-input-wrp:has(input:disabled),
-                        .fi-input-wrp:has(input[readonly]),
-                        .fi-input-wrp.fi-disabled,
-                        .fi-locked-field,
-                        .fi-locked-field * {
-                            outline: none !important;
-                            box-shadow: none !important;
-                            --tw-ring-color: transparent !important;
-                            --tw-ring-shadow: none !important;
-                            ring: 0 !important;
+                        /* Ensure all input boxes have clearly visible rounded borders and clean backgrounds */
+                        .fi-input-wrp {
+                            border: 1px solid rgba(255, 255, 255, 0.16) !important;
+                            border-radius: 0.5rem !important;
+                            background-color: rgba(255, 255, 255, 0.03) !important;
                         }
-                        .fi-input-wrp:has(input:disabled):focus-within,
+
+                        html:not(.dark) .fi-input-wrp {
+                            border: 1px solid #d1d5db !important;
+                            border-radius: 0.5rem !important;
+                            background-color: #ffffff !important;
+                        }
+
+                        /* Prevent yellow/amber focus ring when clicking read-only or disabled boxes */
                         .fi-input-wrp:has(input[readonly]):focus-within,
-                        .fi-input-wrp.fi-disabled:focus-within,
-                        .fi-locked-field:focus-within {
-                            outline: none !important;
-                            box-shadow: none !important;
+                        .fi-input-wrp:has(input:disabled):focus-within,
+                        .fi-input-wrp.fi-disabled:focus-within {
+                            border-color: rgba(255, 255, 255, 0.25) !important;
                             --tw-ring-color: transparent !important;
                             --tw-ring-shadow: none !important;
-                            border-color: rgba(255, 255, 255, 0.15) !important;
+                            box-shadow: none !important;
+                            outline: none !important;
                         }
-                        .fi-locked-field,
-                        .fi-locked-field input {
-                            pointer-events: none !important;
+
+                        html:not(.dark) .fi-input-wrp:has(input[readonly]):focus-within,
+                        html:not(.dark) .fi-input-wrp:has(input:disabled):focus-within,
+                        html:not(.dark) .fi-input-wrp.fi-disabled:focus-within {
+                            border-color: #9ca3af !important;
+                            --tw-ring-color: transparent !important;
+                            --tw-ring-shadow: none !important;
+                            box-shadow: none !important;
+                            outline: none !important;
+                        }
+
+                        input[readonly],
+                        input:disabled {
                             cursor: default !important;
-                            user-select: none !important;
+                            color: #f8fafc !important;
+                        }
+
+                        html:not(.dark) input[readonly],
+                        html:not(.dark) input:disabled {
+                            color: #0f172a !important;
+                        }
+
+                        input[readonly]:focus,
+                        input:disabled:focus {
+                            outline: none !important;
+                            box-shadow: none !important;
                         }
                     </style>
                 ')
