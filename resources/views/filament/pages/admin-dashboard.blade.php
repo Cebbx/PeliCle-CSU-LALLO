@@ -212,19 +212,19 @@
             cursor: pointer;
         }
 
-        /* Recent Requests Feed */
+        /* Recent Requests Feed (Compact Multi-Item) */
         .feed-list-box {
             display: flex;
             flex-direction: column;
-            gap: 1px;
+            gap: 0px;
         }
         .feed-item-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 4px 0;
+            padding: 2.5px 0;
             border-bottom: 1px solid #161f30;
-            gap: 8px;
+            gap: 6px;
         }
         .feed-item-row:last-child {
             border-bottom: none;
@@ -232,46 +232,46 @@
         .feed-item-left {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             min-width: 0;
         }
         .feed-dot-indicator {
-            width: 5.5px;
-            height: 5.5px;
+            width: 4.5px;
+            height: 4.5px;
             border-radius: 50%;
             flex-shrink: 0;
         }
         .feed-text-group {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             min-width: 0;
         }
         .feed-ref-code {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             color: #ffffff;
             white-space: nowrap;
         }
         .feed-purpose-desc {
-            font-size: 10.5px;
+            font-size: 9.5px;
             color: #94a3b8;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 150px;
+            max-width: 140px;
         }
         .feed-item-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-shrink: 0;
         }
         .feed-status-pill {
-            font-size: 9.5px;
+            font-size: 8.5px;
             font-weight: 700;
-            padding: 1.5px 7px;
-            border-radius: 4px;
+            padding: 1px 5px;
+            border-radius: 3px;
             display: inline-block;
             text-transform: capitalize;
         }
@@ -281,10 +281,10 @@
         .status-pill-rejected { background: #dc2626; color: #ffffff; }
 
         .feed-timestamp {
-            font-size: 10px;
+            font-size: 9px;
             color: #64748b;
             white-space: nowrap;
-            min-width: 48px;
+            min-width: 42px;
             text-align: right;
         }
 

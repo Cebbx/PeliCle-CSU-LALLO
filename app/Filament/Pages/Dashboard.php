@@ -198,6 +198,6 @@ class Dashboard extends BaseDashboard
 
     public function getRecentRequests()
     {
-        return VehicleRequest::latest('id')->take(5)->get();
+        return VehicleRequest::latest('id')->take(7)->get();
     }
 }
