@@ -60,8 +60,20 @@ class AdminPanelProvider extends PanelProvider
                         /* ========================================================
                            1. DARK THEME STYLES (html.dark)
                            ======================================================== */
-                        html.dark, html.dark body, html.dark .fi-layout, html.dark .fi-main {
-                            background-color: #070a11 !important;
+                        html.dark, 
+                        html.dark body, 
+                        html.dark .fi-layout, 
+                        html.dark .fi-main,
+                        html.dark header.fi-topbar, 
+                        html.dark .fi-topbar-nav, 
+                        html.dark .fi-topbar-header, 
+                        html.dark .fi-topbar > div,
+                        html.dark aside.fi-sidebar,
+                        html.dark .fi-sidebar-header, 
+                        html.dark .fi-sidebar-footer, 
+                        html.dark .fi-sidebar-nav {
+                            background-color: #080c14 !important;
+                            background: #080c14 !important;
                             color: #f8fafc !important;
                             color-scheme: dark !important;
                         }
@@ -71,7 +83,6 @@ class AdminPanelProvider extends PanelProvider
                         html.dark .fi-topbar-nav, 
                         html.dark .fi-topbar-header, 
                         html.dark .fi-topbar > div {
-                            background-color: #090d16 !important;
                             border-bottom: 1px solid #161f30 !important;
                             height: 44px !important;
                             min-height: 44px !important;
@@ -81,7 +92,7 @@ class AdminPanelProvider extends PanelProvider
                         html.dark .fi-topbar input, 
                         html.dark .fi-global-search-input, 
                         html.dark .fi-global-search-input-field {
-                            background-color: #121826 !important;
+                            background-color: #101623 !important;
                             border: 1px solid #1e293b !important;
                             border-radius: 8px !important;
                             color: #ffffff !important;
@@ -117,13 +128,11 @@ class AdminPanelProvider extends PanelProvider
                         /* Dark Left Sidebar */
                         html.dark aside.fi-sidebar {
                             width: 14rem !important;
-                            background-color: #090d16 !important;
                             border-right: 1px solid #161f30 !important;
                         }
                         html.dark .fi-sidebar-header, 
                         html.dark .fi-sidebar-footer, 
                         html.dark .fi-sidebar-nav {
-                            background-color: #090d16 !important;
                             border-color: #161f30 !important;
                         }
                         html.dark .fi-sidebar-header {
