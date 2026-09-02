@@ -287,6 +287,75 @@
             min-width: 48px;
             text-align: right;
         }
+
+        /* ========================================================
+           Light Theme Dashboard Overrides (html:not(.dark))
+           ======================================================== */
+        html:not(.dark) .fi-page {
+            background-color: #f1f5f9 !important;
+        }
+        html:not(.dark) .fi-main-ctn {
+            background-color: #f1f5f9 !important;
+        }
+        html:not(.dark) .dashboard-wrapper {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+        html:not(.dark) .dash-title {
+            color: #0f172a !important;
+        }
+        html:not(.dark) .dash-welcome {
+            color: #0f172a !important;
+        }
+        html:not(.dark) .dash-desc {
+            color: #64748b !important;
+        }
+        html:not(.dark) .dash-card {
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+        }
+        html:not(.dark) .card-title-text {
+            color: #475569 !important;
+        }
+        html:not(.dark) .card-number-bold {
+            color: #0f172a !important;
+        }
+        html:not(.dark) .card-unit-label {
+            color: #0f172a !important;
+        }
+        html:not(.dark) .panel-title-text {
+            color: #0f172a !important;
+        }
+        html:not(.dark) .panel-filter-btn {
+            background: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #475569 !important;
+        }
+        html:not(.dark) .feed-item-row {
+            border-bottom: 1px solid #f1f5f9 !important;
+        }
+        html:not(.dark) .feed-ref-code {
+            color: #0f172a !important;
+        }
+        html:not(.dark) .feed-purpose-desc {
+            color: #64748b !important;
+        }
+        html:not(.dark) line {
+            stroke: #e2e8f0 !important;
+        }
+        html:not(.dark) .donut-track {
+            stroke: #e2e8f0 !important;
+        }
+        html:not(.dark) .donut-center-num {
+            color: #0f172a !important;
+        }
+        html:not(.dark) .donut-legend-text {
+            color: #334155 !important;
+        }
+        html:not(.dark) .donut-legend-val {
+            color: #0f172a !important;
+        }
     </style>
 
     <div class="dashboard-wrapper">
