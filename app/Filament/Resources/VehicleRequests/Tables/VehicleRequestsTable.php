@@ -17,35 +17,36 @@ class VehicleRequestsTable
         return $table
             ->columns([
                 TextColumn::make('request_number')
+                    ->label('Request #')
                     ->searchable()
                     ->weight('bold'),
                 TextColumn::make('employee_name')
+                    ->label('Requester')
+                    ->limit(18)
+                    ->tooltip(fn ($record) => $record->employee_name)
                     ->searchable(),
                 TextColumn::make('department')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
+                    ->limit(16)
+                    ->tooltip(fn ($record) => $record->vehicle)
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('destination')
+                    ->limit(20)
+                    ->tooltip(fn ($record) => $record->destination)
                     ->searchable(),
                 TextColumn::make('date')
-                    ->label('Travel Date')
+                    ->label('Schedule')
                     ->date('M d, Y')
-                    ->sortable(),
-                TextColumn::make('time')
-                    ->label('Travel Time')
-                    ->time('h:i A')
+                    ->description(fn ($record) => $record->time ? \Carbon\Carbon::parse($record->time)->format('h:i A') : null)
                     ->sortable(),
                 TextColumn::make('return_date')
-                    ->label('Return Date')
+                    ->label('Return')
                     ->date('M d, Y')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('return_time')
-                    ->label('Return Time')
-                    ->time('h:i A')
+                    ->description(fn ($record) => $record->return_time ? \Carbon\Carbon::parse($record->return_time)->format('h:i A') : null)
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
@@ -55,6 +56,7 @@ class VehicleRequestsTable
                         'approved' => 'success',
                         'on_trip' => 'info',
                         'rejected' => 'danger',
+                        'cancelled' => 'gray',
                         'completed' => 'success',
                         default => 'gray',
                     })
@@ -63,12 +65,14 @@ class VehicleRequestsTable
                         'approved' => 'Approved',
                         'on_trip' => 'On Trip',
                         'rejected' => 'Rejected',
+                        'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
                         default => ucfirst($state),
                     })
                     ->searchable(),
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Created')
+                    ->dateTime('M d, Y h:i A')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
