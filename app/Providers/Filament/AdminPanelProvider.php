@@ -49,12 +49,25 @@ class AdminPanelProvider extends PanelProvider
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn () => new \Illuminate\Support\HtmlString('
                     <style>
-                        /* Zero Background on Logo */
-                        .fi-logo, a.fi-logo, .brand-logo-wrapper, .fi-sidebar-header a, .fi-topbar a {
+                        /* Zero Box / Zero Border on CSU Logo + PeliCle Brand */
+                        .fi-logo, 
+                        a.fi-logo, 
+                        .brand-logo-wrapper, 
+                        .fi-sidebar-header,
+                        .fi-sidebar-header > *,
+                        .fi-sidebar-header a, 
+                        .fi-topbar-header,
+                        .fi-topbar-header > *,
+                        .fi-topbar a,
+                        .fi-logo:hover,
+                        a.fi-logo:hover,
+                        .brand-logo-wrapper:hover {
                             background: transparent !important;
                             background-color: transparent !important;
                             box-shadow: none !important;
                             border: none !important;
+                            outline: none !important;
+                            text-decoration: none !important;
                         }
 
                         /* ========================================================
