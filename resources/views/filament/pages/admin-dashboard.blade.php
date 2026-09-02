@@ -1,12 +1,12 @@
 <x-filament-panels::page>
     <style>
         .fi-page {
-            background-color: #080c14 !important;
+            background-color: #070a11 !important;
         }
         .fi-main-ctn {
             max-width: 100% !important;
             padding: 0px 16px 8px 16px !important;
-            background-color: #080c14 !important;
+            background-color: #070a11 !important;
         }
         .fi-header {
             display: none !important;
@@ -25,7 +25,7 @@
             font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #f8fafc;
             width: 100%;
-            background-color: #080c14;
+            background-color: #070a11;
         }
 
         /* 1. Header (Elevated & Compact) */

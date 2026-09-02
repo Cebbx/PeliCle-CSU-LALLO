@@ -77,22 +77,26 @@ class AdminPanelProvider extends PanelProvider
                         html.dark body, 
                         html.dark .fi-layout, 
                         html.dark .fi-main,
+                        html.dark .fi-page,
+                        html.dark .fi-topbar,
                         html.dark header.fi-topbar, 
                         html.dark .fi-topbar-nav, 
                         html.dark .fi-topbar-header, 
                         html.dark .fi-topbar > div,
                         html.dark aside.fi-sidebar,
+                        html.dark .fi-sidebar,
                         html.dark .fi-sidebar-header, 
                         html.dark .fi-sidebar-footer, 
                         html.dark .fi-sidebar-nav {
-                            background-color: #080c14 !important;
-                            background: #080c14 !important;
+                            background-color: #070a11 !important;
+                            background: #070a11 !important;
                             color: #f8fafc !important;
                             color-scheme: dark !important;
                         }
 
                         /* Dark Topbar */
                         html.dark header.fi-topbar, 
+                        html.dark .fi-topbar,
                         html.dark .fi-topbar-nav, 
                         html.dark .fi-topbar-header, 
                         html.dark .fi-topbar > div {
