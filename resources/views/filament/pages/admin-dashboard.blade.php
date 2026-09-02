@@ -5,7 +5,7 @@
         }
         .fi-main-ctn {
             max-width: 100% !important;
-            padding: 8px 16px !important;
+            padding: 2px 16px 8px 16px !important;
             background-color: #070a11 !important;
         }
         .fi-header {
@@ -20,9 +20,6 @@
             -ms-overflow-style: none !important;
             scrollbar-width: none !important;
         }
-        html, body, .fi-layout, .fi-main, .fi-main-ctn, .fi-page {
-            overflow-y: hidden !important;
-        }
 
         .dashboard-wrapper {
             font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -31,12 +28,13 @@
             background-color: #070a11;
         }
 
-        /* 1. Header */
+        /* 1. Header (Elevated & Enhanced Font) */
         .dash-header {
-            margin-bottom: 8px;
+            margin-top: 0px;
+            margin-bottom: 12px;
         }
         .dash-title {
-            font-size: 22px;
+            font-size: 28px;
             font-weight: 800;
             color: #ffffff;
             letter-spacing: -0.02em;
@@ -44,24 +42,24 @@
             line-height: 1.1;
         }
         .dash-welcome {
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 700;
             color: #ffffff;
-            margin-top: 2px;
+            margin-top: 4px;
             display: flex;
             align-items: center;
             gap: 5px;
         }
         .dash-desc {
-            font-size: 11px;
+            font-size: 12.5px;
             color: #94a3b8;
-            margin-top: 1px;
-            line-height: 1.2;
+            margin-top: 2px;
+            line-height: 1.3;
         }
         .dash-live-status {
-            font-size: 10.5px;
+            font-size: 11.5px;
             color: #64748b;
-            margin-top: 1px;
+            margin-top: 2px;
             font-weight: 500;
         }
 
