@@ -34,7 +34,6 @@ class VehicleRequestForm
                     ->default(fn () => auth()->id()),
                 TextInput::make('employee_name')
                     ->default(fn () => auth()->user()?->name ?? 'Employee User')
-                    ->readOnly()
                     ->required(),
                 TextInput::make('department')
                     ->default(function () {
