@@ -137,9 +137,9 @@ class VehicleRequestsTable
                         ->color('danger')
                         ->requiresConfirmation()
                         ->modalHeading('Reject Vehicle Request')
-                        ->modalDescription('Are you sure you want to reject this vehicle request?')
+                        ->modalDescription('Are you sure you want to reject this pending vehicle request?')
                         ->modalSubmitActionLabel('Yes, Reject Request')
-                        ->visible(fn ($record) => in_array($record->status, ['pending', 'approved']))
+                        ->visible(fn ($record) => $record->status === 'pending')
                         ->action(function ($record) {
                             $record->update(['status' => 'rejected']);
                             
@@ -147,6 +147,30 @@ class VehicleRequestsTable
                                 ->title('Request Rejected')
                                 ->body("Request {$record->request_number} has been rejected.")
                                 ->danger()
+                                ->send();
+                        }),
+                    Action::make('cancel_request')
+                        ->label('Cancel Request')
+                        ->icon('heroicon-o-x-mark')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Cancel Approved Request')
+                        ->modalDescription('Are you sure you want to cancel this approved request? Any scheduled trip ticket will also be cancelled.')
+                        ->modalSubmitActionLabel('Yes, Cancel Request')
+                        ->visible(fn ($record) => $record->status === 'approved')
+                        ->action(function ($record) {
+                            $record->update(['status' => 'cancelled']);
+                            if ($record->tripTicket) {
+                                $record->tripTicket->update(['status' => 'cancelled']);
+                                if ($record->tripTicket->driver) {
+                                    $record->tripTicket->driver->update(['status' => 'available']);
+                                }
+                            }
+                            
+                            \Filament\Notifications\Notification::make()
+                                ->title('Request Cancelled')
+                                ->body("Approved request {$record->request_number} has been cancelled.")
+                                ->warning()
                                 ->send();
                         }),
                 ])
@@ -162,6 +186,7 @@ class VehicleRequestsTable
                         'approved' => 'Approved',
                         'on_trip' => 'On Trip',
                         'rejected' => 'Rejected',
+                        'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
                     ]),
                 \Filament\Tables\Filters\TrashedFilter::make()
