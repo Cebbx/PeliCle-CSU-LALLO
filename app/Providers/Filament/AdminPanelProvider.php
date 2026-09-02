@@ -293,27 +293,38 @@ class AdminPanelProvider extends PanelProvider
                             letter-spacing: 0.05em !important;
                         }
 
-                        /* 3. Universal Table Spacing & Action Button Polish */
+                        /* 3. Universal Compact Table Spacing & Visible Action Button */
+                        .fi-ta-table {
+                            width: 100% !important;
+                        }
                         .fi-ta-header-cell-label {
-                            font-size: 11.5px !important;
+                            font-size: 11px !important;
                             font-weight: 700 !important;
                             letter-spacing: 0.02em !important;
                         }
                         .fi-ta-cell, .fi-ta-header-cell {
-                            padding-left: 8px !important;
-                            padding-right: 8px !important;
-                            padding-top: 6px !important;
-                            padding-bottom: 6px !important;
+                            padding-left: 6px !important;
+                            padding-right: 6px !important;
+                            padding-top: 5px !important;
+                            padding-bottom: 5px !important;
                         }
                         .fi-ta-text-item-label {
-                            font-size: 12px !important;
+                            font-size: 11.5px !important;
                         }
                         .fi-ta-text-item-description {
-                            font-size: 10.5px !important;
+                            font-size: 10px !important;
+                        }
+                        .fi-badge {
+                            font-size: 10px !important;
+                            padding: 1px 6px !important;
                         }
                         .fi-ta-actions-cell {
-                            padding-right: 12px !important;
+                            padding-right: 10px !important;
+                            width: 44px !important;
                             text-align: center !important;
+                        }
+                        .fi-ta-actions-cell button, .fi-ta-actions button {
+                            padding: 3px !important;
                         }
                     </style>
                 ')

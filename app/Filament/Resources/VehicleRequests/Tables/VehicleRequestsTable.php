@@ -22,20 +22,22 @@ class VehicleRequestsTable
                     ->weight('bold'),
                 TextColumn::make('employee_name')
                     ->label('Requester')
-                    ->limit(18)
+                    ->limit(13)
                     ->tooltip(fn ($record) => $record->employee_name)
                     ->searchable(),
                 TextColumn::make('department')
+                    ->limit(8)
+                    ->tooltip(fn ($record) => $record->department)
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
-                    ->limit(16)
+                    ->limit(12)
                     ->tooltip(fn ($record) => $record->vehicle)
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('destination')
-                    ->limit(20)
+                    ->limit(15)
                     ->tooltip(fn ($record) => $record->destination)
                     ->searchable(),
                 TextColumn::make('date')
@@ -183,7 +185,6 @@ class VehicleRequestsTable
                 ->color('gray')
                 ->button(),
             ])
-            ->actionsColumnLabel('Actions')
             ->filters([
                 SelectFilter::make('status')
                     ->options([
