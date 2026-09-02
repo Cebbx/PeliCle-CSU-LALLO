@@ -147,7 +147,11 @@ class VehicleRequestsTable
                                 ->warning()
                                 ->send();
                         }),
-                ]),
+                ])
+                ->label('Actions')
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray')
+                ->button(),
             ])
             ->filters([
                 SelectFilter::make('status')
