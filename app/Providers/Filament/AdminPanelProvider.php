@@ -34,6 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ->defaultThemeMode(\Filament\Enums\ThemeMode::Dark)
             ->brandLogo(new \Illuminate\Support\HtmlString('<div class="brand-logo-wrapper" style="display: flex; align-items: center; gap: 6px;"><img src="' . asset('csu-logo.png') . '" style="height: 1.6rem;" /><span class="brand-title-text font-bold text-base tracking-wider text-white" style="font-family: \'Outfit\', sans-serif;">PeliCle</span><style>.fi-simple-layout .brand-title-text { display: none !important; } .fi-simple-layout .brand-logo-wrapper { justify-content: center !important; gap: 0 !important; } .fi-simple-layout img { height: 3rem !important; }</style></div>'))
             ->brandLogoHeight('1.8rem')
+            ->sidebarWidth('13.5rem')
             ->favicon(asset('csu-logo.png'))
             ->font('Outfit')
             ->databaseNotifications()
@@ -98,9 +99,14 @@ class AdminPanelProvider extends PanelProvider
                         }
 
                         /* 3. Left Navigation Sidebar */
-                        aside.fi-sidebar, .fi-sidebar-header, .fi-sidebar-footer, .fi-sidebar-nav {
+                        aside.fi-sidebar {
+                            width: 13.5rem !important;
                             background-color: #090d16 !important;
                             border-right: 1px solid #161f30 !important;
+                        }
+                        .fi-sidebar-header, .fi-sidebar-footer, .fi-sidebar-nav {
+                            background-color: #090d16 !important;
+                            border-color: #161f30 !important;
                         }
                         .fi-sidebar-header {
                             height: 40px !important;
