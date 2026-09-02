@@ -105,37 +105,43 @@ class AdminPanelProvider extends PanelProvider
                         html.dark .fi-topbar input, 
                         html.dark .fi-global-search-input, 
                         html.dark .fi-global-search-input-field {
-                            background-color: #101623 !important;
+                            background-color: #0b0f19 !important;
                             border: 1px solid #1e293b !important;
-                            border-radius: 8px !important;
+                            border-radius: 6px !important;
                             color: #ffffff !important;
-                            height: 30px !important;
-                            font-size: 12px !important;
-                            padding-left: 32px !important;
+                            height: 28px !important;
+                            font-size: 11.5px !important;
+                            padding-left: 30px !important;
                             padding-right: 10px !important;
-                            width: 220px !important;
+                            width: 200px !important;
                         }
                         html.dark .fi-topbar input::placeholder {
-                            color: #94a3b8 !important;
-                            font-size: 11.5px !important;
+                            color: #64748b !important;
+                            font-size: 11px !important;
                         }
                         html.dark .fi-global-search svg,
                         html.dark .fi-global-search-field svg {
-                            color: #94a3b8 !important;
-                            width: 15px !important;
-                            height: 15px !important;
+                            color: #64748b !important;
+                            width: 14px !important;
+                            height: 14px !important;
                         }
                         html.dark .fi-user-avatar {
                             background-color: #1e293b !important;
                             color: #ffffff !important;
-                            width: 28px !important;
-                            height: 28px !important;
-                            font-size: 11.5px !important;
+                            width: 26px !important;
+                            height: 26px !important;
+                            font-size: 11px !important;
                         }
                         html.dark .fi-topbar svg {
                             color: #94a3b8 !important;
-                            width: 18px !important;
-                            height: 18px !important;
+                            width: 17px !important;
+                            height: 17px !important;
+                        }
+                        html.dark .fi-icon-btn-badge {
+                            background-color: #ef4444 !important;
+                            color: #ffffff !important;
+                            font-size: 9.5px !important;
+                            font-weight: 700 !important;
                         }
 
                         /* Dark Left Sidebar */
