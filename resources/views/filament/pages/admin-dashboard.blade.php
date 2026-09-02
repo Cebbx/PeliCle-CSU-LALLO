@@ -86,7 +86,7 @@
             .row-grid-3 { grid-template-columns: 1fr; }
         }
 
-        /* 3. Stat Cards (Enlarged & Prominent) */
+        /* 3. Stat Cards (Enlarged, Prominent & Clickable) */
         .dash-card {
             background: #0d121d;
             border: 1px solid #1a2233;
@@ -103,6 +103,16 @@
         .dash-card-pad {
             padding: 14px 16px;
             min-height: 210px;
+        }
+        .dash-card-link {
+            text-decoration: none !important;
+            cursor: pointer;
+            transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+        }
+        .dash-card-link:hover {
+            transform: translateY(-2px);
+            border-color: rgba(234, 179, 8, 0.45) !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5) !important;
         }
 
         .card-top-row {
@@ -210,9 +220,14 @@
             font-weight: 600;
             text-decoration: none;
             cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .panel-filter-btn:hover {
+            background: #1e293b;
+            color: #ffffff;
         }
 
-        /* Recent Requests Feed (Compact Multi-Item) */
+        /* Recent Requests Feed (Compact Multi-Item & Clickable) */
         .feed-list-box {
             display: flex;
             flex-direction: column;
@@ -222,12 +237,21 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 2.5px 0;
+            padding: 2.5px 4px;
             border-bottom: 1px solid #161f30;
             gap: 6px;
         }
         .feed-item-row:last-child {
             border-bottom: none;
+        }
+        .feed-item-link {
+            text-decoration: none !important;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            border-radius: 4px;
+        }
+        .feed-item-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
         }
         .feed-item-left {
             display: flex;
@@ -315,6 +339,10 @@
             border: 1px solid #e2e8f0 !important;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
         }
+        html:not(.dark) .dash-card-link:hover {
+            border-color: rgba(217, 119, 6, 0.45) !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08) !important;
+        }
         html:not(.dark) .card-title-text {
             color: #475569 !important;
         }
@@ -332,8 +360,15 @@
             border: 1px solid #cbd5e1 !important;
             color: #475569 !important;
         }
+        html:not(.dark) .panel-filter-btn:hover {
+            background: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
         html:not(.dark) .feed-item-row {
             border-bottom: 1px solid #f1f5f9 !important;
+        }
+        html:not(.dark) .feed-item-link:hover {
+            background-color: rgba(0, 0, 0, 0.04) !important;
         }
         html:not(.dark) .feed-ref-code {
             color: #0f172a !important;
@@ -371,11 +406,11 @@
             </div>
         </div>
 
-        <!-- ROW 1: Four Main Fleet Status Cards -->
+        <!-- ROW 1: Four Main Fleet Status Cards (Clickable Links) -->
         <div class="row-grid-4">
             
-            <!-- 1. Driver Availability -->
-            <div class="dash-card">
+            <!-- 1. Driver Availability (Links to Drivers) -->
+            <a href="/admin/drivers" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-green">
@@ -399,10 +434,10 @@
                         <path d="M0,30 C70,28 120,6 180,10 C240,14 270,26 300,30" fill="none" stroke="#10b981" stroke-width="2" />
                     </svg>
                 </div>
-            </div>
+            </a>
 
-            <!-- 2. Vehicle Availability -->
-            <div class="dash-card">
+            <!-- 2. Vehicle Availability (Links to Vehicles) -->
+            <a href="/admin/vehicles" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-green">
@@ -426,10 +461,10 @@
                         <path d="M0,28 C60,30 120,4 180,10 C240,16 270,6 300,4" fill="none" stroke="#10b981" stroke-width="2" />
                     </svg>
                 </div>
-            </div>
+            </a>
 
-            <!-- 3. Pending Vehicle Requests -->
-            <div class="dash-card">
+            <!-- 3. Pending Vehicle Requests (Links to Requests) -->
+            <a href="/admin/vehicle-requests" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-blue">
@@ -451,10 +486,10 @@
                         <path d="M0,30 C80,26 160,14 220,18 C260,22 280,28 300,30" fill="none" stroke="#475569" stroke-width="1.8" />
                     </svg>
                 </div>
-            </div>
+            </a>
 
-            <!-- 4. Approved Vehicle Requests -->
-            <div class="dash-card">
+            <!-- 4. Approved Vehicle Requests (Links to Requests) -->
+            <a href="/admin/vehicle-requests" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-green">
@@ -476,15 +511,15 @@
                         <path d="M0,30 C70,22 120,4 180,8 C240,12 270,26 300,30" fill="none" stroke="#10b981" stroke-width="2" />
                     </svg>
                 </div>
-            </div>
+            </a>
 
         </div>
 
-        <!-- ROW 2: Three Wide Executive Cards -->
+        <!-- ROW 2: Three Wide Executive Cards (Clickable Links) -->
         <div class="row-grid-3">
             
-            <!-- 1. Active Trips (On Trip) -->
-            <div class="dash-card">
+            <!-- 1. Active Trips (Links to Trip Tickets) -->
+            <a href="/admin/trip-tickets" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-blue" style="font-weight: 800; font-size: 11px;">A</div>
@@ -502,10 +537,10 @@
                         <path d="M0,30 C80,28 140,11 200,16 C260,20 280,30 300,30" fill="none" stroke="#0284c7" stroke-width="2" />
                     </svg>
                 </div>
-            </div>
+            </a>
 
-            <!-- 2. Pending Withdrawal Slips -->
-            <div class="dash-card" style="padding-bottom: 8px;">
+            <!-- 2. Pending Withdrawal Slips (Links to Slips) -->
+            <a href="/admin/withdrawal-slips" class="dash-card dash-card-link" style="padding-bottom: 8px;">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-amber">
@@ -522,15 +557,15 @@
                     <div class="card-subtitle-note color-amber">Fuel slips awaiting approval</div>
                 </div>
                 <!-- Smooth Amber Wave -->
-                <div style="margin: 4px -12px -8px -12px; height: 16px; overflow: hidden;">
+                <div style="margin: 4px -16px -8px -16px; height: 16px; overflow: hidden;">
                     <svg viewBox="0 0 300 20" style="width: 100%; height: 100%;" preserveAspectRatio="none">
                         <path d="M0,16 C80,14 160,4 240,7 L300,3" fill="none" stroke="#f59e0b" stroke-width="1.8" />
                     </svg>
                 </div>
-            </div>
+            </a>
 
-            <!-- 3. This Month's Gas Expenses -->
-            <div class="dash-card" style="padding-bottom: 8px;">
+            <!-- 3. This Month's Gas Expenses (Links to Slips) -->
+            <a href="/admin/withdrawal-slips" class="dash-card dash-card-link" style="padding-bottom: 8px;">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-red">
@@ -551,7 +586,7 @@
                 <div style="width: 100%; height: 2px; background: rgba(239, 68, 68, 0.2); border-radius: 99px; margin-top: 6px; overflow: hidden;">
                     <div style="height: 100%; background: #ef4444; width: 100%;"></div>
                 </div>
-            </div>
+            </a>
 
         </div>
 
@@ -565,9 +600,9 @@
                         <span style="color: #0284c7;">📈</span>
                         <span>Trip Activity (This Week)</span>
                     </div>
-                    <div class="panel-filter-btn">
-                        This Week ⌵
-                    </div>
+                    <a href="/admin/trip-tickets" class="panel-filter-btn">
+                        View Trips
+                    </a>
                 </div>
 
                 <!-- Custom Area Chart with Grid & Values -->
@@ -631,6 +666,9 @@
                         <span style="color: #10b981;">📉</span>
                         <span>Vehicle Request Status</span>
                     </div>
+                    <a href="/admin/vehicle-requests" class="panel-filter-btn">
+                        View Requests
+                    </a>
                 </div>
 
                 <!-- Donut Chart & Legend -->
@@ -640,7 +678,7 @@
                     <div style="position: relative; width: 90px; height: 90px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                         <svg viewBox="0 0 100 100" style="width: 90px; height: 90px; transform: rotate(-90deg); display: block;">
                             <!-- Background Track -->
-                            <circle cx="50" cy="50" r="38" fill="none" stroke="#161f30" stroke-width="13" />
+                            <circle class="donut-track" cx="50" cy="50" r="38" fill="none" stroke="#161f30" stroke-width="13" />
                             
                             <!-- Completed Segment (Orange) -->
                             <circle cx="50" cy="50" r="38" fill="none" stroke="#f59e0b" stroke-width="13"
@@ -669,7 +707,7 @@
                         <!-- Center Total Count -->
                         <div style="position: absolute; text-align: center; pointer-events: none;">
                             <div style="font-size: 8.5px; color: #94a3b8; font-weight: 600;">Total</div>
-                            <div style="font-size: 17px; font-weight: 800; color: #ffffff; line-height: 1;">
+                            <div class="donut-center-num" style="font-size: 17px; font-weight: 800; color: #ffffff; line-height: 1;">
                                 {{ $statusBreakdown['total'] }}
                             </div>
                         </div>
@@ -680,33 +718,33 @@
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 4px;">
                                 <span style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
-                                <span style="color: #cbd5e1; font-weight: 500;">Pending</span>
+                                <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Pending</span>
                             </div>
-                            <span style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['pending'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['pending_pct'] }}%)</span></span>
+                            <span class="donut-legend-val" style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['pending'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['pending_pct'] }}%)</span></span>
                         </div>
 
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 4px;">
                                 <span style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #0284c7; display: inline-block;"></span>
-                                <span style="color: #cbd5e1; font-weight: 500;">Approved</span>
+                                <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Approved</span>
                             </div>
-                            <span style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['approved'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['approved_pct'] }}%)</span></span>
+                            <span class="donut-legend-val" style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['approved'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['approved_pct'] }}%)</span></span>
                         </div>
 
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 4px;">
                                 <span style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
-                                <span style="color: #cbd5e1; font-weight: 500;">Completed</span>
+                                <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Completed</span>
                             </div>
-                            <span style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['completed'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['completed_pct'] }}%)</span></span>
+                            <span class="donut-legend-val" style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['completed'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['completed_pct'] }}%)</span></span>
                         </div>
 
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 4px;">
                                 <span style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
-                                <span style="color: #cbd5e1; font-weight: 500;">Rejected</span>
+                                <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Rejected</span>
                             </div>
-                            <span style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['rejected'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['rejected_pct'] }}%)</span></span>
+                            <span class="donut-legend-val" style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['rejected'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['rejected_pct'] }}%)</span></span>
                         </div>
                     </div>
 
@@ -746,7 +784,7 @@
                                 default => ucfirst($req->status),
                             };
                         @endphp
-                        <div class="feed-item-row">
+                        <a href="/admin/vehicle-requests" class="feed-item-row feed-item-link">
                             <div class="feed-item-left">
                                 <span class="feed-dot-indicator" style="background: {{ $dotColor }};"></span>
                                 <div class="feed-text-group">
@@ -758,7 +796,7 @@
                                 <span class="feed-status-pill {{ $pillClass }}">{{ $statusLabel }}</span>
                                 <span class="feed-timestamp">{{ $req->created_at ? $req->created_at->diffForHumans(null, true) : 'now' }}</span>
                             </div>
-                        </div>
+                        </a>
                     @empty
                         <div style="padding: 24px 0; text-align: center; color: #64748b; font-size: 11px;">
                             No vehicle requests found.
