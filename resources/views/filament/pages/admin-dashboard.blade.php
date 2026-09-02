@@ -11,6 +11,18 @@
         .fi-header {
             display: none !important;
         }
+        *::-webkit-scrollbar {
+            display: none !important;
+            width: 0px !important;
+            height: 0px !important;
+        }
+        * {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+        html, body, .fi-layout, .fi-main, .fi-main-ctn, .fi-page {
+            overflow-y: hidden !important;
+        }
 
         .dashboard-wrapper {
             font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

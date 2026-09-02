@@ -44,18 +44,28 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->renderHook(
-                \Filament\View\PanelsRenderHook::HEAD_START,
+                \Filament\View\PanelsRenderHook::HEAD_END,
                 fn () => new \Illuminate\Support\HtmlString('
                     <script>
                         document.documentElement.classList.add("dark");
                         try { localStorage.setItem("theme", "dark"); } catch(e) {}
                     </script>
                     <style>
-                        /* 1. Global Dark Theme Force */
-                        html, body, .fi-layout, .fi-main {
+                        /* Suppress any scrollbars completely */
+                        html, body, .fi-layout, .fi-main, .fi-main-ctn {
                             background-color: #070a11 !important;
                             color: #f8fafc !important;
                             color-scheme: dark !important;
+                            overflow-y: hidden !important;
+                        }
+                        *::-webkit-scrollbar {
+                            display: none !important;
+                            width: 0px !important;
+                            height: 0px !important;
+                        }
+                        * {
+                            -ms-overflow-style: none !important;
+                            scrollbar-width: none !important;
                         }
 
                         /* 2. Top Header Navigation Bar */
