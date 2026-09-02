@@ -123,9 +123,7 @@ class VehicleRequestsTable
                     }),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                // No delete action allowed
             ]);
     }
 }

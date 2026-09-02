@@ -117,9 +117,7 @@ class VehiclesTable
                 EditAction::make(),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                // No delete action allowed
             ]);
     }
 }
