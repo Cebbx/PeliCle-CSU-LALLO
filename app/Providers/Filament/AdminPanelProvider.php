@@ -32,8 +32,8 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
             ])
             ->defaultThemeMode(\Filament\Enums\ThemeMode::Dark)
-            ->brandLogo(new \Illuminate\Support\HtmlString('<div class="brand-logo-wrapper" style="display: flex; align-items: center; gap: 8px;"><img src="' . asset('csu-logo.png') . '" style="height: 2.2rem;" /><span class="brand-title-text font-bold text-xl tracking-wider text-white" style="font-family: \'Outfit\', sans-serif;">PeliCle</span><style>.fi-simple-layout .brand-title-text { display: none !important; } .fi-simple-layout .brand-logo-wrapper { justify-content: center !important; gap: 0 !important; } .fi-simple-layout img { height: 3.5rem !important; }</style></div>'))
-            ->brandLogoHeight('2.5rem')
+            ->brandLogo(new \Illuminate\Support\HtmlString('<div class="brand-logo-wrapper" style="display: flex; align-items: center; gap: 6px;"><img src="' . asset('csu-logo.png') . '" style="height: 1.6rem;" /><span class="brand-title-text font-bold text-base tracking-wider text-white" style="font-family: \'Outfit\', sans-serif;">PeliCle</span><style>.fi-simple-layout .brand-title-text { display: none !important; } .fi-simple-layout .brand-logo-wrapper { justify-content: center !important; gap: 0 !important; } .fi-simple-layout img { height: 3rem !important; }</style></div>'))
+            ->brandLogoHeight('1.8rem')
             ->favicon(asset('csu-logo.png'))
             ->font('Outfit')
             ->databaseNotifications()
@@ -58,23 +58,43 @@ class AdminPanelProvider extends PanelProvider
                             color-scheme: dark !important;
                         }
 
-                        /* 2. Top Header Navigation Bar */
+                        /* 2. Slim & Compact Top Header Navigation Bar */
                         header.fi-topbar, .fi-topbar-nav, .fi-topbar-header {
                             background-color: #090d16 !important;
                             border-bottom: 1px solid #161f30 !important;
+                            height: 40px !important;
+                            min-height: 40px !important;
+                        }
+                        .fi-topbar > div {
+                            height: 40px !important;
+                            min-height: 40px !important;
                         }
                         .fi-topbar input, .fi-global-search-input, .fi-global-search-input-field {
                             background-color: #101522 !important;
                             border: 1px solid #1e2a40 !important;
                             color: #ffffff !important;
-                            border-radius: 8px !important;
+                            border-radius: 6px !important;
+                            height: 28px !important;
+                            font-size: 11.5px !important;
+                            padding: 2px 8px !important;
                         }
                         .fi-topbar input::placeholder {
                             color: #64748b !important;
+                            font-size: 11px !important;
                         }
                         .fi-user-avatar {
                             background-color: #1e293b !important;
                             color: #ffffff !important;
+                            width: 28px !important;
+                            height: 28px !important;
+                            font-size: 11px !important;
+                        }
+                        .fi-topbar-item button, .fi-topbar button {
+                            padding: 4px !important;
+                        }
+                        .fi-topbar svg {
+                            width: 16px !important;
+                            height: 16px !important;
                         }
 
                         /* 3. Left Navigation Sidebar */
@@ -82,15 +102,20 @@ class AdminPanelProvider extends PanelProvider
                             background-color: #090d16 !important;
                             border-right: 1px solid #161f30 !important;
                         }
+                        .fi-sidebar-header {
+                            height: 40px !important;
+                            min-height: 40px !important;
+                            padding: 0 12px !important;
+                        }
                         .fi-sidebar-nav {
-                            padding: 8px 10px !important;
+                            padding: 6px 8px !important;
                         }
                         .fi-sidebar-item {
                             margin-bottom: 2px !important;
                         }
                         .fi-sidebar-item a, .fi-sidebar-item button {
-                            padding: 6px 12px !important;
-                            border-radius: 8px !important;
+                            padding: 5px 10px !important;
+                            border-radius: 6px !important;
                             color: #cbd5e1 !important;
                             transition: all 0.15s ease-in-out !important;
                         }
@@ -100,11 +125,11 @@ class AdminPanelProvider extends PanelProvider
                         }
                         .fi-sidebar-item svg {
                             color: #94a3b8 !important;
-                            width: 18px !important;
-                            height: 18px !important;
+                            width: 16px !important;
+                            height: 16px !important;
                         }
                         .fi-sidebar-item span {
-                            font-size: 12.5px !important;
+                            font-size: 12px !important;
                             font-weight: 500 !important;
                         }
 
@@ -124,11 +149,11 @@ class AdminPanelProvider extends PanelProvider
 
                         /* Groups */
                         .fi-sidebar-group {
-                            margin-top: 8px !important;
-                            margin-bottom: 4px !important;
+                            margin-top: 6px !important;
+                            margin-bottom: 2px !important;
                         }
                         .fi-sidebar-group-label, .fi-sidebar-group-label span {
-                            font-size: 11px !important;
+                            font-size: 10px !important;
                             font-weight: 600 !important;
                             color: #64748b !important;
                             text-transform: uppercase !important;
