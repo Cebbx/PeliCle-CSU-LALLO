@@ -33,7 +33,8 @@ class VehicleRequestForm
                 Hidden::make('user_id')
                     ->default(fn () => auth()->id()),
                 TextInput::make('employee_name')
-                    ->default(fn () => auth()->user()?->name)
+                    ->default(fn () => auth()->user()?->name ?? 'Employee User')
+                    ->readOnly()
                     ->required(),
                 TextInput::make('department')
                     ->default(function () {
@@ -65,8 +66,9 @@ class VehicleRequestForm
                             'cafevalena' => 'Café Valena',
                             'csc' => 'Campus Student Council'
                         ];
-                        return $validDepts[$prefix] ?? 'CICS';
+                        return $validDepts[$prefix] ?? 'Campus Student Council';
                     })
+                    ->readOnly()
                     ->required(),
                 Select::make('vehicle')
                     ->options(function (Get $get) {

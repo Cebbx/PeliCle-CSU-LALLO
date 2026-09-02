@@ -24,7 +24,7 @@ class CreateVehicleRequest extends CreateRecord
         }
 
         if (empty($data['department'])) {
-            $data['department'] = auth()->user()?->department ?? 'CICS';
+            $data['department'] = auth()->user()?->department ?? 'Campus Student Council';
         }
 
         if (empty($data['purpose'])) {
