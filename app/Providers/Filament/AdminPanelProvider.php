@@ -31,7 +31,8 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->brandLogo(new \Illuminate\Support\HtmlString('<div class="brand-logo-wrapper" style="display: flex; align-items: center; gap: 8px;"><img src="' . asset('csu-logo.png') . '" style="height: 2.2rem;" /><span class="brand-title-text font-bold text-xl tracking-wider text-slate-800 dark:text-white" style="font-family: \'Outfit\', sans-serif;">PeliCle</span><style>.fi-simple-layout .brand-title-text { display: none !important; } .fi-simple-layout .brand-logo-wrapper { justify-content: center !important; gap: 0 !important; } .fi-simple-layout img { height: 3.5rem !important; }</style></div>'))
+            ->defaultThemeMode(\Filament\Enums\ThemeMode::Dark)
+            ->brandLogo(new \Illuminate\Support\HtmlString('<div class="brand-logo-wrapper" style="display: flex; align-items: center; gap: 8px;"><img src="' . asset('csu-logo.png') . '" style="height: 2.2rem;" /><span class="brand-title-text font-bold text-xl tracking-wider text-white" style="font-family: \'Outfit\', sans-serif;">PeliCle</span><style>.fi-simple-layout .brand-title-text { display: none !important; } .fi-simple-layout .brand-logo-wrapper { justify-content: center !important; gap: 0 !important; } .fi-simple-layout img { height: 3.5rem !important; }</style></div>'))
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('csu-logo.png'))
             ->font('Outfit')
@@ -42,6 +43,36 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
             ])
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_START,
+                fn () => new \Illuminate\Support\HtmlString('
+                    <style>
+                        html.dark, html {
+                            background-color: #070a11 !important;
+                            color-scheme: dark !important;
+                        }
+                        aside.fi-sidebar, .fi-sidebar-nav, .fi-sidebar-header, .fi-sidebar-footer {
+                            background-color: #090d16 !important;
+                            border-color: #141c2c !important;
+                        }
+                        header.fi-topbar, .fi-topbar-nav {
+                            background-color: #090d16 !important;
+                            border-color: #141c2c !important;
+                        }
+                        .fi-layout, body {
+                            background-color: #070a11 !important;
+                        }
+                        .fi-sidebar-item-active > a, .fi-sidebar-item-active > button {
+                            background-color: rgba(234, 179, 8, 0.12) !important;
+                            border-radius: 8px !important;
+                        }
+                        .fi-sidebar-item-active svg, .fi-sidebar-item-active span {
+                            color: #eab308 !important;
+                            font-weight: 700 !important;
+                        }
+                    </style>
+                ')
+            )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::SIDEBAR_FOOTER,
                 fn () => view('filament.components.sidebar-footer'),
