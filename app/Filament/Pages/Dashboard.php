@@ -16,6 +16,22 @@ class Dashboard extends BaseDashboard
 
     public string $tripPeriod = 'this_week';
 
+    public function getViewData(): array
+    {
+        return [
+            'driverStats' => $this->getDriverStats(),
+            'vehicleStats' => $this->getVehicleStats(),
+            'pendingRequests' => $this->getPendingRequestsCount(),
+            'approvedRequests' => $this->getApprovedRequestsCount(),
+            'activeTrips' => $this->getActiveTripsCount(),
+            'pendingSlips' => $this->getPendingWithdrawalSlipsCount(),
+            'gasExpenses' => $this->getGasExpenses(),
+            'statusBreakdown' => $this->getVehicleRequestStatusBreakdown(),
+            'recentRequests' => $this->getRecentRequests(),
+            'tripActivity' => $this->getTripActivityData(),
+        ];
+    }
+
     public function getHeaderWidgets(): array
     {
         return [];

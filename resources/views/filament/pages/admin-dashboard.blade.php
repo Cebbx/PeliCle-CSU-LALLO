@@ -1,16 +1,3 @@
-@php
-    $driverStats = $this->getDriverStats();
-    $vehicleStats = $this->getVehicleStats();
-    $pendingRequests = $this->getPendingRequestsCount();
-    $approvedRequests = $this->getApprovedRequestsCount();
-    $activeTrips = $this->getActiveTripsCount();
-    $pendingSlips = $this->getPendingWithdrawalSlipsCount();
-    $gasExpenses = $this->getGasExpenses();
-    $statusBreakdown = $this->getVehicleRequestStatusBreakdown();
-    $recentRequests = $this->getRecentRequests();
-    $tripActivity = $this->getTripActivityData();
-@endphp
-
 <x-filament-panels::page class="fi-dashboard-page space-y-6">
 
     <!-- Top Welcome Header -->
