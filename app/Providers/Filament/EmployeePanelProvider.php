@@ -88,6 +88,24 @@ class EmployeePanelProvider extends PanelProvider
                             box-shadow: none !important;
                         }
                     </style>
+                    <script>
+                        document.addEventListener("livewire:init", function () {
+                            if (window.Livewire && window.Livewire.hook) {
+                                Livewire.hook("request", function (context) {
+                                    if (context && context.fail) {
+                                        context.fail(function (error) {
+                                            if (error && error.status === 419) {
+                                                if (typeof error.preventDefault === "function") {
+                                                    error.preventDefault();
+                                                }
+                                                window.location.reload();
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    </script>
                 ')
             )
             ->discoverResources(in: app_path('Filament/Employee/Resources'), for: 'App\Filament\Employee\Resources')

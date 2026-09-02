@@ -26,7 +26,6 @@ class VehicleRequestForm
                         $nextId = $lastRecord ? ($lastRecord->id + 1) : 1;
                         return 'VR-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
                     })
-                    ->unique('vehicle_requests', 'request_number', ignoreRecord: true)
                     ->disabled()
                     ->dehydrated()
                     ->required(),
@@ -373,6 +372,7 @@ class VehicleRequestForm
                                 'Business Visit' => 'Business Visit',
                                 'Others' => 'Others (Specify below)',
                             ])
+                            ->default('Meeting')
                             ->live()
                             ->dehydrated(false)
                             ->columnSpanFull()
@@ -407,6 +407,7 @@ class VehicleRequestForm
                                 $set('purpose', $state);
                             }),
                         Hidden::make('purpose')
+                            ->default('Meeting')
                             ->dehydrated()
                             ->required(),
                         DatePicker::make('date')
@@ -440,7 +441,7 @@ class VehicleRequestForm
                             ->required(),
                     ])
                     ->label('Passengers')
-                    ->default([['name' => '']])
+                    ->default(fn () => [['name' => auth()->user()?->name ?? 'Requester']])
                     ->live()
                     ->afterStateUpdated(function (callable $set, $state) {
                         $names = array_filter(array_map(fn ($item) => trim($item['name'] ?? ''), $state ?? []));
