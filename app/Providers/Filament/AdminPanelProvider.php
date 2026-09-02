@@ -62,32 +62,32 @@ class AdminPanelProvider extends PanelProvider
                         header.fi-topbar, .fi-topbar-nav, .fi-topbar-header {
                             background-color: #090d16 !important;
                             border-bottom: 1px solid #161f30 !important;
-                            height: 40px !important;
-                            min-height: 40px !important;
+                            height: 36px !important;
+                            min-height: 36px !important;
                         }
                         .fi-topbar > div {
-                            height: 40px !important;
-                            min-height: 40px !important;
+                            height: 36px !important;
+                            min-height: 36px !important;
                         }
                         .fi-topbar input, .fi-global-search-input, .fi-global-search-input-field {
                             background-color: #101522 !important;
                             border: 1px solid #1e2a40 !important;
                             color: #ffffff !important;
                             border-radius: 6px !important;
-                            height: 28px !important;
-                            font-size: 11.5px !important;
-                            padding: 2px 8px !important;
+                            height: 25px !important;
+                            font-size: 11px !important;
+                            padding: 1px 8px !important;
                         }
                         .fi-topbar input::placeholder {
                             color: #64748b !important;
-                            font-size: 11px !important;
+                            font-size: 10.5px !important;
                         }
                         .fi-user-avatar {
                             background-color: #1e293b !important;
                             color: #ffffff !important;
-                            width: 28px !important;
-                            height: 28px !important;
-                            font-size: 11px !important;
+                            width: 25px !important;
+                            height: 25px !important;
+                            font-size: 10.5px !important;
                         }
                         .fi-topbar-item button, .fi-topbar button {
                             padding: 4px !important;
