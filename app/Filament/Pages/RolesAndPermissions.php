@@ -19,4 +19,19 @@ class RolesAndPermissions extends Page
     protected static ?int $navigationSort = 11;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Settings & Management';
+
+    public function getViewData(): array
+    {
+        $adminCount = \App\Models\User::where('role', 'admin')->count();
+        $employeeCount = \App\Models\User::where('role', 'employee')->count();
+        $driverCount = \App\Models\User::where('role', 'driver')->count();
+        $totalUsers = \App\Models\User::count();
+
+        return [
+            'adminCount' => $adminCount,
+            'employeeCount' => $employeeCount,
+            'driverCount' => $driverCount,
+            'totalUsers' => $totalUsers,
+        ];
+    }
 }
