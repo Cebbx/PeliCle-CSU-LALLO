@@ -100,15 +100,6 @@ class VehicleRequestsTable
                         ->url(fn ($record) => \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('create', [
                             'vehicle_request_id' => $record->id,
                         ])),
-                    Action::make('reject')
-                        ->label('Reject')
-                        ->icon('heroicon-o-x-circle')
-                        ->color('danger')
-                        ->requiresConfirmation()
-                        ->visible(fn ($record) => $record->status === 'pending')
-                        ->action(function ($record) {
-                            $record->update(['status' => 'rejected']);
-                        }),
                     Action::make('print')
                         ->label('View Form Request')
                         ->icon('heroicon-o-document-text')
@@ -140,17 +131,24 @@ class VehicleRequestsTable
                                 ->success()
                                 ->send();
                         }),
-                    \Filament\Actions\DeleteAction::make()
-                        ->label('Archive Request')
-                        ->icon('heroicon-o-archive-box')
-                        ->color('warning')
-                        ->modalHeading('Archive Vehicle Request')
-                        ->modalDescription('Are you sure you want to archive this request? It can be restored at any time.')
-                        ->modalSubmitActionLabel('Yes, Archive'),
-                    \Filament\Actions\RestoreAction::make()
-                        ->label('Restore Request')
-                        ->icon('heroicon-o-arrow-uturn-left')
-                        ->color('success'),
+                    Action::make('reject')
+                        ->label('Reject Request')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Reject Vehicle Request')
+                        ->modalDescription('Are you sure you want to reject this vehicle request?')
+                        ->modalSubmitActionLabel('Yes, Reject Request')
+                        ->visible(fn ($record) => in_array($record->status, ['pending', 'approved']))
+                        ->action(function ($record) {
+                            $record->update(['status' => 'rejected']);
+                            
+                            \Filament\Notifications\Notification::make()
+                                ->title('Request Rejected')
+                                ->body("Request {$record->request_number} has been rejected.")
+                                ->danger()
+                                ->send();
+                        }),
                 ])
                 ->label('Actions')
                 ->icon('heroicon-m-ellipsis-vertical')
