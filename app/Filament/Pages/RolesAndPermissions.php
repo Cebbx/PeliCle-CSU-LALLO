@@ -8,9 +8,9 @@ use Filament\Support\Icons\Heroicon;
 
 class RolesAndPermissions extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-shield-check';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';
 
-    protected static string $view = 'filament.pages.roles-and-permissions';
+    protected string $view = 'filament.pages.roles-and-permissions';
 
     protected static ?string $navigationLabel = 'Roles & Permissions';
 
