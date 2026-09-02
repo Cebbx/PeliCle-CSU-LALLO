@@ -51,21 +51,11 @@ class AdminPanelProvider extends PanelProvider
                         try { localStorage.setItem("theme", "dark"); } catch(e) {}
                     </script>
                     <style>
-                        /* Suppress any scrollbars completely */
-                        html, body, .fi-layout, .fi-main, .fi-main-ctn {
+                        /* 1. Global Dark Theme Force */
+                        html, body, .fi-layout, .fi-main {
                             background-color: #070a11 !important;
                             color: #f8fafc !important;
                             color-scheme: dark !important;
-                            overflow-y: hidden !important;
-                        }
-                        *::-webkit-scrollbar {
-                            display: none !important;
-                            width: 0px !important;
-                            height: 0px !important;
-                        }
-                        * {
-                            -ms-overflow-style: none !important;
-                            scrollbar-width: none !important;
                         }
 
                         /* 2. Top Header Navigation Bar */
