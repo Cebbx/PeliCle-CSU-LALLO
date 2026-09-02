@@ -140,15 +140,45 @@ class VehicleRequestsTable
                                 ->success()
                                 ->send();
                         }),
+                    \Filament\Actions\DeleteAction::make()
+                        ->label('Archive Request')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('warning')
+                        ->modalHeading('Archive Vehicle Request')
+                        ->modalDescription('Are you sure you want to archive this request? It can be restored at any time.')
+                        ->modalSubmitActionLabel('Yes, Archive'),
+                    \Filament\Actions\RestoreAction::make()
+                        ->label('Restore Request')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('success'),
                 ])
                 ->label('Actions')
                 ->icon('heroicon-m-ellipsis-vertical')
                 ->color('gray')
                 ->button(),
             ])
+            ->filters([
+                SelectFilter::make('status')
+                    ->options([
+                        'pending' => 'Pending (New)',
+                        'approved' => 'Approved',
+                        'on_trip' => 'On Trip',
+                        'rejected' => 'Rejected',
+                        'completed' => 'Completed',
+                    ]),
+                \Filament\Tables\Filters\TrashedFilter::make()
+                    ->label('Archive Status'),
+            ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Archive Selected')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('warning'),
+                    \Filament\Actions\RestoreBulkAction::make()
+                        ->label('Restore Selected')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('success'),
                 ]),
             ]);
     }

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\WithdrawalSlips\Pages;
 
 use App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditWithdrawalSlip extends EditRecord
@@ -13,7 +14,17 @@ class EditWithdrawalSlip extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            DeleteAction::make()
+                ->label('Archive Withdrawal Slip')
+                ->icon('heroicon-o-archive-box')
+                ->color('warning')
+                ->modalHeading('Archive Withdrawal Slip')
+                ->modalDescription('Are you sure you want to archive this withdrawal slip? It will be moved to archives and can be restored at any time.')
+                ->modalSubmitActionLabel('Yes, Archive'),
+            RestoreAction::make()
+                ->label('Restore Withdrawal Slip')
+                ->icon('heroicon-o-arrow-uturn-left')
+                ->color('success'),
         ];
     }
 

@@ -59,7 +59,8 @@ class TripTicketsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                //
+                \Filament\Tables\Filters\TrashedFilter::make()
+                    ->label('Archive Status'),
             ])
             ->recordActions([
                 ActionGroup::make([
@@ -192,6 +193,17 @@ class TripTicketsTable
                         ->color('success')
                         ->url(fn ($record) => route('trip-tickets.print-travel-order', [$record->id, 'type' => 'driver']))
                         ->openUrlInNewTab(),
+                    \Filament\Actions\DeleteAction::make()
+                        ->label('Archive Trip Ticket')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('warning')
+                        ->modalHeading('Archive Trip Ticket')
+                        ->modalDescription('Are you sure you want to archive this trip ticket? It can be restored at any time.')
+                        ->modalSubmitActionLabel('Yes, Archive'),
+                    \Filament\Actions\RestoreAction::make()
+                        ->label('Restore Trip Ticket')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('success'),
                 ])
                 ->label('Actions')
                 ->icon('heroicon-m-ellipsis-vertical')
@@ -200,7 +212,14 @@ class TripTicketsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Archive Selected')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('warning'),
+                    \Filament\Actions\RestoreBulkAction::make()
+                        ->label('Restore Selected')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('success'),
                 ]),
             ]);
     }

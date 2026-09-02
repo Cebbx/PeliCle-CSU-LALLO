@@ -115,10 +115,32 @@ class VehiclesTable
                             ->send();
                     }),
                 EditAction::make(),
+                \Filament\Actions\DeleteAction::make()
+                    ->label('Archive')
+                    ->icon('heroicon-o-archive-box')
+                    ->color('warning')
+                    ->modalHeading('Archive Vehicle')
+                    ->modalDescription('Are you sure you want to archive this vehicle? You can restore it anytime.')
+                    ->modalSubmitActionLabel('Yes, Archive'),
+                \Filament\Actions\RestoreAction::make()
+                    ->label('Restore')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->color('success'),
+            ])
+            ->filters([
+                \Filament\Tables\Filters\TrashedFilter::make()
+                    ->label('Archive Status'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Archive Selected')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('warning'),
+                    \Filament\Actions\RestoreBulkAction::make()
+                        ->label('Restore Selected')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('success'),
                 ]),
             ]);
     }
