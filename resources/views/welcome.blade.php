@@ -104,17 +104,17 @@
         <div class="absolute bottom-[5%] right-[5%] w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] bg-indigo-500/10 rounded-full blur-[120px] -z-10 pointer-events-none animate-orb-2"></div>
 
         <!-- Top Header -->
-        <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between z-10">
-            <div class="flex items-center gap-2.5 sm:gap-3">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md border border-brand-500/20 bg-slate-900/60 p-0.5">
-                    <img src="/csu-logo.png" alt="CSU Logo" class="w-full h-full object-contain" />
+        <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-3.5 sm:py-5 flex items-center justify-between z-10">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shadow-md border border-brand-500/30 bg-slate-900/80 p-1 flex-shrink-0">
+                    <img src="/csu-logo.png" alt="CSU Logo" class="w-full h-full object-contain block m-auto" />
                 </div>
-                <div>
-                    <span class="font-display font-bold text-base sm:text-lg tracking-wide uppercase bg-gradient-to-r from-stone-100 to-stone-400 bg-clip-text text-transparent">PeliCle</span>
-                    <span class="text-[9px] sm:text-[10px] block text-stone-400 tracking-widest uppercase font-semibold">CSU LAL-LO</span>
+                <div class="flex flex-col justify-center">
+                    <span class="font-display font-bold text-base sm:text-lg tracking-wider uppercase leading-tight bg-gradient-to-r from-stone-100 to-stone-300 bg-clip-text text-transparent">PeliCle</span>
+                    <span class="text-[9px] sm:text-[10px] block text-sky-400/90 tracking-widest uppercase font-semibold leading-tight mt-0.5">CSU LAL-LO</span>
                 </div>
             </div>
-            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[11px] sm:text-xs font-semibold border border-emerald-500/20 shadow-sm">
+            <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[11px] sm:text-xs font-semibold border border-emerald-500/20 shadow-sm flex-shrink-0">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 <span>System Online</span>
             </div>
@@ -123,12 +123,12 @@
         <!-- Main Hero & Portals Section -->
         <main class="w-full max-w-6xl mx-auto px-4 sm:px-6 py-2 sm:py-6 flex-grow flex flex-col justify-center items-center z-10 gap-5 sm:gap-8">
             
-            <!-- Hero Title -->
-            <div class="text-center max-w-2xl flex flex-col items-center">
-                <!-- Logo with glowing effect -->
-                <div class="relative mb-3 sm:mb-4 group">
-                    <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-brand-500 to-indigo-500 blur-md opacity-50 group-hover:opacity-80 transition-opacity duration-300"></div>
-                    <img src="/csu-lallo-clean.png" alt="CSU Lal-lo Campus Logo" class="w-20 h-20 sm:w-28 sm:h-28 object-contain rounded-full border border-sky-400/40 shadow-2xl relative z-10 bg-slate-950/90 p-1" />
+            <!-- Hero Title & Centered Logo -->
+            <div class="text-center max-w-2xl flex flex-col items-center justify-center mx-auto">
+                <!-- Logo with glowing effect perfectly centered -->
+                <div class="relative mb-3 sm:mb-4 flex items-center justify-center mx-auto">
+                    <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-brand-500 to-indigo-500 blur-md opacity-50 transition-opacity duration-300"></div>
+                    <img src="/csu-lallo-clean.png" alt="CSU Lal-lo Campus Logo" class="w-20 h-20 sm:w-28 sm:h-28 object-contain rounded-full border border-sky-400/40 shadow-2xl relative z-10 bg-slate-950/90 p-1 block mx-auto" />
                 </div>
                 
                 <h1 class="font-display text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-2 leading-tight">
