@@ -55,6 +55,7 @@ class VehicleRequestsTable
                         'approved' => 'success',
                         'on_trip' => 'info',
                         'rejected' => 'danger',
+                        'cancelled' => 'danger',
                         'completed' => 'success',
                         default => 'gray',
                     })
@@ -63,6 +64,7 @@ class VehicleRequestsTable
                         'approved' => 'Approved',
                         'on_trip' => 'On Trip',
                         'rejected' => 'Rejected',
+                        'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
                         default => ucfirst($state),
                     })
@@ -121,18 +123,28 @@ class VehicleRequestsTable
                             ->success()
                             ->send();
                     }),
-                \Filament\Actions\DeleteAction::make()
-                    ->label('Archive')
-                    ->icon('heroicon-o-archive-box')
-                    ->color('warning')
-                    ->modalHeading('Archive Request')
-                    ->modalDescription('Are you sure you want to archive this request? You can restore it anytime.')
-                    ->modalSubmitActionLabel('Yes, Archive')
-                    ->visible(fn ($record) => $record->status === 'pending' && !$record->document),
-                \Filament\Actions\RestoreAction::make()
-                    ->label('Restore')
-                    ->icon('heroicon-o-arrow-uturn-left')
-                    ->color('success'),
+                Action::make('cancel')
+                    ->label('Cancel Request')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Cancel Vehicle Request')
+                    ->modalDescription('Are you sure you want to cancel this vehicle request?')
+                    ->modalSubmitActionLabel('Yes, Cancel Request')
+                    ->visible(fn ($record) => $record->status === 'pending' && !$record->document)
+                    ->action(function ($record) {
+                        $record->update([
+                            'status' => 'cancelled',
+                        ]);
+
+                        \App\Models\ActivityLog::log('Cancelled Request', $record, "Employee cancelled request {$record->request_number}");
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Request Cancelled')
+                            ->body("Vehicle request {$record->request_number} has been cancelled.")
+                            ->warning()
+                            ->send();
+                    }),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -141,6 +153,7 @@ class VehicleRequestsTable
                         'approved' => 'Approved',
                         'on_trip' => 'On Trip',
                         'rejected' => 'Rejected',
+                        'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
                     ]),
                 \Filament\Tables\Filters\TrashedFilter::make()
