@@ -70,6 +70,37 @@ class AdminPanelProvider extends PanelProvider
                             text-decoration: none !important;
                         }
 
+                        /* Eliminate yellow outline/ring and highlight on locked, readonly, and disabled boxes */
+                        input:disabled,
+                        input[readonly],
+                        .fi-input-wrp:has(input:disabled),
+                        .fi-input-wrp:has(input[readonly]),
+                        .fi-input-wrp.fi-disabled,
+                        .fi-locked-field,
+                        .fi-locked-field * {
+                            outline: none !important;
+                            box-shadow: none !important;
+                            --tw-ring-color: transparent !important;
+                            --tw-ring-shadow: none !important;
+                            ring: 0 !important;
+                        }
+                        .fi-input-wrp:has(input:disabled):focus-within,
+                        .fi-input-wrp:has(input[readonly]):focus-within,
+                        .fi-input-wrp.fi-disabled:focus-within,
+                        .fi-locked-field:focus-within {
+                            outline: none !important;
+                            box-shadow: none !important;
+                            --tw-ring-color: transparent !important;
+                            --tw-ring-shadow: none !important;
+                            border-color: rgba(255, 255, 255, 0.15) !important;
+                        }
+                        .fi-locked-field,
+                        .fi-locked-field input {
+                            pointer-events: none !important;
+                            cursor: default !important;
+                            user-select: none !important;
+                        }
+
                         /* ========================================================
                            1. DARK THEME STYLES (html.dark)
                            ======================================================== */

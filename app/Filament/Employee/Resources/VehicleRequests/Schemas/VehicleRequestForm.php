@@ -29,12 +29,27 @@ class VehicleRequestForm
                     ->unique('vehicle_requests', 'request_number', ignoreRecord: true)
                     ->disabled()
                     ->dehydrated()
+                    ->extraAttributes([
+                        'class' => 'fi-locked-field pointer-events-none select-none',
+                    ])
+                    ->extraInputAttributes([
+                        'tabindex' => '-1',
+                        'style' => 'outline: none !important; box-shadow: none !important;',
+                    ])
                     ->required(),
                 Hidden::make('user_id')
                     ->default(fn () => auth()->id()),
                 TextInput::make('employee_name')
                     ->default(fn () => auth()->user()?->name ?? 'Employee User')
-                    ->readOnly()
+                    ->disabled()
+                    ->dehydrated()
+                    ->extraAttributes([
+                        'class' => 'fi-locked-field pointer-events-none select-none',
+                    ])
+                    ->extraInputAttributes([
+                        'tabindex' => '-1',
+                        'style' => 'outline: none !important; box-shadow: none !important;',
+                    ])
                     ->required(),
                 TextInput::make('department')
                     ->default(function () {
@@ -68,7 +83,15 @@ class VehicleRequestForm
                         ];
                         return $validDepts[$prefix] ?? 'Campus Student Council';
                     })
-                    ->readOnly()
+                    ->disabled()
+                    ->dehydrated()
+                    ->extraAttributes([
+                        'class' => 'fi-locked-field pointer-events-none select-none',
+                    ])
+                    ->extraInputAttributes([
+                        'tabindex' => '-1',
+                        'style' => 'outline: none !important; box-shadow: none !important;',
+                    ])
                     ->required(),
                 Select::make('vehicle')
                     ->options(function (Get $get) {

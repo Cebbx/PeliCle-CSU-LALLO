@@ -24,7 +24,36 @@ class CreateVehicleRequest extends CreateRecord
         }
 
         if (empty($data['department'])) {
-            $data['department'] = auth()->user()?->department ?? 'Campus Student Council';
+            $user = auth()->user();
+            if (!empty($user?->department)) {
+                $data['department'] = $user->department;
+            } else {
+                $email = $user?->email ?? '';
+                $prefix = strtolower(explode('@', $email)[0]);
+                $validDepts = [
+                    'employee' => 'CICS',
+                    'admin' => 'Administration Office',
+                    'ceo' => 'Office of the CEO',
+                    'hrmo' => 'HRMO',
+                    'accounting' => 'Accounting Office',
+                    'budget' => 'Budget Office',
+                    'property' => 'Property and Supply Office',
+                    'records' => 'Records Office',
+                    'planning' => 'Planning Office',
+                    'mis' => 'MIS Office',
+                    'registrar' => 'Office of the Campus Registrar',
+                    'admission' => 'Campus Admission Office',
+                    'publication' => 'Campus Publication Office',
+                    'library' => 'University Library',
+                    'cics' => 'CICS',
+                    'cte' => 'CTE',
+                    'chm' => 'CHM',
+                    'coa' => 'COA',
+                    'cafevalena' => 'Café Valena',
+                    'csc' => 'Campus Student Council'
+                ];
+                $data['department'] = $validDepts[$prefix] ?? 'Campus Student Council';
+            }
         }
 
         if (empty($data['purpose'])) {
