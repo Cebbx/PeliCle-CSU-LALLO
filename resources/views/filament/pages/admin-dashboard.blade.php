@@ -5,7 +5,7 @@
         }
         .fi-main-ctn {
             max-width: 100% !important;
-            padding: 2px 16px 8px 16px !important;
+            padding: 0px 16px 8px 16px !important;
             background-color: #070a11 !important;
         }
         .fi-header {
@@ -30,8 +30,8 @@
 
         /* 1. Header (Elevated & Compact) */
         .dash-header {
-            margin-top: -2px;
-            margin-bottom: 8px;
+            margin-top: -6px;
+            margin-bottom: 6px;
         }
         .dash-title {
             font-size: 28px;
@@ -39,13 +39,13 @@
             color: #ffffff;
             letter-spacing: -0.02em;
             margin: 0;
-            line-height: 1;
+            line-height: 0.95;
         }
         .dash-welcome {
             font-size: 15px;
             font-weight: 700;
             color: #ffffff;
-            margin-top: 3px;
+            margin-top: 2px;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -53,7 +53,7 @@
         .dash-desc {
             font-size: 12.5px;
             color: #94a3b8;
-            margin-top: 2px;
+            margin-top: 1px;
             line-height: 1.2;
         }
 
