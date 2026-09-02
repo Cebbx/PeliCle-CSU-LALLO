@@ -50,6 +50,7 @@ class AdminPanelProvider extends PanelProvider
                         html.dark, html {
                             background-color: #070a11 !important;
                             color-scheme: dark !important;
+                            overflow-y: hidden !important;
                         }
                         aside.fi-sidebar, .fi-sidebar-nav, .fi-sidebar-header, .fi-sidebar-footer {
                             background-color: #090d16 !important;
@@ -58,13 +59,55 @@ class AdminPanelProvider extends PanelProvider
                         header.fi-topbar, .fi-topbar-nav {
                             background-color: #090d16 !important;
                             border-color: #141c2c !important;
+                            height: 44px !important;
                         }
                         .fi-layout, body {
                             background-color: #070a11 !important;
+                            overflow-y: hidden !important;
+                        }
+                        .fi-main {
+                            padding: 0 !important;
+                        }
+                        .fi-sidebar-header {
+                            padding: 6px 12px !important;
+                            height: 44px !important;
+                        }
+                        .fi-sidebar-nav {
+                            padding: 2px 6px !important;
+                            gap: 1px !important;
+                            overflow-y: auto !important;
+                        }
+                        .fi-sidebar-item {
+                            margin-bottom: 1px !important;
+                        }
+                        .fi-sidebar-item a, .fi-sidebar-item button {
+                            padding: 3px 8px !important;
+                            min-height: 26px !important;
+                            height: 26px !important;
+                            border-radius: 6px !important;
+                        }
+                        .fi-sidebar-item span, .fi-sidebar-item-label {
+                            font-size: 11px !important;
+                            font-weight: 500 !important;
+                        }
+                        .fi-sidebar-item svg {
+                            width: 14px !important;
+                            height: 14px !important;
+                        }
+                        .fi-sidebar-group {
+                            margin-top: 2px !important;
+                            margin-bottom: 1px !important;
+                        }
+                        .fi-sidebar-group-header {
+                            padding: 2px 8px !important;
+                        }
+                        .fi-sidebar-group-label, .fi-sidebar-group-label span {
+                            font-size: 9.5px !important;
+                            letter-spacing: 0.05em !important;
                         }
                         .fi-sidebar-item-active > a, .fi-sidebar-item-active > button {
                             background-color: rgba(234, 179, 8, 0.12) !important;
-                            border-radius: 8px !important;
+                            border-radius: 6px !important;
                         }
                         .fi-sidebar-item-active svg, .fi-sidebar-item-active span {
                             color: #eab308 !important;
