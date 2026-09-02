@@ -33,8 +33,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->darkMode(true)
             ->defaultThemeMode(\Filament\Enums\ThemeMode::Dark)
-            ->brandLogo(new \Illuminate\Support\HtmlString('<div class="brand-logo-wrapper" style="display: flex; align-items: center; gap: 9px; background: transparent !important;"><img src="' . asset('csu-logo.png') . '" style="height: 2.15rem; width: auto; object-fit: contain; background: transparent !important;" /><span class="brand-title-text font-bold text-lg tracking-wide" style="font-family: \'Outfit\', sans-serif;">PeliCle</span><style>.fi-simple-layout .brand-title-text { display: none !important; } .fi-simple-layout .brand-logo-wrapper { justify-content: center !important; gap: 0 !important; } .fi-simple-layout img { height: 3.4rem !important; } html.dark .brand-title-text { color: #ffffff !important; } html:not(.dark) .brand-title-text { color: #0f172a !important; } .fi-logo, a.fi-logo, .brand-logo-wrapper { background: transparent !important; background-color: transparent !important; box-shadow: none !important; border: none !important; }</style></div>'))
-            ->brandLogoHeight('2.4rem')
+            ->brandLogo(new \Illuminate\Support\HtmlString('<div class="brand-logo-wrapper" style="display: flex; align-items: center; gap: 10px; background: transparent !important;"><img src="' . asset('csu-logo.png') . '" style="height: 2.35rem; width: auto; object-fit: contain; background: transparent !important;" /><span class="brand-title-text font-bold text-xl tracking-wide" style="font-family: \'Outfit\', sans-serif;">PeliCle</span><style>.fi-simple-layout .brand-title-text { display: none !important; } .fi-simple-layout .brand-logo-wrapper { justify-content: center !important; gap: 0 !important; } .fi-simple-layout img { height: 3.5rem !important; } html.dark .brand-title-text { color: #ffffff !important; } html:not(.dark) .brand-title-text { color: #0f172a !important; } .fi-logo, a.fi-logo, .brand-logo-wrapper { background: transparent !important; background-color: transparent !important; box-shadow: none !important; border: none !important; }</style></div>'))
+            ->brandLogoHeight('2.6rem')
             ->sidebarWidth('14rem')
             ->favicon(asset('csu-logo.png'))
             ->font('Outfit')
@@ -101,9 +101,9 @@ class AdminPanelProvider extends PanelProvider
                         html.dark .fi-topbar-header, 
                         html.dark .fi-topbar > div {
                             border-bottom: 1px solid #161f30 !important;
-                            height: 44px !important;
-                            min-height: 44px !important;
-                            max-height: 44px !important;
+                            height: 50px !important;
+                            min-height: 50px !important;
+                            max-height: 50px !important;
                         }
                         html.dark .fi-global-search-field input,
                         html.dark .fi-topbar input, 
@@ -113,11 +113,11 @@ class AdminPanelProvider extends PanelProvider
                             border: 1px solid #1e293b !important;
                             border-radius: 6px !important;
                             color: #ffffff !important;
-                            height: 28px !important;
+                            height: 30px !important;
                             font-size: 11.5px !important;
                             padding-left: 30px !important;
                             padding-right: 10px !important;
-                            width: 200px !important;
+                            width: 210px !important;
                         }
                         html.dark .fi-topbar input::placeholder {
                             color: #64748b !important;
@@ -132,14 +132,14 @@ class AdminPanelProvider extends PanelProvider
                         html.dark .fi-user-avatar {
                             background-color: #1e293b !important;
                             color: #ffffff !important;
-                            width: 26px !important;
-                            height: 26px !important;
-                            font-size: 11px !important;
+                            width: 28px !important;
+                            height: 28px !important;
+                            font-size: 11.5px !important;
                         }
                         html.dark .fi-topbar svg {
                             color: #94a3b8 !important;
-                            width: 17px !important;
-                            height: 17px !important;
+                            width: 18px !important;
+                            height: 18px !important;
                         }
                         html.dark .fi-icon-btn-badge {
                             background-color: #ef4444 !important;
@@ -159,9 +159,9 @@ class AdminPanelProvider extends PanelProvider
                             border-color: #161f30 !important;
                         }
                         html.dark .fi-sidebar-header {
-                            height: 44px !important;
-                            min-height: 44px !important;
-                            max-height: 44px !important;
+                            height: 50px !important;
+                            min-height: 50px !important;
+                            max-height: 50px !important;
                             padding: 0 14px !important;
                         }
                         html.dark .fi-sidebar-nav {
@@ -237,9 +237,9 @@ class AdminPanelProvider extends PanelProvider
                         html:not(.dark) .fi-topbar > div {
                             background-color: #ffffff !important;
                             border-bottom: 1px solid #e2e8f0 !important;
-                            height: 44px !important;
-                            min-height: 44px !important;
-                            max-height: 44px !important;
+                            height: 50px !important;
+                            min-height: 50px !important;
+                            max-height: 50px !important;
                         }
                         html:not(.dark) .fi-global-search-field input,
                         html:not(.dark) .fi-topbar input, 
@@ -247,23 +247,23 @@ class AdminPanelProvider extends PanelProvider
                         html:not(.dark) .fi-global-search-input-field {
                             background-color: #f1f5f9 !important;
                             border: 1px solid #cbd5e1 !important;
-                            border-radius: 8px !important;
+                            border-radius: 6px !important;
                             color: #0f172a !important;
                             height: 30px !important;
-                            font-size: 12px !important;
-                            padding-left: 32px !important;
+                            font-size: 11.5px !important;
+                            padding-left: 30px !important;
                             padding-right: 10px !important;
-                            width: 220px !important;
+                            width: 210px !important;
                         }
                         html:not(.dark) .fi-topbar input::placeholder {
                             color: #64748b !important;
-                            font-size: 11.5px !important;
+                            font-size: 11px !important;
                         }
                         html:not(.dark) .fi-global-search svg,
                         html:not(.dark) .fi-global-search-field svg {
                             color: #64748b !important;
-                            width: 15px !important;
-                            height: 15px !important;
+                            width: 14px !important;
+                            height: 14px !important;
                         }
                         html:not(.dark) .fi-user-avatar {
                             background-color: #f1f5f9 !important;
@@ -292,9 +292,9 @@ class AdminPanelProvider extends PanelProvider
                             border-color: #e2e8f0 !important;
                         }
                         html:not(.dark) .fi-sidebar-header {
-                            height: 44px !important;
-                            min-height: 44px !important;
-                            max-height: 44px !important;
+                            height: 50px !important;
+                            min-height: 50px !important;
+                            max-height: 50px !important;
                             padding: 0 14px !important;
                         }
                         html:not(.dark) .fi-sidebar-nav {
