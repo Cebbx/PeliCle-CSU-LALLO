@@ -46,72 +46,93 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_START,
                 fn () => new \Illuminate\Support\HtmlString('
+                    <script>
+                        document.documentElement.classList.add("dark");
+                        try { localStorage.setItem("theme", "dark"); } catch(e) {}
+                    </script>
                     <style>
-                        html.dark, html {
+                        /* 1. Global Dark Theme Force */
+                        html, body, .fi-layout, .fi-main {
                             background-color: #070a11 !important;
+                            color: #f8fafc !important;
                             color-scheme: dark !important;
-                            overflow-y: hidden !important;
                         }
-                        aside.fi-sidebar, .fi-sidebar-nav, .fi-sidebar-header, .fi-sidebar-footer {
+
+                        /* 2. Top Header Navigation Bar */
+                        header.fi-topbar, .fi-topbar-nav, .fi-topbar-header {
                             background-color: #090d16 !important;
-                            border-color: #141c2c !important;
+                            border-bottom: 1px solid #161f30 !important;
                         }
-                        header.fi-topbar, .fi-topbar-nav {
+                        .fi-topbar input, .fi-global-search-input, .fi-global-search-input-field {
+                            background-color: #101522 !important;
+                            border: 1px solid #1e2a40 !important;
+                            color: #ffffff !important;
+                            border-radius: 8px !important;
+                        }
+                        .fi-topbar input::placeholder {
+                            color: #64748b !important;
+                        }
+                        .fi-user-avatar {
+                            background-color: #1e293b !important;
+                            color: #ffffff !important;
+                        }
+
+                        /* 3. Left Navigation Sidebar */
+                        aside.fi-sidebar, .fi-sidebar-header, .fi-sidebar-footer, .fi-sidebar-nav {
                             background-color: #090d16 !important;
-                            border-color: #141c2c !important;
-                            height: 44px !important;
-                        }
-                        .fi-layout, body {
-                            background-color: #070a11 !important;
-                            overflow-y: hidden !important;
-                        }
-                        .fi-main {
-                            padding: 0 !important;
-                        }
-                        .fi-sidebar-header {
-                            padding: 6px 12px !important;
-                            height: 44px !important;
+                            border-right: 1px solid #161f30 !important;
                         }
                         .fi-sidebar-nav {
-                            padding: 2px 6px !important;
-                            gap: 1px !important;
-                            overflow-y: auto !important;
+                            padding: 8px 10px !important;
                         }
                         .fi-sidebar-item {
-                            margin-bottom: 1px !important;
+                            margin-bottom: 2px !important;
                         }
                         .fi-sidebar-item a, .fi-sidebar-item button {
-                            padding: 3px 8px !important;
-                            min-height: 26px !important;
-                            height: 26px !important;
-                            border-radius: 6px !important;
+                            padding: 6px 12px !important;
+                            border-radius: 8px !important;
+                            color: #cbd5e1 !important;
+                            transition: all 0.15s ease-in-out !important;
                         }
-                        .fi-sidebar-item span, .fi-sidebar-item-label {
-                            font-size: 11px !important;
-                            font-weight: 500 !important;
+                        .fi-sidebar-item a:hover, .fi-sidebar-item button:hover {
+                            background-color: #121826 !important;
+                            color: #ffffff !important;
                         }
                         .fi-sidebar-item svg {
-                            width: 14px !important;
-                            height: 14px !important;
+                            color: #94a3b8 !important;
+                            width: 18px !important;
+                            height: 18px !important;
                         }
-                        .fi-sidebar-group {
-                            margin-top: 2px !important;
-                            margin-bottom: 1px !important;
+                        .fi-sidebar-item span {
+                            font-size: 12.5px !important;
+                            font-weight: 500 !important;
                         }
-                        .fi-sidebar-group-header {
-                            padding: 2px 8px !important;
-                        }
-                        .fi-sidebar-group-label, .fi-sidebar-group-label span {
-                            font-size: 9.5px !important;
-                            letter-spacing: 0.05em !important;
-                        }
+
+                        /* Active Sidebar Item (Subtle Amber/Gold) */
                         .fi-sidebar-item-active > a, .fi-sidebar-item-active > button {
                             background-color: rgba(234, 179, 8, 0.12) !important;
-                            border-radius: 6px !important;
+                            color: #facc15 !important;
+                            border: 1px solid rgba(234, 179, 8, 0.25) !important;
                         }
-                        .fi-sidebar-item-active svg, .fi-sidebar-item-active span {
-                            color: #eab308 !important;
+                        .fi-sidebar-item-active svg {
+                            color: #facc15 !important;
+                        }
+                        .fi-sidebar-item-active span {
+                            color: #facc15 !important;
                             font-weight: 700 !important;
+                        }
+
+                        /* Groups */
+                        .fi-sidebar-group {
+                            margin-top: 8px !important;
+                            margin-bottom: 4px !important;
+                        }
+                        .fi-sidebar-group-label, .fi-sidebar-group-label span {
+                            font-size: 11px !important;
+                            font-weight: 600 !important;
+                            color: #64748b !important;
+                            text-transform: uppercase !important;
+                            letter-spacing: 0.05em !important;
                         }
                     </style>
                 ')
