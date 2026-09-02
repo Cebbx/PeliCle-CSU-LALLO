@@ -16,6 +16,11 @@ class Dashboard extends BaseDashboard
 
     public string $tripPeriod = 'this_week';
 
+    public function getMaxContentWidth(): \Filament\Support\Enums\Width | string | null
+    {
+        return \Filament\Support\Enums\Width::Full;
+    }
+
     public function getViewData(): array
     {
         return [
