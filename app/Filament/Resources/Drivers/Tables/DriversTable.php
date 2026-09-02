@@ -30,7 +30,15 @@ class DriversTable
                         'available' => 'success',
                         'on_trip' => 'info',
                         'off_duty' => 'gray',
+                        'unavailable' => 'danger',
                         default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'available' => 'Available',
+                        'on_trip' => 'On Trip',
+                        'off_duty' => 'Off Duty',
+                        'unavailable' => 'Unavailable',
+                        default => ucwords(str_replace('_', ' ', $state)),
                     })
                     ->searchable(),
                 TextColumn::make('created_at')

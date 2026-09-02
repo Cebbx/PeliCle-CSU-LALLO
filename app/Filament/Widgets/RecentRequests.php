@@ -46,7 +46,10 @@ class RecentRequests extends TableWidget
                         'completed' => 'info',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state) => ucfirst($state)),
+                    ->formatStateUsing(fn (string $state) => match ($state) {
+                        'on_trip' => 'On Trip',
+                        default => ucwords(str_replace('_', ' ', $state)),
+                    }),
             ]);
     }
 }

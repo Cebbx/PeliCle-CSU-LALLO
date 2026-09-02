@@ -47,7 +47,11 @@ class TripTicketsTable
                         'cancelled' => 'danger',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state) => ucfirst($state))
+                    ->formatStateUsing(fn (string $state) => match ($state) {
+                        'active' => 'On Trip',
+                        'on_trip' => 'On Trip',
+                        default => ucwords(str_replace('_', ' ', $state)),
+                    })
                     ->searchable(),
             ])
             ->defaultSort('created_at', 'desc')
