@@ -70,57 +70,6 @@ class AdminPanelProvider extends PanelProvider
                             text-decoration: none !important;
                         }
 
-                        /* Ensure all input boxes have clearly visible rounded borders and clean backgrounds */
-                        .fi-input-wrp {
-                            border: 1px solid rgba(255, 255, 255, 0.16) !important;
-                            border-radius: 0.5rem !important;
-                            background-color: rgba(255, 255, 255, 0.03) !important;
-                        }
-
-                        html:not(.dark) .fi-input-wrp {
-                            border: 1px solid #d1d5db !important;
-                            border-radius: 0.5rem !important;
-                            background-color: #ffffff !important;
-                        }
-
-                        /* Prevent yellow/amber focus ring when clicking read-only or disabled boxes */
-                        .fi-input-wrp:has(input[readonly]):focus-within,
-                        .fi-input-wrp:has(input:disabled):focus-within,
-                        .fi-input-wrp.fi-disabled:focus-within {
-                            border-color: rgba(255, 255, 255, 0.25) !important;
-                            --tw-ring-color: transparent !important;
-                            --tw-ring-shadow: none !important;
-                            box-shadow: none !important;
-                            outline: none !important;
-                        }
-
-                        html:not(.dark) .fi-input-wrp:has(input[readonly]):focus-within,
-                        html:not(.dark) .fi-input-wrp:has(input:disabled):focus-within,
-                        html:not(.dark) .fi-input-wrp.fi-disabled:focus-within {
-                            border-color: #9ca3af !important;
-                            --tw-ring-color: transparent !important;
-                            --tw-ring-shadow: none !important;
-                            box-shadow: none !important;
-                            outline: none !important;
-                        }
-
-                        input[readonly],
-                        input:disabled {
-                            cursor: default !important;
-                            color: #f8fafc !important;
-                        }
-
-                        html:not(.dark) input[readonly],
-                        html:not(.dark) input:disabled {
-                            color: #0f172a !important;
-                        }
-
-                        input[readonly]:focus,
-                        input:disabled:focus {
-                            outline: none !important;
-                            box-shadow: none !important;
-                        }
-
                         /* ========================================================
                            1. DARK THEME STYLES (html.dark)
                            ======================================================== */
