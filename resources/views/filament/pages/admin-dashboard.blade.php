@@ -1,319 +1,431 @@
 <x-filament-panels::page>
     <style>
-        .admin-dashboard-root {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #f8fafc;
+        /* Exact Theme Match from Reference UI */
+        :root {
+            --bg-dark-card: #0d121d;
+            --bg-dark-card-inner: #121826;
+            --border-card: #1e2638;
+            --border-card-hover: #2b364e;
+            --text-title: #ffffff;
+            --text-subtitle: #94a3b8;
+            --text-muted: #64748b;
+            --color-green: #10b981;
+            --color-blue: #0284c7;
+            --color-sky: #0ea5e9;
+            --color-amber: #f59e0b;
+            --color-red: #ef4444;
         }
 
-        /* Top Header */
-        .exec-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 20px;
+        .fi-page {
+            background-color: transparent !important;
         }
-        .exec-header-title {
-            font-size: 26px;
+
+        .dashboard-container {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #f8fafc;
+            max-width: 100%;
+        }
+
+        /* 1. Header Banner */
+        .header-section {
+            margin-bottom: 24px;
+        }
+        .header-title {
+            font-size: 32px;
             font-weight: 800;
             color: #ffffff;
             letter-spacing: -0.02em;
             margin: 0;
-            line-height: 1.2;
+            line-height: 1.1;
         }
-        .exec-header-sub {
+        .header-greeting {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .header-desc {
             font-size: 13px;
             color: #94a3b8;
             margin-top: 4px;
+            line-height: 1.4;
         }
-        .exec-live-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #111827;
-            border: 1px solid #1f2937;
-            padding: 6px 14px;
-            border-radius: 9999px;
+        .header-live-line {
             font-size: 12px;
-            color: #e2e8f0;
+            color: #64748b;
+            margin-top: 4px;
             font-weight: 500;
         }
-        .exec-pulse-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #10b981;
-            box-shadow: 0 0 8px #10b981;
-        }
 
-        /* Grids */
-        .exec-grid-4 {
+        /* 2. Layout Grids */
+        .grid-row-1 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 16px;
             margin-bottom: 16px;
         }
-        .exec-grid-3 {
+        .grid-row-2 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 16px;
             margin-bottom: 16px;
         }
-        .exec-grid-bottom {
+        .grid-row-3 {
             display: grid;
-            grid-template-columns: 1fr 1fr 1.2fr;
+            grid-template-columns: 1fr 1fr 1.25fr;
             gap: 16px;
         }
-        @media (max-width: 1024px) {
-            .exec-grid-bottom {
-                grid-template-columns: 1fr;
-            }
+
+        @media (max-width: 1200px) {
+            .grid-row-1 { grid-template-columns: repeat(2, 1fr); }
+            .grid-row-2 { grid-template-columns: repeat(2, 1fr); }
+            .grid-row-3 { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+            .grid-row-1 { grid-template-columns: 1fr; }
+            .grid-row-2 { grid-template-columns: 1fr; }
         }
 
-        /* Executive Cards */
-        .exec-card {
-            background: #111827;
-            border: 1px solid #1f2937;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-            display: flex;
-            flex-col: column;
-            justify-content: space-between;
+        /* 3. Stat Cards */
+        .stat-box {
+            background: #0d121d;
+            border: 1px solid #1e2638;
+            border-radius: 14px;
+            padding: 18px 20px 0 20px;
             position: relative;
             overflow: hidden;
-            transition: transform 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 140px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            transition: border-color 0.2s;
         }
-        .exec-card:hover {
-            transform: translateY(-2px);
-            border-color: #374151;
+        .stat-box:hover {
+            border-color: #2b364e;
         }
-        .exec-card-header {
+
+        .stat-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
         }
-        .exec-card-title-group {
+        .stat-badge-group {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .exec-icon-box {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+        .stat-icon-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 15px;
             flex-shrink: 0;
         }
-        .icon-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25); }
-        .icon-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25); }
-        .icon-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.25); }
-        .icon-red { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); }
+        .circle-green { background: #10b981; color: #ffffff; }
+        .circle-blue { background: #0284c7; color: #ffffff; }
+        .circle-sky { background: #0ea5e9; color: #ffffff; }
+        .circle-amber { background: #f59e0b; color: #ffffff; }
+        .circle-red { background: #ef4444; color: #ffffff; }
 
-        .exec-card-label {
+        .stat-title {
             font-size: 13px;
             font-weight: 600;
             color: #cbd5e1;
         }
-        .exec-card-value {
-            font-size: 26px;
+        .stat-side-icon {
+            font-size: 16px;
+            opacity: 0.6;
+        }
+
+        .stat-mid {
+            margin-top: 14px;
+            margin-bottom: 6px;
+        }
+        .stat-big-num {
+            font-size: 28px;
             font-weight: 800;
             color: #ffffff;
+            line-height: 1;
             letter-spacing: -0.02em;
-            line-height: 1.1;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
         }
-        .exec-card-value-unit {
+        .stat-unit-text {
             font-size: 20px;
             font-weight: 700;
-            color: #e2e8f0;
+            color: #ffffff;
         }
-        .exec-card-subtext {
+        .stat-subtext {
             font-size: 11px;
             font-weight: 500;
             margin-top: 4px;
         }
-        .subtext-green { color: #34d399; }
-        .subtext-blue { color: #60a5fa; }
-        .subtext-amber { color: #fbbf24; }
-        .subtext-gray { color: #94a3b8; }
+        .text-green-accent { color: #10b981; }
+        .text-blue-accent { color: #38bdf8; }
+        .text-amber-accent { color: #fbbf24; }
+        .text-red-accent { color: #f87171; }
+        .text-slate-accent { color: #94a3b8; }
 
-        /* Bottom Sparklines */
-        .exec-sparkline-wrap {
-            margin: 12px -20px -20px -20px;
+        /* Smooth Bottom Sparklines */
+        .wave-bottom-wrapper {
+            margin: 6px -20px 0 -20px;
             height: 32px;
             overflow: hidden;
             display: block;
         }
-        .exec-sparkline-svg {
+        .wave-svg {
             width: 100%;
             height: 100%;
             display: block;
         }
 
-        /* Recent Requests Feed */
-        .req-feed-item {
+        /* 4. Bottom Analytics Cards */
+        .panel-box {
+            background: #0d121d;
+            border: 1px solid #1e2638;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 320px;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .panel-header-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .panel-header-btn {
+            background: #141c2c;
+            border: 1px solid #222e44;
+            color: #cbd5e1;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .panel-header-btn:hover {
+            background: #1c273c;
+            color: #ffffff;
+        }
+
+        /* Recent Requests List */
+        .recent-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .recent-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 10px 0;
-            border-bottom: 1px solid #1f2937;
+            border-bottom: 1px solid #161f30;
             gap: 12px;
         }
-        .req-feed-item:last-child {
+        .recent-item:last-child {
             border-bottom: none;
         }
-        .req-dot {
-            width: 8px;
-            height: 8px;
+        .recent-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .recent-dot {
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             flex-shrink: 0;
         }
-        .dot-pending { background: #ef4444; }
-        .dot-approved { background: #0ea5e9; }
-        .dot-completed { background: #10b981; }
-
-        .req-id {
+        .recent-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .recent-code {
             font-size: 12px;
             font-weight: 700;
             color: #ffffff;
+            white-space: nowrap;
         }
-        .req-purpose {
-            font-size: 11px;
+        .recent-title {
+            font-size: 12px;
             color: #94a3b8;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 160px;
+            max-width: 170px;
         }
-        .req-badge {
-            font-size: 10px;
+        .recent-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .recent-pill {
+            font-size: 11px;
             font-weight: 700;
-            padding: 3px 8px;
+            padding: 2px 10px;
             border-radius: 6px;
             display: inline-block;
             text-transform: capitalize;
         }
-        .badge-pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .badge-approved { background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); }
-        .badge-completed { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge-rejected { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-        
-        .req-time {
-            font-size: 10px;
+        .pill-pending { background: #f59e0b; color: #000000; }
+        .pill-approved { background: #0284c7; color: #ffffff; }
+        .pill-completed { background: #059669; color: #ffffff; }
+        .pill-rejected { background: #dc2626; color: #ffffff; }
+
+        .recent-time {
+            font-size: 11px;
             color: #64748b;
             white-space: nowrap;
+            min-width: 65px;
+            text-align: right;
         }
     </style>
 
-    <div class="admin-dashboard-root">
+    <div class="dashboard-container">
 
-        <!-- Top Header & Live Status -->
-        <div class="exec-header">
-            <div>
-                <h1 class="exec-header-title">Dashboard</h1>
-                <div class="exec-header-sub">
-                    Welcome back, <strong style="color: #ffffff;">{{ auth()->user()->name ?? 'Admin User' }}</strong>! 👋<br>
-                    Here is the current operational status of the CSU Lal-lo Campus Vehicle & Trip Management System.
-                </div>
+        <!-- Top Welcome Header -->
+        <div class="header-section">
+            <h1 class="header-title">Dashboard</h1>
+            <div class="header-greeting">
+                Welcome back, {{ auth()->user()->name ?? 'Admin User' }}! 👋
             </div>
-            <div class="exec-live-pill">
-                <div class="exec-pulse-dot"></div>
-                <span>System Live • <strong>{{ \Carbon\Carbon::now('Asia/Manila')->format('h:i A') }}</strong></span>
+            <div class="header-desc">
+                Here is the current operational status of the CSU Lal-lo Campus Vehicle & Trip Management System.
+            </div>
+            <div class="header-live-line">
+                System Live • {{ \Carbon\Carbon::now('Asia/Manila')->format('h:i A') }}
             </div>
         </div>
 
-        <!-- ROW 1: 4 Executive Status Cards -->
-        <div class="exec-grid-4">
+        <!-- ROW 1: 4 Stat Cards -->
+        <div class="grid-row-1">
             
-            <!-- 1. Driver Availability -->
-            <div class="exec-card">
-                <div class="exec-card-header">
-                    <div class="exec-card-title-group">
-                        <div class="exec-icon-box icon-green">👥</div>
-                        <span class="exec-card-label">Driver Availability</span>
+            <!-- Card 1: Driver Availability -->
+            <div class="stat-box">
+                <div class="stat-top">
+                    <div class="stat-badge-group">
+                        <div class="stat-icon-circle circle-green">
+                            <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                        <span class="stat-title">Driver Availability</span>
                     </div>
-                    <span style="color: #059669; font-size: 16px;">👤</span>
+                    <span class="stat-side-icon text-green-accent">👥</span>
                 </div>
-                <div>
-                    <div class="exec-card-value">
-                        {{ $driverStats['available'] }} / {{ $driverStats['total'] }} <span class="exec-card-value-unit">Available</span>
+                <div class="stat-mid">
+                    <div class="stat-big-num">
+                        {{ $driverStats['available'] }} / {{ $driverStats['total'] }} <span class="stat-unit-text">Available</span>
                     </div>
-                    <div class="exec-card-subtext subtext-green">Drivers ready for dispatch</div>
+                    <div class="stat-subtext text-green-accent">Drivers ready for dispatch</div>
                 </div>
-                <div class="exec-sparkline-wrap">
-                    <svg viewBox="0 0 300 50" class="exec-sparkline-svg" preserveAspectRatio="none">
-                        <path d="M0,45 C80,35 140,5 200,15 C260,25 280,10 300,5 L300,50 L0,50 Z" fill="rgba(16, 185, 129, 0.15)" />
-                        <path d="M0,45 C80,35 140,5 200,15 C260,25 280,10 300,5" fill="none" stroke="#10b981" stroke-width="2.5" />
+                <!-- Smooth Neon Green Wave -->
+                <div class="wave-bottom-wrapper">
+                    <svg viewBox="0 0 300 45" class="wave-svg" preserveAspectRatio="none">
+                        <path d="M0,40 C70,38 120,8 180,12 C240,16 270,35 300,40" fill="none" stroke="#10b981" stroke-width="2.5" />
                     </svg>
                 </div>
             </div>
 
-            <!-- 2. Vehicle Availability -->
-            <div class="exec-card">
-                <div class="exec-card-header">
-                    <div class="exec-card-title-group">
-                        <div class="exec-icon-box icon-green">🚚</div>
-                        <span class="exec-card-label">Vehicle Availability</span>
+            <!-- Card 2: Vehicle Availability -->
+            <div class="stat-box">
+                <div class="stat-top">
+                    <div class="stat-badge-group">
+                        <div class="stat-icon-circle circle-green">
+                            <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                        </div>
+                        <span class="stat-title">Vehicle Availability</span>
                     </div>
-                    <span style="color: #059669; font-size: 16px;">🚐</span>
+                    <span class="stat-side-icon text-green-accent">🚚</span>
                 </div>
-                <div>
-                    <div class="exec-card-value">
-                        {{ $vehicleStats['available'] }} / {{ $vehicleStats['total'] }} <span class="exec-card-value-unit">Available</span>
+                <div class="stat-mid">
+                    <div class="stat-big-num">
+                        {{ $vehicleStats['available'] }} / {{ $vehicleStats['total'] }} <span class="stat-unit-text">Available</span>
                     </div>
-                    <div class="exec-card-subtext subtext-green">Vehicles ready for dispatch</div>
+                    <div class="stat-subtext text-green-accent">Vehicles ready for dispatch</div>
                 </div>
-                <div class="exec-sparkline-wrap">
-                    <svg viewBox="0 0 300 50" class="exec-sparkline-svg" preserveAspectRatio="none">
-                        <path d="M0,40 C60,45 120,10 180,20 C240,30 270,10 300,5 L300,50 L0,50 Z" fill="rgba(16, 185, 129, 0.15)" />
-                        <path d="M0,40 C60,45 120,10 180,20 C240,30 270,10 300,5" fill="none" stroke="#10b981" stroke-width="2.5" />
+                <!-- Smooth Neon Green Wave -->
+                <div class="wave-bottom-wrapper">
+                    <svg viewBox="0 0 300 45" class="wave-svg" preserveAspectRatio="none">
+                        <path d="M0,38 C60,42 120,6 180,14 C240,22 270,8 300,5" fill="none" stroke="#10b981" stroke-width="2.5" />
                     </svg>
                 </div>
             </div>
 
-            <!-- 3. Pending Vehicle Requests -->
-            <div class="exec-card">
-                <div class="exec-card-header">
-                    <div class="exec-card-title-group">
-                        <div class="exec-icon-box icon-blue">📋</div>
-                        <span class="exec-card-label">Pending Vehicle Requests</span>
+            <!-- Card 3: Pending Vehicle Requests -->
+            <div class="stat-box">
+                <div class="stat-top">
+                    <div class="stat-badge-group">
+                        <div class="stat-icon-circle circle-blue">
+                            <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <span class="stat-title">Pending Vehicle Requests</span>
                     </div>
-                    <span style="color: #64748b; font-size: 16px;">📄</span>
+                    <span class="stat-side-icon" style="color: #64748b;">📄</span>
                 </div>
-                <div>
-                    <div class="exec-card-value">{{ $pendingRequests }}</div>
-                    <div class="exec-card-subtext subtext-gray">Requests awaiting admin review</div>
+                <div class="stat-mid">
+                    <div class="stat-big-num">{{ $pendingRequests }}</div>
+                    <div class="stat-subtext text-slate-accent">Requests awaiting admin review</div>
                 </div>
-                <div class="exec-sparkline-wrap">
-                    <svg viewBox="0 0 300 50" class="exec-sparkline-svg" preserveAspectRatio="none">
-                        <path d="M0,45 C80,40 160,25 220,30 C260,35 280,42 300,45 L300,50 L0,50 Z" fill="rgba(100, 116, 139, 0.12)" />
-                        <path d="M0,45 C80,40 160,25 220,30 C260,35 280,42 300,45" fill="none" stroke="#64748b" stroke-width="2" />
+                <!-- Smooth Gray Wave -->
+                <div class="wave-bottom-wrapper">
+                    <svg viewBox="0 0 300 45" class="wave-svg" preserveAspectRatio="none">
+                        <path d="M0,42 C80,38 160,20 220,25 C260,30 280,40 300,42" fill="none" stroke="#475569" stroke-width="2" />
                     </svg>
                 </div>
             </div>
 
-            <!-- 4. Approved Vehicle Requests -->
-            <div class="exec-card">
-                <div class="exec-card-header">
-                    <div class="exec-card-title-group">
-                        <div class="exec-icon-box icon-green">✅</div>
-                        <span class="exec-card-label">Approved Vehicle Requests</span>
+            <!-- Card 4: Approved Vehicle Requests -->
+            <div class="stat-box">
+                <div class="stat-top">
+                    <div class="stat-badge-group">
+                        <div class="stat-icon-circle circle-green">
+                            <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <span class="stat-title">Approved Vehicle Requests</span>
                     </div>
-                    <span style="color: #10b981; font-size: 16px;">✔</span>
+                    <span class="stat-side-icon text-green-accent">✔</span>
                 </div>
-                <div>
-                    <div class="exec-card-value">{{ $approvedRequests }}</div>
-                    <div class="exec-card-subtext subtext-green">Requests approved and ticketed</div>
+                <div class="stat-mid">
+                    <div class="stat-big-num">{{ $approvedRequests }}</div>
+                    <div class="stat-subtext text-green-accent">Requests approved and ticketed</div>
                 </div>
-                <div class="exec-sparkline-wrap">
-                    <svg viewBox="0 0 300 50" class="exec-sparkline-svg" preserveAspectRatio="none">
-                        <path d="M0,45 C70,35 120,10 180,15 C240,20 270,40 300,45 L300,50 L0,50 Z" fill="rgba(16, 185, 129, 0.15)" />
-                        <path d="M0,45 C70,35 120,10 180,15 C240,20 270,40 300,45" fill="none" stroke="#10b981" stroke-width="2.5" />
+                <!-- Smooth Green Wave -->
+                <div class="wave-bottom-wrapper">
+                    <svg viewBox="0 0 300 45" class="wave-svg" preserveAspectRatio="none">
+                        <path d="M0,42 C70,32 120,6 180,10 C240,14 270,38 300,42" fill="none" stroke="#10b981" stroke-width="2.5" />
                     </svg>
                 </div>
             </div>
@@ -321,121 +433,137 @@
         </div>
 
         <!-- ROW 2: 3 Wide Executive Cards -->
-        <div class="exec-grid-3">
+        <div class="grid-row-2">
             
-            <!-- 1. Active Trips (On Trip) -->
-            <div class="exec-card">
-                <div class="exec-card-header">
-                    <div class="exec-card-title-group">
-                        <div class="exec-icon-box icon-blue" style="font-weight: 800;">A</div>
-                        <span class="exec-card-label">Active Trips (On Trip)</span>
+            <!-- Card 1: Active Trips (On Trip) -->
+            <div class="stat-box" style="padding-bottom: 0;">
+                <div class="stat-top">
+                    <div class="stat-badge-group">
+                        <div class="stat-icon-circle circle-blue" style="font-weight: 800; font-size: 14px;">A</div>
+                        <span class="stat-title">Active Trips (On Trip)</span>
                     </div>
-                    <span style="color: #3b82f6; font-size: 16px;">🚚</span>
+                    <span class="stat-side-icon" style="color: #38bdf8;">🚚</span>
                 </div>
-                <div>
-                    <div class="exec-card-value">{{ $activeTrips }}</div>
-                    <div class="exec-card-subtext subtext-blue">Trips currently on the road</div>
+                <div class="stat-mid">
+                    <div class="stat-big-num">{{ $activeTrips }}</div>
+                    <div class="stat-subtext text-blue-accent">Trips currently on the road</div>
                 </div>
-                <div class="exec-sparkline-wrap">
-                    <svg viewBox="0 0 300 50" class="exec-sparkline-svg" preserveAspectRatio="none">
-                        <path d="M0,45 C80,42 140,20 200,28 C260,35 280,45 300,45 L300,50 L0,50 Z" fill="rgba(59, 130, 246, 0.15)" />
-                        <path d="M0,45 C80,42 140,20 200,28 C260,35 280,45 300,45" fill="none" stroke="#3b82f6" stroke-width="2.5" />
+                <!-- Smooth Blue Wave -->
+                <div class="wave-bottom-wrapper">
+                    <svg viewBox="0 0 300 45" class="wave-svg" preserveAspectRatio="none">
+                        <path d="M0,42 C80,40 140,16 200,22 C260,28 280,42 300,42" fill="none" stroke="#0284c7" stroke-width="2.5" />
                     </svg>
                 </div>
             </div>
 
-            <!-- 2. Pending Withdrawal Slips -->
-            <div class="exec-card">
-                <div class="exec-card-header">
-                    <div class="exec-card-title-group">
-                        <div class="exec-icon-box icon-amber">📄</div>
-                        <span class="exec-card-label">Pending Withdrawal Slips</span>
+            <!-- Card 2: Pending Withdrawal Slips -->
+            <div class="stat-box" style="padding-bottom: 20px;">
+                <div class="stat-top">
+                    <div class="stat-badge-group">
+                        <div class="stat-icon-circle circle-amber">
+                            <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <span class="stat-title">Pending Withdrawal Slips</span>
                     </div>
-                    <span style="font-size: 16px;">💵</span>
+                    <span class="stat-side-icon" style="color: #f59e0b;">💵</span>
                 </div>
-                <div>
-                    <div class="exec-card-value">{{ $pendingSlips }}</div>
-                    <div class="exec-card-subtext subtext-amber">Fuel slips awaiting approval</div>
+                <div class="stat-mid">
+                    <div class="stat-big-num">{{ $pendingSlips }}</div>
+                    <div class="stat-subtext text-amber-accent">Fuel slips awaiting approval</div>
                 </div>
-                <div style="width: 100%; height: 4px; background: rgba(245, 158, 11, 0.2); border-radius: 999px; margin-top: 16px; overflow: hidden;">
-                    <div style="height: 100%; background: #f59e0b; width: {{ min(100, max(5, $pendingSlips * 15)) }}%;"></div>
+                <!-- Smooth Amber Wave at Bottom -->
+                <div style="margin: 10px -20px -20px -20px; height: 20px; overflow: hidden;">
+                    <svg viewBox="0 0 300 25" style="width: 100%; height: 100%;" preserveAspectRatio="none">
+                        <path d="M0,22 C80,20 160,8 240,12 L300,5" fill="none" stroke="#f59e0b" stroke-width="2" />
+                    </svg>
                 </div>
             </div>
 
-            <!-- 3. This Month's Gas Expenses -->
-            <div class="exec-card">
-                <div class="exec-card-header">
-                    <div class="exec-card-title-group">
-                        <div class="exec-icon-box icon-red">⛽</div>
-                        <span class="exec-card-label">This Month's Gas Expenses</span>
+            <!-- Card 3: This Month's Gas Expenses -->
+            <div class="stat-box" style="padding-bottom: 20px;">
+                <div class="stat-top">
+                    <div class="stat-badge-group">
+                        <div class="stat-icon-circle circle-red">
+                            <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                        </div>
+                        <span class="stat-title">This Month's Gas Expenses</span>
                     </div>
-                    <span style="font-size: 16px;">🔥</span>
+                    <span class="stat-side-icon" style="color: #ef4444;">🔥</span>
                 </div>
-                <div>
-                    <div class="exec-card-value">₱{{ number_format($gasExpenses['month'], 2) }}</div>
-                    <div class="exec-card-subtext subtext-gray">
-                        Today: <span style="color: #e2e8f0;">₱{{ number_format($gasExpenses['today'], 2) }}</span> | Week: <span style="color: #e2e8f0;">₱{{ number_format($gasExpenses['week'], 2) }}</span>
+                <div class="stat-mid">
+                    <div class="stat-big-num">₱{{ number_format($gasExpenses['month'], 2) }}</div>
+                    <div class="stat-subtext text-red-accent">
+                        Today: ₱{{ number_format($gasExpenses['today'], 2) }} | Week: ₱{{ number_format($gasExpenses['week'], 2) }}
                     </div>
                 </div>
-                <div style="width: 100%; height: 4px; background: rgba(239, 68, 68, 0.2); border-radius: 999px; margin-top: 16px; overflow: hidden;">
-                    <div style="height: 100%; background: linear-gradient(90deg, #ef4444, #f43f5e); width: 100%;"></div>
+                <div style="width: 100%; height: 3px; background: rgba(239, 68, 68, 0.2); border-radius: 99px; margin-top: 14px; overflow: hidden;">
+                    <div style="height: 100%; background: #ef4444; width: 100%;"></div>
                 </div>
             </div>
 
         </div>
 
-        <!-- ROW 3: Visual Analytics & Recent Requests List -->
-        <div class="exec-grid-bottom">
+        <!-- ROW 3: Three Visual Analytics & Recent Activity Cards -->
+        <div class="grid-row-3">
             
             <!-- Column 1: Trip Activity Area Chart -->
-            <div class="exec-card" style="min-height: 280px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="color: #38bdf8;">📈</span>
-                        <strong style="font-size: 13px; color: #ffffff;">Trip Activity (This Week)</strong>
+            <div class="panel-box">
+                <div class="panel-header">
+                    <div class="panel-header-title">
+                        <span style="color: #0284c7;">📈</span>
+                        <span>Trip Activity (This Week)</span>
                     </div>
-                    <div style="padding: 4px 10px; background: #1f2937; border-radius: 8px; font-size: 11px; color: #94a3b8;">
+                    <div class="panel-header-btn">
                         This Week ⌵
                     </div>
                 </div>
 
-                <!-- Smooth SVG Area Line Chart -->
-                <div style="position: relative; width: 100%; height: 160px; margin: auto 0;">
-                    <svg viewBox="0 0 350 140" style="width: 100%; height: 100%; display: block;" preserveAspectRatio="none">
-                        <defs>
-                            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.45" />
-                                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0" />
-                            </linearGradient>
-                        </defs>
-                        
-                        <!-- Horizontal Grid Lines -->
-                        <line x1="0" y1="35" x2="350" y2="35" stroke="#1f2937" stroke-width="1" stroke-dasharray="3,3" />
-                        <line x1="0" y1="75" x2="350" y2="75" stroke="#1f2937" stroke-width="1" stroke-dasharray="3,3" />
-                        <line x1="0" y1="115" x2="350" y2="115" stroke="#1f2937" stroke-width="1" stroke-dasharray="3,3" />
-                        
-                        <!-- Gradient Area -->
-                        <path d="M 0,130 Q 30,120 60,95 T 120,35 T 175,40 T 235,80 T 295,100 T 350,130 L 350,140 L 0,140 Z" fill="url(#areaGrad)" />
-                        
-                        <!-- Smooth Line -->
-                        <path d="M 0,130 Q 30,120 60,95 T 120,35 T 175,40 T 235,80 T 295,100 T 350,130" fill="none" stroke="#3b82f6" stroke-width="2.5" />
-                        
-                        <!-- Glowing Data Dots -->
-                        <circle cx="0" cy="130" r="3" fill="#60a5fa" />
-                        <circle cx="60" cy="95" r="3" fill="#60a5fa" />
-                        <circle cx="120" cy="35" r="4.5" fill="#ffffff" stroke="#3b82f6" stroke-width="2" />
-                        <circle cx="175" cy="40" r="4" fill="#ffffff" stroke="#3b82f6" stroke-width="2" />
-                        <circle cx="235" cy="80" r="3" fill="#60a5fa" />
-                        <circle cx="295" cy="100" r="3" fill="#60a5fa" />
-                        <circle cx="350" cy="130" r="3" fill="#60a5fa" />
-                    </svg>
+                <!-- Custom Area Chart with Grid & Values -->
+                <div style="position: relative; width: 100%; height: 180px; display: flex; flex-direction: column; justify-content: space-between;">
+                    
+                    <!-- SVG Area Line with Grid -->
+                    <div style="position: relative; width: 100%; height: 140px;">
+                        <svg viewBox="0 0 350 140" style="width: 100%; height: 100%; display: block;" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="chartAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#0284c7" stop-opacity="0.35" />
+                                    <stop offset="100%" stop-color="#0284c7" stop-opacity="0.0" />
+                                </linearGradient>
+                            </defs>
+                            
+                            <!-- Grid Lines -->
+                            <line x1="0" y1="20" x2="350" y2="20" stroke="#161f30" stroke-width="1" />
+                            <line x1="0" y1="55" x2="350" y2="55" stroke="#161f30" stroke-width="1" />
+                            <line x1="0" y1="90" x2="350" y2="90" stroke="#161f30" stroke-width="1" />
+                            <line x1="0" y1="125" x2="350" y2="125" stroke="#161f30" stroke-width="1" />
+                            
+                            <!-- Area Gradient Fill -->
+                            <path d="M 0,130 Q 30,110 60,95 T 120,25 T 175,35 T 235,75 T 295,95 T 350,130 L 350,140 L 0,140 Z" fill="url(#chartAreaGradient)" />
+                            
+                            <!-- Blue Curved Line -->
+                            <path d="M 0,130 Q 30,110 60,95 T 120,25 T 175,35 T 235,75 T 295,95 T 350,130" fill="none" stroke="#0284c7" stroke-width="2.5" />
+                            
+                            <!-- Data Point Circles -->
+                            <circle cx="0" cy="130" r="3" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+                            <circle cx="60" cy="95" r="3.5" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+                            <circle cx="120" cy="25" r="4.5" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
+                            <circle cx="175" cy="35" r="4" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
+                            <circle cx="235" cy="75" r="3.5" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+                            <circle cx="295" cy="95" r="3" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+                            <circle cx="350" cy="130" r="3" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+                        </svg>
+                    </div>
 
-                    <!-- Days Labels -->
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-top: 4px;">
+                    <!-- Day Labels -->
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; padding-top: 4px;">
                         <span>Mon</span>
                         <span>Tue</span>
-                        <span style="color: #60a5fa; font-weight: 700;">Wed</span>
-                        <span style="color: #60a5fa; font-weight: 700;">Thu</span>
+                        <span>Wed</span>
+                        <span>Thu</span>
                         <span>Fri</span>
                         <span>Sat</span>
                         <span>Sun</span>
@@ -443,35 +571,38 @@
                 </div>
 
                 <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: #94a3b8; margin-top: 8px;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; display: inline-block;"></span>
+                    <span style="width: 8px; height: 8px; border-radius: 2px; background: #0284c7; display: inline-block;"></span>
                     <span>Trips</span>
                 </div>
             </div>
 
             <!-- Column 2: Vehicle Request Status Donut Chart -->
-            <div class="exec-card" style="min-height: 280px;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                    <span style="color: #34d399;">📉</span>
-                    <strong style="font-size: 13px; color: #ffffff;">Vehicle Request Status</strong>
+            <div class="panel-box">
+                <div class="panel-header">
+                    <div class="panel-header-title">
+                        <span style="color: #10b981;">📉</span>
+                        <span>Vehicle Request Status</span>
+                    </div>
                 </div>
 
+                <!-- Donut Chart & Legend -->
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: auto 0;">
                     
-                    <!-- Fixed Dimensions Donut SVG -->
-                    <div style="position: relative; width: 120px; height: 120px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                        <svg viewBox="0 0 100 100" style="width: 120px; height: 120px; transform: rotate(-90deg); display: block;">
-                            <!-- Background Ring -->
-                            <circle cx="50" cy="50" r="38" fill="none" stroke="#1f2937" stroke-width="12" />
+                    <!-- Fixed SVG Donut Ring with Exact Percentages -->
+                    <div style="position: relative; width: 130px; height: 130px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 100 100" style="width: 130px; height: 130px; transform: rotate(-90deg); display: block;">
+                            <!-- Background Track -->
+                            <circle cx="50" cy="50" r="38" fill="none" stroke="#161f30" stroke-width="12" />
                             
                             <!-- Completed Segment (Orange) -->
                             <circle cx="50" cy="50" r="38" fill="none" stroke="#f59e0b" stroke-width="12"
                                 stroke-dasharray="238.76"
-                                stroke-dashoffset="{{ 238.76 - (238.76 * max(0.05, $statusBreakdown['completed_pct'] / 100)) }}" />
+                                stroke-dashoffset="{{ 238.76 - (238.76 * max(0.08, $statusBreakdown['completed_pct'] / 100)) }}" />
                             
                             <!-- Approved Segment (Sky Blue) -->
-                            <circle cx="50" cy="50" r="38" fill="none" stroke="#0ea5e9" stroke-width="12"
+                            <circle cx="50" cy="50" r="38" fill="none" stroke="#0284c7" stroke-width="12"
                                 stroke-dasharray="238.76"
-                                stroke-dashoffset="{{ 238.76 - (238.76 * max(0.05, $statusBreakdown['approved_pct'] / 100)) }}"
+                                stroke-dashoffset="{{ 238.76 - (238.76 * max(0.06, $statusBreakdown['approved_pct'] / 100)) }}"
                                 transform="rotate({{ ($statusBreakdown['completed_pct'] / 100) * 360 }} 50 50)" />
                             
                             <!-- Pending Segment (Green) -->
@@ -483,14 +614,14 @@
                             <!-- Rejected Segment (Red) -->
                             <circle cx="50" cy="50" r="38" fill="none" stroke="#ef4444" stroke-width="12"
                                 stroke-dasharray="238.76"
-                                stroke-dashoffset="{{ 238.76 - (238.76 * max(0.03, $statusBreakdown['rejected_pct'] / 100)) }}"
+                                stroke-dashoffset="{{ 238.76 - (238.76 * max(0.04, $statusBreakdown['rejected_pct'] / 100)) }}"
                                 transform="rotate({{ (($statusBreakdown['completed_pct'] + $statusBreakdown['approved_pct'] + $statusBreakdown['pending_pct']) / 100) * 360 }} 50 50)" />
                         </svg>
 
                         <!-- Center Total Count -->
                         <div style="position: absolute; text-align: center; pointer-events: none;">
-                            <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Total</div>
-                            <div style="font-size: 18px; font-weight: 900; color: #ffffff; line-height: 1;">
+                            <div style="font-size: 10px; color: #94a3b8; font-weight: 600;">Total</div>
+                            <div style="font-size: 22px; font-weight: 800; color: #ffffff; line-height: 1.1;">
                                 {{ $statusBreakdown['total'] }}
                             </div>
                         </div>
@@ -498,93 +629,90 @@
 
                     <!-- Legend -->
                     <div style="display: flex; flex-direction: column; gap: 8px; flex-grow: 1; font-size: 11px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
-                                <span style="color: #cbd5e1;">Pending</span>
+                                <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                                <span style="color: #cbd5e1; font-weight: 500;">Pending</span>
                             </div>
-                            <span style="color: #94a3b8; font-weight: 600;">{{ $statusBreakdown['pending'] }} <span style="font-size: 9px; color: #64748b;">({{ $statusBreakdown['pending_pct'] }}%)</span></span>
+                            <span style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['pending'] }} <span style="color: #64748b; font-size: 10px;">({{ $statusBreakdown['pending_pct'] }}%)</span></span>
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 8px; height: 8px; border-radius: 50%; background: #0ea5e9;"></span>
-                                <span style="color: #cbd5e1;">Approved</span>
+                                <span style="width: 8px; height: 8px; border-radius: 50%; background: #0284c7; display: inline-block;"></span>
+                                <span style="color: #cbd5e1; font-weight: 500;">Approved</span>
                             </div>
-                            <span style="color: #94a3b8; font-weight: 600;">{{ $statusBreakdown['approved'] }} <span style="font-size: 9px; color: #64748b;">({{ $statusBreakdown['approved_pct'] }}%)</span></span>
+                            <span style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['approved'] }} <span style="color: #64748b; font-size: 10px;">({{ $statusBreakdown['approved_pct'] }}%)</span></span>
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
-                                <span style="color: #cbd5e1;">Completed</span>
+                                <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+                                <span style="color: #cbd5e1; font-weight: 500;">Completed</span>
                             </div>
-                            <span style="color: #94a3b8; font-weight: 600;">{{ $statusBreakdown['completed'] }} <span style="font-size: 9px; color: #64748b;">({{ $statusBreakdown['completed_pct'] }}%)</span></span>
+                            <span style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['completed'] }} <span style="color: #64748b; font-size: 10px;">({{ $statusBreakdown['completed_pct'] }}%)</span></span>
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></span>
-                                <span style="color: #cbd5e1;">Rejected</span>
+                                <span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
+                                <span style="color: #cbd5e1; font-weight: 500;">Rejected</span>
                             </div>
-                            <span style="color: #94a3b8; font-weight: 600;">{{ $statusBreakdown['rejected'] }} <span style="font-size: 9px; color: #64748b;">({{ $statusBreakdown['rejected_pct'] }}%)</span></span>
+                            <span style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['rejected'] }} <span style="color: #64748b; font-size: 10px;">({{ $statusBreakdown['rejected_pct'] }}%)</span></span>
                         </div>
                     </div>
 
                 </div>
-
-                <div style="font-size: 10px; color: #64748b; text-align: center; border-top: 1px solid #1f2937; padding-top: 8px; margin-top: 8px;">
-                    Department Distribution Ratio
-                </div>
             </div>
 
-            <!-- Column 3: Recent Vehicle Requests List -->
-            <div class="exec-card" style="min-height: 280px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <strong style="font-size: 13px; color: #ffffff;">Recent Vehicle Requests</strong>
-                    <a href="/admin/vehicle-requests" style="padding: 3px 8px; background: #1f2937; border-radius: 6px; font-size: 11px; color: #94a3b8; text-decoration: none;">
+            <!-- Column 3: Recent Vehicle Requests -->
+            <div class="panel-box">
+                <div class="panel-header">
+                    <div class="panel-header-title">
+                        <span>Recent Vehicle Requests</span>
+                    </div>
+                    <a href="/admin/vehicle-requests" class="panel-header-btn">
                         View All
                     </a>
                 </div>
 
-                <div style="display: flex; flex-direction: column;">
+                <div class="recent-list-container">
                     @forelse($recentRequests as $req)
                         @php
-                            $dotClass = match($req->status) {
-                                'pending' => 'dot-pending',
-                                'approved' => 'dot-approved',
-                                'completed' => 'dot-completed',
-                                default => 'dot-pending',
+                            $dotColor = match($req->status) {
+                                'pending' => '#ef4444',
+                                'approved' => '#0284c7',
+                                'completed' => '#10b981',
+                                default => '#94a3b8',
                             };
-                            $badgeClass = match($req->status) {
-                                'pending' => 'badge-pending',
-                                'approved' => 'badge-approved',
-                                'on_trip' => 'badge-approved',
-                                'completed' => 'badge-completed',
-                                'rejected' => 'badge-rejected',
-                                default => 'badge-pending',
+                            $pillClass = match($req->status) {
+                                'pending' => 'pill-pending',
+                                'approved' => 'pill-approved',
+                                'on_trip' => 'pill-approved',
+                                'completed' => 'pill-completed',
+                                'rejected' => 'pill-rejected',
+                                default => 'pill-pending',
                             };
-                            $statusText = match($req->status) {
+                            $statusLabel = match($req->status) {
                                 'on_trip' => 'On Trip',
                                 default => ucfirst($req->status),
                             };
                         @endphp
-                        <div class="req-feed-item">
-                            <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                                <div class="req-dot {{ $dotClass }}"></div>
-                                <div style="min-width: 0;">
-                                    <div class="req-id">{{ $req->request_number }}</div>
-                                    <div class="req-purpose">{{ $req->purpose ?? $req->destination ?? $req->employee_name }}</div>
+                        <div class="recent-item">
+                            <div class="recent-left">
+                                <span class="recent-dot" style="background: {{ $dotColor }};"></span>
+                                <div class="recent-info">
+                                    <span class="recent-code">{{ $req->request_number }}</span>
+                                    <span class="recent-title">{{ $req->purpose ?? $req->destination ?? $req->employee_name }}</span>
                                 </div>
                             </div>
-
-                            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                                <span class="req-badge {{ $badgeClass }}">{{ $statusText }}</span>
-                                <span class="req-time">{{ $req->created_at ? $req->created_at->diffForHumans(null, true) : 'now' }}</span>
+                            <div class="recent-right">
+                                <span class="recent-pill {{ $pillClass }}">{{ $statusLabel }}</span>
+                                <span class="recent-time">{{ $req->created_at ? $req->created_at->diffForHumans(null, true) : 'now' }}</span>
                             </div>
                         </div>
                     @empty
-                        <div style="padding: 30px 0; text-align: center; font-size: 12px; color: #64748b;">
+                        <div style="padding: 40px 0; text-align: center; color: #64748b; font-size: 12px;">
                             No vehicle requests found.
                         </div>
                     @endforelse
