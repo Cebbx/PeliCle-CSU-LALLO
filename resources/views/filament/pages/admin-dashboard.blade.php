@@ -9,6 +9,9 @@
             padding-top: 12px !important;
             padding-bottom: 12px !important;
         }
+        .fi-header {
+            display: none !important;
+        }
 
         .dashboard-container {
             font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

@@ -21,6 +21,11 @@ class Dashboard extends BaseDashboard
         return \Filament\Support\Enums\Width::Full;
     }
 
+    public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return '';
+    }
+
     public function getViewData(): array
     {
         return [
