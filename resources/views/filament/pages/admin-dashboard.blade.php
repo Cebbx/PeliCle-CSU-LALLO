@@ -28,10 +28,10 @@
             background-color: #070a11;
         }
 
-        /* 1. Header (Elevated & Enhanced Font) */
+        /* 1. Header (Elevated & Compact) */
         .dash-header {
-            margin-top: 0px;
-            margin-bottom: 12px;
+            margin-top: -2px;
+            margin-bottom: 8px;
         }
         .dash-title {
             font-size: 28px;
@@ -39,13 +39,13 @@
             color: #ffffff;
             letter-spacing: -0.02em;
             margin: 0;
-            line-height: 1.1;
+            line-height: 1;
         }
         .dash-welcome {
             font-size: 15px;
             font-weight: 700;
             color: #ffffff;
-            margin-top: 4px;
+            margin-top: 3px;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -54,13 +54,7 @@
             font-size: 12.5px;
             color: #94a3b8;
             margin-top: 2px;
-            line-height: 1.3;
-        }
-        .dash-live-status {
-            font-size: 11.5px;
-            color: #64748b;
-            margin-top: 2px;
-            font-weight: 500;
+            line-height: 1.2;
         }
 
         /* 2. Grid Rows */
@@ -305,9 +299,6 @@
             </div>
             <div class="dash-desc">
                 Here is the current operational status of the CSU Lal-lo Campus Vehicle & Trip Management System.
-            </div>
-            <div class="dash-live-status">
-                System Live • {{ \Carbon\Carbon::now('Asia/Manila')->format('h:i A') }}
             </div>
         </div>
 
