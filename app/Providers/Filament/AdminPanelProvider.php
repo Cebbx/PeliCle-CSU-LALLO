@@ -33,7 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->darkMode(true)
             ->defaultThemeMode(\Filament\Enums\ThemeMode::Dark)
-            ->brandLogo(new \Illuminate\Support\HtmlString('<div class="brand-logo-wrapper" style="display: flex; align-items: center; gap: 8px;"><img src="' . asset('csu-logo.png') . '" style="height: 1.8rem;" /><span class="brand-title-text font-bold text-base tracking-wider" style="font-family: \'Outfit\', sans-serif;">PeliCle</span><style>.fi-simple-layout .brand-title-text { display: none !important; } .fi-simple-layout .brand-logo-wrapper { justify-content: center !important; gap: 0 !important; } .fi-simple-layout img { height: 3.2rem !important; } html.dark .brand-title-text { color: #ffffff !important; } html:not(.dark) .brand-title-text { color: #0f172a !important; }</style></div>'))
+            ->brandLogo(new \Illuminate\Support\HtmlString('<div class="brand-logo-wrapper" style="display: flex; align-items: center; gap: 8px; background: transparent !important;"><img src="' . asset('csu-logo.png') . '" style="height: 1.8rem; background: transparent !important;" /><span class="brand-title-text font-bold text-base tracking-wider" style="font-family: \'Outfit\', sans-serif; background: transparent !important;">PeliCle</span><style>.fi-simple-layout .brand-title-text { display: none !important; } .fi-simple-layout .brand-logo-wrapper { justify-content: center !important; gap: 0 !important; } .fi-simple-layout img { height: 3.2rem !important; } html.dark .brand-title-text { color: #ffffff !important; } html:not(.dark) .brand-title-text { color: #0f172a !important; } .fi-logo, a.fi-logo, .brand-logo-wrapper { background: transparent !important; background-color: transparent !important; box-shadow: none !important; border: none !important; }</style></div>'))
             ->brandLogoHeight('2rem')
             ->sidebarWidth('14rem')
             ->favicon(asset('csu-logo.png'))
@@ -49,6 +49,14 @@ class AdminPanelProvider extends PanelProvider
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn () => new \Illuminate\Support\HtmlString('
                     <style>
+                        /* Zero Background on Logo */
+                        .fi-logo, a.fi-logo, .brand-logo-wrapper, .fi-sidebar-header a, .fi-topbar a {
+                            background: transparent !important;
+                            background-color: transparent !important;
+                            box-shadow: none !important;
+                            border: none !important;
+                        }
+
                         /* ========================================================
                            1. DARK THEME STYLES (html.dark)
                            ======================================================== */
