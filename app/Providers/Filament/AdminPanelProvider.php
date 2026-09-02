@@ -77,20 +77,29 @@ class AdminPanelProvider extends PanelProvider
                             min-height: 44px !important;
                             max-height: 44px !important;
                         }
+                        html.dark .fi-global-search,
+                        html.dark .fi-global-search-field,
+                        html.dark .fi-global-search-field > div,
                         html.dark .fi-topbar input, 
                         html.dark .fi-global-search-input, 
                         html.dark .fi-global-search-input-field {
-                            background-color: #101522 !important;
-                            border: 1px solid #1e2a40 !important;
+                            background: transparent !important;
+                            background-color: transparent !important;
+                            border: none !important;
+                            box-shadow: none !important;
                             color: #ffffff !important;
-                            border-radius: 6px !important;
                             height: 28px !important;
                             font-size: 12px !important;
-                            padding: 2px 10px !important;
+                            padding: 2px 8px !important;
                         }
                         html.dark .fi-topbar input::placeholder {
                             color: #64748b !important;
                             font-size: 11.5px !important;
+                        }
+                        html.dark .fi-topbar input:focus {
+                            outline: none !important;
+                            box-shadow: none !important;
+                            border: none !important;
                         }
                         html.dark .fi-user-avatar {
                             background-color: #1e293b !important;
@@ -200,20 +209,29 @@ class AdminPanelProvider extends PanelProvider
                             min-height: 44px !important;
                             max-height: 44px !important;
                         }
+                        html:not(.dark) .fi-global-search,
+                        html:not(.dark) .fi-global-search-field,
+                        html:not(.dark) .fi-global-search-field > div,
                         html:not(.dark) .fi-topbar input, 
                         html:not(.dark) .fi-global-search-input, 
                         html:not(.dark) .fi-global-search-input-field {
-                            background-color: #f8fafc !important;
-                            border: 1px solid #cbd5e1 !important;
+                            background: transparent !important;
+                            background-color: transparent !important;
+                            border: none !important;
+                            box-shadow: none !important;
                             color: #0f172a !important;
-                            border-radius: 6px !important;
                             height: 28px !important;
                             font-size: 12px !important;
-                            padding: 2px 10px !important;
+                            padding: 2px 8px !important;
                         }
                         html:not(.dark) .fi-topbar input::placeholder {
                             color: #94a3b8 !important;
                             font-size: 11.5px !important;
+                        }
+                        html:not(.dark) .fi-topbar input:focus {
+                            outline: none !important;
+                            box-shadow: none !important;
+                            border: none !important;
                         }
                         html:not(.dark) .fi-user-avatar {
                             background-color: #f1f5f9 !important;
