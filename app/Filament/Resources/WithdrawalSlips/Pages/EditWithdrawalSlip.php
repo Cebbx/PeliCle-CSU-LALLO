@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\WithdrawalSlips\Pages;
 
 use App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditWithdrawalSlip extends EditRecord
@@ -11,7 +12,9 @@ class EditWithdrawalSlip extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            DeleteAction::make(),
+        ];
     }
 
     protected function mutateFormDataBeforeFill(array $data): array

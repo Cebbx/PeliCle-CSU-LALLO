@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\TripTickets\Pages;
 
 use App\Filament\Resources\TripTickets\TripTicketResource;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditTripTicket extends EditRecord
@@ -11,6 +12,8 @@ class EditTripTicket extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            DeleteAction::make(),
+        ];
     }
 }

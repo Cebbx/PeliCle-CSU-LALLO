@@ -147,7 +147,9 @@ class VehicleRequestsTable
                 ->button(),
             ])
             ->toolbarActions([
-                // No delete action allowed
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

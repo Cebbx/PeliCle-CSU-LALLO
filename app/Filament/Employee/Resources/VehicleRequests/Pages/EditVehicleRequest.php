@@ -3,6 +3,7 @@
 namespace App\Filament\Employee\Resources\VehicleRequests\Pages;
 
 use App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditVehicleRequest extends EditRecord
@@ -11,6 +12,8 @@ class EditVehicleRequest extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            DeleteAction::make(),
+        ];
     }
 }

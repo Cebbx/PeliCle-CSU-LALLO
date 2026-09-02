@@ -61,7 +61,9 @@ class WithdrawalSlipsTable
                     ->openUrlInNewTab(),
             ])
             ->toolbarActions([
-                // No delete action allowed
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

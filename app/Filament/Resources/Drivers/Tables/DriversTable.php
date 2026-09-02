@@ -45,7 +45,9 @@ class DriversTable
                 EditAction::make(),
             ])
             ->toolbarActions([
-                // No delete action allowed
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }
