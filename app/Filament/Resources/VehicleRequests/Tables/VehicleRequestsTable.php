@@ -83,6 +83,7 @@ class VehicleRequestsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
+            ->poll('3s')
             ->filters([
                 SelectFilter::make('status')
                     ->options([
