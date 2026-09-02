@@ -16,8 +16,20 @@ class CreateVehicleRequest extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['user_id'] = auth()->id();
+        $data['user_id'] = auth()->id() ?? 2;
         $data['status'] = 'pending';
+
+        if (empty($data['employee_name'])) {
+            $data['employee_name'] = auth()->user()?->name ?? 'Employee User';
+        }
+
+        if (empty($data['department'])) {
+            $data['department'] = auth()->user()?->department ?? 'CICS';
+        }
+
+        if (empty($data['purpose'])) {
+            $data['purpose'] = $data['purpose_select'] ?? 'Official University Travel';
+        }
 
         if (empty($data['request_number']) || \App\Models\VehicleRequest::where('request_number', $data['request_number'])->exists()) {
             $lastRecord = \App\Models\VehicleRequest::latest('id')->first();

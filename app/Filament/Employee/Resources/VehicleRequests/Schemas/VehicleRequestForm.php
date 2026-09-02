@@ -44,6 +44,8 @@ class VehicleRequestForm
                         $email = $user?->email ?? '';
                         $prefix = strtolower(explode('@', $email)[0]);
                         $validDepts = [
+                            'employee' => 'CICS',
+                            'admin' => 'Administration Office',
                             'ceo' => 'Office of the CEO',
                             'hrmo' => 'HRMO',
                             'accounting' => 'Accounting Office',
@@ -63,10 +65,8 @@ class VehicleRequestForm
                             'cafevalena' => 'Café Valena',
                             'csc' => 'Campus Student Council'
                         ];
-                        return $validDepts[$prefix] ?? null;
+                        return $validDepts[$prefix] ?? 'CICS';
                     })
-                    ->disabled()
-                    ->dehydrated()
                     ->required(),
                 Select::make('vehicle')
                     ->options(function (Get $get) {
