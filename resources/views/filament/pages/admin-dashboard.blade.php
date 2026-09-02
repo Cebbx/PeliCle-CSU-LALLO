@@ -67,19 +67,19 @@
         .row-grid-4 {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
         .row-grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
         .row-grid-bottom {
             display: grid;
             grid-template-columns: 1fr 1fr 1.25fr;
-            gap: 10px;
+            gap: 12px;
         }
 
         @media (max-width: 1200px) {
@@ -92,23 +92,23 @@
             .row-grid-3 { grid-template-columns: 1fr; }
         }
 
-        /* 3. Stat Cards */
+        /* 3. Stat Cards (Enlarged & Prominent) */
         .dash-card {
             background: #0d121d;
             border: 1px solid #1a2233;
-            border-radius: 11px;
-            padding: 10px 12px 0 12px;
+            border-radius: 12px;
+            padding: 12px 16px 0 16px;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 88px;
+            min-height: 102px;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
         }
         .dash-card-pad {
-            padding: 12px 14px;
-            min-height: 190px;
+            padding: 14px 16px;
+            min-height: 210px;
         }
 
         .card-top-row {
@@ -119,16 +119,16 @@
         .card-badge-wrap {
             display: flex;
             align-items: center;
-            gap: 7px;
+            gap: 8px;
         }
         .card-icon-round {
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11.5px;
+            font-size: 13px;
             flex-shrink: 0;
         }
         .bg-icon-green { background: #10b981; color: #ffffff; }
@@ -138,38 +138,38 @@
         .bg-icon-red { background: #ef4444; color: #ffffff; }
 
         .card-title-text {
-            font-size: 11.5px;
+            font-size: 12.5px;
             font-weight: 600;
             color: #d1d5db;
         }
         .card-corner-icon {
-            font-size: 13px;
+            font-size: 15px;
             opacity: 0.5;
         }
 
         .card-mid-section {
-            margin-top: 4px;
-            margin-bottom: 1px;
+            margin-top: 6px;
+            margin-bottom: 2px;
         }
         .card-number-bold {
-            font-size: 20px;
+            font-size: 25px;
             font-weight: 800;
             color: #ffffff;
             line-height: 1;
             letter-spacing: -0.02em;
             display: flex;
             align-items: baseline;
-            gap: 4px;
+            gap: 5px;
         }
         .card-unit-label {
-            font-size: 14.5px;
+            font-size: 17.5px;
             font-weight: 700;
             color: #ffffff;
         }
         .card-subtitle-note {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 500;
-            margin-top: 2px;
+            margin-top: 3px;
         }
         .color-green { color: #10b981; }
         .color-blue { color: #38bdf8; }
@@ -179,8 +179,8 @@
 
         /* Smooth Bottom Sparklines */
         .card-wave-box {
-            margin: 2px -12px 0 -12px;
-            height: 18px;
+            margin: 4px -16px 0 -16px;
+            height: 22px;
             overflow: hidden;
             display: block;
             position: relative;
