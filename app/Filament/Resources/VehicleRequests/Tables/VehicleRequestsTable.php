@@ -183,6 +183,7 @@ class VehicleRequestsTable
                 ->color('gray')
                 ->button(),
             ])
+            ->actionsColumnLabel('Actions')
             ->filters([
                 SelectFilter::make('status')
                     ->options([

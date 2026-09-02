@@ -292,6 +292,29 @@ class AdminPanelProvider extends PanelProvider
                             text-transform: uppercase !important;
                             letter-spacing: 0.05em !important;
                         }
+
+                        /* 3. Universal Table Spacing & Action Button Polish */
+                        .fi-ta-header-cell-label {
+                            font-size: 11.5px !important;
+                            font-weight: 700 !important;
+                            letter-spacing: 0.02em !important;
+                        }
+                        .fi-ta-cell, .fi-ta-header-cell {
+                            padding-left: 8px !important;
+                            padding-right: 8px !important;
+                            padding-top: 6px !important;
+                            padding-bottom: 6px !important;
+                        }
+                        .fi-ta-text-item-label {
+                            font-size: 12px !important;
+                        }
+                        .fi-ta-text-item-description {
+                            font-size: 10.5px !important;
+                        }
+                        .fi-ta-actions-cell {
+                            padding-right: 12px !important;
+                            text-align: center !important;
+                        }
                     </style>
                 ')
             )
