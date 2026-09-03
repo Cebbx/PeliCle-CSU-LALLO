@@ -40,6 +40,16 @@ class ListTripTickets extends ListRecords
         ];
     }
 
+    public function mount(): void
+    {
+        parent::mount();
+
+        $tab = request()->query('tab');
+        if ($tab && array_key_exists($tab, $this->getCachedTabs())) {
+            $this->activeTab = $tab;
+        }
+    }
+
     public function getDefaultActiveTab(): string | int | null
     {
         $tab = request()->query('tab');
