@@ -139,49 +139,49 @@ class StatsOverview extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-users')
                 ->chart([$totalDrivers - $availDrivers, $totalDrivers, $availDrivers, $totalDrivers, $availDrivers])
                 ->color('success')
-                ->url(\App\Filament\Resources\Drivers\DriverResource::getUrl(['tab' => 'available'])),
+                ->url(\App\Filament\Resources\Drivers\DriverResource::getUrl('index', ['tab' => 'available'])),
 
             Stat::make('Vehicle Availability', "{$availVehicles} / {$totalVehicles} Available")
                 ->description('Vehicles ready for dispatch')
                 ->descriptionIcon('heroicon-m-truck')
                 ->chart([$totalVehicles - $availVehicles, $totalVehicles, $availVehicles, $totalVehicles, $availVehicles])
                 ->color('success')
-                ->url(\App\Filament\Resources\Vehicles\VehicleResource::getUrl(['tab' => 'available'])),
+                ->url(\App\Filament\Resources\Vehicles\VehicleResource::getUrl('index', ['tab' => 'available'])),
                 
             Stat::make('Pending Vehicle Requests', $pendingRequests)
                 ->description('Requests awaiting admin review')
                 ->descriptionIcon('heroicon-m-document-text')
                 ->chart([1, $pendingRequests + 2, max(0, $pendingRequests - 1), $pendingRequests])
                 ->color($pendingRequests > 0 ? 'warning' : 'gray')
-                ->url(\App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl(['tab' => 'pending'])),
+                ->url(\App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'pending'])),
 
             Stat::make('Approved Vehicle Requests', $approvedRequests)
                 ->description('Requests approved and ticketed')
                 ->descriptionIcon('heroicon-m-check-circle')
                 ->chart([1, 2, 0, $approvedRequests])
                 ->color('success')
-                ->url(\App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl(['tab' => 'approved'])),
+                ->url(\App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'approved'])),
                 
             Stat::make('Active Trips (On Trip)', $activeTrips)
                 ->description('Trips currently on the road')
                 ->descriptionIcon('heroicon-m-truck')
                 ->chart([1, 2, $activeTrips + 1, $activeTrips])
                 ->color('info')
-                ->url(\App\Filament\Resources\TripTickets\TripTicketResource::getUrl(['tab' => 'active'])),
+                ->url(\App\Filament\Resources\TripTickets\TripTicketResource::getUrl('index', ['tab' => 'active'])),
                 
             Stat::make('Pending Slips', $pendingSlips)
                 ->description('Fuel slips awaiting approval')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->chart([2, $pendingSlips + 1, $pendingSlips])
                 ->color($pendingSlips > 0 ? 'warning' : 'gray')
-                ->url(\App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl(['tab' => 'pending'])),
+                ->url(\App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index', ['tab' => 'pending'])),
 
             Stat::make('This Month\'s Gas Expenses', "₱{$thisMonthGasFormatted}")
                 ->description("Today: ₱{$todayGasFormatted} | Week: ₱{$thisWeekGasFormatted}")
                 ->descriptionIcon('heroicon-m-fire')
                 ->chart([$todayGas, $thisWeekGas / 7, $thisWeekGas, $thisMonthGas])
                 ->color('danger')
-                ->url(\App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl(['tab' => 'approved'])),
+                ->url(\App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index', ['tab' => 'approved'])),
         ];
     }
 }

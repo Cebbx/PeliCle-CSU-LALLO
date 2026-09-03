@@ -35,4 +35,13 @@ class ListVehicles extends ListRecords
                 ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'maintenance')),
         ];
     }
+
+    public function getDefaultActiveTab(): string | int | null
+    {
+        $tab = request()->query('tab');
+        if ($tab && array_key_exists($tab, $this->getCachedTabs())) {
+            return $tab;
+        }
+        return parent::getDefaultActiveTab();
+    }
 }
