@@ -157,16 +157,33 @@
 
             <!-- Right: Approved / Disapproved checkboxes and Joel Tumamao signature -->
             <div class="col-span-6 flex flex-col gap-4 pl-6">
-                <!-- Checkboxes (Read-only / Non-interactive) -->
-                <div class="flex items-center gap-6 text-xs font-bold text-black pointer-events-none select-none">
-                    <label class="flex items-center gap-2 cursor-default">
-                        <input type="checkbox" disabled class="w-4 h-4 accent-black pointer-events-none cursor-default" {{ in_array($request->status, ['approved', 'completed', 'on_trip']) ? 'checked' : '' }} />
+                <!-- Checkboxes (Read-only / Solid Black) -->
+                @php
+                    $isApproved = in_array($request->status, ['approved', 'completed', 'on_trip']);
+                    $isDisapproved = $request->status === 'rejected';
+                @endphp
+                <div class="flex items-center gap-6 text-xs font-bold text-black select-none pointer-events-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded flex items-center justify-center border border-black {{ $isApproved ? 'bg-black text-white' : 'bg-white' }}" style="border-width: 1.5px;">
+                            @if($isApproved)
+                                <svg class="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            @endif
+                        </div>
                         <span>Approved</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-default">
-                        <input type="checkbox" disabled class="w-4 h-4 accent-black pointer-events-none cursor-default" {{ $request->status === 'rejected' ? 'checked' : '' }} />
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded flex items-center justify-center border border-black {{ $isDisapproved ? 'bg-black text-white' : 'bg-white' }}" style="border-width: 1.5px;">
+                            @if($isDisapproved)
+                                <svg class="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            @endif
+                        </div>
                         <span>Disapproved</span>
-                    </label>
+                    </div>
                 </div>
 
                 <!-- GSO signature & Timestamp -->
