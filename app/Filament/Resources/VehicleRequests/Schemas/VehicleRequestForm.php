@@ -425,6 +425,7 @@ class VehicleRequestForm
                             ->required(),
                     ])
                     ->label('Passengers')
+                    ->addActionLabel('+ Add Passenger')
                     ->default([['name' => '']])
                     ->live()
                     ->afterStateUpdated(function (callable $set, $state) {
