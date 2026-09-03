@@ -446,7 +446,6 @@
                         </div>
                         <span class="card-title-text">Vehicle Availability</span>
                     </div>
-                    <span class="card-corner-icon color-green">🚚</span>
                 </div>
                 <div class="card-mid-section">
                     <div class="card-number-bold">
@@ -473,7 +472,6 @@
                         </div>
                         <span class="card-title-text">Pending Vehicle Requests</span>
                     </div>
-                    <span class="card-corner-icon" style="color: #64748b;">📄</span>
                 </div>
                 <div class="card-mid-section">
                     <div class="card-number-bold">{{ $pendingRequests }}</div>
@@ -498,7 +496,6 @@
                         </div>
                         <span class="card-title-text">Approved Vehicle Requests</span>
                     </div>
-                    <span class="card-corner-icon color-green">✔</span>
                 </div>
                 <div class="card-mid-section">
                     <div class="card-number-bold">{{ $approvedRequests }}</div>
@@ -524,7 +521,6 @@
                         <div class="card-icon-round bg-icon-blue" style="font-weight: 800; font-size: 11px;">A</div>
                         <span class="card-title-text">Active Trips (On Trip)</span>
                     </div>
-                    <span class="card-corner-icon" style="color: #38bdf8;">🚚</span>
                 </div>
                 <div class="card-mid-section">
                     <div class="card-number-bold">{{ $activeTrips }}</div>
@@ -549,7 +545,6 @@
                         </div>
                         <span class="card-title-text">Pending Withdrawal Slips</span>
                     </div>
-                    <span class="card-corner-icon" style="color: #f59e0b;">💵</span>
                 </div>
                 <div class="card-mid-section">
                     <div class="card-number-bold">{{ $pendingSlips }}</div>
@@ -574,7 +569,6 @@
                         </div>
                         <span class="card-title-text">This Month's Gas Expenses</span>
                     </div>
-                    <span class="card-corner-icon" style="color: #ef4444;">🔥</span>
                 </div>
                 <div class="card-mid-section">
                     <div class="card-number-bold">₱{{ number_format($gasExpenses['month'], 2) }}</div>
