@@ -24,7 +24,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Dynamically override APP_URL and scheme for asset/route generation when accessed via tunnel
-        if (isset($_SERVER['HTTP_HOST'])) {
+        $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? null;
+        if ($host) {
+            $host = trim(explode(',', $host)[0]);
             $proto = 'http';
             if (
                 (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
@@ -32,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
             ) {
                 $proto = 'https';
             }
-            $currentUrl = $proto . '://' . $_SERVER['HTTP_HOST'];
+            $currentUrl = $proto . '://' . $host;
             config(['app.url' => $currentUrl]);
             \Illuminate\Support\Facades\URL::forceRootUrl($currentUrl);
             if ($proto === 'https') {
