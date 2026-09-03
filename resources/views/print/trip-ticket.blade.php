@@ -207,12 +207,12 @@
             <p class="font-semibold mb-2">I CERTIFY the Condition of Vehicle after travel:</p>
             <div class="flex justify-between items-end">
                 <div class="flex flex-col gap-1.5">
-                    <label class="flex items-center gap-2">
-                        <input type="checkbox" class="w-4 h-4 accent-black" />
+                    <label class="flex items-center gap-2 cursor-default pointer-events-none">
+                        <input type="checkbox" disabled class="w-4 h-4 accent-black pointer-events-none cursor-default" />
                         <span class="font-bold text-black">GOOD</span>
                     </label>
-                    <label class="flex items-center gap-2">
-                        <input type="checkbox" class="w-4 h-4 accent-black" />
+                    <label class="flex items-center gap-2 cursor-default pointer-events-none">
+                        <input type="checkbox" disabled class="w-4 h-4 accent-black pointer-events-none cursor-default" />
                         <span class="font-bold text-black">Not GOOD (for Service maintenance)</span>
                     </label>
                 </div>

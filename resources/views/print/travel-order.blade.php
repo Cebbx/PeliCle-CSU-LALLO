@@ -117,12 +117,12 @@
             <!-- Checkboxes and Details -->
             <div class="grid grid-cols-2 gap-8 pt-4">
                 <div class="flex flex-col gap-2">
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" checked class="w-4 h-4 accent-black" />
+                    <label class="flex items-center gap-3 cursor-default pointer-events-none">
+                        <input type="checkbox" checked disabled class="w-4 h-4 accent-black pointer-events-none cursor-default" />
                         <span class="font-bold uppercase tracking-wider text-[10px]">Official Business</span>
                     </label>
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 accent-black" />
+                    <label class="flex items-center gap-3 cursor-default pointer-events-none">
+                        <input type="checkbox" disabled class="w-4 h-4 accent-black pointer-events-none cursor-default" />
                         <span class="font-bold uppercase tracking-wider text-[10px]">Official Time</span>
                     </label>
                 </div>

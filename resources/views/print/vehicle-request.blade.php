@@ -157,14 +157,14 @@
 
             <!-- Right: Approved / Disapproved checkboxes and Joel Tumamao signature -->
             <div class="col-span-6 flex flex-col gap-4 pl-6">
-                <!-- Checkboxes -->
-                <div class="flex items-center gap-6 text-xs font-bold text-black">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 accent-black" {{ in_array($request->status, ['approved', 'completed', 'on_trip']) ? 'checked' : '' }} />
+                <!-- Checkboxes (Read-only / Non-interactive) -->
+                <div class="flex items-center gap-6 text-xs font-bold text-black pointer-events-none select-none">
+                    <label class="flex items-center gap-2 cursor-default">
+                        <input type="checkbox" disabled class="w-4 h-4 accent-black pointer-events-none cursor-default" {{ in_array($request->status, ['approved', 'completed', 'on_trip']) ? 'checked' : '' }} />
                         <span>Approved</span>
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 accent-black" {{ $request->status === 'rejected' ? 'checked' : '' }} />
+                    <label class="flex items-center gap-2 cursor-default">
+                        <input type="checkbox" disabled class="w-4 h-4 accent-black pointer-events-none cursor-default" {{ $request->status === 'rejected' ? 'checked' : '' }} />
                         <span>Disapproved</span>
                     </label>
                 </div>
