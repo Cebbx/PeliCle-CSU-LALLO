@@ -66,7 +66,8 @@ class VehicleRequestForm
                         ];
                         return $validDepts[$prefix] ?? 'Campus Student Council';
                     })
-                    ->readOnly()
+                    ->disabled()
+                    ->dehydrated()
                     ->required(),
                 Select::make('vehicle')
                     ->options(function (Get $get) {
