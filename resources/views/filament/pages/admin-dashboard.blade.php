@@ -410,7 +410,7 @@
         <div class="row-grid-4">
             
             <!-- 1. Driver Availability (Links to Drivers) -->
-            <a href="/admin/drivers" class="dash-card dash-card-link">
+            <a href="{{ \App\Filament\Resources\Drivers\DriverResource::getUrl('index', ['tab' => 'available']) }}" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-green">
@@ -437,7 +437,7 @@
             </a>
 
             <!-- 2. Vehicle Availability (Links to Vehicles) -->
-            <a href="/admin/vehicles" class="dash-card dash-card-link">
+            <a href="{{ \App\Filament\Resources\Vehicles\VehicleResource::getUrl('index', ['tab' => 'available']) }}" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-green">
@@ -464,7 +464,7 @@
             </a>
 
             <!-- 3. Pending Vehicle Requests (Links to Requests) -->
-            <a href="/admin/vehicle-requests" class="dash-card dash-card-link">
+            <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'pending']) }}" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-blue">
@@ -489,7 +489,7 @@
             </a>
 
             <!-- 4. Approved Vehicle Requests (Links to Requests) -->
-            <a href="/admin/vehicle-requests" class="dash-card dash-card-link">
+            <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'approved']) }}" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-green">
@@ -519,7 +519,7 @@
         <div class="row-grid-3">
             
             <!-- 1. Active Trips (Links to Trip Tickets) -->
-            <a href="/admin/trip-tickets" class="dash-card dash-card-link">
+            <a href="{{ \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('index', ['tab' => 'active']) }}" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-blue" style="font-weight: 800; font-size: 11px;">A</div>
@@ -540,7 +540,7 @@
             </a>
 
             <!-- 2. Pending Withdrawal Slips (Links to Slips) -->
-            <a href="/admin/withdrawal-slips" class="dash-card dash-card-link" style="padding-bottom: 8px;">
+            <a href="{{ \App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index', ['tab' => 'pending']) }}" class="dash-card dash-card-link" style="padding-bottom: 8px;">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-amber">
@@ -565,7 +565,7 @@
             </a>
 
             <!-- 3. This Month's Gas Expenses (Links to Slips) -->
-            <a href="/admin/withdrawal-slips" class="dash-card dash-card-link" style="padding-bottom: 8px;">
+            <a href="{{ \App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index', ['tab' => 'approved']) }}" class="dash-card dash-card-link" style="padding-bottom: 8px;">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-red">
@@ -600,7 +600,7 @@
                         <span style="color: #0284c7;">📈</span>
                         <span>Trip Activity (This Week)</span>
                     </div>
-                    <a href="/admin/trip-tickets" class="panel-filter-btn">
+                    <a href="{{ \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('index', ['tab' => 'active']) }}" class="panel-filter-btn">
                         View Trips
                     </a>
                 </div>
@@ -666,7 +666,7 @@
                         <span style="color: #10b981;">📉</span>
                         <span>Vehicle Request Status</span>
                     </div>
-                    <a href="/admin/vehicle-requests" class="panel-filter-btn">
+                    <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'pending']) }}" class="panel-filter-btn">
                         View Requests
                     </a>
                 </div>
@@ -715,37 +715,37 @@
 
                     <!-- Legend -->
                     <div style="display: flex; flex-direction: column; gap: 5px; flex-grow: 1; font-size: 10px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'pending']) }}" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none;">
                             <div style="display: flex; align-items: center; gap: 4px;">
                                 <span style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
                                 <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Pending</span>
                             </div>
                             <span class="donut-legend-val" style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['pending'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['pending_pct'] }}%)</span></span>
-                        </div>
+                        </a>
 
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'approved']) }}" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none;">
                             <div style="display: flex; align-items: center; gap: 4px;">
                                 <span style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #0284c7; display: inline-block;"></span>
                                 <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Approved</span>
                             </div>
                             <span class="donut-legend-val" style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['approved'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['approved_pct'] }}%)</span></span>
-                        </div>
+                        </a>
 
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'completed']) }}" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none;">
                             <div style="display: flex; align-items: center; gap: 4px;">
                                 <span style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
                                 <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Completed</span>
                             </div>
                             <span class="donut-legend-val" style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['completed'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['completed_pct'] }}%)</span></span>
-                        </div>
+                        </a>
 
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'rejected']) }}" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none;">
                             <div style="display: flex; align-items: center; gap: 4px;">
                                 <span style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
                                 <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Rejected</span>
                             </div>
                             <span class="donut-legend-val" style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['rejected'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['rejected_pct'] }}%)</span></span>
-                        </div>
+                        </a>
                     </div>
 
                 </div>
