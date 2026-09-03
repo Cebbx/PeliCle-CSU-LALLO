@@ -24,6 +24,7 @@ class DriverForm
                         'available' => 'Available',
                         'on_trip' => 'On Trip',
                         'off_duty' => 'Off Duty',
+                        'unavailable' => 'Off Duty (Unavailable)',
                     ])
                     ->required()
                     ->default('available'),

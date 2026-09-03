@@ -10,9 +10,14 @@ class Dashboard extends BaseDashboard
 {
     protected string $view = 'filament.driver.pages.driver-dashboard';
 
+    public function getDriverModel(): ?\App\Models\Driver
+    {
+        return \App\Models\Driver::where('name', auth()->user()->name)->first();
+    }
+
     public function getAssignedTrips()
     {
-        $driverId = auth()->user()->driver?->id ?? 0;
+        $driverId = $this->getDriverModel()?->id ?? 0;
         
         return TripTicket::where('driver_id', $driverId)
             ->orderByRaw("CASE WHEN status = 'active' THEN 1 WHEN status = 'pending' THEN 2 ELSE 3 END")
@@ -24,19 +29,19 @@ class Dashboard extends BaseDashboard
 
     public function getCompletedTripsCount()
     {
-        $driverId = auth()->user()->driver?->id ?? 0;
+        $driverId = $this->getDriverModel()?->id ?? 0;
         return TripTicket::where('driver_id', $driverId)->where('status', 'completed')->count();
     }
 
     public function getActiveTrip()
     {
-        $driverId = auth()->user()->driver?->id ?? 0;
+        $driverId = $this->getDriverModel()?->id ?? 0;
         return TripTicket::where('driver_id', $driverId)->where('status', 'active')->first();
     }
 
     public function toggleDutyStatus()
     {
-        $driver = auth()->user()->driver;
+        $driver = $this->getDriverModel();
         if (!$driver) {
             return;
         }
@@ -50,12 +55,17 @@ class Dashboard extends BaseDashboard
             return;
         }
 
-        $newStatus = $driver->status === 'available' ? 'unavailable' : 'available';
+        $isCurrentlyOffline = in_array($driver->status, ['off_duty', 'unavailable']);
+        $newStatus = $isCurrentlyOffline ? 'available' : 'off_duty';
         $driver->update(['status' => $newStatus]);
+
+        if (auth()->check()) {
+            auth()->user()->unsetRelation('driver');
+        }
 
         \Filament\Notifications\Notification::make()
             ->title('Status Updated')
-            ->body("Your duty status is now set to " . ucfirst($newStatus) . ".")
+            ->body("Your duty status is now set to " . ($newStatus === 'available' ? 'Available' : 'Off-Duty') . ".")
             ->success()
             ->send();
     }

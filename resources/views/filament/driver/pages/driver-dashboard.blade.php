@@ -461,24 +461,26 @@
             </div>
             
             @php
-                $driverStatus = auth()->user()->driver?->status ?? 'available';
+                $driver = \App\Models\Driver::where('name', auth()->user()->name)->first();
+                $driverStatus = $driver?->status ?? 'available';
+                $isOffline = in_array($driverStatus, ['off_duty', 'unavailable']);
             @endphp
             <!-- Duty Status Card inside Banner matching screenshot -->
             <div class="hero-status-card">
                 <div>
                     <span class="status-badge-title">DUTY STATUS</span>
-                    <span class="status-badge-val {{ $driverStatus === 'on_trip' ? 'status-val-ontrip' : ($driverStatus === 'unavailable' ? 'status-val-unavailable' : 'status-val-available') }}">
+                    <span class="status-badge-val {{ $driverStatus === 'on_trip' ? 'status-val-ontrip' : ($isOffline ? 'status-val-unavailable' : 'status-val-available') }}">
                         @if($driverStatus === 'on_trip')
                             On Trip
-                        @elseif($driverStatus === 'unavailable')
+                        @elseif($isOffline)
                             Offline (Off-Duty)
                         @else
                             Available
                         @endif
                     </span>
                     @if($driverStatus !== 'on_trip')
-                        <button wire:click="toggleDutyStatus" class="btn-toggle-status-banner {{ $driverStatus === 'unavailable' ? 'btn-toggle-available' : 'btn-toggle-unavailable' }}">
-                            @if($driverStatus === 'unavailable')
+                        <button wire:click="toggleDutyStatus" class="btn-toggle-status-banner {{ $isOffline ? 'btn-toggle-available' : 'btn-toggle-unavailable' }}">
+                            @if($isOffline)
                                 🟢 <span>Go Online (Available)</span>
                             @else
                                 🔴 <span>Go Offline (Off-Duty)</span>
@@ -489,7 +491,7 @@
                 <div class="status-emoji-icon">
                     @if($driverStatus === 'on_trip')
                         🚗
-                    @elseif($driverStatus === 'unavailable')
+                    @elseif($isOffline)
                         🔴
                     @else
                         🟢

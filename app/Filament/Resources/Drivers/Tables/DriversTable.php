@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Drivers\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -37,7 +38,7 @@ class DriversTable
                         'available' => 'Available',
                         'on_trip' => 'On Trip',
                         'off_duty' => 'Off Duty',
-                        'unavailable' => 'Unavailable',
+                        'unavailable' => 'Off Duty (Unavailable)',
                         default => ucwords(str_replace('_', ' ', $state)),
                     })
                     ->searchable(),
@@ -55,6 +56,20 @@ class DriversTable
                     ->label('Archive Status'),
             ])
             ->recordActions([
+                Action::make('toggle_duty')
+                    ->label(fn ($record) => in_array($record->status, ['off_duty', 'unavailable']) ? 'Set Available' : 'Set Off Duty')
+                    ->icon(fn ($record) => in_array($record->status, ['off_duty', 'unavailable']) ? 'heroicon-m-check-circle' : 'heroicon-m-pause-circle')
+                    ->color(fn ($record) => in_array($record->status, ['off_duty', 'unavailable']) ? 'success' : 'gray')
+                    ->visible(fn ($record) => $record->status !== 'on_trip')
+                    ->action(function ($record) {
+                        $newStatus = in_array($record->status, ['off_duty', 'unavailable']) ? 'available' : 'off_duty';
+                        $record->update(['status' => $newStatus]);
+                        \Filament\Notifications\Notification::make()
+                            ->title('Driver Status Updated')
+                            ->body("{$record->name} is now " . ($newStatus === 'available' ? 'Available' : 'Off Duty') . ".")
+                            ->success()
+                            ->send();
+                    }),
                 EditAction::make(),
                 DeleteAction::make()
                     ->label('Archive')
