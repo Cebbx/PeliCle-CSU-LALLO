@@ -225,8 +225,8 @@ class TripTicketForm
                                 ->exists();
                         }
 
-                        if ($record->status === 'unavailable') {
-                            return "{$record->name} (Offline / Off-Duty)";
+                        if (in_array($record->status, ['off_duty', 'unavailable'])) {
+                            return "{$record->name} (Off Duty)";
                         } elseif ($record->status === 'on_trip') {
                             return "{$record->name} (On Trip)";
                         } elseif ($isScheduled) {
@@ -247,11 +247,11 @@ class TripTicketForm
                                 ->exists();
                         }
 
-                        $isUnavailable = \App\Models\Driver::where('id', $value)->where('status', 'unavailable')->exists();
+                        $isOffDuty = \App\Models\Driver::where('id', $value)->whereIn('status', ['off_duty', 'unavailable'])->exists();
                         $isOnTrip = \App\Models\Driver::where('id', $value)->where('status', 'on_trip')->exists() 
                             && (!$record || $record->driver_id != $value);
 
-                        return $isScheduled || $isOnTrip || $isUnavailable;
+                        return $isScheduled || $isOnTrip || $isOffDuty;
                     })
                     ->label('Driver')
                     ->helperText(function (callable $get, ?TripTicket $record) {
@@ -284,19 +284,19 @@ class TripTicketForm
                             ->pluck('id')
                             ->toArray();
 
-                        // Get offline drivers
-                        $offlineDriverIds = \App\Models\Driver::where('status', 'unavailable')
+                        // Get offline / off-duty drivers
+                        $offDutyDriverIds = \App\Models\Driver::whereIn('status', ['off_duty', 'unavailable'])
                             ->pluck('id')
                             ->toArray();
 
-                        $allBusyDriverIds = array_unique(array_merge($busyDriverIds, $onTripDriverIds, $offlineDriverIds));
+                        $allBusyDriverIds = array_unique(array_merge($busyDriverIds, $onTripDriverIds, $offDutyDriverIds));
 
                         $busyDrivers = \App\Models\Driver::whereIn('id', $allBusyDriverIds)->pluck('name')->join(', ');
                         $availableDrivers = \App\Models\Driver::whereNotIn('id', $allBusyDriverIds)->pluck('name')->join(', ');
 
                         $text = "<strong>Driver Schedule for " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . ":</strong><br>";
                         $text .= "<span style='color: #16a34a;'>✅ Available:</span> " . ($availableDrivers ?: "None") . "<br>";
-                        $text .= "<span style='color: #dc2626;'>❌ Busy / On Trip / Offline:</span> " . ($busyDrivers ?: "None");
+                        $text .= "<span style='color: #dc2626;'>❌ Busy / On Trip / Off Duty:</span> " . ($busyDrivers ?: "None");
                         
                         return new \Illuminate\Support\HtmlString($text);
                     })
@@ -316,15 +316,15 @@ class TripTicketForm
                                 }
 
                                  $driver = \App\Models\Driver::find($value);
-                                 $isUnavailable = $driver && $driver->status === 'unavailable';
+                                 $isOffDuty = $driver && in_array($driver->status, ['off_duty', 'unavailable']);
                                  $isOnTrip = $driver && $driver->status === 'on_trip' && (!$record || $record->driver_id !== $driver->id);
 
                                  if ($isOnTrip) {
                                      $fail("This driver is currently on a trip. Please select another driver.");
                                  }
 
-                                 if ($isUnavailable) {
-                                     $fail("This driver is currently marked as offline/unavailable.");
+                                 if ($isOffDuty) {
+                                     $fail("This driver is currently marked as Off Duty. Please select another driver.");
                                  }
 
                                  if ($isScheduled) {
