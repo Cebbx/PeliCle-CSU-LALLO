@@ -420,7 +420,6 @@
                         </div>
                         <span class="card-title-text">Driver Availability</span>
                     </div>
-                    <span class="card-corner-icon color-green">👥</span>
                 </div>
                 <div class="card-mid-section">
                     <div class="card-number-bold">
