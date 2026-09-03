@@ -38,7 +38,7 @@ class DriversTable
                         'available' => 'Available',
                         'on_trip' => 'On Trip',
                         'off_duty' => 'Off Duty',
-                        'unavailable' => 'Off Duty (Unavailable)',
+                        'unavailable' => 'Off Duty',
                         default => ucwords(str_replace('_', ' ', $state)),
                     })
                     ->searchable(),
