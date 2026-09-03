@@ -16,4 +16,23 @@ class ListDrivers extends ListRecords
             CreateAction::make(),
         ];
     }
+
+    public function getTabs(): array
+    {
+        return [
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make('All'),
+            'available' => \Filament\Schemas\Components\Tabs\Tab::make('Available')
+                ->badge(\App\Models\Driver::where('status', 'available')->count())
+                ->badgeColor('success')
+                ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'available')),
+            'on_trip' => \Filament\Schemas\Components\Tabs\Tab::make('On Trip')
+                ->badge(\App\Models\Driver::where('status', 'on_trip')->count())
+                ->badgeColor('info')
+                ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'on_trip')),
+            'off_duty' => \Filament\Schemas\Components\Tabs\Tab::make('Off Duty')
+                ->badge(\App\Models\Driver::whereIn('status', ['off_duty', 'unavailable'])->count())
+                ->badgeColor('gray')
+                ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->whereIn('status', ['off_duty', 'unavailable'])),
+        ];
+    }
 }

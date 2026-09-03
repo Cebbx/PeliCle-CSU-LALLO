@@ -16,4 +16,23 @@ class ListWithdrawalSlips extends ListRecords
             CreateAction::make(),
         ];
     }
+
+    public function getTabs(): array
+    {
+        return [
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make('All'),
+            'pending' => \Filament\Schemas\Components\Tabs\Tab::make('Pending')
+                ->badge(\App\Models\WithdrawalSlip::where('status', 'pending')->count())
+                ->badgeColor('warning')
+                ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'pending')),
+            'approved' => \Filament\Schemas\Components\Tabs\Tab::make('Approved')
+                ->badge(\App\Models\WithdrawalSlip::where('status', 'approved')->count())
+                ->badgeColor('success')
+                ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'approved')),
+            'rejected' => \Filament\Schemas\Components\Tabs\Tab::make('Rejected')
+                ->badge(\App\Models\WithdrawalSlip::where('status', 'rejected')->count())
+                ->badgeColor('danger')
+                ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'rejected')),
+        ];
+    }
 }
