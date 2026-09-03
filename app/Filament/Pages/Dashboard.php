@@ -55,19 +55,26 @@ class Dashboard extends BaseDashboard
     public function getDriverStats(): array
     {
         $total = Driver::count();
-        $onTripCount = TripTicket::where('status', 'active')
+        $activeTripDriverIds = TripTicket::where('status', 'active')
             ->pluck('driver_id')
             ->filter()
             ->unique()
+            ->toArray();
+        $driverTableOnTripIds = Driver::where('status', 'on_trip')->pluck('id')->toArray();
+        $allBusyIds = array_unique(array_merge($activeTripDriverIds, $driverTableOnTripIds));
+        $onTripCount = count($allBusyIds);
+
+        $offDutyCount = Driver::whereIn('status', ['off_duty', 'unavailable'])->count();
+        $available = Driver::where('status', 'available')
+            ->whereNotIn('id', $allBusyIds)
             ->count();
-        $unavailableCount = Driver::where('status', 'unavailable')->count();
-        $available = max(0, $total - $onTripCount - $unavailableCount);
 
         return [
             'total' => $total,
             'available' => $available,
             'on_trip' => $onTripCount,
-            'unavailable' => $unavailableCount,
+            'unavailable' => $offDutyCount,
+            'off_duty' => $offDutyCount,
         ];
     }
 
@@ -79,14 +86,18 @@ class Dashboard extends BaseDashboard
             ->filter()
             ->map(fn ($v) => str_contains($v, ' - ') ? trim(explode(' - ', $v)[1] ?? $v) : trim($v))
             ->unique()
-            ->count();
+            ->toArray();
+
         $maintenanceCount = Vehicle::where('status', 'maintenance')->count();
-        $available = max(0, $total - $activePlates - $maintenanceCount);
+        $onTripCount = count($activePlates);
+        $available = Vehicle::where('status', 'available')
+            ->whereNotIn('plate_number', $activePlates)
+            ->count();
 
         return [
             'total' => $total,
             'available' => $available,
-            'on_trip' => $activePlates,
+            'on_trip' => $onTripCount,
             'maintenance' => $maintenanceCount,
         ];
     }

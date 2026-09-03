@@ -32,9 +32,13 @@ class StatsOverview extends StatsOverviewWidget
             ->filter()
             ->unique()
             ->toArray();
-        $activeDriversCount = count($activeDriverIds);
-        $unavailableDriversCount = Driver::where('status', 'unavailable')->count();
-        $availDrivers = max(0, $totalDrivers - $activeDriversCount - $unavailableDriversCount);
+        $driverTableOnTripIds = Driver::where('status', 'on_trip')->pluck('id')->toArray();
+        $allBusyDriverIds = array_unique(array_merge($activeDriverIds, $driverTableOnTripIds));
+        $activeDriversCount = count($allBusyDriverIds);
+        $unavailableDriversCount = Driver::whereIn('status', ['off_duty', 'unavailable'])->count();
+        $availDrivers = Driver::where('status', 'available')
+            ->whereNotIn('id', $allBusyDriverIds)
+            ->count();
 
         $totalVehicles = Vehicle::count();
         $activeVehiclePlates = TripTicket::where('status', 'active')
@@ -51,7 +55,9 @@ class StatsOverview extends StatsOverviewWidget
             ->toArray();
         $activeVehiclesCount = count($activeVehiclePlates);
         $maintenanceVehiclesCount = Vehicle::where('status', 'maintenance')->count();
-        $availVehicles = max(0, $totalVehicles - $activeVehiclesCount - $maintenanceVehiclesCount);
+        $availVehicles = Vehicle::where('status', 'available')
+            ->whereNotIn('plate_number', $activeVehiclePlates)
+            ->count();
 
         // 1. Pending Vehicle Requests
         $pendingQuery = VehicleRequest::where('status', 'pending');
