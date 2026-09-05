@@ -125,6 +125,13 @@ class VehicleRequestsTable
                         ->color('info')
                         ->url(fn ($record) => route('vehicle-requests.print', $record->id))
                         ->openUrlInNewTab(),
+                    Action::make('print_trip_ticket')
+                        ->label('Print Trip Ticket (QR Code)')
+                        ->icon('heroicon-o-ticket')
+                        ->color('success')
+                        ->visible(fn ($record) => $record->tripTicket()->exists())
+                        ->url(fn ($record) => route('trip-tickets.print', $record->tripTicket->id))
+                        ->openUrlInNewTab(),
                     Action::make('upload_document')
                         ->label('Upload Document')
                         ->icon('heroicon-o-document-arrow-up')
