@@ -439,7 +439,26 @@ class VehicleRequestForm
                     ->schema([
                         \Filament\Forms\Components\TextInput::make('name')
                             ->placeholder('Passenger Name')
-                            ->required(),
+                            ->required()
+                            ->live(onBlur: true)
+                            ->rules([
+                                fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                    $all = $get('../../passenger_names') ?? [];
+                                    if (!is_array($all)) return;
+                                    $target = strtolower(trim((string)$value));
+                                    if ($target === '') return;
+                                    $matches = 0;
+                                    foreach ($all as $item) {
+                                        $itemName = strtolower(trim((string)($item['name'] ?? '')));
+                                        if ($itemName === $target) {
+                                            $matches++;
+                                        }
+                                    }
+                                    if ($matches > 1) {
+                                        $fail("Duplicate passenger: '{$value}' is already in the list. Please differentiate (e.g. Jr./Sr.) or enter a different name.");
+                                    }
+                                },
+                            ]),
                     ])
                     ->label('Passengers')
                     ->addActionLabel('+ Add Passenger')
