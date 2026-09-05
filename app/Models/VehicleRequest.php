@@ -118,8 +118,8 @@ class VehicleRequest extends Model
             foreach ($pending as $req) {
                 if ($req->date && $req->time) {
                     $tripDateTime = \Illuminate\Support\Carbon::parse($req->date . ' ' . $req->time, 'Asia/Manila');
-                    if ($now->greaterThan($tripDateTime)) {
-                        $reason = 'Scheduled travel time arrived without uploaded CEO signed approval document.';
+                    if ($now->greaterThan($tripDateTime->copy()->addHour())) {
+                        $reason = 'Scheduled travel departure time and 1-hour grace period passed without approval/document upload.';
                         $req->updateQuietly([
                             'status' => 'expired',
                             'cancellation_reason' => $reason,
@@ -127,7 +127,7 @@ class VehicleRequest extends Model
                         if ($req->tripTicket && $req->tripTicket->status === 'pending') {
                             if ($req->tripTicket->driver_id) {
                                 if (method_exists($req->tripTicket, 'sendCancellationSms')) {
-                                    $req->tripTicket->sendCancellationSms('Scheduled trip expired without uploaded CEO signed document.');
+                                    $req->tripTicket->sendCancellationSms('Scheduled trip expired after 1-hour grace period without uploaded CEO signed document.');
                                 }
                                 Driver::where('id', $req->tripTicket->driver_id)->update(['status' => 'available']);
                             }
