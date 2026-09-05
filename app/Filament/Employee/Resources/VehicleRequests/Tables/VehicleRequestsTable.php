@@ -209,7 +209,7 @@ class VehicleRequestsTable
                         'expired' => 'Expired',
                     ]),
                 TernaryFilter::make('is_urgent')
-                    ->label('Urgent / Immediate Only'),
+                    ->label('Urgent Requests Only'),
                 \Filament\Tables\Filters\TrashedFilter::make()
                     ->label('Archive Status'),
             ])

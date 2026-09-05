@@ -78,7 +78,7 @@
                 <div class="text-xs font-bold text-black mt-2 font-mono">TT No. Lal-2026 - {{ substr($ticket->ticket_number, 3) }}</div>
                 @if($ticket->vehicleRequest?->is_urgent)
                     <div class="mt-1">
-                        <span class="inline-block px-2 py-0.5 border border-red-600 text-red-600 font-extrabold text-[9px] tracking-widest uppercase rounded">🚨 URGENT / IMMEDIATE DISPATCH</span>
+                        <span class="inline-block px-2 py-0.5 border border-red-600 text-red-600 font-extrabold text-[9px] tracking-widest uppercase rounded">🚨 URGENT DISPATCH</span>
                     </div>
                 @endif
             </div>

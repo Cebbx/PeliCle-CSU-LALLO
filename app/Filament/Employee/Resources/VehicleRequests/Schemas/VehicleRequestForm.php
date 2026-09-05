@@ -369,12 +369,12 @@ class VehicleRequestForm
                         Radio::make('is_urgent')
                             ->label('Priority Level')
                             ->options([
-                                0 => 'Regular Travel',
-                                1 => 'Urgent / Priority',
+                                0 => 'Regular',
+                                1 => 'Urgent',
                             ])
                             ->default(0)
                             ->inline()
-                            ->helperText('Select "Urgent / Priority" for time-sensitive official business or emergency dispatch.')
+                            ->helperText('Select "Urgent" for immediate official business or emergency dispatch.')
                             ->columnSpanFull(),
                         Select::make('purpose_select')
                             ->label('Purpose')
