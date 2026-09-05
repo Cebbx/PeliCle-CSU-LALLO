@@ -119,17 +119,46 @@ class TripTicketsTable
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->visible(fn ($record) => $record->status === 'active')
-                        ->requiresConfirmation()
+                        ->form(function ($record) {
+                            $hasSlip = $record->withdrawalSlips()->exists();
+                            $slip = $record->withdrawalSlips()->first();
+
+                            return [
+                                \Filament\Forms\Components\Placeholder::make('summary')
+                                    ->label('Trip Completion')
+                                    ->content("Marking trip {$record->ticket_number} as completed. Driver will be set to Available."),
+                                ...(
+                                    $hasSlip ? [
+                                        \Filament\Forms\Components\TextInput::make('actual_amount')
+                                            ->label('Actual Gas Expense (₱)')
+                                            ->numeric()
+                                            ->prefix('₱')
+                                            ->placeholder('0.00')
+                                            ->default($slip && $slip->amount > 0 ? $slip->amount : null)
+                                            ->helperText('Official receipt amount from the gas station. This will automatically approve the withdrawal slip.')
+                                    ] : []
+                                )
+                            ];
+                        })
                         ->modalHeading('Complete Trip')
-                        ->modalDescription('Are you sure you want to mark this trip as completed?')
                         ->modalSubmitActionLabel('Yes, Complete Trip')
-                        ->action(function ($record) {
+                        ->action(function ($record, array $data) {
                             $record->update(['status' => 'completed']);
                             if ($record->driver) {
                                 $record->driver->update(['status' => 'available']);
                             }
                             if ($record->vehicleRequest) {
                                 $record->vehicleRequest->update(['status' => 'completed']);
+                            }
+
+                            if ($record->withdrawalSlips()->exists()) {
+                                $amount = !empty($data['actual_amount']) ? (float)$data['actual_amount'] : 0;
+                                foreach ($record->withdrawalSlips as $slip) {
+                                    $slip->update([
+                                        'amount' => $amount > 0 ? $amount : $slip->amount,
+                                        'status' => 'approved',
+                                    ]);
+                                }
                             }
 
                             \Filament\Notifications\Notification::make()
@@ -148,6 +177,11 @@ class TripTicketsTable
                                 $record->sendCancellationSms('Trip cancelled by Admin.');
                             }
                             $record->update(['status' => 'cancelled']);
+                            
+                            // Cancel any pending withdrawal slips attached
+                            if ($record->withdrawalSlips()->exists()) {
+                                $record->withdrawalSlips()->where('status', 'pending')->update(['status' => 'rejected']);
+                            }
                             
                             \Filament\Notifications\Notification::make()
                                 ->title('Trip Cancelled')

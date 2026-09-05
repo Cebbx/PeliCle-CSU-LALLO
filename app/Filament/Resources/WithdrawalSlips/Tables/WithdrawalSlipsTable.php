@@ -53,6 +53,35 @@ class WithdrawalSlipsTable
                     ->label('Archive Status'),
             ])
             ->recordActions([
+                Action::make('approve_slip')
+                    ->label('Approve Slip')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn ($record) => $record->status === 'pending')
+                    ->form([
+                        \Filament\Forms\Components\TextInput::make('amount')
+                            ->label('Actual Amount Spent (₱)')
+                            ->numeric()
+                            ->prefix('₱')
+                            ->placeholder('0.00')
+                            ->required()
+                            ->default(fn ($record) => $record->amount > 0 ? $record->amount : null)
+                            ->helperText('Enter the official receipt amount from the gas station.'),
+                    ])
+                    ->modalHeading('Approve Fuel Withdrawal Slip')
+                    ->modalSubmitActionLabel('Approve & Save Amount')
+                    ->action(function ($record, array $data) {
+                        $record->update([
+                            'amount' => (float)$data['amount'],
+                            'status' => 'approved',
+                        ]);
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Withdrawal Slip Approved')
+                            ->body("Slip {$record->slip_number} approved with actual expense of ₱" . number_format($data['amount'], 2))
+                            ->success()
+                            ->send();
+                    }),
                 EditAction::make(),
                 Action::make('print')
                     ->label('Print Slip')
