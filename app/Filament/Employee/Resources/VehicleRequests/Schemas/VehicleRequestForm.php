@@ -7,6 +7,7 @@ use Filament\Schemas\Components\Fieldset;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\FileUpload;
@@ -431,6 +432,7 @@ class VehicleRequestForm
                         TimePicker::make('return_time')
                             ->label('Expected Return Time')
                             ->default(now())
+                            ->helperText('Tip: Maglagay ng 1-2 oras na allowance para sa traffic o delay sa biyahe.')
                             ->live()
                             ->required(),
                     ])
@@ -513,6 +515,23 @@ class VehicleRequestForm
                     ->disabled()
                     ->dehydrated()
                     ->required(),
+                Checkbox::make('has_other_passengers')
+                    ->label('Others (May kasamang Students o Ibang pasahero)')
+                    ->helperText('Lagyan ng check kung may mga estudyante, panauhin, o ibang pasaherong kasama sa biyahe.')
+                    ->live()
+                    ->default(false)
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        if (!$state) {
+                            $set('other_passengers', null);
+                        }
+                    }),
+                Textarea::make('other_passengers')
+                    ->label('Specify Others / Students')
+                    ->placeholder('Halimbawa: 10 CICS Students para sa Regional Competition, o Guest Speaker')
+                    ->visible(fn (Get $get) => (bool) $get('has_other_passengers'))
+                    ->required(fn (Get $get) => (bool) $get('has_other_passengers'))
+                    ->columnSpanFull()
+                    ->rows(2),
                 Hidden::make('status')
                     ->default('pending'),
             ]);

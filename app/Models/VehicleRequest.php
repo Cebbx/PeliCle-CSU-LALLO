@@ -27,12 +27,15 @@ class VehicleRequest extends Model
         'return_time',
         'number_of_passengers',
         'passenger_names',
+        'has_other_passengers',
+        'other_passengers',
         'status',
         'document',
     ];
 
     protected $casts = [
         'passenger_names' => 'array',
+        'has_other_passengers' => 'boolean',
     ];
 
     protected static function booted(): void

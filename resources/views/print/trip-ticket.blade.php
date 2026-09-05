@@ -115,6 +115,11 @@
                             $passengerNames = collect($passengers)->pluck('name')->join(', ');
                         @endphp
                         {{ $passengerNames ?: $ticket->vehicleRequest?->employee_name ?? 'N/A' }}
+                        @if($ticket->vehicleRequest?->has_other_passengers && $ticket->vehicleRequest?->other_passengers)
+                            <div class="mt-1 text-xs font-semibold text-black">
+                                <span class="font-bold uppercase text-[9px] text-gray-600">Others/Students:</span> {{ $ticket->vehicleRequest->other_passengers }}
+                            </div>
+                        @endif
                     </td>
                 </tr>
                 <tr>

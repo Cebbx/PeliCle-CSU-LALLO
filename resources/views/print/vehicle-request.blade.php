@@ -142,6 +142,13 @@
                     @else
                         <span class="text-xs text-black font-light italic">No passengers specified.</span>
                     @endif
+
+                    @if($request->has_other_passengers && $request->other_passengers)
+                        <div class="mt-2 pt-1 border-t border-gray-300 text-xs text-black">
+                            <span class="font-bold uppercase text-[10px] text-gray-700">Others / Students:</span>
+                            <span class="font-semibold text-black ml-1">{{ $request->other_passengers }}</span>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
