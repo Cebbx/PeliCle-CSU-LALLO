@@ -190,11 +190,13 @@ class Dashboard extends BaseDashboard
         $approved = VehicleRequest::where('status', 'approved')->count();
         $completed = VehicleRequest::where('status', 'completed')->count();
         $rejected = VehicleRequest::where('status', 'rejected')->count();
+        $expired = VehicleRequest::where('status', 'expired')->count();
 
         $pendingPct = $total > 0 ? round(($pending / $total) * 100, 1) : 0;
         $approvedPct = $total > 0 ? round(($approved / $total) * 100, 1) : 0;
         $completedPct = $total > 0 ? round(($completed / $total) * 100, 1) : 0;
         $rejectedPct = $total > 0 ? round(($rejected / $total) * 100, 1) : 0;
+        $expiredPct = $total > 0 ? round(($expired / $total) * 100, 1) : 0;
 
         return [
             'total' => $total,
@@ -206,6 +208,8 @@ class Dashboard extends BaseDashboard
             'completed_pct' => $completedPct,
             'rejected' => $rejected,
             'rejected_pct' => $rejectedPct,
+            'expired' => $expired,
+            'expired_pct' => $expiredPct,
         ];
     }
 

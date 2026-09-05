@@ -85,17 +85,6 @@ class VehicleRequestsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
-            ->filters([
-                SelectFilter::make('status')
-                    ->options([
-                        'pending' => 'Pending (New)',
-                        'approved' => 'Approved',
-                        'on_trip' => 'On Trip',
-                        'rejected' => 'Rejected',
-                        'completed' => 'Completed',
-                        'expired' => 'Expired / Forfeited',
-                    ]),
-            ])
             ->recordActions([
                 ActionGroup::make([
                     Action::make('approve_and_ticket')
@@ -197,6 +186,7 @@ class VehicleRequestsTable
                         'rejected' => 'Rejected',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
+                        'expired' => 'Expired / Forfeited',
                     ]),
                 \Filament\Tables\Filters\TrashedFilter::make()
                     ->label('Archive Status'),

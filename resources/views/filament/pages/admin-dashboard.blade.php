@@ -695,6 +695,12 @@
                                 stroke-dasharray="238.76"
                                 stroke-dashoffset="{{ 238.76 - (238.76 * max(0.04, $statusBreakdown['rejected_pct'] / 100)) }}"
                                 transform="rotate({{ (($statusBreakdown['completed_pct'] + $statusBreakdown['approved_pct'] + $statusBreakdown['pending_pct']) / 100) * 360 }} 50 50)" />
+                            
+                            <!-- Expired Segment (Slate) -->
+                            <circle cx="50" cy="50" r="38" fill="none" stroke="#64748b" stroke-width="13"
+                                stroke-dasharray="238.76"
+                                stroke-dashoffset="{{ 238.76 - (238.76 * max(0.03, ($statusBreakdown['expired_pct'] ?? 0) / 100)) }}"
+                                transform="rotate({{ (($statusBreakdown['completed_pct'] + $statusBreakdown['approved_pct'] + $statusBreakdown['pending_pct'] + $statusBreakdown['rejected_pct']) / 100) * 360 }} 50 50)" />
                         </svg>
 
                         <!-- Center Total Count -->
@@ -738,6 +744,14 @@
                                 <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Rejected</span>
                             </div>
                             <span class="donut-legend-val" style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['rejected'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['rejected_pct'] }}%)</span></span>
+                        </a>
+
+                        <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'expired']) }}" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none;">
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <span style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #64748b; display: inline-block;"></span>
+                                <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Expired</span>
+                            </div>
+                            <span class="donut-legend-val" style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['expired'] ?? 0 }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['expired_pct'] ?? 0 }}%)</span></span>
                         </a>
                     </div>
 

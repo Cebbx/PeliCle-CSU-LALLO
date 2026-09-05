@@ -3,8 +3,11 @@
 namespace App\Filament\Employee\Resources\VehicleRequests\Pages;
 
 use App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource;
+use App\Models\VehicleRequest;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Components\Tabs\Tab;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListVehicleRequests extends ListRecords
 {
@@ -19,29 +22,55 @@ class ListVehicleRequests extends ListRecords
 
     public function getTabs(): array
     {
+        VehicleRequest::expirePastPendingRequests();
         $userId = auth()->id();
+
         return [
-            'all' => \Filament\Schemas\Components\Tabs\Tab::make('All'),
-            'pending' => \Filament\Schemas\Components\Tabs\Tab::make('Pending')
-                ->badge(\App\Models\VehicleRequest::where('user_id', $userId)->where('status', 'pending')->count())
+            'all' => Tab::make('All'),
+            'pending' => Tab::make('Pending')
+                ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'pending')->count())
                 ->badgeColor('warning')
-                ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'pending')),
-            'approved' => \Filament\Schemas\Components\Tabs\Tab::make('Approved')
-                ->badge(\App\Models\VehicleRequest::where('user_id', $userId)->where('status', 'approved')->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'pending')),
+            'approved' => Tab::make('Approved')
+                ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'approved')->count())
                 ->badgeColor('success')
-                ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'approved')),
-            'on_trip' => \Filament\Schemas\Components\Tabs\Tab::make('On Trip')
-                ->badge(\App\Models\VehicleRequest::where('user_id', $userId)->where('status', 'on_trip')->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'approved')),
+            'on_trip' => Tab::make('On Trip')
+                ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'on_trip')->count())
                 ->badgeColor('info')
-                ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'on_trip')),
-            'completed' => \Filament\Schemas\Components\Tabs\Tab::make('Completed')
-                ->badge(\App\Models\VehicleRequest::where('user_id', $userId)->where('status', 'completed')->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'on_trip')),
+            'completed' => Tab::make('Completed')
+                ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'completed')->count())
                 ->badgeColor('success')
-                ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'completed')),
-            'rejected' => \Filament\Schemas\Components\Tabs\Tab::make('Rejected')
-                ->badge(\App\Models\VehicleRequest::where('user_id', $userId)->where('status', 'rejected')->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'completed')),
+            'rejected' => Tab::make('Rejected')
+                ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'rejected')->count())
                 ->badgeColor('danger')
-                ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('status', 'rejected')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'rejected')),
+            'expired' => Tab::make('Expired')
+                ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'expired')->count())
+                ->badgeColor('gray')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'expired')),
         ];
+    }
+
+    public function mount(): void
+    {
+        VehicleRequest::expirePastPendingRequests();
+        parent::mount();
+
+        $tab = request()->query('tab');
+        if ($tab && array_key_exists($tab, $this->getCachedTabs())) {
+            $this->activeTab = $tab;
+        }
+    }
+
+    public function getDefaultActiveTab(): string | int | null
+    {
+        $tab = request()->query('tab');
+        if ($tab && array_key_exists($tab, $this->getCachedTabs())) {
+            return $tab;
+        }
+        return parent::getDefaultActiveTab();
     }
 }
