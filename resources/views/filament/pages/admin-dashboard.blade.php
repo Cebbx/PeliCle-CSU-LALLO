@@ -741,7 +741,7 @@
                         <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'rejected']) }}" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none;">
                             <div style="display: flex; align-items: center; gap: 4px;">
                                 <span style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
-                                <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Rejected</span>
+                                <span class="donut-legend-text" style="color: #cbd5e1; font-weight: 500;">Disapproved</span>
                             </div>
                             <span class="donut-legend-val" style="color: #ffffff; font-weight: 600;">{{ $statusBreakdown['rejected'] }} <span style="color: #64748b; font-size: 9px;">({{ $statusBreakdown['rejected_pct'] }}%)</span></span>
                         </a>
@@ -795,6 +795,7 @@
                                 'on_trip' => 'On Trip',
                                 'expired' => 'Expired',
                                 'cancelled' => 'Cancelled',
+                                'rejected' => 'Disapproved',
                                 default => ucfirst($req->status),
                             };
                         @endphp

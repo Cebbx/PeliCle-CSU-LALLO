@@ -117,7 +117,7 @@ class AnalyticsTripLogsWidget extends TableWidget
                         'pending' => 'Pending',
                         'approved' => 'Approved',
                         'on_trip' => 'On Trip',
-                        'rejected' => 'Rejected',
+                        'rejected' => 'Disapproved',
                         'completed' => 'Completed',
                         default => ucfirst($state),
                     }),

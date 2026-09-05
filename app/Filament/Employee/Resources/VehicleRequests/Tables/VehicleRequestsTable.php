@@ -70,7 +70,7 @@ class VehicleRequestsTable
                         'pending' => 'Pending',
                         'approved' => 'Approved',
                         'on_trip' => 'On Trip',
-                        'rejected' => 'Rejected',
+                        'rejected' => 'Disapproved',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
                         'expired' => 'Expired',
@@ -78,7 +78,7 @@ class VehicleRequestsTable
                     })
                     ->tooltip(function ($record) {
                         if ($record->status === 'rejected' && $record->rejection_reason) {
-                            return 'Reason: ' . $record->rejection_reason;
+                            return 'Disapproval Reason: ' . $record->rejection_reason;
                         }
                         if ($record->status === 'cancelled' && $record->cancellation_reason) {
                             return 'Reason: ' . $record->cancellation_reason;
@@ -183,7 +183,7 @@ class VehicleRequestsTable
                         ->color('info')
                         ->visible(fn ($record) => in_array($record->status, ['rejected', 'cancelled', 'expired']) && ($record->rejection_reason || $record->cancellation_reason))
                         ->modalHeading(fn ($record) => match ($record->status) {
-                            'rejected' => 'Rejection Reason',
+                            'rejected' => 'Disapproval Reason',
                             'cancelled' => 'Cancellation Reason',
                             'expired' => 'Expiration Reason',
                             default => 'Reason Details',
@@ -286,7 +286,7 @@ class VehicleRequestsTable
                         'pending' => 'Pending (New)',
                         'approved' => 'Approved',
                         'on_trip' => 'On Trip',
-                        'rejected' => 'Rejected',
+                        'rejected' => 'Disapproved',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
                         'expired' => 'Expired',

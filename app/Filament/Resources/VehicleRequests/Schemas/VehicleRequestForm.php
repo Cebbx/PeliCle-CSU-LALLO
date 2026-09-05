@@ -531,7 +531,7 @@ class VehicleRequestForm
                     ->options([
                         'pending' => 'Pending',
                         'approved' => 'Approved',
-                        'rejected' => 'Rejected',
+                        'rejected' => 'Disapproved',
                         'completed' => 'Completed',
                     ])
                     ->required()

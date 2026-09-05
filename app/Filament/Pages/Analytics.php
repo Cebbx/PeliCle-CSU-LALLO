@@ -61,7 +61,7 @@ class Analytics extends BaseDashboard
                         'approved' => 'Approved',
                         'on_trip' => 'On Trip',
                         'completed' => 'Completed',
-                        'rejected' => 'Rejected',
+                        'rejected' => 'Disapproved',
                     ])
                     ->placeholder('Select an option')
                     ->label('Trip status'),

@@ -383,7 +383,7 @@
                                     <td>{{ $req->vehicle }}</td>
                                     <td>
                                         <span class="badge-status badge-{{ $req->status }}">
-                                            {{ str_replace('_', ' ', $req->status) }}
+                                            {{ $req->status === 'rejected' ? 'Disapproved' : ucwords(str_replace('_', ' ', $req->status)) }}
                                         </span>
                                     </td>
                                     <td style="text-align: center;">
@@ -425,7 +425,7 @@
                             <div class="active-trip-card">
                                 <div class="active-trip-header">
                                     <span>{{ $tripReq->request_number }}</span>
-                                    <span class="badge-status badge-{{ $tripReq->status }}">{{ str_replace('_', ' ', $tripReq->status) }}</span>
+                                    <span class="badge-status badge-{{ $tripReq->status }}">{{ $tripReq->status === 'rejected' ? 'Disapproved' : ucwords(str_replace('_', ' ', $tripReq->status)) }}</span>
                                 </div>
                                 <div style="font-size: 12px; line-height: 1.6;">
                                     <div>📍 <strong>Dest:</strong> {{ $tripReq->destination }}</div>

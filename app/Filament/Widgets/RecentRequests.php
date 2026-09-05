@@ -48,6 +48,7 @@ class RecentRequests extends TableWidget
                     })
                     ->formatStateUsing(fn (string $state) => match ($state) {
                         'on_trip' => 'On Trip',
+                        'rejected' => 'Disapproved',
                         default => ucwords(str_replace('_', ' ', $state)),
                     }),
             ]);

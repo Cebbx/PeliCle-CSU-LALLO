@@ -77,7 +77,7 @@ class AnalyticsOverview extends StatsOverviewWidget
                 ->color('info'),
 
             Stat::make('Cancellation Rate', "{$cancelRate}%")
-                ->description("{$rejectedCount} cancelled / rejected")
+                ->description("{$rejectedCount} cancelled / disapproved")
                 ->descriptionIcon('heroicon-m-x-circle')
                 ->chart($cancelSparkline)
                 ->color('danger'),

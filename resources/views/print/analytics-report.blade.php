@@ -117,7 +117,7 @@
             <div class="border border-black p-2 bg-gray-50">
                 <div class="text-[9px] uppercase font-bold text-gray-600">Approval Rate</div>
                 <div class="text-lg font-black text-black">{{ $approvalRate }}%</div>
-                <div class="text-[9px] text-gray-600">{{ $rejectedCount }} Rejected / Cancelled</div>
+                <div class="text-[9px] text-gray-600">{{ $rejectedCount }} Disapproved / Cancelled</div>
             </div>
             <div class="border border-black p-2 bg-gray-50">
                 <div class="text-[9px] uppercase font-bold text-gray-600">Total Passengers</div>

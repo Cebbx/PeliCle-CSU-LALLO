@@ -69,7 +69,7 @@ class VehicleRequestsTable
                         'pending' => 'Pending',
                         'approved' => 'Approved',
                         'on_trip' => 'On Trip',
-                        'rejected' => 'Rejected',
+                        'rejected' => 'Disapproved',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
                         'expired' => 'Expired',
@@ -77,7 +77,7 @@ class VehicleRequestsTable
                     })
                     ->tooltip(function ($record) {
                         if ($record->status === 'rejected' && $record->rejection_reason) {
-                            return 'Reason: ' . $record->rejection_reason;
+                            return 'Disapproval Reason: ' . $record->rejection_reason;
                         }
                         if ($record->status === 'cancelled' && $record->cancellation_reason) {
                             return 'Reason: ' . $record->cancellation_reason;
@@ -192,7 +192,7 @@ class VehicleRequestsTable
                         ->color('info')
                         ->visible(fn ($record) => in_array($record->status, ['rejected', 'cancelled', 'expired']) && ($record->rejection_reason || $record->cancellation_reason))
                         ->modalHeading(fn ($record) => match ($record->status) {
-                            'rejected' => 'Rejection Reason',
+                            'rejected' => 'Disapproval Reason',
                             'cancelled' => 'Cancellation Reason',
                             'expired' => 'Expiration Reason',
                             default => 'Reason Details',
@@ -201,16 +201,17 @@ class VehicleRequestsTable
                         ->modalSubmitAction(false)
                         ->modalCancelActionLabel('Close'),
                     Action::make('reject')
-                        ->label('Reject Request')
+                        ->label('Disapprove Request')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
-                        ->modalHeading('Reject Vehicle Request')
-                        ->modalDescription('Please select a reason why this vehicle request is being rejected.')
-                        ->modalSubmitActionLabel('Reject Request')
+                        ->modalHeading('⚠️ Are you sure you want to disapprove this request?')
+                        ->modalDescription('Please select a reason why this vehicle request is being disapproved. This action cannot be undone.')
+                        ->modalSubmitActionLabel('Yes, Disapprove Request')
+                        ->modalCancelActionLabel('No, Keep Request')
                         ->visible(fn ($record) => !$record->trashed() && $record->status === 'pending')
                         ->form([
                             \Filament\Forms\Components\Select::make('reason_select')
-                                ->label('Reason for Rejection')
+                                ->label('Reason for Disapproval')
                                 ->options([
                                     'No available vehicle on requested date/time' => 'No available vehicle on requested date/time',
                                     'Conflict with university priority official travel' => 'Conflict with university priority official travel',
@@ -224,10 +225,15 @@ class VehicleRequestsTable
                                 ->required(),
                             \Filament\Forms\Components\Textarea::make('other_reason')
                                 ->label('Specify Reason')
-                                ->placeholder('Type custom rejection reason here...')
+                                ->placeholder('Type custom disapproval reason here...')
                                 ->visible(fn ($get) => $get('reason_select') === 'Others')
                                 ->required(fn ($get) => $get('reason_select') === 'Others')
                                 ->rows(3),
+                            \Filament\Forms\Components\Checkbox::make('confirm_disapproval')
+                                ->label('Yes, I am sure and I confirm this disapproval.')
+                                ->helperText('Please check this box to confirm that you want to disapprove this request.')
+                                ->required()
+                                ->accepted(),
                         ])
                         ->action(function ($record, array $data) {
                             $reason = $data['reason_select'] === 'Others' ? ($data['other_reason'] ?? 'Others') : $data['reason_select'];
@@ -236,11 +242,11 @@ class VehicleRequestsTable
                                 'rejection_reason' => $reason,
                             ]);
 
-                            \App\Models\ActivityLog::log('Rejected Request', $record, "Admin rejected request {$record->request_number}. Reason: {$reason}");
+                            \App\Models\ActivityLog::log('Disapproved Request', $record, "Admin disapproved request {$record->request_number}. Reason: {$reason}");
                             
                             \Filament\Notifications\Notification::make()
-                                ->title('Request Rejected')
-                                ->body("Request {$record->request_number} has been rejected.")
+                                ->title('Request Disapproved')
+                                ->body("Request {$record->request_number} has been disapproved.")
                                 ->danger()
                                 ->send();
                         }),
@@ -352,7 +358,7 @@ class VehicleRequestsTable
                         'pending' => 'Pending (New)',
                         'approved' => 'Approved',
                         'on_trip' => 'On Trip',
-                        'rejected' => 'Rejected',
+                        'rejected' => 'Disapproved',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
                         'expired' => 'Expired',
