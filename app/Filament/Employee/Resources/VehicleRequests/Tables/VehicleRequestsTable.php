@@ -18,35 +18,38 @@ class VehicleRequestsTable
         return $table
             ->columns([
                 TextColumn::make('request_number')
+                    ->label('Request #')
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
                 TextColumn::make('employee_name')
+                    ->label('Requester')
+                    ->limit(13)
+                    ->tooltip(fn ($record) => $record->employee_name)
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('department')
+                    ->limit(8)
+                    ->tooltip(fn ($record) => $record->department)
                     ->searchable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
+                    ->limit(12)
+                    ->tooltip(fn ($record) => $record->vehicle)
                     ->searchable(),
                 TextColumn::make('destination')
+                    ->limit(15)
+                    ->tooltip(fn ($record) => $record->destination)
                     ->searchable(),
                 TextColumn::make('date')
-                    ->label('Travel Date')
+                    ->label('Schedule')
                     ->date('M d, Y')
-                    ->sortable(),
-                TextColumn::make('time')
-                    ->label('Travel Time')
-                    ->time('h:i A')
+                    ->description(fn ($record) => $record->time ? \Carbon\Carbon::parse($record->time)->format('h:i A') : null)
                     ->sortable(),
                 TextColumn::make('return_date')
-                    ->label('Return Date')
+                    ->label('Return')
                     ->date('M d, Y')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('return_time')
-                    ->label('Return Time')
-                    ->time('h:i A')
+                    ->description(fn ($record) => $record->return_time ? \Carbon\Carbon::parse($record->return_time)->format('h:i A') : null)
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
