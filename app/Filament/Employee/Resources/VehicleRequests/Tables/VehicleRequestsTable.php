@@ -96,7 +96,7 @@ class VehicleRequestsTable
                         ->label('Upload Document')
                         ->icon('heroicon-o-document-arrow-up')
                         ->color('success')
-                        ->visible(fn ($record) => ($record->status === 'pending' || $record->status === 'approved') && !$record->document)
+                        ->visible(fn ($record) => $record->status === 'approved' && !$record->document)
                         ->form([
                             \Filament\Forms\Components\FileUpload::make('document')
                                 ->label('Upload CEO Signed Document')
