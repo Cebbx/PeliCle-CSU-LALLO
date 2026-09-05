@@ -427,7 +427,11 @@ class VehicleRequestForm
                     ->label('Passengers')
                     ->addActionLabel('+ Add Passenger')
                     ->default([['name' => '']])
-                    ->reorderable(false)
+                    ->reorderable()
+                    ->reorderAction(fn (\Filament\Actions\Action $action) => $action
+                        ->icon(\Filament\Support\Icons\Heroicon::ArrowsUpDown)
+                        ->tooltip('↕ Move / Reorder')
+                    )
                     ->live()
                     ->afterStateUpdated(function (callable $set, $state) {
                         $names = array_filter(array_map(fn ($item) => trim($item['name'] ?? ''), $state ?? []));

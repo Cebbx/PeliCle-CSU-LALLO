@@ -443,8 +443,43 @@ class VehicleRequestForm
                     ])
                     ->label('Passengers')
                     ->addActionLabel('+ Add Passenger')
-                    ->default([['name' => '']])
-                    ->reorderable(false)
+                    ->default(function () {
+                        $user = auth()->user();
+                        $deptName = !empty($user?->department) ? $user->department : null;
+                        if (!$deptName) {
+                            $email = $user?->email ?? '';
+                            $prefix = strtolower(explode('@', $email)[0]);
+                            $validDepts = [
+                                'employee' => 'CICS',
+                                'admin' => 'Administration Office',
+                                'ceo' => 'Office of the CEO',
+                                'hrmo' => 'HRMO',
+                                'accounting' => 'Accounting Office',
+                                'budget' => 'Budget Office',
+                                'property' => 'Property and Supply Office',
+                                'records' => 'Records Office',
+                                'planning' => 'Planning Office',
+                                'mis' => 'MIS Office',
+                                'registrar' => 'Office of the Campus Registrar',
+                                'admission' => 'Campus Admission Office',
+                                'publication' => 'Campus Publication Office',
+                                'library' => 'University Library',
+                                'cics' => 'CICS',
+                                'cte' => 'CTE',
+                                'chm' => 'CHM',
+                                'coa' => 'COA',
+                                'cafevalena' => 'Café Valena',
+                                'csc' => 'Campus Student Council'
+                            ];
+                            $deptName = $validDepts[$prefix] ?? ($user?->name ?? 'CICS');
+                        }
+                        return [['name' => $deptName]];
+                    })
+                    ->reorderable()
+                    ->reorderAction(fn (\Filament\Actions\Action $action) => $action
+                        ->icon(\Filament\Support\Icons\Heroicon::ArrowsUpDown)
+                        ->tooltip('↕ Move / Reorder')
+                    )
                     ->live()
                     ->afterStateUpdated(function (callable $set, $state) {
                         $names = array_filter(array_map(fn ($item) => trim($item['name'] ?? ''), $state ?? []));
