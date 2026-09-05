@@ -133,7 +133,12 @@
                 </tr>
                 <tr>
                     <td class="border border-black p-2.5 font-bold bg-gray-50">Purpose/s:</td>
-                    <td class="border border-black p-2.5" colspan="3">{{ $ticket->vehicleRequest?->purpose ?? 'N/A' }}</td>
+                    <td class="border border-black p-2.5" colspan="3">
+                        {{ $ticket->vehicleRequest?->purpose ?? 'N/A' }}
+                        @if($ticket->vehicleRequest?->is_urgent)
+                            <span class="ml-2 px-1.5 py-0.5 text-[9px] font-bold text-red-600 border border-red-500 rounded uppercase">Priority: Urgent</span>
+                        @endif
+                    </td>
                 </tr>
             </tbody>
         </table>

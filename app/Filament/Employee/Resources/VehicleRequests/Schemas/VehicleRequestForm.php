@@ -8,6 +8,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
@@ -365,10 +366,15 @@ class VehicleRequestForm
                 Fieldset::make('Trip Purpose & Schedule')
                     ->columnSpan(1)
                     ->schema([
-                        Toggle::make('is_urgent')
-                            ->label('🚨 Urgent / Immediate Need (Emergency or ASAP Travel)')
-                            ->helperText('Enable this if the vehicle is needed immediately so Admin can prioritize urgent dispatch.')
-                            ->default(false)
+                        Radio::make('is_urgent')
+                            ->label('Priority Level')
+                            ->options([
+                                0 => 'Regular Travel',
+                                1 => 'Urgent / Priority',
+                            ])
+                            ->default(0)
+                            ->inline()
+                            ->helperText('Select "Urgent / Priority" for time-sensitive official business or emergency dispatch.')
                             ->columnSpanFull(),
                         Select::make('purpose_select')
                             ->label('Purpose')
@@ -378,7 +384,7 @@ class VehicleRequestForm
                                 'Workshop' => 'Workshop',
                                 'Outreach' => 'Outreach',
                                 'Business Visit' => 'Business Visit',
-                                'Emergency / Urgent Official Travel' => 'Emergency / Urgent Official Travel',
+                                'Emergency' => 'Emergency',
                                 'Others' => 'Others (Specify below)',
                             ])
                             ->default('Meeting')
@@ -387,7 +393,7 @@ class VehicleRequestForm
                             ->columnSpanFull()
                             ->afterStateHydrated(function ($state, callable $set, $record) {
                                 if ($record) {
-                                    $predefined = ['Meeting', 'Seminar', 'Workshop', 'Outreach', 'Business Visit', 'Emergency / Urgent Official Travel'];
+                                    $predefined = ['Meeting', 'Seminar', 'Workshop', 'Outreach', 'Business Visit', 'Emergency'];
                                     if (in_array($record->purpose, $predefined)) {
                                         $set('purpose_select', $record->purpose);
                                     } elseif ($record->purpose) {
@@ -397,8 +403,8 @@ class VehicleRequestForm
                                 }
                             })
                             ->afterStateUpdated(function ($state, callable $set) {
-                                if ($state === 'Emergency / Urgent Official Travel') {
-                                    $set('is_urgent', true);
+                                if ($state === 'Emergency') {
+                                    $set('is_urgent', 1);
                                 }
                                 if ($state !== 'Others') {
                                     $set('purpose', $state);

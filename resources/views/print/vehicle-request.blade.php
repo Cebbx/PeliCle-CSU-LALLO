@@ -94,7 +94,7 @@
                 <div class="col-span-4 p-3 flex flex-col justify-between" style="min-height: 70px;">
                     <span class="text-[10px] uppercase font-bold text-black">Date:</span>
                     <span class="text-sm font-bold text-black text-center mt-1 border-b border-gray-300 w-11/12 mx-auto">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</span>
-                    <span class="text-[9px] text-black text-center mt-0.5">Office: <span class="font-bold text-black">{{ $request->department }}</span></span>
+                    <span class="text-[9px] text-black text-center mt-0.5">Office: <span class="font-bold text-black">{{ $request->department }}</span> | Priority: <span class="font-bold {{ $request->is_urgent ? 'text-red-600' : 'text-black' }}">{{ $request->is_urgent ? 'URGENT' : 'REGULAR' }}</span></span>
                 </div>
             </div>
 
