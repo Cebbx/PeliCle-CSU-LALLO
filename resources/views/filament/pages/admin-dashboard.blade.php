@@ -802,7 +802,12 @@
                             <div class="feed-item-left">
                                 <span class="feed-dot-indicator" style="background: {{ $dotColor }};"></span>
                                 <div class="feed-text-group">
-                                    <span class="feed-ref-code">{{ $req->request_number }}</span>
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <span class="feed-ref-code">{{ $req->request_number }}</span>
+                                        @if($req->is_urgent)
+                                            <span style="display: inline-block; background-color: #ef4444; color: #ffffff; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">🚨 URGENT</span>
+                                        @endif
+                                    </div>
                                     <span class="feed-purpose-desc">{{ $req->purpose ?? $req->destination ?? $req->employee_name }}</span>
                                 </div>
                             </div>

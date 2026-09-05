@@ -75,6 +75,11 @@
         <!-- Title -->
         <div class="text-center mb-4">
             <h1 class="text-base font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Request Form</h1>
+            @if($request->is_urgent)
+                <div class="mt-1">
+                    <span class="inline-block px-2.5 py-0.5 border border-red-600 text-red-600 font-extrabold text-[10px] tracking-widest uppercase rounded">🚨 URGENT / IMMEDIATE DISPATCH</span>
+                </div>
+            @endif
         </div>
 
         <!-- Request Details Table Grid -->

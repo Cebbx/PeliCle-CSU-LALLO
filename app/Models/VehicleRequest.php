@@ -30,6 +30,7 @@ class VehicleRequest extends Model
         'has_other_passengers',
         'other_passengers',
         'status',
+        'is_urgent',
         'rejection_reason',
         'cancellation_reason',
         'document',
@@ -38,6 +39,7 @@ class VehicleRequest extends Model
     protected $casts = [
         'passenger_names' => 'array',
         'has_other_passengers' => 'boolean',
+        'is_urgent' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -116,10 +118,10 @@ class VehicleRequest extends Model
             $now = \Illuminate\Support\Carbon::now('Asia/Manila');
             $pending = static::where('status', 'pending')->get();
             foreach ($pending as $req) {
-                if ($req->date && $req->time) {
-                    $tripDateTime = \Illuminate\Support\Carbon::parse($req->date . ' ' . $req->time, 'Asia/Manila');
-                    if ($now->greaterThan($tripDateTime->copy()->addHour())) {
-                        $reason = 'Scheduled travel departure time and 1-hour grace period passed without approval/document upload.';
+                if ($req->date) {
+                    $scheduledEndOfDay = \Illuminate\Support\Carbon::parse($req->date, 'Asia/Manila')->endOfDay();
+                    if ($now->greaterThan($scheduledEndOfDay)) {
+                        $reason = 'Scheduled travel date ended without approval or uploaded CEO signed document.';
                         $req->updateQuietly([
                             'status' => 'expired',
                             'cancellation_reason' => $reason,
@@ -127,7 +129,7 @@ class VehicleRequest extends Model
                         if ($req->tripTicket && $req->tripTicket->status === 'pending') {
                             if ($req->tripTicket->driver_id) {
                                 if (method_exists($req->tripTicket, 'sendCancellationSms')) {
-                                    $req->tripTicket->sendCancellationSms('Scheduled trip expired after 1-hour grace period without uploaded CEO signed document.');
+                                    $req->tripTicket->sendCancellationSms('Scheduled trip expired at the end of the day without uploaded CEO signed document.');
                                 }
                                 Driver::where('id', $req->tripTicket->driver_id)->update(['status' => 'available']);
                             }

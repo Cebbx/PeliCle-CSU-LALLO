@@ -85,13 +85,17 @@ class AppServiceProvider extends ServiceProvider
 
                     // If current time is 2 hours (120 minutes) past the travel time
                     if ($now->diffInMinutes($tripDateTime, false) < -120) {
+                        $autoReason = 'Auto-declined: 2 hours passed past scheduled travel time without uploaded CEO signed approval document.';
+
                         // Cancel Trip Ticket quietly to prevent triggers
                         $trip->status = 'cancelled';
+                        $trip->cancellation_reason = $autoReason;
                         $trip->saveQuietly();
 
                         // Reject Vehicle Request quietly
                         if ($trip->vehicleRequest) {
                             $trip->vehicleRequest->status = 'rejected';
+                            $trip->vehicleRequest->rejection_reason = $autoReason;
                             $trip->vehicleRequest->saveQuietly();
                         }
 

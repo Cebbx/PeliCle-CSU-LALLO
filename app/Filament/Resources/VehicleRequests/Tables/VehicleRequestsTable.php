@@ -8,6 +8,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class VehicleRequestsTable
@@ -20,7 +21,8 @@ class VehicleRequestsTable
                     ->label('Request #')
                     ->searchable()
                     ->sortable()
-                    ->weight('bold'),
+                    ->weight('bold')
+                    ->description(fn ($record) => $record->is_urgent ? '🚨 URGENT' : null),
                 TextColumn::make('employee_name')
                     ->label('Requester')
                     ->limit(13)
@@ -272,6 +274,8 @@ class VehicleRequestsTable
                         'completed' => 'Completed',
                         'expired' => 'Expired',
                     ]),
+                TernaryFilter::make('is_urgent')
+                    ->label('Urgent / Immediate Only'),
                 \Filament\Tables\Filters\TrashedFilter::make()
                     ->label('Archive Status'),
             ])
