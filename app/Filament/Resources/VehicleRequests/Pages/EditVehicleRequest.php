@@ -27,4 +27,9 @@ class EditVehicleRequest extends EditRecord
                 ->color('success'),
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
