@@ -102,7 +102,7 @@ class VehicleRequestsTable
             ->recordActions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->visible(fn ($record) => $record->status === 'pending' && !$record->document),
+                        ->visible(fn ($record) => !$record->trashed() && $record->status === 'pending' && !$record->document),
                     Action::make('print')
                         ->label('View Form Request')
                         ->icon('heroicon-o-document-text')
@@ -113,7 +113,7 @@ class VehicleRequestsTable
                         ->label('Upload Document')
                         ->icon('heroicon-o-document-arrow-up')
                         ->color('success')
-                        ->visible(fn ($record) => $record->status === 'approved' && !$record->document)
+                        ->visible(fn ($record) => !$record->trashed() && $record->status === 'approved' && !$record->document)
                         ->form([
                             \Filament\Forms\Components\FileUpload::make('document')
                                 ->label('Upload CEO Signed Document')
@@ -155,7 +155,7 @@ class VehicleRequestsTable
                         ->modalHeading('Cancel Vehicle Request')
                         ->modalDescription('Please select the reason why you are cancelling this request.')
                         ->modalSubmitActionLabel('Cancel Request')
-                        ->visible(fn ($record) => $record->status === 'pending' && !$record->document)
+                        ->visible(fn ($record) => !$record->trashed() && $record->status === 'pending' && !$record->document)
                         ->form([
                             \Filament\Forms\Components\Select::make('reason_select')
                                 ->label('Reason for Cancellation')
@@ -189,6 +189,40 @@ class VehicleRequestsTable
                                 ->title('Request Cancelled')
                                 ->body("Vehicle request {$record->request_number} has been cancelled.")
                                 ->warning()
+                                ->send();
+                        }),
+                    Action::make('archive')
+                        ->label('Archive Request')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('warning')
+                        ->visible(fn ($record) => !$record->trashed() && in_array($record->status, ['completed', 'cancelled', 'rejected', 'expired']))
+                        ->requiresConfirmation()
+                        ->modalHeading('Archive Vehicle Request')
+                        ->modalDescription('Are you sure you want to archive this request? It will be moved to your Archived tab.')
+                        ->modalSubmitActionLabel('Archive')
+                        ->action(function ($record) {
+                            $record->delete();
+                            \Filament\Notifications\Notification::make()
+                                ->title('Request Archived')
+                                ->body("Vehicle request {$record->request_number} has been archived.")
+                                ->success()
+                                ->send();
+                        }),
+                    Action::make('restore')
+                        ->label('Restore Request')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('success')
+                        ->visible(fn ($record) => $record->trashed())
+                        ->requiresConfirmation()
+                        ->modalHeading('Restore Vehicle Request')
+                        ->modalDescription('Do you want to restore this request back to your active list?')
+                        ->modalSubmitActionLabel('Restore')
+                        ->action(function ($record) {
+                            $record->restore();
+                            \Filament\Notifications\Notification::make()
+                                ->title('Request Restored')
+                                ->body("Vehicle request {$record->request_number} has been restored.")
+                                ->success()
                                 ->send();
                         }),
                 ])

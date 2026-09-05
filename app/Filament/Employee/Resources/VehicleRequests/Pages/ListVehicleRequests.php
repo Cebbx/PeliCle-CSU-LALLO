@@ -43,6 +43,10 @@ class ListVehicleRequests extends ListRecords
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'completed')->count())
                 ->badgeColor('success')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'completed')),
+            'cancelled' => Tab::make('Cancelled')
+                ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'cancelled')->count())
+                ->badgeColor('danger')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'cancelled')),
             'rejected' => Tab::make('Rejected')
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'rejected')->count())
                 ->badgeColor('danger')
@@ -51,6 +55,10 @@ class ListVehicleRequests extends ListRecords
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'expired')->count())
                 ->badgeColor('gray')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'expired')),
+            'archived' => Tab::make('Archived')
+                ->badge(VehicleRequest::onlyTrashed()->where('user_id', $userId)->count())
+                ->badgeColor('gray')
+                ->modifyQueryUsing(fn (Builder $query) => $query->onlyTrashed()),
         ];
     }
 
