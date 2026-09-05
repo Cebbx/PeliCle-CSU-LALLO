@@ -582,7 +582,7 @@
             <div class="stat-card">
                 <div>
                     <span class="stat-label">Active Vehicle</span>
-                    <span class="stat-val">{{ $activeTrip ? $activeTrip->vehicle : 'None' }}</span>
+                    <span class="stat-val">{{ $activeTrip ? $activeTrip->formatted_vehicle : 'None' }}</span>
                 </div>
                 <div class="stat-emoji">🚗</div>
             </div>
@@ -627,7 +627,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        {{ $trip->vehicle }}
+                                        {{ $trip->formatted_vehicle }}
                                     </td>
                                     <td>
                                         <span class="badge-status {{ $trip->status === 'active' ? 'badge-active' : ($trip->status === 'completed' ? 'badge-completed' : ($trip->status === 'cancelled' ? 'badge-cancelled' : 'badge-pending')) }}">

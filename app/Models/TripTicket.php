@@ -233,6 +233,29 @@ class TripTicket extends Model
         }
     }
 
+    public function getFormattedVehicleAttribute(): string
+    {
+        $plate = $this->vehicle;
+        $name = $this->vehicleRequest?->vehicle;
+
+        if ($plate) {
+            $dbVehicle = Vehicle::where('plate_number', $plate)->first();
+            if ($dbVehicle) {
+                $name = $dbVehicle->brand;
+                $plate = $dbVehicle->plate_number;
+            }
+        }
+
+        if ($name && $plate) {
+            if (str_contains(strtoupper($name), strtoupper($plate))) {
+                return $name;
+            }
+            return "{$name} ({$plate})";
+        }
+
+        return $name ?? $plate ?? 'Assigned Vehicle';
+    }
+
     public function sendSmsNotification(): void
     {
         $this->loadMissing(['driver', 'vehicleRequest']);
@@ -250,7 +273,7 @@ class TripTicket extends Model
                 ? \Carbon\Carbon::parse($this->vehicleRequest->time)->format('g:i A') 
                 : 'N/A';
             
-            $vehicleInfo = $this->vehicle ?? 'N/A';
+            $vehicleInfo = $this->formatted_vehicle;
             
             $passenger = $this->vehicleRequest?->employee_name ?? 'N/A';
             

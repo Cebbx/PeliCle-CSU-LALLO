@@ -429,7 +429,7 @@
                                 </div>
                                 <div style="font-size: 12px; line-height: 1.6;">
                                     <div>📍 <strong>Dest:</strong> {{ $tripReq->destination }}</div>
-                                    <div style="margin-top: 6px;">🚗 <strong>Vehicle:</strong> {{ $ticket->vehicle ?? 'Assigned Vehicle' }}</div>
+                                    <div style="margin-top: 6px;">🚗 <strong>Vehicle:</strong> {{ $ticket?->formatted_vehicle ?? ($tripReq->vehicle ?? 'Assigned Vehicle') }}</div>
                                     <div style="margin-top: 6px;">👤 <strong>Driver:</strong> {{ $driver?->name ?? 'GSO Assigning Driver...' }}</div>
                                     <div style="margin-top: 6px;">📞 <strong>Contact:</strong> {{ $driver?->contact_number ?? 'N/A' }}</div>
                                 </div>
