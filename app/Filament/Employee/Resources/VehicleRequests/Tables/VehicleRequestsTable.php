@@ -244,8 +244,6 @@ class VehicleRequestsTable
                     ]),
                 TernaryFilter::make('is_urgent')
                     ->label('Urgent Requests Only'),
-                \Filament\Tables\Filters\TrashedFilter::make()
-                    ->label('Archive Status'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

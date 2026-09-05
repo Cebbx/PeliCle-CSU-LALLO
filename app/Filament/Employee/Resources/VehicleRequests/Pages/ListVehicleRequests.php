@@ -4,25 +4,66 @@ namespace App\Filament\Employee\Resources\VehicleRequests\Pages;
 
 use App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource;
 use App\Models\VehicleRequest;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Livewire\Attributes\Url;
 
 class ListVehicleRequests extends ListRecords
 {
     protected static string $resource = VehicleRequestResource::class;
 
+    #[Url(as: 'archived')]
+    public bool $isArchived = false;
+
+    public function getTitle(): string | Htmlable
+    {
+        return $this->isArchived ? 'Archived Vehicle Requests' : 'Vehicle Requests';
+    }
+
     protected function getHeaderActions(): array
     {
+        $userId = auth()->id();
+        $archivedCount = VehicleRequest::onlyTrashed()->where('user_id', $userId)->count();
+
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->hidden(fn () => $this->isArchived),
+            Action::make('toggle_archived')
+                ->label(fn () => $this->isArchived ? 'Back to Active Requests' : 'View Archived')
+                ->icon(fn () => $this->isArchived ? 'heroicon-o-arrow-left' : 'heroicon-o-archive-box')
+                ->color(fn () => $this->isArchived ? 'gray' : 'warning')
+                ->badge(fn () => !$this->isArchived && $archivedCount > 0 ? $archivedCount : null)
+                ->badgeColor('gray')
+                ->url(fn () => $this->isArchived 
+                    ? static::getResource()::getUrl('index') 
+                    : static::getResource()::getUrl('index', ['archived' => 1])),
         ];
+    }
+
+    protected function getTableQuery(): Builder | Relation | null
+    {
+        $query = parent::getTableQuery();
+
+        if ($this->isArchived) {
+            return $query->onlyTrashed();
+        }
+
+        return $query->withoutTrashed();
     }
 
     public function getTabs(): array
     {
         VehicleRequest::expirePastPendingRequests();
+
+        if ($this->isArchived) {
+            return [];
+        }
+
         $userId = auth()->id();
 
         return [
@@ -55,26 +96,31 @@ class ListVehicleRequests extends ListRecords
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'expired')->count())
                 ->badgeColor('gray')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'expired')),
-            'archived' => Tab::make('Archived')
-                ->badge(VehicleRequest::onlyTrashed()->where('user_id', $userId)->count())
-                ->badgeColor('gray')
-                ->modifyQueryUsing(fn (Builder $query) => $query->onlyTrashed()),
         ];
     }
 
     public function mount(): void
     {
         VehicleRequest::expirePastPendingRequests();
+        $this->isArchived = request()->boolean('archived');
         parent::mount();
 
-        $tab = request()->query('tab');
-        if ($tab && array_key_exists($tab, $this->getCachedTabs())) {
-            $this->activeTab = $tab;
+        if (! $this->isArchived) {
+            $tab = request()->query('tab');
+            if ($tab && array_key_exists($tab, $this->getCachedTabs())) {
+                $this->activeTab = $tab;
+            }
+        } else {
+            $this->activeTab = null;
         }
     }
 
     public function getDefaultActiveTab(): string | int | null
     {
+        if ($this->isArchived) {
+            return null;
+        }
+
         $tab = request()->query('tab');
         if ($tab && array_key_exists($tab, $this->getCachedTabs())) {
             return $tab;
