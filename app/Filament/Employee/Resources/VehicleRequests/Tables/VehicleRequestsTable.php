@@ -112,7 +112,7 @@ class VehicleRequestsTable
                                 ->disk('public')
                                 ->directory('request-documents')
                                 ->visibility('public')
-                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
                                 ->required(),
                         ])
                         ->action(function ($record, array $data) {
