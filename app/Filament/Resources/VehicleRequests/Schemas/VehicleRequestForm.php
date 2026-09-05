@@ -429,8 +429,9 @@ class VehicleRequestForm
                     ->default([['name' => '']])
                     ->reorderable()
                     ->reorderAction(fn (\Filament\Actions\Action $action) => $action
-                        ->icon(\Filament\Support\Icons\Heroicon::ArrowsUpDown)
-                        ->tooltip('↕ Move / Reorder')
+                        ->icon(\Filament\Support\Icons\Heroicon::ArrowDown)
+                        ->label('')
+                        ->tooltip(null)
                     )
                     ->live()
                     ->afterStateUpdated(function (callable $set, $state) {
