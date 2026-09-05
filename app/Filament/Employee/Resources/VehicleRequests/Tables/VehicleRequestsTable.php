@@ -195,9 +195,10 @@ class VehicleRequestsTable
                         ->label('Cancel Request')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
-                        ->modalHeading('Cancel Vehicle Request')
-                        ->modalDescription('Please select the reason why you are cancelling this request.')
-                        ->modalSubmitActionLabel('Cancel Request')
+                        ->modalHeading('⚠️ Are you sure you want to cancel this vehicle request?')
+                        ->modalDescription('This action cannot be undone. Cancelling will withdraw this vehicle request.')
+                        ->modalSubmitActionLabel('Yes, Cancel Request')
+                        ->modalCancelActionLabel('No, Keep Request')
                         ->visible(fn ($record) => !$record->trashed() && $record->status === 'pending' && !$record->document)
                         ->form([
                             \Filament\Forms\Components\Select::make('reason_select')
@@ -218,6 +219,11 @@ class VehicleRequestsTable
                                 ->visible(fn ($get) => $get('reason_select') === 'Others')
                                 ->required(fn ($get) => $get('reason_select') === 'Others')
                                 ->rows(3),
+                            \Filament\Forms\Components\Checkbox::make('confirm_cancellation')
+                                ->label('Yes, I am sure and I confirm this cancellation.')
+                                ->helperText('Please check this box to confirm that you want to proceed with cancellation.')
+                                ->required()
+                                ->accepted(),
                         ])
                         ->action(function ($record, array $data) {
                             $reason = $data['reason_select'] === 'Others' ? ($data['other_reason'] ?? 'Others') : $data['reason_select'];

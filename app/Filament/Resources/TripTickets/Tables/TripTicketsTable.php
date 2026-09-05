@@ -186,9 +186,10 @@ class TripTicketsTable
                         ->label('Cancel Trip')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
-                        ->modalHeading('Cancel Trip Ticket')
-                        ->modalDescription('Please select the reason for cancelling this trip. The assigned driver will be notified via SMS.')
-                        ->modalSubmitActionLabel('Cancel Trip')
+                        ->modalHeading('⚠️ Are you sure you want to cancel this trip?')
+                        ->modalDescription('This action cannot be undone. Cancelling will notify the assigned driver via SMS and release the vehicle back to available status.')
+                        ->modalSubmitActionLabel('Yes, Cancel Trip')
+                        ->modalCancelActionLabel('No, Keep Trip')
                         ->visible(fn ($record) => in_array($record->status, ['pending', 'active']))
                         ->form([
                             \Filament\Forms\Components\Select::make('reason_select')
@@ -210,6 +211,11 @@ class TripTicketsTable
                                 ->visible(fn ($get) => $get('reason_select') === 'Others')
                                 ->required(fn ($get) => $get('reason_select') === 'Others')
                                 ->rows(3),
+                            \Filament\Forms\Components\Checkbox::make('confirm_cancellation')
+                                ->label('Yes, I am sure and I confirm this cancellation.')
+                                ->helperText('Please check this box to confirm that you want to proceed with cancellation.')
+                                ->required()
+                                ->accepted(),
                         ])
                         ->action(function ($record, array $data) {
                             $reason = $data['reason_select'] === 'Others' ? ($data['other_reason'] ?? 'Others') : $data['reason_select'];
