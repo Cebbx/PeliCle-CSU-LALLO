@@ -19,23 +19,23 @@ class VehicleRequestsTable
                 TextColumn::make('request_number')
                     ->label('Request #')
                     ->searchable()
+                    ->sortable()
                     ->weight('bold'),
                 TextColumn::make('employee_name')
                     ->label('Requester')
                     ->limit(13)
                     ->tooltip(fn ($record) => $record->employee_name)
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('department')
                     ->limit(8)
                     ->tooltip(fn ($record) => $record->department)
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
                     ->limit(12)
                     ->tooltip(fn ($record) => $record->vehicle)
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
                 TextColumn::make('destination')
                     ->limit(15)
                     ->tooltip(fn ($record) => $record->destination)
@@ -84,7 +84,7 @@ class VehicleRequestsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('request_number', 'desc')
             ->recordActions([
                 ActionGroup::make([
                     Action::make('approve_and_ticket')

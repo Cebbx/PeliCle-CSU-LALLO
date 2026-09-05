@@ -19,16 +19,16 @@ class VehicleRequestsTable
             ->columns([
                 TextColumn::make('request_number')
                     ->searchable()
+                    ->sortable()
                     ->weight('bold'),
                 TextColumn::make('employee_name')
-                    ->searchable(),
-                TextColumn::make('department')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('department')
+                    ->searchable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
                 TextColumn::make('destination')
                     ->searchable(),
                 TextColumn::make('date')
@@ -81,7 +81,7 @@ class VehicleRequestsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('request_number', 'desc')
             ->recordActions([
                 ActionGroup::make([
                     EditAction::make()
