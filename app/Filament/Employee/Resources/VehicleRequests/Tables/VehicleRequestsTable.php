@@ -71,6 +71,18 @@ class VehicleRequestsTable
                         'expired' => 'Expired',
                         default => ucfirst($state),
                     })
+                    ->description(function ($record) {
+                        if ($record->status === 'rejected' && $record->rejection_reason) {
+                            return 'Reason: ' . \Illuminate\Support\Str::limit($record->rejection_reason, 35);
+                        }
+                        if ($record->status === 'cancelled' && $record->cancellation_reason) {
+                            return 'Reason: ' . \Illuminate\Support\Str::limit($record->cancellation_reason, 35);
+                        }
+                        if ($record->status === 'expired' && $record->cancellation_reason) {
+                            return 'Reason: ' . \Illuminate\Support\Str::limit($record->cancellation_reason, 35);
+                        }
+                        return null;
+                    })
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -117,21 +129,43 @@ class VehicleRequestsTable
                                 ->success()
                                 ->send();
                         }),
+                    Action::make('view_reason')
+                        ->label('View Reason')
+                        ->icon('heroicon-o-chat-bubble-bottom-center-text')
+                        ->color('info')
+                        ->visible(fn ($record) => in_array($record->status, ['rejected', 'cancelled', 'expired']) && ($record->rejection_reason || $record->cancellation_reason))
+                        ->modalHeading(fn ($record) => match ($record->status) {
+                            'rejected' => 'Rejection Reason',
+                            'cancelled' => 'Cancellation Reason',
+                            'expired' => 'Expiration Reason',
+                            default => 'Reason Details',
+                        })
+                        ->modalDescription(fn ($record) => $record->status === 'rejected' ? ($record->rejection_reason ?? 'No reason provided.') : ($record->cancellation_reason ?? 'No reason provided.'))
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Close'),
                     Action::make('cancel')
                         ->label('Cancel Request')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
-                        ->requiresConfirmation()
                         ->modalHeading('Cancel Vehicle Request')
-                        ->modalDescription('Are you sure you want to cancel this vehicle request?')
-                        ->modalSubmitActionLabel('Yes, Cancel Request')
+                        ->modalDescription('Please state the reason why you are cancelling this request.')
+                        ->modalSubmitActionLabel('Cancel Request')
                         ->visible(fn ($record) => $record->status === 'pending' && !$record->document)
-                        ->action(function ($record) {
+                        ->form([
+                            \Filament\Forms\Components\Textarea::make('cancellation_reason')
+                                ->label('Reason for Cancellation')
+                                ->placeholder('e.g., Meeting rescheduled, trip no longer required, change of schedule...')
+                                ->required()
+                                ->rows(3),
+                        ])
+                        ->action(function ($record, array $data) {
+                            $reason = $data['cancellation_reason'];
                             $record->update([
                                 'status' => 'cancelled',
+                                'cancellation_reason' => $reason,
                             ]);
 
-                            \App\Models\ActivityLog::log('Cancelled Request', $record, "Employee cancelled request {$record->request_number}");
+                            \App\Models\ActivityLog::log('Cancelled Request', $record, "Employee cancelled request {$record->request_number}. Reason: {$reason}");
 
                             \Filament\Notifications\Notification::make()
                                 ->title('Request Cancelled')

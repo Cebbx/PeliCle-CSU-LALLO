@@ -30,6 +30,8 @@ class VehicleRequest extends Model
         'has_other_passengers',
         'other_passengers',
         'status',
+        'rejection_reason',
+        'cancellation_reason',
         'document',
     ];
 
@@ -117,7 +119,11 @@ class VehicleRequest extends Model
                 if ($req->date && $req->time) {
                     $tripDateTime = \Illuminate\Support\Carbon::parse($req->date . ' ' . $req->time, 'Asia/Manila');
                     if ($now->greaterThan($tripDateTime)) {
-                        $req->updateQuietly(['status' => 'expired']);
+                        $reason = 'Scheduled travel time arrived without uploaded CEO signed approval document.';
+                        $req->updateQuietly([
+                            'status' => 'expired',
+                            'cancellation_reason' => $reason,
+                        ]);
                         if ($req->tripTicket && $req->tripTicket->status === 'pending') {
                             if ($req->tripTicket->driver_id) {
                                 if (method_exists($req->tripTicket, 'sendCancellationSms')) {
@@ -125,7 +131,10 @@ class VehicleRequest extends Model
                                 }
                                 Driver::where('id', $req->tripTicket->driver_id)->update(['status' => 'available']);
                             }
-                            $req->tripTicket->updateQuietly(['status' => 'cancelled']);
+                            $req->tripTicket->updateQuietly([
+                                'status' => 'cancelled',
+                                'cancellation_reason' => $reason,
+                            ]);
                         }
                     }
                 }

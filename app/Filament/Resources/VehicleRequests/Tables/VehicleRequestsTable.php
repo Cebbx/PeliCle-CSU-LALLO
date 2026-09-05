@@ -73,6 +73,18 @@ class VehicleRequestsTable
                         'expired' => 'Expired',
                         default => ucfirst($state),
                     })
+                    ->description(function ($record) {
+                        if ($record->status === 'rejected' && $record->rejection_reason) {
+                            return 'Reason: ' . \Illuminate\Support\Str::limit($record->rejection_reason, 35);
+                        }
+                        if ($record->status === 'cancelled' && $record->cancellation_reason) {
+                            return 'Reason: ' . \Illuminate\Support\Str::limit($record->cancellation_reason, 35);
+                        }
+                        if ($record->status === 'expired' && $record->cancellation_reason) {
+                            return 'Reason: ' . \Illuminate\Support\Str::limit($record->cancellation_reason, 35);
+                        }
+                        return null;
+                    })
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->label('Created')
@@ -129,17 +141,42 @@ class VehicleRequestsTable
                                 ->success()
                                 ->send();
                         }),
+                    Action::make('view_reason')
+                        ->label('View Reason')
+                        ->icon('heroicon-o-chat-bubble-bottom-center-text')
+                        ->color('info')
+                        ->visible(fn ($record) => in_array($record->status, ['rejected', 'cancelled', 'expired']) && ($record->rejection_reason || $record->cancellation_reason))
+                        ->modalHeading(fn ($record) => match ($record->status) {
+                            'rejected' => 'Rejection Reason',
+                            'cancelled' => 'Cancellation Reason',
+                            'expired' => 'Expiration Reason',
+                            default => 'Reason Details',
+                        })
+                        ->modalDescription(fn ($record) => $record->status === 'rejected' ? ($record->rejection_reason ?? 'No reason provided.') : ($record->cancellation_reason ?? 'No reason provided.'))
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Close'),
                     Action::make('reject')
                         ->label('Reject Request')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
-                        ->requiresConfirmation()
                         ->modalHeading('Reject Vehicle Request')
-                        ->modalDescription('Are you sure you want to reject this pending vehicle request?')
-                        ->modalSubmitActionLabel('Yes, Reject Request')
+                        ->modalDescription('Please provide a reason why this vehicle request is being rejected.')
+                        ->modalSubmitActionLabel('Reject Request')
                         ->visible(fn ($record) => $record->status === 'pending')
-                        ->action(function ($record) {
-                            $record->update(['status' => 'rejected']);
+                        ->form([
+                            \Filament\Forms\Components\Textarea::make('rejection_reason')
+                                ->label('Reason for Rejection')
+                                ->placeholder('e.g., No available vehicle on selected date, destination outside authorized zone, incomplete documentation...')
+                                ->required()
+                                ->rows(3),
+                        ])
+                        ->action(function ($record, array $data) {
+                            $record->update([
+                                'status' => 'rejected',
+                                'rejection_reason' => $data['rejection_reason'],
+                            ]);
+
+                            \App\Models\ActivityLog::log('Rejected Request', $record, "Admin rejected request {$record->request_number}. Reason: {$data['rejection_reason']}");
                             
                             \Filament\Notifications\Notification::make()
                                 ->title('Request Rejected')
@@ -151,22 +188,37 @@ class VehicleRequestsTable
                         ->label('Cancel Request')
                         ->icon('heroicon-o-x-mark')
                         ->color('warning')
-                        ->requiresConfirmation()
                         ->modalHeading('Cancel Approved Request')
-                        ->modalDescription('Are you sure you want to cancel this approved request? Any scheduled trip ticket will also be cancelled.')
-                        ->modalSubmitActionLabel('Yes, Cancel Request')
+                        ->modalDescription('Please state the reason for cancelling this approved request. The assigned driver will be notified via SMS.')
+                        ->modalSubmitActionLabel('Cancel Request')
                         ->visible(fn ($record) => $record->status === 'approved')
-                        ->action(function ($record) {
-                            $record->update(['status' => 'cancelled']);
+                        ->form([
+                            \Filament\Forms\Components\Textarea::make('cancellation_reason')
+                                ->label('Reason for Cancellation')
+                                ->placeholder('e.g., Trip cancelled by requester, university travel suspension, vehicle maintenance issue...')
+                                ->required()
+                                ->rows(3),
+                        ])
+                        ->action(function ($record, array $data) {
+                            $reason = $data['cancellation_reason'];
+                            $record->update([
+                                'status' => 'cancelled',
+                                'cancellation_reason' => $reason,
+                            ]);
                             if ($record->tripTicket) {
+                                $record->tripTicket->update([
+                                    'status' => 'cancelled',
+                                    'cancellation_reason' => $reason,
+                                ]);
                                 if (method_exists($record->tripTicket, 'sendCancellationSms')) {
-                                    $record->tripTicket->sendCancellationSms('Trip cancelled by Admin.');
+                                    $record->tripTicket->sendCancellationSms("Reason: {$reason}");
                                 }
-                                $record->tripTicket->update(['status' => 'cancelled']);
                                 if ($record->tripTicket->driver) {
                                     $record->tripTicket->driver->update(['status' => 'available']);
                                 }
                             }
+
+                            \App\Models\ActivityLog::log('Cancelled Request', $record, "Admin cancelled approved request {$record->request_number}. Reason: {$reason}");
                             
                             \Filament\Notifications\Notification::make()
                                 ->title('Request Cancelled')

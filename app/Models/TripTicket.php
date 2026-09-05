@@ -18,6 +18,7 @@ class TripTicket extends Model
         'driver_id',
         'vehicle',
         'status',
+        'cancellation_reason',
         'document',
         'start_odometer',
         'end_odometer',

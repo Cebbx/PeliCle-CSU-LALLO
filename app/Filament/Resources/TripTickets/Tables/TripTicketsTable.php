@@ -46,6 +46,12 @@ class TripTicketsTable
                         'cancelled' => 'Cancelled',
                         default => ucfirst($state),
                     })
+                    ->description(function ($record) {
+                        if ($record->status === 'cancelled' && $record->cancellation_reason) {
+                            return 'Reason: ' . \Illuminate\Support\Str::limit($record->cancellation_reason, 35);
+                        }
+                        return null;
+                    })
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->label('Issued Timestamp')
@@ -167,29 +173,65 @@ class TripTicketsTable
                                 ->success()
                                 ->send();
                         }),
+                    Action::make('view_cancellation_reason')
+                        ->label('View Cancellation Reason')
+                        ->icon('heroicon-o-chat-bubble-bottom-center-text')
+                        ->color('info')
+                        ->visible(fn ($record) => $record->status === 'cancelled' && $record->cancellation_reason)
+                        ->modalHeading('Trip Cancellation Reason')
+                        ->modalDescription(fn ($record) => $record->cancellation_reason)
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Close'),
                     Action::make('cancel_trip')
                         ->label('Cancel Trip')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
+                        ->modalHeading('Cancel Trip Ticket')
+                        ->modalDescription('Please state the reason for cancelling this trip. The assigned driver will be notified via SMS.')
+                        ->modalSubmitActionLabel('Cancel Trip')
                         ->visible(fn ($record) => in_array($record->status, ['pending', 'active']))
-                        ->action(function ($record) {
-                            if (method_exists($record, 'sendCancellationSms')) {
-                                $record->sendCancellationSms('Trip cancelled by Admin.');
+                        ->form([
+                            \Filament\Forms\Components\Textarea::make('cancellation_reason')
+                                ->label('Reason for Cancellation')
+                                ->placeholder('e.g., Severe weather / typhoon suspension, event cancelled by organizer, emergency vehicle recall...')
+                                ->required()
+                                ->rows(3),
+                        ])
+                        ->action(function ($record, array $data) {
+                            $reason = $data['cancellation_reason'];
+                            $record->update([
+                                'status' => 'cancelled',
+                                'cancellation_reason' => $reason,
+                            ]);
+
+                            if ($record->vehicleRequest) {
+                                $record->vehicleRequest->update([
+                                    'status' => 'cancelled',
+                                    'cancellation_reason' => $reason,
+                                ]);
                             }
-                            $record->update(['status' => 'cancelled']);
+
+                            if (method_exists($record, 'sendCancellationSms')) {
+                                $record->sendCancellationSms("Reason: {$reason}");
+                            }
+
+                            if ($record->driver) {
+                                $record->driver->update(['status' => 'available']);
+                            }
                             
                             // Cancel any pending withdrawal slips attached
                             if ($record->withdrawalSlips()->exists()) {
                                 $record->withdrawalSlips()->where('status', 'pending')->update(['status' => 'rejected']);
                             }
+
+                            \App\Models\ActivityLog::log('Cancelled Trip', $record, "Admin cancelled trip ticket {$record->ticket_number}. Reason: {$reason}");
                             
                             \Filament\Notifications\Notification::make()
                                 ->title('Trip Cancelled')
                                 ->body("Trip {$record->ticket_number} has been cancelled.")
                                 ->danger()
                                 ->send();
-                        })
-                        ->requiresConfirmation(),
+                        }),
                     Action::make('resendSms')
                         ->label('Resend SMS')
                         ->icon('heroicon-o-paper-airplane')
