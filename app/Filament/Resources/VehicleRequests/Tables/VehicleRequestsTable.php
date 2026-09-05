@@ -75,15 +75,15 @@ class VehicleRequestsTable
                         'expired' => 'Expired',
                         default => ucfirst($state),
                     })
-                    ->description(function ($record) {
+                    ->tooltip(function ($record) {
                         if ($record->status === 'rejected' && $record->rejection_reason) {
-                            return 'Reason: ' . \Illuminate\Support\Str::limit($record->rejection_reason, 35);
+                            return 'Reason: ' . $record->rejection_reason;
                         }
                         if ($record->status === 'cancelled' && $record->cancellation_reason) {
-                            return 'Reason: ' . \Illuminate\Support\Str::limit($record->cancellation_reason, 35);
+                            return 'Reason: ' . $record->cancellation_reason;
                         }
                         if ($record->status === 'expired' && $record->cancellation_reason) {
-                            return 'Reason: ' . \Illuminate\Support\Str::limit($record->cancellation_reason, 35);
+                            return 'Reason: ' . $record->cancellation_reason;
                         }
                         return null;
                     })
