@@ -33,6 +33,8 @@ class EmployeePanelProvider extends PanelProvider
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('csu-logo.png'))
             ->font('Outfit')
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('3s')
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn () => new \Illuminate\Support\HtmlString('

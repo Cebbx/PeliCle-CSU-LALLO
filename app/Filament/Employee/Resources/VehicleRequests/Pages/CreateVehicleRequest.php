@@ -69,22 +69,7 @@ class CreateVehicleRequest extends CreateRecord
         return $data;
     }
 
-    protected function afterCreate(): void
-    {
-        try {
-            $admins = \App\Models\User::where('role', 'admin')->get();
-            foreach ($admins as $admin) {
-                \Filament\Notifications\Notification::make()
-                    ->title('New Vehicle Request Submitted')
-                    ->body("Employee {$this->record->employee_name} submitted {$this->record->request_number} to {$this->record->destination}.")
-                    ->icon('heroicon-o-document-text')
-                    ->iconColor('warning')
-                    ->sendToDatabase($admin);
-            }
-        } catch (\Throwable $e) {
-            // Ignore notification errors
-        }
-    }
+
 
     protected function getRedirectUrl(): string
     {

@@ -18,6 +18,7 @@ class DriversTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->poll('3s')
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),

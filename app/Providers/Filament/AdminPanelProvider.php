@@ -39,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('csu-logo.png'))
             ->font('Outfit')
             ->databaseNotifications()
-            ->databaseNotificationsPolling('30s')
+            ->databaseNotificationsPolling('3s')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -390,6 +390,52 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 \Filament\View\PanelsRenderHook::SIDEBAR_FOOTER,
                 fn () => view('filament.components.sidebar-footer'),
+            )
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::BODY_END,
+                fn () => new \Illuminate\Support\HtmlString('
+                    <script>
+                        (function() {
+                            function playNotificationChime() {
+                                try {
+                                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                                    const now = ctx.currentTime;
+                                    const osc1 = ctx.createOscillator();
+                                    const gain1 = ctx.createGain();
+                                    osc1.type = "sine";
+                                    osc1.frequency.setValueAtTime(659.25, now);
+                                    gain1.gain.setValueAtTime(0.12, now);
+                                    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                                    osc1.connect(gain1);
+                                    gain1.connect(ctx.destination);
+                                    osc1.start(now);
+                                    osc1.stop(now + 0.25);
+
+                                    const osc2 = ctx.createOscillator();
+                                    const gain2 = ctx.createGain();
+                                    osc2.type = "sine";
+                                    osc2.frequency.setValueAtTime(987.77, now + 0.1);
+                                    gain2.gain.setValueAtTime(0.15, now + 0.1);
+                                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                                    osc2.connect(gain2);
+                                    gain2.connect(ctx.destination);
+                                    osc2.start(now + 0.1);
+                                    osc2.stop(now + 0.45);
+                                } catch (e) {}
+                            }
+
+                            let lastNotifCount = null;
+                            setInterval(() => {
+                                const badgeEl = document.querySelector(".fi-no-database .fi-badge, .fi-topbar-database-notifications-btn .fi-badge");
+                                const count = badgeEl ? parseInt(badgeEl.textContent.trim()) || 0 : 0;
+                                if (lastNotifCount !== null && count > lastNotifCount) {
+                                    playNotificationChime();
+                                }
+                                lastNotifCount = count;
+                            }, 1500);
+                        })();
+                    </script>
+                ')
             )
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([

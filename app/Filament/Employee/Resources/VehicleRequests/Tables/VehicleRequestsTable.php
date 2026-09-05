@@ -17,6 +17,7 @@ class VehicleRequestsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->poll('3s')
             ->columns([
                 TextColumn::make('request_number')
                     ->label('Request #')
@@ -233,6 +234,18 @@ class VehicleRequestsTable
                             ]);
 
                             \App\Models\ActivityLog::log('Cancelled Request', $record, "Employee cancelled request {$record->request_number}. Reason: {$reason}");
+
+                            try {
+                                $admins = \App\Models\User::where('role', 'admin')->get();
+                                foreach ($admins as $admin) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('⚠️ Request Cancelled by Employee: ' . $record->request_number)
+                                        ->body("{$record->employee_name} ({$record->department}) cancelled request to {$record->destination}. Reason: {$reason}")
+                                        ->icon('heroicon-o-x-circle')
+                                        ->iconColor('gray')
+                                        ->sendToDatabase($admin);
+                                }
+                            } catch (\Throwable $e) {}
 
                             \Filament\Notifications\Notification::make()
                                 ->title('Request Cancelled')

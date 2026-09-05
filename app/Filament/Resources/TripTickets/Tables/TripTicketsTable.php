@@ -15,6 +15,7 @@ class TripTicketsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->poll('3s')
             ->columns([
                 TextColumn::make('ticket_number')
                     ->searchable(),
@@ -246,6 +247,18 @@ class TripTicketsTable
 
                             \App\Models\ActivityLog::log('Cancelled Trip', $record, "Admin cancelled trip ticket {$record->ticket_number}. Reason: {$reason}");
                             
+                            $requesterUser = $record->vehicleRequest?->user;
+                            if ($requesterUser) {
+                                try {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('⚠️ Trip Ticket Cancelled: ' . $record->ticket_number)
+                                        ->body("Your approved trip ticket has been cancelled by Admin. Reason: {$reason}")
+                                        ->icon('heroicon-o-x-mark')
+                                        ->iconColor('danger')
+                                        ->sendToDatabase($requesterUser);
+                                } catch (\Throwable $e) {}
+                            }
+
                             \Filament\Notifications\Notification::make()
                                 ->title('Trip Cancelled')
                                 ->body("Trip {$record->ticket_number} has been cancelled.")

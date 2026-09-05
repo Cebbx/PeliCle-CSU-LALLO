@@ -16,6 +16,7 @@ class VehicleRequestsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->poll('3s')
             ->columns([
                 TextColumn::make('request_number')
                     ->label('Request #')
@@ -244,6 +245,17 @@ class VehicleRequestsTable
 
                             \App\Models\ActivityLog::log('Disapproved Request', $record, "Admin disapproved request {$record->request_number}. Reason: {$reason}");
                             
+                            if ($record->user) {
+                                try {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('❌ Request Disapproved: ' . $record->request_number)
+                                        ->body("Your request has been disapproved. Reason: {$reason}")
+                                        ->icon('heroicon-o-x-circle')
+                                        ->iconColor('danger')
+                                        ->sendToDatabase($record->user);
+                                } catch (\Throwable $e) {}
+                            }
+
                             \Filament\Notifications\Notification::make()
                                 ->title('Request Disapproved')
                                 ->body("Request {$record->request_number} has been disapproved.")
@@ -306,6 +318,17 @@ class VehicleRequestsTable
 
                             \App\Models\ActivityLog::log('Cancelled Request', $record, "Admin cancelled approved request {$record->request_number}. Reason: {$reason}");
                             
+                            if ($record->user) {
+                                try {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('⚠️ Approved Request Cancelled: ' . $record->request_number)
+                                        ->body("Your approved request was cancelled by Admin. Reason: {$reason}")
+                                        ->icon('heroicon-o-x-mark')
+                                        ->iconColor('warning')
+                                        ->sendToDatabase($record->user);
+                                } catch (\Throwable $e) {}
+                            }
+
                             \Filament\Notifications\Notification::make()
                                 ->title('Request Cancelled')
                                 ->body("Approved request {$record->request_number} has been cancelled.")

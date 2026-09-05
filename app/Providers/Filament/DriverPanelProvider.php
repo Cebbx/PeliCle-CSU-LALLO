@@ -35,6 +35,8 @@ class DriverPanelProvider extends PanelProvider
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('csu-logo.png'))
             ->font('Outfit')
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('3s')
             ->discoverResources(in: app_path('Filament/Driver/Resources'), for: 'App\Filament\Driver\Resources')
             ->discoverPages(in: app_path('Filament/Driver/Pages'), for: 'App\Filament\Driver\Pages')
             ->pages([

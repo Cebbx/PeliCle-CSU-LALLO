@@ -301,7 +301,7 @@
         }
     </style>
 
-    <div class="employee-dashboard-container">
+    <div class="employee-dashboard-container" wire:poll.3s>
         
         <!-- Welcome banner -->
         <div class="welcome-banner">

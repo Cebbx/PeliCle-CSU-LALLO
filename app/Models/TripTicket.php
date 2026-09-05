@@ -70,6 +70,25 @@ class TripTicket extends Model
         static::created(function ($tripTicket) {
             $driverName = $tripTicket->driver?->name ?? 'N/A';
             \App\Models\ActivityLog::log('Approved & Ticketed', $tripTicket, "Created trip ticket {$tripTicket->ticket_number} for request {$tripTicket->vehicleRequest?->request_number}. Assigned Driver: {$driverName}. Vehicle: {$tripTicket->vehicle}");
+
+            try {
+                $req = $tripTicket->vehicleRequest;
+                if ($req && $req->user) {
+                    \Filament\Notifications\Notification::make()
+                        ->title('✅ Request Approved & Ticketed')
+                        ->body("Your request {$req->request_number} to {$req->destination} was approved. Driver: {$driverName}, Vehicle: {$tripTicket->vehicle}.")
+                        ->icon('heroicon-o-check-circle')
+                        ->iconColor('success')
+                        ->actions([
+                            \Filament\Notifications\Actions\Action::make('view')
+                                ->label('View Status')
+                                ->url(\App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('index')),
+                        ])
+                        ->sendToDatabase($req->user);
+                }
+            } catch (\Throwable $e) {
+                // Ignore notification errors
+            }
         });
 
         static::creating(function ($tripTicket) {

@@ -46,6 +46,25 @@ class VehicleRequest extends Model
     {
         static::created(function ($vehicleRequest) {
             \App\Models\ActivityLog::log('Created Request', $vehicleRequest, "Requested vehicle type: {$vehicleRequest->vehicle}. Destination: {$vehicleRequest->destination}");
+
+            try {
+                $admins = \App\Models\User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    \Filament\Notifications\Notification::make()
+                        ->title('🚨 New Vehicle Request: ' . $vehicleRequest->request_number)
+                        ->body("{$vehicleRequest->employee_name} ({$vehicleRequest->department}) submitted travel to {$vehicleRequest->destination}.")
+                        ->icon('heroicon-o-document-text')
+                        ->iconColor($vehicleRequest->is_urgent ? 'danger' : 'warning')
+                        ->actions([
+                            \Filament\Notifications\Actions\Action::make('view')
+                                ->label('Review Request')
+                                ->url(\App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index')),
+                        ])
+                        ->sendToDatabase($admin);
+                }
+            } catch (\Throwable $e) {
+                // Ignore notification errors
+            }
         });
 
         static::deleting(function ($vehicleRequest) {
