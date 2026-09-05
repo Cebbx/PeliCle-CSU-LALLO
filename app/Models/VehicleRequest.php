@@ -104,4 +104,28 @@ class VehicleRequest extends Model
     {
         return $this->hasOne(TripTicket::class);
     }
+
+    public static function expirePastPendingRequests(): void
+    {
+        try {
+            $now = \Illuminate\Support\Carbon::now('Asia/Manila');
+            $pending = static::where('status', 'pending')->get();
+            foreach ($pending as $req) {
+                if ($req->date && $req->time) {
+                    $tripDateTime = \Illuminate\Support\Carbon::parse($req->date . ' ' . $req->time, 'Asia/Manila');
+                    if ($now->greaterThan($tripDateTime)) {
+                        $req->updateQuietly(['status' => 'expired']);
+                        if ($req->tripTicket && $req->tripTicket->status === 'pending') {
+                            $req->tripTicket->updateQuietly(['status' => 'cancelled']);
+                            if ($req->tripTicket->driver_id) {
+                                Driver::where('id', $req->tripTicket->driver_id)->update(['status' => 'available']);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Quietly handle any parsing errors
+        }
+    }
 }

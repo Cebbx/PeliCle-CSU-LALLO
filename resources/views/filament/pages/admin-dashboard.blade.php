@@ -762,6 +762,9 @@
                                 'pending' => '#ef4444',
                                 'approved' => '#0284c7',
                                 'completed' => '#10b981',
+                                'expired' => '#64748b',
+                                'cancelled' => '#64748b',
+                                'rejected' => '#ef4444',
                                 default => '#94a3b8',
                             };
                             $pillClass = match($req->status) {
@@ -770,10 +773,14 @@
                                 'on_trip' => 'status-pill-approved',
                                 'completed' => 'status-pill-completed',
                                 'rejected' => 'status-pill-rejected',
+                                'expired' => 'status-pill-rejected',
+                                'cancelled' => 'status-pill-rejected',
                                 default => 'status-pill-pending',
                             };
                             $statusLabel = match($req->status) {
                                 'on_trip' => 'On Trip',
+                                'expired' => 'Expired',
+                                'cancelled' => 'Cancelled',
                                 default => ucfirst($req->status),
                             };
                         @endphp

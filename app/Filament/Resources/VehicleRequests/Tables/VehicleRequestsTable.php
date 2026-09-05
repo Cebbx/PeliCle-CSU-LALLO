@@ -60,6 +60,7 @@ class VehicleRequestsTable
                         'rejected' => 'danger',
                         'cancelled' => 'gray',
                         'completed' => 'success',
+                        'expired' => 'gray',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state) => match ($state) {
@@ -69,6 +70,7 @@ class VehicleRequestsTable
                         'rejected' => 'Rejected',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
+                        'expired' => 'Expired / Forfeited',
                         default => ucfirst($state),
                     })
                     ->searchable(),
@@ -92,6 +94,7 @@ class VehicleRequestsTable
                         'on_trip' => 'On Trip',
                         'rejected' => 'Rejected',
                         'completed' => 'Completed',
+                        'expired' => 'Expired / Forfeited',
                     ]),
             ])
             ->recordActions([

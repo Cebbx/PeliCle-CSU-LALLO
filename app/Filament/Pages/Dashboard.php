@@ -104,6 +104,7 @@ class Dashboard extends BaseDashboard
 
     public function getPendingRequestsCount(): int
     {
+        VehicleRequest::expirePastPendingRequests();
         return VehicleRequest::where('status', 'pending')->count();
     }
 
@@ -182,6 +183,7 @@ class Dashboard extends BaseDashboard
 
     public function getVehicleRequestStatusBreakdown(): array
     {
+        VehicleRequest::expirePastPendingRequests();
         $total = VehicleRequest::count();
 
         $pending = VehicleRequest::where('status', 'pending')->count();
@@ -209,6 +211,7 @@ class Dashboard extends BaseDashboard
 
     public function getRecentRequests()
     {
+        VehicleRequest::expirePastPendingRequests();
         return VehicleRequest::latest('id')->take(7)->get();
     }
 }
