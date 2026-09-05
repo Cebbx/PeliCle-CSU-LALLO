@@ -398,13 +398,26 @@ class VehicleRequestForm
                         DatePicker::make('date')
                             ->label('Travel Date')
                             ->default(now())
-                            ->minDate(now()->startOfDay())
+                            ->minDate(fn (?string $operation = null) => $operation === 'create' ? now()->startOfDay() : null)
                             ->live()
                             ->required(),
                         TimePicker::make('time')
                             ->label('Travel Time')
                             ->default(now())
                             ->live()
+                            ->rules([
+                                fn (Get $get, ?string $operation = null): \Closure => function (string $attribute, $value, \Closure $fail) use ($get, $operation) {
+                                    if ($operation === 'create' || empty($operation)) {
+                                        $date = $get('date');
+                                        if ($date && \Carbon\Carbon::parse($date, 'Asia/Manila')->isToday()) {
+                                            $selectedDateTime = \Carbon\Carbon::parse($date . ' ' . $value, 'Asia/Manila');
+                                            if ($selectedDateTime->lessThan(\Carbon\Carbon::now('Asia/Manila')->subMinutes(5))) {
+                                                $fail('Travel departure time cannot be in the past for today’s date.');
+                                            }
+                                        }
+                                    }
+                                },
+                            ])
                             ->required(),
                         DatePicker::make('return_date')
                             ->label('Expected Return Date')
@@ -414,9 +427,23 @@ class VehicleRequestForm
                             ->required(),
                         TimePicker::make('return_time')
                             ->label('Expected Return Time')
-                            ->default(now())
+                            ->default(fn () => now()->addHours(4))
                             ->helperText('Tip: Please allocate a 1 to 2-hour buffer for traffic and unexpected travel delays.')
                             ->live()
+                            ->rules([
+                                fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                    $depDate = $get('date');
+                                    $depTime = $get('time');
+                                    $retDate = $get('return_date');
+                                    if ($depDate && $depTime && $retDate && $value) {
+                                        $departure = \Carbon\Carbon::parse($depDate . ' ' . $depTime, 'Asia/Manila');
+                                        $return = \Carbon\Carbon::parse($retDate . ' ' . $value, 'Asia/Manila');
+                                        if ($return->lessThanOrEqualTo($departure)) {
+                                            $fail('Expected return time must be later than the departure travel time.');
+                                        }
+                                    }
+                                },
+                            ])
                             ->required(),
                     ])
                     ->columns(2),
