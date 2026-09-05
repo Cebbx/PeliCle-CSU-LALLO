@@ -69,10 +69,22 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            text-decoration: none !important;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: #f59e0b;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
         }
         .dark .stat-card {
             background: #182232;
             border-color: #2d3748;
+        }
+        .dark .stat-card:hover {
+            border-color: #f59e0b;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
         }
         .stat-label {
             font-size: 10px;
@@ -304,37 +316,37 @@
 
         <!-- Stats widgets grid -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <a href="{{ \App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'all']) }}" class="stat-card">
                 <div>
                     <span class="stat-label">Total Requests</span>
                     <span class="stat-val">{{ $stats['total'] }}</span>
                 </div>
                 <div class="stat-emoji">📁</div>
-            </div>
+            </a>
 
-            <div class="stat-card">
+            <a href="{{ \App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'pending']) }}" class="stat-card">
                 <div>
                     <span class="stat-label">Pending GSO</span>
                     <span class="stat-val">{{ $stats['pending'] }}</span>
                 </div>
                 <div class="stat-emoji">🕒</div>
-            </div>
+            </a>
 
-            <div class="stat-card">
+            <a href="{{ \App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'approved']) }}" class="stat-card">
                 <div>
                     <span class="stat-label">Approved / Scheduled</span>
                     <span class="stat-val">{{ $stats['approved'] }}</span>
                 </div>
                 <div class="stat-emoji">📅</div>
-            </div>
+            </a>
 
-            <div class="stat-card">
+            <a href="{{ \App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'on_trip']) }}" class="stat-card">
                 <div>
                     <span class="stat-label">On Trip</span>
                     <span class="stat-val">{{ $stats['on_trip'] }}</span>
                 </div>
                 <div class="stat-emoji">🚗</div>
-            </div>
+            </a>
         </div>
 
         <!-- Main Workspace Layout -->

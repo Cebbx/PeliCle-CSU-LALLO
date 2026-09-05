@@ -16,11 +16,12 @@ class Dashboard extends BaseDashboard
 
     public function getStats(): array
     {
+        VehicleRequest::expirePastPendingRequests();
         $userId = auth()->id();
         return [
             'total' => VehicleRequest::where('user_id', $userId)->count(),
             'pending' => VehicleRequest::where('user_id', $userId)->where('status', 'pending')->count(),
-            'approved' => VehicleRequest::where('user_id', $userId)->whereIn('status', ['approved', 'on_trip'])->count(),
+            'approved' => VehicleRequest::where('user_id', $userId)->where('status', 'approved')->count(),
             'on_trip' => VehicleRequest::where('user_id', $userId)->where('status', 'on_trip')->count(),
             'completed' => VehicleRequest::where('user_id', $userId)->where('status', 'completed')->count(),
         ];
