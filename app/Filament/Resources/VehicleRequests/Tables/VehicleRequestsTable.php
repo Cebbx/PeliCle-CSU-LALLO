@@ -120,8 +120,8 @@ class VehicleRequestsTable
                         ->url(fn ($record) => route('vehicle-requests.view-signed-document', $record->id))
                         ->openUrlInNewTab(),
                     Action::make('print')
-                        ->label('Print / View Requisition Form')
-                        ->icon('heroicon-o-printer')
+                        ->label('View Requisition Form')
+                        ->icon('heroicon-o-document-text')
                         ->color('info')
                         ->url(fn ($record) => route('vehicle-requests.print', $record->id))
                         ->openUrlInNewTab(),
