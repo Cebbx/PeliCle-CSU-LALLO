@@ -78,20 +78,12 @@ class TripTicketsTable
                         $record->driver?->update(['status' => 'on_trip']);
                         $record->vehicleRequest?->update(['status' => 'approved']);
                     }),
-                Action::make('complete')
-                    ->label('Complete')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('primary')
-                    ->requiresConfirmation()
-                    ->modalHeading('Complete Trip')
-                    ->modalDescription('Are you sure you want to mark this trip as completed?')
-                    ->modalSubmitActionLabel('Yes, Complete Trip')
-                    ->visible(fn ($record) => $record->status === 'active')
-                    ->action(function ($record) {
-                        $record->update(['status' => 'completed']);
-                        $record->driver?->update(['status' => 'available']);
-                        $record->vehicleRequest?->update(['status' => 'completed']);
-                    }),
+                Action::make('print')
+                    ->label('View Ticket & QR Code')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('info')
+                    ->url(fn ($record) => route('trip-tickets.print', $record->id))
+                    ->openUrlInNewTab(),
             ])
             ->toolbarActions([
                 // Drivers don't need bulk delete tools

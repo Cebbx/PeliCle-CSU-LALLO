@@ -26,19 +26,12 @@ class ViewTripTicket extends ViewRecord
                     
                     $this->fillForm();
                 }),
-            Action::make('complete')
-                ->label('Complete Trip')
-                ->icon('heroicon-o-check-circle')
-                ->color('primary')
-                ->requiresConfirmation()
-                ->visible(fn ($record) => $record->status === 'active')
-                ->action(function ($record) {
-                    $record->update(['status' => 'completed']);
-                    $record->driver?->update(['status' => 'available']);
-                    $record->vehicleRequest?->update(['status' => 'completed']);
-                    
-                    $this->fillForm();
-                }),
+            Action::make('print')
+                ->label('View Ticket & QR Code')
+                ->icon('heroicon-o-qr-code')
+                ->color('info')
+                ->url(fn ($record) => route('trip-tickets.print', $record->id))
+                ->openUrlInNewTab(),
         ];
     }
 }
