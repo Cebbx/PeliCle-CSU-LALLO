@@ -148,18 +148,31 @@ class VehicleRequestsTable
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->modalHeading('Cancel Vehicle Request')
-                        ->modalDescription('Please state the reason why you are cancelling this request.')
+                        ->modalDescription('Please select the reason why you are cancelling this request.')
                         ->modalSubmitActionLabel('Cancel Request')
                         ->visible(fn ($record) => $record->status === 'pending' && !$record->document)
                         ->form([
-                            \Filament\Forms\Components\Textarea::make('cancellation_reason')
+                            \Filament\Forms\Components\Select::make('reason_select')
                                 ->label('Reason for Cancellation')
-                                ->placeholder('e.g., Meeting rescheduled, trip no longer required, change of schedule...')
-                                ->required()
+                                ->options([
+                                    'Event or meeting postponed / cancelled' => 'Event or meeting postponed / cancelled',
+                                    'Change of travel schedule / date' => 'Change of travel schedule / date',
+                                    'Attendees or faculty no longer available' => 'Attendees or faculty no longer available',
+                                    'Request created by mistake / duplicate' => 'Request created by mistake / duplicate',
+                                    'Others' => 'Others (Specify below)',
+                                ])
+                                ->default('Event or meeting postponed / cancelled')
+                                ->live()
+                                ->required(),
+                            \Filament\Forms\Components\Textarea::make('other_reason')
+                                ->label('Specify Reason')
+                                ->placeholder('Type custom cancellation reason here...')
+                                ->visible(fn ($get) => $get('reason_select') === 'Others')
+                                ->required(fn ($get) => $get('reason_select') === 'Others')
                                 ->rows(3),
                         ])
                         ->action(function ($record, array $data) {
-                            $reason = $data['cancellation_reason'];
+                            $reason = $data['reason_select'] === 'Others' ? ($data['other_reason'] ?? 'Others') : $data['reason_select'];
                             $record->update([
                                 'status' => 'cancelled',
                                 'cancellation_reason' => $reason,

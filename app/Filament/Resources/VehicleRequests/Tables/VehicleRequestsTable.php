@@ -160,23 +160,38 @@ class VehicleRequestsTable
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->modalHeading('Reject Vehicle Request')
-                        ->modalDescription('Please provide a reason why this vehicle request is being rejected.')
+                        ->modalDescription('Please select a reason why this vehicle request is being rejected.')
                         ->modalSubmitActionLabel('Reject Request')
                         ->visible(fn ($record) => $record->status === 'pending')
                         ->form([
-                            \Filament\Forms\Components\Textarea::make('rejection_reason')
+                            \Filament\Forms\Components\Select::make('reason_select')
                                 ->label('Reason for Rejection')
-                                ->placeholder('e.g., No available vehicle on selected date, destination outside authorized zone, incomplete documentation...')
-                                ->required()
+                                ->options([
+                                    'No available vehicle on requested date/time' => 'No available vehicle on requested date/time',
+                                    'Conflict with university priority official travel' => 'Conflict with university priority official travel',
+                                    'Requested vehicle currently under maintenance / repair' => 'Requested vehicle currently under maintenance / repair',
+                                    'Incomplete travel documentation / requirements' => 'Incomplete travel documentation / requirements',
+                                    'Destination outside authorized official travel route' => 'Destination outside authorized official travel route',
+                                    'Others' => 'Others (Specify below)',
+                                ])
+                                ->default('No available vehicle on requested date/time')
+                                ->live()
+                                ->required(),
+                            \Filament\Forms\Components\Textarea::make('other_reason')
+                                ->label('Specify Reason')
+                                ->placeholder('Type custom rejection reason here...')
+                                ->visible(fn ($get) => $get('reason_select') === 'Others')
+                                ->required(fn ($get) => $get('reason_select') === 'Others')
                                 ->rows(3),
                         ])
                         ->action(function ($record, array $data) {
+                            $reason = $data['reason_select'] === 'Others' ? ($data['other_reason'] ?? 'Others') : $data['reason_select'];
                             $record->update([
                                 'status' => 'rejected',
-                                'rejection_reason' => $data['rejection_reason'],
+                                'rejection_reason' => $reason,
                             ]);
 
-                            \App\Models\ActivityLog::log('Rejected Request', $record, "Admin rejected request {$record->request_number}. Reason: {$data['rejection_reason']}");
+                            \App\Models\ActivityLog::log('Rejected Request', $record, "Admin rejected request {$record->request_number}. Reason: {$reason}");
                             
                             \Filament\Notifications\Notification::make()
                                 ->title('Request Rejected')
@@ -189,18 +204,32 @@ class VehicleRequestsTable
                         ->icon('heroicon-o-x-mark')
                         ->color('warning')
                         ->modalHeading('Cancel Approved Request')
-                        ->modalDescription('Please state the reason for cancelling this approved request. The assigned driver will be notified via SMS.')
+                        ->modalDescription('Please select the reason for cancelling this approved request. The assigned driver will be notified via SMS.')
                         ->modalSubmitActionLabel('Cancel Request')
                         ->visible(fn ($record) => $record->status === 'approved')
                         ->form([
-                            \Filament\Forms\Components\Textarea::make('cancellation_reason')
+                            \Filament\Forms\Components\Select::make('reason_select')
                                 ->label('Reason for Cancellation')
-                                ->placeholder('e.g., Trip cancelled by requester, university travel suspension, vehicle maintenance issue...')
-                                ->required()
+                                ->options([
+                                    'Severe weather / Typhoon travel suspension' => 'Severe weather / Typhoon travel suspension',
+                                    'Emergency vehicle maintenance / mechanical issue' => 'Emergency vehicle maintenance / mechanical issue',
+                                    'Trip cancelled by organizing office / executive order' => 'Trip cancelled by organizing office / executive order',
+                                    'Assigned driver emergency / medical leave' => 'Assigned driver emergency / medical leave',
+                                    'Request cancelled by requester' => 'Request cancelled by requester',
+                                    'Others' => 'Others (Specify below)',
+                                ])
+                                ->default('Trip cancelled by organizing office / executive order')
+                                ->live()
+                                ->required(),
+                            \Filament\Forms\Components\Textarea::make('other_reason')
+                                ->label('Specify Reason')
+                                ->placeholder('Type custom cancellation reason here...')
+                                ->visible(fn ($get) => $get('reason_select') === 'Others')
+                                ->required(fn ($get) => $get('reason_select') === 'Others')
                                 ->rows(3),
                         ])
                         ->action(function ($record, array $data) {
-                            $reason = $data['cancellation_reason'];
+                            $reason = $data['reason_select'] === 'Others' ? ($data['other_reason'] ?? 'Others') : $data['reason_select'];
                             $record->update([
                                 'status' => 'cancelled',
                                 'cancellation_reason' => $reason,

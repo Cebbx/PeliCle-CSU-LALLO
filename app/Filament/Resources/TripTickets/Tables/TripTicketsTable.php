@@ -187,18 +187,32 @@ class TripTicketsTable
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->modalHeading('Cancel Trip Ticket')
-                        ->modalDescription('Please state the reason for cancelling this trip. The assigned driver will be notified via SMS.')
+                        ->modalDescription('Please select the reason for cancelling this trip. The assigned driver will be notified via SMS.')
                         ->modalSubmitActionLabel('Cancel Trip')
                         ->visible(fn ($record) => in_array($record->status, ['pending', 'active']))
                         ->form([
-                            \Filament\Forms\Components\Textarea::make('cancellation_reason')
+                            \Filament\Forms\Components\Select::make('reason_select')
                                 ->label('Reason for Cancellation')
-                                ->placeholder('e.g., Severe weather / typhoon suspension, event cancelled by organizer, emergency vehicle recall...')
-                                ->required()
+                                ->options([
+                                    'Severe weather / Typhoon travel suspension' => 'Severe weather / Typhoon travel suspension',
+                                    'Emergency vehicle maintenance / mechanical issue' => 'Emergency vehicle maintenance / mechanical issue',
+                                    'Trip cancelled by organizing office / executive order' => 'Trip cancelled by organizing office / executive order',
+                                    'Assigned driver emergency / medical leave' => 'Assigned driver emergency / medical leave',
+                                    'Requester cancelled official travel' => 'Requester cancelled official travel',
+                                    'Others' => 'Others (Specify below)',
+                                ])
+                                ->default('Trip cancelled by organizing office / executive order')
+                                ->live()
+                                ->required(),
+                            \Filament\Forms\Components\Textarea::make('other_reason')
+                                ->label('Specify Reason')
+                                ->placeholder('Type custom cancellation reason here...')
+                                ->visible(fn ($get) => $get('reason_select') === 'Others')
+                                ->required(fn ($get) => $get('reason_select') === 'Others')
                                 ->rows(3),
                         ])
                         ->action(function ($record, array $data) {
-                            $reason = $data['cancellation_reason'];
+                            $reason = $data['reason_select'] === 'Others' ? ($data['other_reason'] ?? 'Others') : $data['reason_select'];
                             $record->update([
                                 'status' => 'cancelled',
                                 'cancellation_reason' => $reason,
