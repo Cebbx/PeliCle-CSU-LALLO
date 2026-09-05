@@ -108,7 +108,7 @@ class VehicleRequestsTable
                         ->icon('heroicon-o-document-check')
                         ->color('success')
                         ->visible(fn ($record) => !empty($record->document))
-                        ->url(fn ($record) => asset('storage/' . $record->document))
+                        ->url(fn ($record) => route('vehicle-requests.view-signed-document', $record->id))
                         ->openUrlInNewTab(),
                     Action::make('print')
                         ->label('Print / View Requisition Form')

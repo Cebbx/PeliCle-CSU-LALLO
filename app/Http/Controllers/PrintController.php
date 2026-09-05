@@ -14,6 +14,56 @@ class PrintController extends Controller
         return view('print.vehicle-request', compact('request'));
     }
 
+    public function viewSignedDocument($id)
+    {
+        $request = VehicleRequest::findOrFail($id);
+        
+        if (!$request->document) {
+            abort(404, 'No signed document has been uploaded for this request yet.');
+        }
+
+        $fileUrl = asset('storage/' . $request->document);
+        $extension = strtolower(pathinfo($request->document, PATHINFO_EXTENSION));
+        $downloadFilename = 'CEO-Signed-Document-' . $request->request_number . '.' . $extension;
+
+        return view('print.signed-document', [
+            'record' => $request,
+            'type' => 'vehicle-request',
+            'title' => 'CEO Signed Document - ' . $request->request_number,
+            'subtitle' => 'Requester: ' . $request->employee_name . ' (' . $request->department . ') | Date: ' . \Carbon\Carbon::parse($request->date)->format('M d, Y'),
+            'fileUrl' => $fileUrl,
+            'extension' => $extension,
+            'fileName' => basename($request->document),
+            'downloadFilename' => $downloadFilename,
+        ]);
+    }
+
+    public function viewTripTicketSignedDocument($id)
+    {
+        $ticket = TripTicket::with('vehicleRequest')->findOrFail($id);
+        
+        $doc = $ticket->document ?: $ticket->vehicleRequest?->document;
+
+        if (!$doc) {
+            abort(404, 'No signed document has been uploaded for this trip ticket yet.');
+        }
+
+        $fileUrl = asset('storage/' . $doc);
+        $extension = strtolower(pathinfo($doc, PATHINFO_EXTENSION));
+        $downloadFilename = 'CEO-Signed-Document-' . $ticket->ticket_number . '.' . $extension;
+
+        return view('print.signed-document', [
+            'record' => $ticket,
+            'type' => 'trip-ticket',
+            'title' => 'CEO Signed Document - ' . $ticket->ticket_number,
+            'subtitle' => 'Driver: ' . ($ticket->driver?->name ?? 'N/A') . ' | Vehicle: ' . $ticket->vehicle,
+            'fileUrl' => $fileUrl,
+            'extension' => $extension,
+            'fileName' => basename($doc),
+            'downloadFilename' => $downloadFilename,
+        ]);
+    }
+
     public function printTicket($id)
     {
         $ticket = TripTicket::with(['driver', 'vehicleRequest'])->findOrFail($id);

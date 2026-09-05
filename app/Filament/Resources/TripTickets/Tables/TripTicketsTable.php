@@ -273,7 +273,7 @@ class TripTicketsTable
                         ->icon('heroicon-o-document-check')
                         ->color('success')
                         ->visible(fn ($record) => !empty($record->document))
-                        ->url(fn ($record) => asset('storage/' . $record->document))
+                        ->url(fn ($record) => route('trip-tickets.view-signed-document', $record->id))
                         ->openUrlInNewTab(),
                     Action::make('print')
                         ->label('Print Trip Ticket')
