@@ -269,6 +269,34 @@ class TripTicket extends Model
         }
     }
 
+    public function sendCancellationSms(string $reason = 'Trip schedule lapsed without uploaded CEO signed document.'): void
+    {
+        $this->loadMissing(['driver', 'vehicleRequest']);
+
+        if ($this->driver) {
+            $driverName = $this->driver->name;
+            $destination = $this->vehicleRequest?->destination ?? 'N/A';
+            $date = $this->vehicleRequest?->date 
+                ? \Carbon\Carbon::parse($this->vehicleRequest->date)->format('F d, Y') 
+                : 'N/A';
+            $time = $this->vehicleRequest?->time 
+                ? \Carbon\Carbon::parse($this->vehicleRequest->time)->format('g:i A') 
+                : 'N/A';
+
+            $smsMessage = "Hi {$driverName}!\n"
+                        . "TRIP NOTICE: CANCELLED / EXPIRED\n"
+                        . "Trip ID: {$this->ticket_number}\n"
+                        . "Destination: {$destination}\n"
+                        . "Date: {$date} ({$time})\n"
+                        . "Reason: {$reason}\n"
+                        . "Your status is now AVAILABLE for other trips.\n"
+                        . "- PeliCle CSU LAL-LO";
+
+            // Send SMS via our SMS Service (handles Semaphore API and database logs)
+            \App\Services\SmsService::send($this->driver, $smsMessage);
+        }
+    }
+
     public function vehicleRequest(): BelongsTo
     {
         return $this->belongsTo(VehicleRequest::class);

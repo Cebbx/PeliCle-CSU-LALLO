@@ -116,10 +116,13 @@ class VehicleRequest extends Model
                     if ($now->greaterThan($tripDateTime)) {
                         $req->updateQuietly(['status' => 'expired']);
                         if ($req->tripTicket && $req->tripTicket->status === 'pending') {
-                            $req->tripTicket->updateQuietly(['status' => 'cancelled']);
                             if ($req->tripTicket->driver_id) {
+                                if (method_exists($req->tripTicket, 'sendCancellationSms')) {
+                                    $req->tripTicket->sendCancellationSms('Scheduled trip expired without uploaded CEO signed document.');
+                                }
                                 Driver::where('id', $req->tripTicket->driver_id)->update(['status' => 'available']);
                             }
+                            $req->tripTicket->updateQuietly(['status' => 'cancelled']);
                         }
                     }
                 }

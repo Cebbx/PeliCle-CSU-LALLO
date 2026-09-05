@@ -144,6 +144,9 @@ class TripTicketsTable
                         ->color('danger')
                         ->visible(fn ($record) => in_array($record->status, ['pending', 'active']))
                         ->action(function ($record) {
+                            if (method_exists($record, 'sendCancellationSms')) {
+                                $record->sendCancellationSms('Trip cancelled by Admin.');
+                            }
                             $record->update(['status' => 'cancelled']);
                             
                             \Filament\Notifications\Notification::make()

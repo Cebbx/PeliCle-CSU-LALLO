@@ -70,7 +70,7 @@ class VehicleRequestsTable
                         'rejected' => 'Rejected',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
-                        'expired' => 'Expired / Forfeited',
+                        'expired' => 'Expired',
                         default => ucfirst($state),
                     })
                     ->searchable(),
@@ -159,6 +159,9 @@ class VehicleRequestsTable
                         ->action(function ($record) {
                             $record->update(['status' => 'cancelled']);
                             if ($record->tripTicket) {
+                                if (method_exists($record->tripTicket, 'sendCancellationSms')) {
+                                    $record->tripTicket->sendCancellationSms('Trip cancelled by Admin.');
+                                }
                                 $record->tripTicket->update(['status' => 'cancelled']);
                                 if ($record->tripTicket->driver) {
                                     $record->tripTicket->driver->update(['status' => 'available']);
@@ -186,7 +189,7 @@ class VehicleRequestsTable
                         'rejected' => 'Rejected',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
-                        'expired' => 'Expired / Forfeited',
+                        'expired' => 'Expired',
                     ]),
                 \Filament\Tables\Filters\TrashedFilter::make()
                     ->label('Archive Status'),

@@ -68,7 +68,7 @@ class VehicleRequestsTable
                         'rejected' => 'Rejected',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
-                        'expired' => 'Expired / Forfeited',
+                        'expired' => 'Expired',
                         default => ucfirst($state),
                     })
                     ->searchable(),
@@ -154,7 +154,7 @@ class VehicleRequestsTable
                         'rejected' => 'Rejected',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
-                        'expired' => 'Expired / Forfeited',
+                        'expired' => 'Expired',
                     ]),
                 \Filament\Tables\Filters\TrashedFilter::make()
                     ->label('Archive Status'),
