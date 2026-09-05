@@ -204,13 +204,13 @@ class VehicleRequestsTable
                             \Filament\Forms\Components\Select::make('reason_select')
                                 ->label('Reason for Cancellation')
                                 ->options([
-                                    'Event or meeting postponed / cancelled' => 'Event or meeting postponed / cancelled',
-                                    'Change of travel schedule / date' => 'Change of travel schedule / date',
-                                    'Attendees or faculty no longer available' => 'Attendees or faculty no longer available',
-                                    'Request created by mistake / duplicate' => 'Request created by mistake / duplicate',
+                                    'Official event cancelled' => 'Official event cancelled',
+                                    'Change of travel schedule' => 'Change of travel schedule',
+                                    'Attendees no longer available' => 'Attendees no longer available',
+                                    'Duplicate request' => 'Duplicate request',
                                     'Others' => 'Others (Specify below)',
                                 ])
-                                ->default('Event or meeting postponed / cancelled')
+                                ->default('Official event cancelled')
                                 ->live()
                                 ->required(),
                             \Filament\Forms\Components\Textarea::make('other_reason')

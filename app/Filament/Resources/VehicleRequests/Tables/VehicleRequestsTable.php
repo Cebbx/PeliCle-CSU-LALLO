@@ -213,14 +213,14 @@ class VehicleRequestsTable
                             \Filament\Forms\Components\Select::make('reason_select')
                                 ->label('Reason for Disapproval')
                                 ->options([
-                                    'No available vehicle on requested date/time' => 'No available vehicle on requested date/time',
-                                    'Conflict with university priority official travel' => 'Conflict with university priority official travel',
-                                    'Requested vehicle currently under maintenance / repair' => 'Requested vehicle currently under maintenance / repair',
-                                    'Incomplete travel documentation / requirements' => 'Incomplete travel documentation / requirements',
-                                    'Destination outside authorized official travel route' => 'Destination outside authorized official travel route',
+                                    'No available vehicle on requested date' => 'No available vehicle on requested date',
+                                    'Conflict with priority official travel' => 'Conflict with priority official travel',
+                                    'Vehicle under maintenance or repair' => 'Vehicle under maintenance or repair',
+                                    'Incomplete travel documentation' => 'Incomplete travel documentation',
+                                    'Destination outside authorized route' => 'Destination outside authorized route',
                                     'Others' => 'Others (Specify below)',
                                 ])
-                                ->default('No available vehicle on requested date/time')
+                                ->default('No available vehicle on requested date')
                                 ->live()
                                 ->required(),
                             \Filament\Forms\Components\Textarea::make('other_reason')
@@ -263,14 +263,14 @@ class VehicleRequestsTable
                             \Filament\Forms\Components\Select::make('reason_select')
                                 ->label('Reason for Cancellation')
                                 ->options([
-                                    'Severe weather / Typhoon travel suspension' => 'Severe weather / Typhoon travel suspension',
-                                    'Emergency vehicle maintenance / mechanical issue' => 'Emergency vehicle maintenance / mechanical issue',
-                                    'Trip cancelled by organizing office / executive order' => 'Trip cancelled by organizing office / executive order',
-                                    'Assigned driver emergency / medical leave' => 'Assigned driver emergency / medical leave',
-                                    'Request cancelled by requester' => 'Request cancelled by requester',
+                                    'Severe weather conditions' => 'Severe weather conditions',
+                                    'Vehicle mechanical issue' => 'Vehicle mechanical issue',
+                                    'Official event cancelled' => 'Official event cancelled',
+                                    'Driver emergency' => 'Driver emergency',
+                                    'Cancelled by requester' => 'Cancelled by requester',
                                     'Others' => 'Others (Specify below)',
                                 ])
-                                ->default('Trip cancelled by organizing office / executive order')
+                                ->default('Official event cancelled')
                                 ->live()
                                 ->required(),
                             \Filament\Forms\Components\Textarea::make('other_reason')

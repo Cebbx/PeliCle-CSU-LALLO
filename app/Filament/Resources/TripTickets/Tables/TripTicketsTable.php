@@ -195,14 +195,14 @@ class TripTicketsTable
                             \Filament\Forms\Components\Select::make('reason_select')
                                 ->label('Reason for Cancellation')
                                 ->options([
-                                    'Severe weather / Typhoon travel suspension' => 'Severe weather / Typhoon travel suspension',
-                                    'Emergency vehicle maintenance / mechanical issue' => 'Emergency vehicle maintenance / mechanical issue',
-                                    'Trip cancelled by organizing office / executive order' => 'Trip cancelled by organizing office / executive order',
-                                    'Assigned driver emergency / medical leave' => 'Assigned driver emergency / medical leave',
-                                    'Requester cancelled official travel' => 'Requester cancelled official travel',
+                                    'Severe weather conditions' => 'Severe weather conditions',
+                                    'Vehicle mechanical issue' => 'Vehicle mechanical issue',
+                                    'Official event cancelled' => 'Official event cancelled',
+                                    'Driver emergency' => 'Driver emergency',
+                                    'Cancelled by requester' => 'Cancelled by requester',
                                     'Others' => 'Others (Specify below)',
                                 ])
-                                ->default('Trip cancelled by organizing office / executive order')
+                                ->default('Official event cancelled')
                                 ->live()
                                 ->required(),
                             \Filament\Forms\Components\Textarea::make('other_reason')
