@@ -426,17 +426,22 @@ class VehicleRequestForm
                     ])
                     ->label('Passengers')
                     ->addActionLabel('+ Add Passenger')
-                    ->default([['name' => '']])
+                    ->default([])
+                    ->reorderAction(fn (\Filament\Actions\Action $action) => $action
+                        ->icon('heroicon-m-arrows-up-down')
+                        ->tooltip('↕')
+                        ->label(null)
+                    )
                     ->live()
                     ->afterStateUpdated(function (callable $set, $state) {
                         $names = array_filter(array_map(fn ($item) => trim($item['name'] ?? ''), $state ?? []));
-                        $set('number_of_passengers', count($names) ?: 1);
+                        $set('number_of_passengers', count($names));
                     })
                     ->required(),
                 TextInput::make('number_of_passengers')
                     ->label('Total Passengers')
                     ->numeric()
-                    ->default(1)
+                    ->default(0)
                     ->disabled()
                     ->dehydrated()
                     ->required(),
