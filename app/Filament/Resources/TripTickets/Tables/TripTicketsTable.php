@@ -268,6 +268,13 @@ class TripTicketsTable
                         ->url(fn ($record) => \App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('create', [
                             'trip_ticket_id' => $record->id,
                         ])),
+                    Action::make('view_signed_document')
+                        ->label('View Signed Document')
+                        ->icon('heroicon-o-document-check')
+                        ->color('success')
+                        ->visible(fn ($record) => !empty($record->document))
+                        ->url(fn ($record) => asset('storage/' . $record->document))
+                        ->openUrlInNewTab(),
                     Action::make('print')
                         ->label('Print Trip Ticket')
                         ->icon('heroicon-o-printer')

@@ -60,6 +60,13 @@ class TripTicketsTable
             ])
             ->recordActions([
                 ViewAction::make(),
+                Action::make('view_signed_document')
+                    ->label('View Signed Document')
+                    ->icon('heroicon-o-document-check')
+                    ->color('success')
+                    ->visible(fn ($record) => !empty($record->document))
+                    ->url(fn ($record) => asset('storage/' . $record->document))
+                    ->openUrlInNewTab(),
                 Action::make('acknowledge')
                     ->label('Acknowledge')
                     ->icon('heroicon-o-check-circle')

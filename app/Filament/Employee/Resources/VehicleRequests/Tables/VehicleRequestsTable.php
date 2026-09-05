@@ -103,9 +103,16 @@ class VehicleRequestsTable
                 ActionGroup::make([
                     EditAction::make()
                         ->visible(fn ($record) => !$record->trashed() && $record->status === 'pending' && !$record->document),
+                    Action::make('view_signed_document')
+                        ->label('View Signed Document')
+                        ->icon('heroicon-o-document-check')
+                        ->color('success')
+                        ->visible(fn ($record) => !empty($record->document))
+                        ->url(fn ($record) => asset('storage/' . $record->document))
+                        ->openUrlInNewTab(),
                     Action::make('print')
-                        ->label('View Form Request')
-                        ->icon('heroicon-o-document-text')
+                        ->label('Print / View Requisition Form')
+                        ->icon('heroicon-o-printer')
                         ->color('info')
                         ->url(fn ($record) => route('vehicle-requests.print', $record->id))
                         ->openUrlInNewTab(),
@@ -131,6 +138,35 @@ class VehicleRequestsTable
                             \Filament\Notifications\Notification::make()
                                 ->title('Document Uploaded')
                                 ->body('CEO Signed Document uploaded successfully! Trip ticket is now active!')
+                                ->success()
+                                ->send();
+                        }),
+                    Action::make('reupload_document')
+                        ->label('Replace Signed Document')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('warning')
+                        ->visible(fn ($record) => !$record->trashed() && !empty($record->document) && in_array($record->status, ['approved', 'on_trip']))
+                        ->form([
+                            \Filament\Forms\Components\FileUpload::make('document')
+                                ->label('Upload Replacement CEO Signed Document')
+                                ->disk('public')
+                                ->directory('request-documents')
+                                ->visibility('public')
+                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                                ->required(),
+                        ])
+                        ->action(function ($record, array $data) {
+                            $record->update([
+                                'document' => $data['document'],
+                            ]);
+                            if ($record->tripTicket) {
+                                $record->tripTicket->updateQuietly([
+                                    'document' => $data['document'],
+                                ]);
+                            }
+                            \Filament\Notifications\Notification::make()
+                                ->title('Document Replaced')
+                                ->body('Signed document replaced successfully.')
                                 ->success()
                                 ->send();
                         }),
