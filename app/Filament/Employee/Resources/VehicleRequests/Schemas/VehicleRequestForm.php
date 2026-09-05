@@ -432,7 +432,7 @@ class VehicleRequestForm
                         TimePicker::make('return_time')
                             ->label('Expected Return Time')
                             ->default(now())
-                            ->helperText('Tip: Maglagay ng 1-2 oras na allowance para sa traffic o delay sa biyahe.')
+                            ->helperText('Tip: Please allocate a 1 to 2-hour buffer for traffic and unexpected travel delays.')
                             ->live()
                             ->required(),
                     ])
@@ -516,8 +516,8 @@ class VehicleRequestForm
                     ->dehydrated()
                     ->required(),
                 Checkbox::make('has_other_passengers')
-                    ->label('Others (May kasamang Students o Ibang pasahero)')
-                    ->helperText('Lagyan ng check kung may mga estudyante, panauhin, o ibang pasaherong kasama sa biyahe.')
+                    ->label('Others (Include Students / External Passengers)')
+                    ->helperText('Check if the trip includes students, guests, or non-employee passengers.')
                     ->live()
                     ->default(false)
                     ->afterStateUpdated(function (callable $set, $state) {
@@ -526,8 +526,8 @@ class VehicleRequestForm
                         }
                     }),
                 Textarea::make('other_passengers')
-                    ->label('Specify Others / Students')
-                    ->placeholder('Halimbawa: 10 CICS Students para sa Regional Competition, o Guest Speaker')
+                    ->label('Specify Other Passengers / Students')
+                    ->placeholder('e.g., 10 CICS Students for Regional Competition, Guest Speaker')
                     ->visible(fn (Get $get) => (bool) $get('has_other_passengers'))
                     ->required(fn (Get $get) => (bool) $get('has_other_passengers'))
                     ->columnSpanFull()
