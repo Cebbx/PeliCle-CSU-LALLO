@@ -21,15 +21,20 @@ class VehicleForm
                     ->required(),
                 TextInput::make('model')
                     ->required(),
-                Select::make('type')
-                    ->options([
-                        'SUV' => 'SUV',
-                        'Van' => 'Van',
-                        'Jeep' => 'Jeep',
-                        'Multicab' => 'Multicab',
+                TextInput::make('type')
+                    ->label('Type')
+                    ->placeholder('e.g. SUV, Van, Pickup, Coaster, Bus, Multicab')
+                    ->datalist([
+                        'SUV',
+                        'Van',
+                        'Pickup',
+                        'Coaster',
+                        'Bus',
+                        'Jeep',
+                        'Multicab',
+                        'Sedan',
                     ])
-                    ->required()
-                    ->default('SUV'),
+                    ->required(),
                 Select::make('status')
                     ->options([
                         'available' => 'Available',
@@ -39,7 +44,13 @@ class VehicleForm
                     ->default('available'),
                 DatePicker::make('last_pms_date')
                     ->label('Last Maintenance / PMS Date')
-                    ->placeholder('Select last PMS date'),
+                    ->placeholder('Select last PMS date')
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if ($state) {
+                            $set('next_pms_date', \Carbon\Carbon::parse($state)->addMonths(6)->toDateString());
+                        }
+                    }),
                 DatePicker::make('next_pms_date')
                     ->label('Next PMS Due Date')
                     ->placeholder('Select next PMS due date')
