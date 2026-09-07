@@ -72,15 +72,23 @@
         </div>
 
         <!-- Title and QR Code row -->
+        @php
+            $allRequests = $ticket->all_vehicle_requests;
+            $isCarpool = count($allRequests) > 1;
+            $hasAnyUrgent = $allRequests->contains('is_urgent', true);
+        @endphp
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-sm font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Trip Ticket</h1>
                 <div class="text-xs font-bold text-black mt-2 font-mono">TT No. Lal-2026 - {{ substr($ticket->ticket_number, 3) }}</div>
-                @if($ticket->vehicleRequest?->is_urgent)
-                    <div class="mt-1">
+                <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                    @if($hasAnyUrgent)
                         <span class="inline-block px-2 py-0.5 border border-red-600 text-red-600 font-extrabold text-[9px] tracking-widest uppercase rounded">🚨 URGENT DISPATCH</span>
-                    </div>
-                @endif
+                    @endif
+                    @if($isCarpool)
+                        <span class="inline-block px-2 py-0.5 border border-blue-600 text-blue-700 font-extrabold text-[9px] tracking-widest uppercase rounded bg-blue-50">🚐 CONSOLIDATED TRIP ({{ count($allRequests) }} DEPTS)</span>
+                    @endif
+                </div>
             </div>
             
             <!-- Scan to Complete QR Code -->
@@ -112,31 +120,87 @@
                 <tr>
                     <td class="border border-black p-2.5 font-bold bg-gray-50">Authorized Passenger/s:</td>
                     <td class="border border-black p-2.5" colspan="3">
-                        @php
-                            $passengers = $ticket->vehicleRequest?->passenger_names ?? [];
-                            if (is_string($passengers)) {
-                                $passengers = json_decode($passengers, true) ?? [];
-                            }
-                            $passengerNames = collect($passengers)->pluck('name')->join(', ');
-                        @endphp
-                        {{ $passengerNames ?: $ticket->vehicleRequest?->employee_name ?? 'N/A' }}
-                        @if($ticket->vehicleRequest?->has_other_passengers && $ticket->vehicleRequest?->other_passengers)
-                            <div class="mt-1 text-xs font-semibold text-black">
-                                <span class="font-bold uppercase text-[9px] text-gray-600">Others/Students:</span> {{ $ticket->vehicleRequest->other_passengers }}
+                        @if($isCarpool)
+                            <div class="space-y-2 py-0.5">
+                                @foreach($allRequests as $req)
+                                    @php
+                                        $passengers = $req->passenger_names ?? [];
+                                        if (is_string($passengers)) {
+                                            $passengers = json_decode($passengers, true) ?? [];
+                                        }
+                                        $pNames = collect($passengers)->pluck('name')->join(', ');
+                                    @endphp
+                                    <div class="border-b border-gray-200 pb-1.5 last:border-b-0 last:pb-0">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-black uppercase text-[10px] bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300">
+                                                {{ $req->department ?: 'N/A' }} ({{ $req->number_of_passengers }} pax)
+                                            </span>
+                                            <span class="font-semibold text-black text-xs">
+                                                {{ $pNames ?: $req->employee_name }}
+                                            </span>
+                                        </div>
+                                        @if($req->has_other_passengers && $req->other_passengers)
+                                            <div class="text-[9px] text-gray-700 italic ml-2 mt-0.5">
+                                                <span class="font-bold uppercase text-[8px] text-gray-500">Others/Students:</span> {{ $req->other_passengers }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
                             </div>
+                        @else
+                            @php
+                                $passengers = $ticket->vehicleRequest?->passenger_names ?? [];
+                                if (is_string($passengers)) {
+                                    $passengers = json_decode($passengers, true) ?? [];
+                                }
+                                $passengerNames = collect($passengers)->pluck('name')->join(', ');
+                            @endphp
+                            <span class="font-semibold text-black">{{ $passengerNames ?: $ticket->vehicleRequest?->employee_name ?? 'N/A' }}</span>
+                            @if($ticket->vehicleRequest?->has_other_passengers && $ticket->vehicleRequest?->other_passengers)
+                                <div class="mt-1 text-xs font-semibold text-black">
+                                    <span class="font-bold uppercase text-[9px] text-gray-600">Others/Students:</span> {{ $ticket->vehicleRequest->other_passengers }}
+                                </div>
+                            @endif
                         @endif
                     </td>
                 </tr>
                 <tr>
                     <td class="border border-black p-2.5 font-bold bg-gray-50">Place to Visit:</td>
-                    <td class="border border-black p-2.5" colspan="3">{{ $ticket->vehicleRequest?->destination ?? 'N/A' }}</td>
+                    <td class="border border-black p-2.5" colspan="3">
+                        @php
+                            $destinations = $allRequests->pluck('destination')->unique()->values();
+                        @endphp
+                        @if(count($destinations) > 1)
+                            <div class="space-y-1">
+                                @foreach($allRequests as $req)
+                                    <div><span class="font-bold text-[10px] text-gray-700">[{{ $req->department }}]:</span> {{ $req->destination }}</div>
+                                @endforeach
+                            </div>
+                        @else
+                            {{ $destinations->first() ?? $ticket->vehicleRequest?->destination ?? 'N/A' }}
+                        @endif
+                    </td>
                 </tr>
                 <tr>
                     <td class="border border-black p-2.5 font-bold bg-gray-50">Purpose/s:</td>
                     <td class="border border-black p-2.5" colspan="3">
-                        {{ $ticket->vehicleRequest?->purpose ?? 'N/A' }}
-                        @if($ticket->vehicleRequest?->is_urgent)
-                            <span class="ml-2 px-1.5 py-0.5 text-[9px] font-bold text-red-600 border border-red-500 rounded uppercase">Priority: Urgent</span>
+                        @if($isCarpool)
+                            <div class="space-y-1">
+                                @foreach($allRequests as $req)
+                                    <div>
+                                        <span class="font-bold text-[10px] text-gray-800">[{{ $req->department }}]:</span>
+                                        <span class="text-black font-medium">{{ $req->purpose }}</span>
+                                        @if($req->is_urgent)
+                                            <span class="ml-1 px-1 py-0.2 text-[8px] font-bold text-red-600 border border-red-500 rounded uppercase">Urgent</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            {{ $ticket->vehicleRequest?->purpose ?? 'N/A' }}
+                            @if($ticket->vehicleRequest?->is_urgent)
+                                <span class="ml-2 px-1.5 py-0.5 text-[9px] font-bold text-red-600 border border-red-500 rounded uppercase">Priority: Urgent</span>
+                            @endif
                         @endif
                     </td>
                 </tr>

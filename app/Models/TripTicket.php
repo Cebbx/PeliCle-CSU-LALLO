@@ -72,19 +72,24 @@ class TripTicket extends Model
             \App\Models\ActivityLog::log('Approved & Ticketed', $tripTicket, "Created trip ticket {$tripTicket->ticket_number} for request {$tripTicket->vehicleRequest?->request_number}. Assigned Driver: {$driverName}. Vehicle: {$tripTicket->vehicle}");
 
             try {
-                $req = $tripTicket->vehicleRequest;
-                if ($req && $req->user) {
-                    \Filament\Notifications\Notification::make()
-                        ->title('✅ Request Approved & Ticketed')
-                        ->body("Your request {$req->request_number} to {$req->destination} was approved. Driver: {$driverName}, Vehicle: {$tripTicket->vehicle}.")
-                        ->icon('heroicon-o-check-circle')
-                        ->iconColor('success')
-                        ->actions([
-                            \Filament\Notifications\Actions\Action::make('view')
-                                ->label('View Status')
-                                ->url(\App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('index')),
-                        ])
-                        ->sendToDatabase($req->user);
+                $allRequests = $tripTicket->vehicleRequests()->get();
+                if ($allRequests->isEmpty() && $tripTicket->vehicleRequest) {
+                    $allRequests = collect([$tripTicket->vehicleRequest]);
+                }
+                foreach ($allRequests as $req) {
+                    if ($req && $req->user) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('✅ Request Approved & Ticketed')
+                            ->body("Your request {$req->request_number} to {$req->destination} was approved. Driver: {$driverName}, Vehicle: {$tripTicket->vehicle}.")
+                            ->icon('heroicon-o-check-circle')
+                            ->iconColor('success')
+                            ->actions([
+                                \Filament\Notifications\Actions\Action::make('view')
+                                    ->label('View Status')
+                                    ->url(\App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('index')),
+                            ])
+                            ->sendToDatabase($req->user);
+                    }
                 }
             } catch (\Throwable $e) {
                 // Ignore notification errors
@@ -176,18 +181,34 @@ class TripTicket extends Model
                 }
             }
 
-            // Sync Vehicle Request status quietly to prevent recursive saved events
-            $tripTicket->loadMissing('vehicleRequest');
-            if ($tripTicket->vehicleRequest) {
+            // Sync all linked Vehicle Requests status and vehicle quietly
+            $allRequests = $tripTicket->vehicleRequests()->get();
+            if ($allRequests->isEmpty() && $tripTicket->vehicleRequest) {
+                $allRequests = collect([$tripTicket->vehicleRequest]);
+            }
+            foreach ($allRequests as $req) {
+                $updateData = [];
                 if ($tripTicket->status === 'active') {
-                    $tripTicket->vehicleRequest->updateQuietly(['status' => 'on_trip']);
+                    $updateData['status'] = 'on_trip';
                 } elseif ($tripTicket->status === 'completed') {
-                    $tripTicket->vehicleRequest->updateQuietly(['status' => 'completed']);
+                    $updateData['status'] = 'completed';
                 } elseif ($tripTicket->status === 'cancelled') {
-                    $tripTicket->vehicleRequest->updateQuietly(['status' => 'rejected']);
+                    $updateData['status'] = 'cancelled';
+                    if ($tripTicket->cancellation_reason) {
+                        $updateData['cancellation_reason'] = $tripTicket->cancellation_reason;
+                    }
                 } else {
-                    $tripTicket->vehicleRequest->updateQuietly(['status' => 'approved']);
+                    $updateData['status'] = 'approved';
                 }
+
+                if ($tripTicket->vehicle) {
+                    $updateData['vehicle'] = $tripTicket->vehicle;
+                }
+                if ($tripTicket->document && !$req->document) {
+                    $updateData['document'] = $tripTicket->document;
+                }
+
+                $req->updateQuietly($updateData);
             }
 
             // Sync Vehicle status in vehicles table
@@ -218,9 +239,15 @@ class TripTicket extends Model
             // Sync Vehicle status
             self::syncVehicleStatus($tripTicket->vehicle);
 
-            $tripTicket->loadMissing('vehicleRequest');
-            if ($tripTicket->vehicleRequest) {
-                $tripTicket->vehicleRequest->updateQuietly(['status' => 'pending']);
+            $allRequests = $tripTicket->vehicleRequests()->get();
+            if ($allRequests->isEmpty() && $tripTicket->vehicleRequest) {
+                $allRequests = collect([$tripTicket->vehicleRequest]);
+            }
+            foreach ($allRequests as $req) {
+                $req->updateQuietly([
+                    'status' => 'pending',
+                    'trip_ticket_id' => null,
+                ]);
             }
         });
     }
@@ -277,7 +304,7 @@ class TripTicket extends Model
 
     public function sendSmsNotification(): void
     {
-        $this->loadMissing(['driver', 'vehicleRequest']);
+        $this->loadMissing(['driver', 'vehicleRequest', 'vehicleRequests']);
 
         if ($this->driver) {
             $driverName = $this->driver->name;
@@ -294,7 +321,15 @@ class TripTicket extends Model
             
             $vehicleInfo = $this->formatted_vehicle;
             
-            $passenger = $this->vehicleRequest?->employee_name ?? 'N/A';
+            $allRequests = $this->all_vehicle_requests;
+            $passengerLines = [];
+            foreach ($allRequests as $r) {
+                $names = collect($r->passenger_names ?? [])->pluck('name')->filter()->join(', ');
+                $pList = $names ?: $r->employee_name;
+                $dept = $r->department ?: 'Dept';
+                $passengerLines[] = "{$dept}: {$pList}";
+            }
+            $passenger = !empty($passengerLines) ? implode("\n", $passengerLines) : ($this->vehicleRequest?->employee_name ?? 'N/A');
             
             $smsMessage = "Hi {$driverName}!\n"
                         . "You have a NEW TRIP ASSIGNED:\n"
@@ -303,7 +338,7 @@ class TripTicket extends Model
                         . "Date: {$date}\n"
                         . "Time: {$time}\n"
                         . "Vehicle: {$vehicleInfo}\n"
-                        . "Passenger: {$passenger}\n"
+                        . "Passenger/s:\n{$passenger}\n"
                         . "Please check PeliCle portal\n"
                         . "using License ID: {$driverLicense}";
 
@@ -345,12 +380,27 @@ class TripTicket extends Model
         return $this->belongsTo(VehicleRequest::class);
     }
 
+    public function vehicleRequests(): HasMany
+    {
+        return $this->hasMany(VehicleRequest::class, 'trip_ticket_id');
+    }
+
+    public function getAllVehicleRequestsAttribute()
+    {
+        $requests = $this->vehicleRequests()->get();
+        if ($requests->isEmpty() && $this->vehicleRequest) {
+            return collect([$this->vehicleRequest]);
+        }
+        if ($this->vehicleRequest && !$requests->contains('id', $this->vehicleRequest->id)) {
+            $requests->prepend($this->vehicleRequest);
+        }
+        return $requests;
+    }
+
     public function driver(): BelongsTo
     {
         return $this->belongsTo(Driver::class);
     }
-
-
 
     public function withdrawalSlips(): HasMany
     {

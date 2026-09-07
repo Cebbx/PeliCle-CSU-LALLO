@@ -36,8 +36,35 @@ class VehicleRequestsTable
                     ->searchable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
-                    ->limit(12)
-                    ->tooltip(fn ($record) => $record->vehicle)
+                    ->formatStateUsing(function ($state, $record) {
+                        if (!empty($state)) {
+                            return $state;
+                        }
+                        if ($record->tripTicket && !empty($record->tripTicket->vehicle)) {
+                            return $record->tripTicket->vehicle;
+                        }
+                        return 'To be assigned';
+                    })
+                    ->badge(fn ($state, $record) => empty($state) && (!$record->tripTicket || empty($record->tripTicket->vehicle)))
+                    ->color('gray')
+                    ->description(function ($record) {
+                        if ($record->tripTicket) {
+                            $otherCount = $record->tripTicket->vehicleRequests()->where('id', '!=', $record->id)->count();
+                            if ($otherCount > 0) {
+                                return '🚐 Carpool (' . ($otherCount + 1) . ' Depts)';
+                            }
+                        }
+                        return null;
+                    })
+                    ->tooltip(function ($record) {
+                        if ($record->tripTicket) {
+                            $otherDepts = $record->tripTicket->vehicleRequests()->pluck('department')->filter()->unique()->join(', ');
+                            if ($otherDepts) {
+                                return "Consolidated Trip with: {$otherDepts}";
+                            }
+                        }
+                        return $record->vehicle ?? 'Assigned by GSO Motorpool upon approval';
+                    })
                     ->searchable(),
                 TextColumn::make('destination')
                     ->limit(15)

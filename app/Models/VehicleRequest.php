@@ -34,6 +34,7 @@ class VehicleRequest extends Model
         'rejection_reason',
         'cancellation_reason',
         'document',
+        'trip_ticket_id',
     ];
 
     protected $casts = [
@@ -126,9 +127,9 @@ class VehicleRequest extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function tripTicket(): HasOne
+    public function tripTicket(): BelongsTo
     {
-        return $this->hasOne(TripTicket::class);
+        return $this->belongsTo(TripTicket::class, 'trip_ticket_id');
     }
 
     public static function expirePastPendingRequests(): void

@@ -66,7 +66,7 @@ class PrintController extends Controller
 
     public function printTicket($id)
     {
-        $ticket = TripTicket::with(['driver', 'vehicleRequest'])->findOrFail($id);
+        $ticket = TripTicket::with(['driver', 'vehicleRequest', 'vehicleRequests'])->findOrFail($id);
 
         $vehicleModel = '';
         $vehiclePlate = '';
