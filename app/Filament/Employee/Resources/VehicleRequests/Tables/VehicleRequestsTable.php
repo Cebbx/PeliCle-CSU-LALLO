@@ -124,17 +124,22 @@ class VehicleRequestsTable
                         ->url(fn ($record) => route('trip-tickets.print', $record->tripTicket->id))
                         ->openUrlInNewTab(),
                     Action::make('upload_document')
-                        ->label('Upload Document')
-                        ->icon('heroicon-o-document-arrow-up')
+                        ->label('Upload / Scan Document')
+                        ->icon('heroicon-o-camera')
                         ->color('success')
+                        ->modalHeading('📄 Upload or Scan CEO Signed Document')
+                        ->modalDescription('I-upload ang litrato o PDF ng pirmadong dokumento mula kay Campus Executive Officer (CEO).')
+                        ->modalSubmitActionLabel('Save & Activate Trip')
                         ->visible(fn ($record) => !$record->trashed() && $record->status === 'approved' && !$record->document)
                         ->form([
                             \Filament\Forms\Components\FileUpload::make('document')
-                                ->label('Upload CEO Signed Document')
+                                ->label('Attach Signed Document (Photo or PDF)')
                                 ->disk('public')
                                 ->directory('request-documents')
                                 ->visibility('public')
+                                ->imagePreviewHeight('250')
                                 ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                                ->helperText('📸 Cellphone: Pindutin ang kahon at piliin ang "Camera" para direktang picturan ang papel. 💻 Laptop: Piliin ang na-scan na PDF o larawan.')
                                 ->required(),
                         ])
                         ->action(function ($record, array $data) {
@@ -152,6 +157,9 @@ class VehicleRequestsTable
                         ->label('Replace Signed Document')
                         ->icon('heroicon-o-arrow-path')
                         ->color('warning')
+                        ->modalHeading('📄 Replace CEO Signed Document')
+                        ->modalDescription('Pumili ng bagong larawan o PDF file bilang kapalit ng dating in-upload.')
+                        ->modalSubmitActionLabel('Update Document')
                         ->visible(fn ($record) => !$record->trashed() && !empty($record->document) && in_array($record->status, ['approved', 'on_trip']))
                         ->form([
                             \Filament\Forms\Components\FileUpload::make('document')
@@ -159,7 +167,9 @@ class VehicleRequestsTable
                                 ->disk('public')
                                 ->directory('request-documents')
                                 ->visibility('public')
+                                ->imagePreviewHeight('250')
                                 ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                                ->helperText('📸 Cellphone: Pindutin ang kahon at piliin ang "Camera" para kuhanan ng bagong litrato. 💻 Laptop: Piliin ang PDF o larawan.')
                                 ->required(),
                         ])
                         ->action(function ($record, array $data) {
