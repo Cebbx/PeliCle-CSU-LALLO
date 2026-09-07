@@ -307,83 +307,81 @@ class VehicleRequestForm
                 Fieldset::make('Passenger Manifest / Companions')
                     ->columnSpanFull()
                     ->schema([
-                        Grid::make(2)->schema([
-                            Repeater::make('passenger_names')
-                                ->columnSpan(1)
-                                ->schema([
-                                    TextInput::make('name')
-                                        ->placeholder('Passenger Full Name')
-                                        ->required()
-                                        ->live(onBlur: true)
-                                        ->rules([
-                                            fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
-                                                $all = $get('../../passenger_names') ?? [];
-                                                if (!is_array($all)) return;
-                                                $target = strtolower(trim((string)$value));
-                                                if ($target === '') return;
-                                                $matches = 0;
-                                                foreach ($all as $item) {
-                                                    $itemName = strtolower(trim((string)($item['name'] ?? '')));
-                                                    if ($itemName === $target) {
-                                                        $matches++;
-                                                    }
+                        Repeater::make('passenger_names')
+                            ->schema([
+                                TextInput::make('name')
+                                    ->placeholder('Enter Passenger Full Name (e.g. Dr. Juan Dela Cruz)')
+                                    ->required()
+                                    ->columnSpanFull()
+                                    ->live(onBlur: true)
+                                    ->rules([
+                                        fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                            $all = $get('../../passenger_names') ?? [];
+                                            if (!is_array($all)) return;
+                                            $target = strtolower(trim((string)$value));
+                                            if ($target === '') return;
+                                            $matches = 0;
+                                            foreach ($all as $item) {
+                                                $itemName = strtolower(trim((string)($item['name'] ?? '')));
+                                                if ($itemName === $target) {
+                                                    $matches++;
                                                 }
-                                                if ($matches > 1) {
-                                                    $fail("Duplicate passenger: '{$value}' is already in the list. Please differentiate (e.g. Jr./Sr.) or enter a different name.");
-                                                }
-                                            },
-                                        ]),
-                                ])
-                                ->label('Passenger List')
-                                ->addActionLabel('+ Add Passenger')
-                                ->default(function () {
-                                    $user = auth()->user();
-                                    return [['name' => $user?->name ?? '']];
-                                })
-                                ->reorderable()
-                                ->reorderAction(fn (\Filament\Actions\Action $action) => $action
-                                    ->icon(Heroicon::ArrowDown)
-                                    ->label('')
-                                    ->tooltip(null)
-                                )
-                                ->live()
-                                ->afterStateUpdated(function (callable $set, $state) {
-                                    $names = array_filter(array_map(fn ($item) => trim($item['name'] ?? ''), $state ?? []));
-                                    $set('number_of_passengers', count($names) ?: 1);
-                                })
-                                ->required(),
-
-                            Grid::make(1)
-                                ->columnSpan(1)
-                                ->schema([
-                                    TextInput::make('number_of_passengers')
-                                        ->label('Total Passengers')
-                                        ->numeric()
-                                        ->default(1)
-                                        ->disabled()
-                                        ->dehydrated()
-                                        ->required()
-                                        ->helperText('Automatically computed based on the passenger list.'),
-
-                                    Checkbox::make('has_other_passengers')
-                                        ->label('Others (Include Students / External Passengers)')
-                                        ->helperText('Check if the trip includes students, guests, or non-employee passengers.')
-                                        ->live()
-                                        ->default(false)
-                                        ->afterStateUpdated(function (callable $set, $state) {
-                                            if (!$state) {
-                                                $set('other_passengers', null);
                                             }
-                                        }),
+                                            if ($matches > 1) {
+                                                $fail("Duplicate passenger: '{$value}' is already in the list. Please differentiate (e.g. Jr./Sr.) or enter a different name.");
+                                            }
+                                        },
+                                    ]),
+                            ])
+                            ->label('Passenger List')
+                            ->addActionLabel('+ Add Passenger')
+                            ->default(function () {
+                                $user = auth()->user();
+                                return [['name' => $user?->name ?? '']];
+                            })
+                            ->reorderable()
+                            ->reorderAction(fn (\Filament\Actions\Action $action) => $action
+                                ->icon(Heroicon::ArrowDown)
+                                ->label('')
+                                ->tooltip(null)
+                            )
+                            ->live()
+                            ->afterStateUpdated(function (callable $set, $state) {
+                                $names = array_filter(array_map(fn ($item) => trim($item['name'] ?? ''), $state ?? []));
+                                $set('number_of_passengers', count($names) ?: 1);
+                            })
+                            ->columnSpanFull()
+                            ->required(),
 
-                                    Textarea::make('other_passengers')
-                                        ->label('Specify Other Passengers / Students')
-                                        ->placeholder('e.g., 10 CICS Students for Regional Competition, Guest Speaker')
-                                        ->visible(fn (Get $get) => (bool) $get('has_other_passengers'))
-                                        ->required(fn (Get $get) => (bool) $get('has_other_passengers'))
-                                        ->rows(3),
-                                ]),
+                        Grid::make(2)->schema([
+                            TextInput::make('number_of_passengers')
+                                ->label('Total Passengers')
+                                ->numeric()
+                                ->default(1)
+                                ->disabled()
+                                ->dehydrated()
+                                ->required()
+                                ->helperText('Automatically computed based on the passenger list above.'),
+
+                            Checkbox::make('has_other_passengers')
+                                ->label('Others (Include Students / External Passengers)')
+                                ->helperText('Check if the trip includes students, guests, or non-employee passengers.')
+                                ->live()
+                                ->default(false)
+                                ->afterStateUpdated(function (callable $set, $state) {
+                                    if (!$state) {
+                                        $set('other_passengers', null);
+                                    }
+                                }),
                         ]),
+
+                        Textarea::make('other_passengers')
+                            ->label('Specify Other Passengers / Students')
+                            ->placeholder('e.g., 10 CICS Students for Regional Competition, Guest Speaker')
+                            ->visible(fn (Get $get) => (bool) $get('has_other_passengers'))
+                            ->required(fn (Get $get) => (bool) $get('has_other_passengers'))
+                            ->columnSpanFull()
+                            ->rows(3),
                     ]),
 
                 Hidden::make('status')
