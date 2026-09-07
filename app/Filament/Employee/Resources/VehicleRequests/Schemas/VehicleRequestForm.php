@@ -7,6 +7,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -308,11 +309,13 @@ class VehicleRequestForm
                     ->columnSpanFull()
                     ->schema([
                         Repeater::make('passenger_names')
+                            ->table([
+                                TableColumn::make('Passenger Full Name'),
+                            ])
                             ->schema([
                                 TextInput::make('name')
-                                    ->placeholder('Enter Passenger Full Name (e.g. Dr. Juan Dela Cruz)')
+                                    ->placeholder('e.g. Dr. Juan Dela Cruz')
                                     ->required()
-                                    ->columnSpanFull()
                                     ->live(onBlur: true)
                                     ->rules([
                                         fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
@@ -333,18 +336,10 @@ class VehicleRequestForm
                                         },
                                     ]),
                             ])
-                            ->label('Passenger List')
+                            ->label('Passenger Manifest')
                             ->addActionLabel('+ Add Passenger')
-                            ->default(function () {
-                                $user = auth()->user();
-                                return [['name' => $user?->name ?? '']];
-                            })
+                            ->default([['name' => '']])
                             ->reorderable()
-                            ->reorderAction(fn (\Filament\Actions\Action $action) => $action
-                                ->icon(Heroicon::ArrowDown)
-                                ->label('')
-                                ->tooltip(null)
-                            )
                             ->live()
                             ->afterStateUpdated(function (callable $set, $state) {
                                 $names = array_filter(array_map(fn ($item) => trim($item['name'] ?? ''), $state ?? []));
