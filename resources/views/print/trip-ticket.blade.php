@@ -217,7 +217,6 @@
                     <span class="text-xs text-black font-semibold mb-6">Prepared by:</span>
                     <span class="text-xs font-extrabold text-black uppercase">JOEL A. TUMAMAO</span>
                     <span class="text-[10px] text-black font-semibold">General Services Officer</span>
-                    <span class="text-[8px] font-mono text-gray-500 mt-1">Prepared: {{ \Carbon\Carbon::parse($ticket->created_at)->format('M d, Y - h:i A') }}</span>
                 </div>
                 
                 <!-- Right: Approved by Engr. James B. Cabildo -->
@@ -225,15 +224,6 @@
                     <span class="text-xs text-black font-semibold mb-6 text-left pl-4">Approved by:</span>
                     <span class="text-xs font-extrabold text-black uppercase">ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.</span>
                     <span class="text-[10px] text-black font-semibold">Campus Executive Officer</span>
-                    @if(in_array($ticket->status, ['active', 'completed']) || !empty($ticket->document))
-                        <span class="text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-1 py-0.5 rounded mt-1 inline-block self-center">
-                            ✓ CEO Signed & Approved &middot; {{ \Carbon\Carbon::parse($ticket->updated_at)->format('M d, Y - h:i A') }}
-                        </span>
-                    @else
-                        <span class="text-[8px] font-mono text-gray-500 mt-1 inline-block">
-                            (Signature of Campus Executive Officer)
-                        </span>
-                    @endif
                 </div>
             </div>
         </div>
