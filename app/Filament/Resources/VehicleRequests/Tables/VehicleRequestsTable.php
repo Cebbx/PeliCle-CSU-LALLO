@@ -312,6 +312,62 @@ class VehicleRequestsTable
                                 ->success()
                                 ->send();
                         }),
+                    Action::make('reject_document')
+                        ->label('Reject Document / Request Re-scan')
+                        ->icon('heroicon-o-arrow-path-rounded-square')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('📄 Ibalik ang Dokumento kay Requester')
+                        ->modalDescription('I-reject ang in-upload na dokumento (kung malabo o maling form) para ma-scan at ma-upload muli ito ng empleyado.')
+                        ->form([
+                            \Filament\Forms\Components\Select::make('rejection_reason')
+                                ->label('Dahilan kung bakit kailangang i-re-scan')
+                                ->options([
+                                    'Malabo o hindi mabasa ang pirma ng CEO' => 'Malabo o hindi mabasa ang pirma ng CEO',
+                                    'Maling dokumento o form ang na-attach' => 'Maling dokumento o form ang na-attach',
+                                    'Kulang ang pahina o putol ang dokumento' => 'Kulang ang pahina o putol ang dokumento',
+                                    'Walang pirma o kulang sa pirma' => 'Walang pirma o kulang sa pirma',
+                                    'Iba pang dahilan' => 'Iba pang dahilan',
+                                ])
+                                ->required(),
+                            \Filament\Forms\Components\Textarea::make('notes')
+                                ->label('Karagdagang Paliwanag (Optional)')
+                                ->placeholder('Hal. Pakilinawan ang kuha sa bandang ibaba kung nasaan ang lagda...'),
+                        ])
+                        ->visible(fn ($record) => !$record->trashed() && !empty($record->document) && in_array($record->status, ['approved', 'on_trip']))
+                        ->action(function ($record, array $data) {
+                            $oldDoc = $record->document;
+                            $reason = $data['rejection_reason'];
+                            if (!empty($data['notes'])) {
+                                $reason .= ' (' . $data['notes'] . ')';
+                            }
+
+                            // Remove invalid document so upload_document appears again for requester
+                            $record->update(['document' => null]);
+                            if ($record->tripTicket) {
+                                $record->tripTicket->updateQuietly(['document' => null]);
+                            }
+
+                            // Delete old invalid file from storage if exists
+                            if ($oldDoc && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldDoc)) {
+                                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldDoc);
+                            }
+
+                            // Send notification to the requester
+                            if ($record->user) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Kailangang I-re-scan ang CEO Document')
+                                    ->body("Ang in-upload na dokumento para sa Request #{$record->request_number} ay ibinalik ng Admin. Dahilan: {$reason}. Pakikuhanan o i-upload muli.")
+                                    ->warning()
+                                    ->sendToDatabase($record->user);
+                            }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Document Rejected & Reset')
+                                ->body("Naibalik na kay {$record->employee_name} ang request para ma-re-scan ang dokumento.")
+                                ->success()
+                                ->send();
+                        }),
                     Action::make('view_reason')
                         ->label('View Reason')
                         ->icon('heroicon-o-chat-bubble-bottom-center-text')

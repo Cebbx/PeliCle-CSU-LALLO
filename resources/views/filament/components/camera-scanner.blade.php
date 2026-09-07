@@ -8,9 +8,11 @@
         errorMessage: '',
         facingMode: 'environment',
         flashActive: false,
+        sharpnessScore: 0,
+        isBlurry: false,
+        showZoomModal: false,
 
         async init() {
-            // Check available camera devices if browser supports it
             if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
                 try {
                     const allDevices = await navigator.mediaDevices.enumerateDevices();
@@ -32,7 +34,6 @@
             }
 
             try {
-                // First stop any existing stream
                 this.stopCamera();
 
                 const constraints = {
@@ -47,7 +48,6 @@
                 await this.$refs.video.play();
                 this.isStreaming = true;
 
-                // Re-enumerate devices after permission is granted so device labels appear
                 try {
                     const allDevices = await navigator.mediaDevices.enumerateDevices();
                     this.devices = allDevices.filter(d => d.kind === 'videoinput');
@@ -85,7 +85,11 @@
             this.flashActive = true;
             setTimeout(() => { this.flashActive = false; }, 200);
 
-            // Export JPEG data URL with 88% quality (high clarity, fast transfer)
+            // Calculate sharpness/blurriness score using edge contrast
+            this.sharpnessScore = this.calculateSharpness(ctx, width, height);
+            this.isBlurry = this.sharpnessScore < 60;
+
+            // Export JPEG data URL with 88% quality
             const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
             this.state = dataUrl;
 
@@ -93,8 +97,57 @@
             this.stopCamera();
         },
 
+        calculateSharpness(ctx, width, height) {
+            try {
+                // Downscale to 160x120 for instant calculation
+                const sampleCanvas = document.createElement('canvas');
+                sampleCanvas.width = 160;
+                sampleCanvas.height = 120;
+                const sampleCtx = sampleCanvas.getContext('2d');
+                sampleCtx.drawImage(ctx.canvas, 0, 0, 160, 120);
+                const imgData = sampleCtx.getImageData(0, 0, 160, 120);
+                const d = imgData.data;
+
+                // Convert to grayscale luminance
+                const gray = new Float32Array(160 * 120);
+                for (let i = 0, j = 0; i < d.length; i += 4, j++) {
+                    gray[j] = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
+                }
+
+                // Laplacian edge filter variance
+                let mean = 0;
+                let count = 0;
+                const laplacian = [];
+                for (let y = 1; y < 119; y++) {
+                    for (let x = 1; x < 159; x++) {
+                        const idx = y * 160 + x;
+                        const lap = Math.abs(
+                            4 * gray[idx] - gray[idx - 1] - gray[idx + 1] - gray[idx - 160] - gray[idx + 160]
+                        );
+                        laplacian.push(lap);
+                        mean += lap;
+                        count++;
+                    }
+                }
+                mean /= count;
+
+                let variance = 0;
+                for (let i = 0; i < count; i++) {
+                    variance += (laplacian[i] - mean) * (laplacian[i] - mean);
+                }
+                variance /= count;
+
+                return Math.round(variance);
+            } catch (e) {
+                console.warn('Sharpness check skipped:', e);
+                return 100;
+            }
+        },
+
         retake() {
             this.state = null;
+            this.sharpnessScore = 0;
+            this.isBlurry = false;
             this.$nextTick(() => {
                 this.startCamera();
             });
@@ -102,6 +155,8 @@
 
         clear() {
             this.state = null;
+            this.sharpnessScore = 0;
+            this.isBlurry = false;
             this.stopCamera();
         },
 
@@ -135,6 +190,19 @@
             reader.onload = (event) => {
                 this.state = event.target.result;
                 this.stopCamera();
+
+                // Check sharpness of uploaded image via an Image object
+                const img = new Image();
+                img.onload = () => {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = img.width;
+                    tempCanvas.height = img.height;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.drawImage(img, 0, 0);
+                    this.sharpnessScore = this.calculateSharpness(tempCtx, img.width, img.height);
+                    this.isBlurry = this.sharpnessScore < 60;
+                };
+                img.src = event.target.result;
             };
             reader.readAsDataURL(file);
         },
@@ -153,33 +221,90 @@
     <!-- 1. CAPTURED PREVIEW STATE -->
     <template x-if="state">
         <div class="bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-xl text-slate-100 flex flex-col items-center gap-4">
+            
+            <!-- Status Header -->
             <div class="w-full flex items-center justify-between border-b border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="flex h-3 w-3 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                     </span>
-                    <span class="text-sm font-bold text-emerald-400 uppercase tracking-wide">✓ Dokumento Matagumpay na Na-Scan</span>
+                    <span class="text-sm font-bold text-emerald-400 uppercase tracking-wide">✓ Dokumento Na-Scan</span>
                 </div>
                 <div class="text-xs text-slate-400 font-mono">
                     Ready to Save
                 </div>
             </div>
 
-            <!-- Image Snapshot Frame -->
-            <div class="w-full max-h-[360px] overflow-hidden rounded-xl border border-slate-700 bg-black flex items-center justify-center relative group">
-                <img :src="state" alt="CEO Signed Document Scan" class="max-h-[360px] w-full object-contain rounded-lg" />
+            <!-- SMART SHARPNESS & BLUR DETECTION ALERT -->
+            <template x-if="isBlurry">
+                <div class="w-full bg-amber-500/15 border border-amber-500/50 rounded-xl p-3 flex items-start gap-3 text-amber-200 text-xs shadow-inner">
+                    <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                        <strong class="font-bold text-amber-300 block text-sm">⚠️ Babala: Medyo Malabo ang Pagkaka-scan (Blurry)</strong>
+                        <span class="mt-0.5 block leading-relaxed text-amber-100/90">
+                            Maaaring tanggihan ng Admin o Guard kung hindi malinaw ang pirma ng CEO. Pindutin ang <b>"Kuhanan Ulit (Retake)"</b> sa ibaba at i-steady ang kamay o lumapit sa maliwanag na ilaw.
+                        </span>
+                    </div>
+                </div>
+            </template>
+
+            <template x-if="!isBlurry && sharpnessScore > 0">
+                <div class="w-full bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3 py-2 flex items-center justify-between text-emerald-300 text-xs">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="font-semibold">Malinaw at Nababasa ang Dokumento (High Quality)</span>
+                    </div>
+                    <span class="text-[10px] text-emerald-400/80 font-mono">Clarity: Good</span>
+                </div>
+            </template>
+
+            <!-- Image Snapshot Frame with Click to Zoom -->
+            <div
+                @click="showZoomModal = true"
+                class="w-full max-h-[340px] overflow-hidden rounded-xl border border-slate-700 bg-black flex items-center justify-center relative group cursor-pointer"
+                title="Pindutin para i-preview nang malaki"
+            >
+                <img :src="state" alt="CEO Signed Document Scan" class="max-h-[340px] w-full object-contain rounded-lg transition-transform group-hover:scale-[1.02]" />
+                
+                <!-- Hover Zoom Overlay Hint -->
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div class="bg-slate-900/90 border border-slate-700 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xl">
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                        </svg>
+                        <span>Pindutin para i-zoom at basahin ang pirma</span>
+                    </div>
+                </div>
+
                 <div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-emerald-300 text-[11px] font-mono px-2.5 py-1 rounded-md border border-emerald-500/30">
-                    High-Res Scan Attached
+                    High-Res Scan
                 </div>
             </div>
 
             <!-- Action Controls for Captured State -->
             <div class="w-full flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
-                <p class="text-xs text-slate-400">
-                    Siguraduhing malinaw ang pirma ng CEO bago i-save.
-                </p>
+                <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                    <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Siguraduhing kita ang lagda at stamp ni CEO bago i-save.</span>
+                </div>
                 <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        @click="showZoomModal = true"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 rounded-lg transition-colors cursor-pointer"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        🔍 Tingnan nang Buo
+                    </button>
                     <button
                         type="button"
                         @click="retake()"
@@ -201,6 +326,48 @@
                         Alisin
                     </button>
                 </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- FULLSCREEN / ZOOM PREVIEW MODAL -->
+    <template x-if="showZoomModal && state">
+        <div
+            class="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-md flex flex-col items-center justify-between p-4 sm:p-6"
+            @keydown.escape.window="showZoomModal = false"
+        >
+            <!-- Top bar -->
+            <div class="w-full max-w-4xl flex items-center justify-between text-white border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-emerald-400">📄 Dokumento Full Preview</span>
+                    <span class="text-xs text-slate-400 font-mono">(Suriin kung malinaw ang pirma ng CEO)</span>
+                </div>
+                <button
+                    type="button"
+                    @click="showZoomModal = false"
+                    class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 transition-colors"
+                >
+                    ✕ Isara Preview
+                </button>
+            </div>
+
+            <!-- Image Viewport -->
+            <div class="flex-1 w-full max-w-4xl flex items-center justify-center overflow-auto my-3">
+                <img :src="state" alt="Full Preview" class="max-h-[75vh] max-w-full object-contain rounded-xl border border-slate-700 shadow-2xl" />
+            </div>
+
+            <!-- Bottom bar -->
+            <div class="w-full max-w-4xl flex items-center justify-between border-t border-slate-800 pt-3">
+                <p class="text-xs text-slate-300">
+                    Kung malabo o maling form, pindutin ang <b>"Kuhanan Ulit"</b> bago i-save.
+                </p>
+                <button
+                    type="button"
+                    @click="showZoomModal = false"
+                    class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors"
+                >
+                    ✓ Ayos na, I-save Ko Na
+                </button>
             </div>
         </div>
     </template>
@@ -293,7 +460,7 @@
 
                         <!-- Subtle bottom hint -->
                         <div class="mx-auto text-[10px] text-white/70 font-mono tracking-wider">
-                            Panatilihing steady ang kamay
+                            Panatilihing steady ang kamay para hindi lumabo
                         </div>
                     </div>
                 </div>
