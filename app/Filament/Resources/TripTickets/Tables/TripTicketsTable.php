@@ -75,28 +75,72 @@ class TripTicketsTable
                         ->icon('heroicon-o-play')
                         ->color('success')
                         ->visible(fn ($record) => $record->status === 'pending')
+                        ->modalWidth('2xl')
                         ->form(function ($record) {
                             if ($record->document || $record->vehicleRequest?->document) {
                                 return [];
                             }
                             return [
-                                \Filament\Forms\Components\FileUpload::make('document')
-                                    ->label('Upload CEO Signed Document (Required)')
-                                    ->disk('public')
-                                    ->directory('request-documents')
-                                    ->visibility('public')
-                                    ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
-                                    ->required(),
+                                \Filament\Schemas\Components\Tabs::make('document_source')
+                                    ->tabs([
+                                        \Filament\Schemas\Components\Tabs\Tab::make('camera_scan')
+                                            ->label('📸 Live Camera / Scanner')
+                                            ->icon('heroicon-o-camera')
+                                            ->schema([
+                                                \Filament\Forms\Components\ViewField::make('captured_image')
+                                                    ->view('filament.components.camera-scanner')
+                                                    ->columnSpanFull(),
+                                            ]),
+                                        \Filament\Schemas\Components\Tabs\Tab::make('file_upload')
+                                            ->label('📁 Upload File (PDF / Larawan)')
+                                            ->icon('heroicon-o-arrow-up-tray')
+                                            ->schema([
+                                                \Filament\Forms\Components\FileUpload::make('document')
+                                                    ->label('Upload CEO Signed Document (Required)')
+                                                    ->disk('public')
+                                                    ->directory('request-documents')
+                                                    ->visibility('public')
+                                                    ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                                                    ->columnSpanFull(),
+                                            ]),
+                                    ]),
                             ];
                         })
-                        ->action(function ($record, array $data) {
-                            if (isset($data['document'])) {
+                        ->action(function ($record, array $data, $action) {
+                            $finalPath = null;
+
+                            // 1. Process camera scanner capture if provided
+                            if (!empty($data['captured_image']) && str_starts_with($data['captured_image'], 'data:image/')) {
+                                $imageData = $data['captured_image'];
+                                $type = 'jpg';
+                                if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
+                                    $type = strtolower($matches[1]);
+                                    if (!in_array($type, ['jpg', 'jpeg', 'png', 'webp'])) {
+                                        $type = 'jpg';
+                                    }
+                                    $imageData = substr($imageData, strpos($imageData, ',') + 1);
+                                }
+                                $decoded = base64_decode($imageData);
+                                if ($decoded !== false) {
+                                    $fileName = 'scan_' . ($record->ticket_number ?? $record->id) . '_' . time() . '.' . $type;
+                                    $path = 'request-documents/' . $fileName;
+                                    \Illuminate\Support\Facades\Storage::disk('public')->put($path, $decoded);
+                                    $finalPath = $path;
+                                }
+                            }
+
+                            // 2. Process file upload if provided
+                            if (!$finalPath && !empty($data['document'])) {
+                                $finalPath = $data['document'];
+                            }
+
+                            if ($finalPath) {
                                 $record->update([
-                                    'document' => $data['document'],
+                                    'document' => $finalPath,
                                 ]);
                                 if ($record->vehicleRequest) {
                                     $record->vehicleRequest->update([
-                                        'document' => $data['document'],
+                                        'document' => $finalPath,
                                         'status' => 'approved',
                                     ]);
                                 }
@@ -108,6 +152,7 @@ class TripTicketsTable
                                     ->body('CEO Signed Document is required to start the trip.')
                                     ->danger()
                                     ->send();
+                                $action->halt();
                                 return;
                             }
 

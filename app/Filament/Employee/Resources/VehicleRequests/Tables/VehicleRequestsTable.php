@@ -128,25 +128,86 @@ class VehicleRequestsTable
                         ->icon('heroicon-o-camera')
                         ->color('success')
                         ->modalHeading('📄 Upload or Scan CEO Signed Document')
-                        ->modalDescription('I-upload ang litrato o PDF ng pirmadong dokumento mula kay Campus Executive Officer (CEO).')
+                        ->modalDescription('Pumili kung gagamit ng Live Camera Scanner o mag-a-upload ng PDF/larawan mula sa device.')
+                        ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Save & Activate Trip')
                         ->visible(fn ($record) => !$record->trashed() && $record->status === 'approved' && !$record->document)
                         ->form([
-                            \Filament\Forms\Components\FileUpload::make('document')
-                                ->label('Attach Signed Document (Photo or PDF)')
-                                ->disk('public')
-                                ->directory('request-documents')
-                                ->visibility('public')
-                                ->imagePreviewHeight('250')
-                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
-                                ->helperText('📸 Cellphone: Pindutin ang kahon at piliin ang "Camera" para direktang picturan ang papel. 💻 Laptop: Piliin ang na-scan na PDF o larawan.')
-                                ->required(),
+                            \Filament\Schemas\Components\Tabs::make('document_source')
+                                ->tabs([
+                                    \Filament\Schemas\Components\Tabs\Tab::make('camera_scan')
+                                        ->label('📸 Live Camera / Scanner')
+                                        ->icon('heroicon-o-camera')
+                                        ->schema([
+                                            \Filament\Forms\Components\ViewField::make('captured_image')
+                                                ->view('filament.components.camera-scanner')
+                                                ->columnSpanFull(),
+                                        ]),
+                                    \Filament\Schemas\Components\Tabs\Tab::make('file_upload')
+                                        ->label('📁 Upload File (PDF / Larawan)')
+                                        ->icon('heroicon-o-arrow-up-tray')
+                                        ->schema([
+                                            \Filament\Forms\Components\FileUpload::make('document')
+                                                ->label('Attach Signed Document (Photo or PDF)')
+                                                ->disk('public')
+                                                ->directory('request-documents')
+                                                ->visibility('public')
+                                                ->imagePreviewHeight('250')
+                                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                                                ->helperText('Piliin ang na-scan na PDF o larawan mula sa iyong computer o cellphone.')
+                                                ->columnSpanFull(),
+                                        ]),
+                                ]),
                         ])
-                        ->action(function ($record, array $data) {
+                        ->action(function ($record, array $data, $action) {
+                            $finalPath = null;
+
+                            // 1. Process camera scanner capture if provided
+                            if (!empty($data['captured_image']) && str_starts_with($data['captured_image'], 'data:image/')) {
+                                $imageData = $data['captured_image'];
+                                $type = 'jpg';
+                                if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
+                                    $type = strtolower($matches[1]);
+                                    if (!in_array($type, ['jpg', 'jpeg', 'png', 'webp'])) {
+                                        $type = 'jpg';
+                                    }
+                                    $imageData = substr($imageData, strpos($imageData, ',') + 1);
+                                }
+                                $decoded = base64_decode($imageData);
+                                if ($decoded !== false) {
+                                    $fileName = 'scan_' . ($record->request_number ?? $record->id) . '_' . time() . '.' . $type;
+                                    $path = 'request-documents/' . $fileName;
+                                    \Illuminate\Support\Facades\Storage::disk('public')->put($path, $decoded);
+                                    $finalPath = $path;
+                                }
+                            }
+
+                            // 2. Process file upload if provided
+                            if (!$finalPath && !empty($data['document'])) {
+                                $finalPath = $data['document'];
+                            }
+
+                            if (!$finalPath) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Kailangan ang Dokumento')
+                                    ->body('Mangyaring kumuha ng scan gamit ang camera o mag-upload ng PDF / larawan bago i-save.')
+                                    ->danger()
+                                    ->send();
+
+                                $action->halt();
+                                return;
+                            }
+
                             $record->update([
-                                'document' => $data['document'],
+                                'document' => $finalPath,
                             ]);
-                            
+
+                            if ($record->tripTicket) {
+                                $record->tripTicket->updateQuietly([
+                                    'document' => $finalPath,
+                                ]);
+                            }
+
                             \Filament\Notifications\Notification::make()
                                 ->title('Document Uploaded')
                                 ->body('CEO Signed Document uploaded successfully! Trip ticket is now active!')
@@ -158,27 +219,82 @@ class VehicleRequestsTable
                         ->icon('heroicon-o-arrow-path')
                         ->color('warning')
                         ->modalHeading('📄 Replace CEO Signed Document')
-                        ->modalDescription('Pumili ng bagong larawan o PDF file bilang kapalit ng dating in-upload.')
+                        ->modalDescription('Pumili kung kukuha ng bagong scan gamit ang Live Camera o mag-a-upload ng bagong PDF/larawan.')
+                        ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Update Document')
                         ->visible(fn ($record) => !$record->trashed() && !empty($record->document) && in_array($record->status, ['approved', 'on_trip']))
                         ->form([
-                            \Filament\Forms\Components\FileUpload::make('document')
-                                ->label('Upload Replacement CEO Signed Document')
-                                ->disk('public')
-                                ->directory('request-documents')
-                                ->visibility('public')
-                                ->imagePreviewHeight('250')
-                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
-                                ->helperText('📸 Cellphone: Pindutin ang kahon at piliin ang "Camera" para kuhanan ng bagong litrato. 💻 Laptop: Piliin ang PDF o larawan.')
-                                ->required(),
+                            \Filament\Schemas\Components\Tabs::make('document_source')
+                                ->tabs([
+                                    \Filament\Schemas\Components\Tabs\Tab::make('camera_scan')
+                                        ->label('📸 Live Camera / Scanner')
+                                        ->icon('heroicon-o-camera')
+                                        ->schema([
+                                            \Filament\Forms\Components\ViewField::make('captured_image')
+                                                ->view('filament.components.camera-scanner')
+                                                ->columnSpanFull(),
+                                        ]),
+                                    \Filament\Schemas\Components\Tabs\Tab::make('file_upload')
+                                        ->label('📁 Upload File (PDF / Larawan)')
+                                        ->icon('heroicon-o-arrow-up-tray')
+                                        ->schema([
+                                            \Filament\Forms\Components\FileUpload::make('document')
+                                                ->label('Upload Replacement CEO Signed Document')
+                                                ->disk('public')
+                                                ->directory('request-documents')
+                                                ->visibility('public')
+                                                ->imagePreviewHeight('250')
+                                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                                                ->helperText('Piliin ang na-scan na PDF o larawan mula sa iyong computer o cellphone.')
+                                                ->columnSpanFull(),
+                                        ]),
+                                ]),
                         ])
-                        ->action(function ($record, array $data) {
+                        ->action(function ($record, array $data, $action) {
+                            $finalPath = null;
+
+                            // 1. Process camera scanner capture if provided
+                            if (!empty($data['captured_image']) && str_starts_with($data['captured_image'], 'data:image/')) {
+                                $imageData = $data['captured_image'];
+                                $type = 'jpg';
+                                if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
+                                    $type = strtolower($matches[1]);
+                                    if (!in_array($type, ['jpg', 'jpeg', 'png', 'webp'])) {
+                                        $type = 'jpg';
+                                    }
+                                    $imageData = substr($imageData, strpos($imageData, ',') + 1);
+                                }
+                                $decoded = base64_decode($imageData);
+                                if ($decoded !== false) {
+                                    $fileName = 'scan_' . ($record->request_number ?? $record->id) . '_' . time() . '.' . $type;
+                                    $path = 'request-documents/' . $fileName;
+                                    \Illuminate\Support\Facades\Storage::disk('public')->put($path, $decoded);
+                                    $finalPath = $path;
+                                }
+                            }
+
+                            // 2. Process file upload if provided
+                            if (!$finalPath && !empty($data['document'])) {
+                                $finalPath = $data['document'];
+                            }
+
+                            if (!$finalPath) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Kailangan ang Dokumento')
+                                    ->body('Mangyaring kumuha ng scan gamit ang camera o mag-upload ng PDF / larawan bago i-save.')
+                                    ->danger()
+                                    ->send();
+
+                                $action->halt();
+                                return;
+                            }
+
                             $record->update([
-                                'document' => $data['document'],
+                                'document' => $finalPath,
                             ]);
                             if ($record->tripTicket) {
                                 $record->tripTicket->updateQuietly([
-                                    'document' => $data['document'],
+                                    'document' => $finalPath,
                                 ]);
                             }
                             \Filament\Notifications\Notification::make()
