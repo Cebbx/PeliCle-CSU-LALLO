@@ -72,18 +72,6 @@ class VehicleRequestForm
                     ->disabled()
                     ->dehydrated()
                     ->required(),
-                \Filament\Forms\Components\Placeholder::make('vehicle_assignment_info')
-                    ->label('Vehicle Assignment')
-                    ->content(new \Illuminate\Support\HtmlString('
-                        <div class="flex items-center gap-3 p-3 bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-xl text-xs text-blue-900 dark:text-blue-200">
-                            <span class="text-xl flex-shrink-0">🚐</span>
-                            <div>
-                                <span class="font-bold block text-sm text-blue-950 dark:text-blue-100">Itatalaga ng GSO / Motorpool Dispatcher</span>
-                                <span>Ang sasakyan at driver ay itatalaga ng GSO kapag na-aprubahan ang request batay sa dami ng pasahero, lokasyon, at iskedyul.</span>
-                            </div>
-                        </div>
-                    '))
-                    ->columnSpanFull(),
                 Fieldset::make('Destination Address')
                     ->columnSpan(1)
                     ->schema([
