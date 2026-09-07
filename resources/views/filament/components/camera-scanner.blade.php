@@ -81,25 +81,20 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, width, height);
 
-            // Shutter flash effect
             this.flashActive = true;
             setTimeout(() => { this.flashActive = false; }, 200);
 
-            // Calculate sharpness/blurriness score using edge contrast
             this.sharpnessScore = this.calculateSharpness(ctx, width, height);
             this.isBlurry = this.sharpnessScore < 60;
 
-            // Export JPEG data URL with 88% quality
             const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
             this.state = dataUrl;
 
-            // Stop camera stream to free hardware
             this.stopCamera();
         },
 
         calculateSharpness(ctx, width, height) {
             try {
-                // Downscale to 160x120 for instant calculation
                 const sampleCanvas = document.createElement('canvas');
                 sampleCanvas.width = 160;
                 sampleCanvas.height = 120;
@@ -108,13 +103,11 @@
                 const imgData = sampleCtx.getImageData(0, 0, 160, 120);
                 const d = imgData.data;
 
-                // Convert to grayscale luminance
                 const gray = new Float32Array(160 * 120);
                 for (let i = 0, j = 0; i < d.length; i += 4, j++) {
                     gray[j] = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
                 }
 
-                // Laplacian edge filter variance
                 let mean = 0;
                 let count = 0;
                 const laplacian = [];
@@ -139,7 +132,6 @@
 
                 return Math.round(variance);
             } catch (e) {
-                console.warn('Sharpness check skipped:', e);
                 return 100;
             }
         },
@@ -191,7 +183,6 @@
                 this.state = event.target.result;
                 this.stopCamera();
 
-                // Check sharpness of uploaded image via an Image object
                 const img = new Image();
                 img.onload = () => {
                     const tempCanvas = document.createElement('canvas');
@@ -213,117 +204,305 @@
     }"
     x-init="init()"
     x-on:unmount.window="destroy()"
-    class="w-full"
+    class="doc-scanner-wrapper"
 >
+    <!-- Scoped CSS for bulletproof styling -->
+    <style>
+        .doc-scanner-wrapper {
+            width: 100%;
+            font-family: inherit;
+        }
+        .doc-scanner-card {
+            background: #0b1120;
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 24px 20px;
+            text-align: center;
+            color: #f8fafc;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .doc-scanner-icon-badge {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            max-width: 48px;
+            min-height: 48px;
+            max-height: 48px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.28);
+            color: #10b981;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px auto;
+        }
+        .doc-scanner-icon-badge svg {
+            width: 24px !important;
+            height: 24px !important;
+            min-width: 24px !important;
+            max-width: 24px !important;
+            min-height: 24px !important;
+            max-height: 24px !important;
+            display: block;
+        }
+        .doc-scanner-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.01em;
+        }
+        .doc-scanner-subtitle {
+            font-size: 12.5px;
+            color: #94a3b8;
+            margin: 0 auto 18px auto;
+            line-height: 1.5;
+            max-width: 380px;
+        }
+        .doc-scanner-btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #ffffff !important;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 9px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+            text-decoration: none;
+        }
+        .doc-scanner-btn-primary:hover {
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+        }
+        .doc-scanner-btn-primary svg {
+            width: 17px !important;
+            height: 17px !important;
+            min-width: 17px !important;
+            max-width: 17px !important;
+        }
+        .doc-scanner-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #64748b;
+            font-size: 11px;
+            margin: 16px 0 12px 0;
+        }
+        .doc-scanner-divider::before, .doc-scanner-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #1e293b;
+        }
+        .doc-scanner-divider:not(:empty)::before {
+            margin-right: 12px;
+        }
+        .doc-scanner-divider:not(:empty)::after {
+            margin-left: 12px;
+        }
+        .doc-scanner-btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: #1e293b;
+            color: #cbd5e1;
+            font-size: 11.5px;
+            font-weight: 500;
+            padding: 6px 13px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .doc-scanner-btn-secondary:hover {
+            background: #334155;
+            color: #ffffff;
+        }
+        .doc-scanner-btn-secondary svg {
+            width: 15px !important;
+            height: 15px !important;
+        }
+        /* Viewfinder styles */
+        .doc-viewfinder-box {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #020617;
+            border: 1px solid #334155;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+        }
+        .doc-viewfinder-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #0f172a;
+            border-bottom: 1px solid #1e293b;
+        }
+        .doc-viewfinder-video {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            display: block;
+            background: #000000;
+        }
+        .doc-viewfinder-bottombar {
+            padding: 12px;
+            background: #0f172a;
+            border-top: 1px solid #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .doc-shutter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white !important;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 9px 22px;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+            transition: all 0.15s ease;
+        }
+        .doc-shutter-btn:active {
+            transform: scale(0.96);
+        }
+        .doc-shutter-btn svg {
+            width: 18px !important;
+            height: 18px !important;
+        }
+        /* Framing Brackets */
+        .corner-bracket {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-color: #10b981;
+            border-style: solid;
+        }
+        .corner-tl { top: 14px; left: 14px; border-width: 3px 0 0 3px; border-top-left-radius: 6px; }
+        .corner-tr { top: 14px; right: 14px; border-width: 3px 3px 0 0; border-top-right-radius: 6px; }
+        .corner-bl { bottom: 14px; left: 14px; border-width: 0 0 3px 3px; border-bottom-left-radius: 6px; }
+        .corner-br { bottom: 14px; right: 14px; border-width: 0 3px 3px 0; border-bottom-right-radius: 6px; }
+        /* Preview Card */
+        .doc-preview-box {
+            background: #0b1120;
+            border: 1px solid #1e293b;
+            border-radius: 14px;
+            padding: 16px;
+            max-width: 500px;
+            margin: 0 auto;
+            color: #f8fafc;
+        }
+        .doc-preview-img-wrap {
+            position: relative;
+            max-height: 280px;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #020617;
+            border: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .doc-preview-img {
+            max-height: 280px;
+            width: 100%;
+            object-fit: contain;
+            display: block;
+        }
+    </style>
+
     <!-- Hidden Canvas for frame capture -->
-    <canvas x-ref="canvas" class="hidden"></canvas>
+    <canvas x-ref="canvas" style="display: none;"></canvas>
 
     <!-- 1. CAPTURED PREVIEW STATE -->
     <template x-if="state">
-        <div class="bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-xl text-slate-100 flex flex-col items-center gap-4">
+        <div class="doc-preview-box">
             
             <!-- Status Header -->
-            <div class="w-full flex items-center justify-between border-b border-slate-800 pb-3">
-                <div class="flex items-center gap-2">
-                    <span class="flex h-3 w-3 relative">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                    </span>
-                    <span class="text-sm font-bold text-emerald-400 uppercase tracking-wide">✓ Dokumento Na-Scan</span>
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
+                    <span style="font-size: 13px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.04em;">✓ Dokumento Na-Scan</span>
                 </div>
-                <div class="text-xs text-slate-400 font-mono">
-                    Ready to Save
-                </div>
+                <span style="font-size: 11px; color: #64748b; font-family: monospace;">Handa nang i-save</span>
             </div>
 
-            <!-- SMART SHARPNESS & BLUR DETECTION ALERT -->
+            <!-- Smart Sharpness / Blur Detection Alert -->
             <template x-if="isBlurry">
-                <div class="w-full bg-amber-500/15 border border-amber-500/50 rounded-xl p-3 flex items-start gap-3 text-amber-200 text-xs shadow-inner">
-                    <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <div>
-                        <strong class="font-bold text-amber-300 block text-sm">⚠️ Babala: Medyo Malabo ang Pagkaka-scan (Blurry)</strong>
-                        <span class="mt-0.5 block leading-relaxed text-amber-100/90">
-                            Maaaring tanggihan ng Admin o Guard kung hindi malinaw ang pirma ng CEO. Pindutin ang <b>"Kuhanan Ulit (Retake)"</b> sa ibaba at i-steady ang kamay o lumapit sa maliwanag na ilaw.
-                        </span>
+                <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px; text-align: left;">
+                    <span style="font-size: 16px; line-height: 1;">⚠️</span>
+                    <div style="font-size: 11.5px; color: #fde68a; line-height: 1.4;">
+                        <strong style="color: #fbbf24; display: block; margin-bottom: 2px;">Medyo Malabo ang Pagkaka-scan</strong>
+                        Pakitingnan kung malinaw at nababasa ang pirma ni CEO. Kung malabo, pindutin ang <b>"Kuhanan Ulit (Retake)"</b> sa ibaba.
                     </div>
                 </div>
             </template>
 
             <template x-if="!isBlurry && sharpnessScore > 0">
-                <div class="w-full bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3 py-2 flex items-center justify-between text-emerald-300 text-xs">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span class="font-semibold">Malinaw at Nababasa ang Dokumento (High Quality)</span>
-                    </div>
-                    <span class="text-[10px] text-emerald-400/80 font-mono">Clarity: Good</span>
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 6px 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #34d399;">
+                    <span>✓ Malinaw at maayos ang kuha</span>
+                    <span style="font-family: monospace; font-size: 10px; color: #059669;">Quality: Good</span>
                 </div>
             </template>
 
             <!-- Image Snapshot Frame with Click to Zoom -->
             <div
                 @click="showZoomModal = true"
-                class="w-full max-h-[340px] overflow-hidden rounded-xl border border-slate-700 bg-black flex items-center justify-center relative group cursor-pointer"
-                title="Pindutin para i-preview nang malaki"
+                class="doc-preview-img-wrap"
+                title="Pindutin para i-zoom"
             >
-                <img :src="state" alt="CEO Signed Document Scan" class="max-h-[340px] w-full object-contain rounded-lg transition-transform group-hover:scale-[1.02]" />
-                
-                <!-- Hover Zoom Overlay Hint -->
-                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div class="bg-slate-900/90 border border-slate-700 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xl">
-                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-                        </svg>
-                        <span>Pindutin para i-zoom at basahin ang pirma</span>
-                    </div>
-                </div>
-
-                <div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-emerald-300 text-[11px] font-mono px-2.5 py-1 rounded-md border border-emerald-500/30">
-                    High-Res Scan
+                <img :src="state" alt="CEO Signed Document Scan" class="doc-preview-img" />
+                <div style="position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,0.75); color: #34d399; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-family: monospace;">
+                    🔍 Pindutin para i-zoom
                 </div>
             </div>
 
             <!-- Action Controls for Captured State -->
-            <div class="w-full flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
-                <div class="flex items-center gap-1.5 text-xs text-slate-400">
-                    <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Siguraduhing kita ang lagda at stamp ni CEO bago i-save.</span>
-                </div>
-                <div class="flex items-center gap-2">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #1e293b;">
+                <span style="font-size: 11px; color: #64748b;">
+                    Siguraduhing kita ang lagda ni CEO.
+                </span>
+                <div style="display: flex; align-items: center; gap: 6px;">
                     <button
                         type="button"
                         @click="showZoomModal = true"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 rounded-lg transition-colors cursor-pointer"
+                        style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; cursor: pointer;"
                     >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                        🔍 Tingnan nang Buo
+                        🔍 Zoom
                     </button>
                     <button
                         type="button"
                         @click="retake()"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg transition-colors cursor-pointer"
+                        style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #f59e0b; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; cursor: pointer;"
                     >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        Kuhanan Ulit (Retake)
+                        🔄 Kuhanan Ulit
                     </button>
                     <button
                         type="button"
                         @click="clear()"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg transition-colors cursor-pointer"
+                        style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; cursor: pointer;"
                     >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Alisin
+                        ✕ Alisin
                     </button>
                 </div>
             </div>
@@ -333,40 +512,32 @@
     <!-- FULLSCREEN / ZOOM PREVIEW MODAL -->
     <template x-if="showZoomModal && state">
         <div
-            class="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-md flex flex-col items-center justify-between p-4 sm:p-6"
+            style="position: fixed; inset: 0; z-index: 999999; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(4px); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 16px;"
             @keydown.escape.window="showZoomModal = false"
         >
-            <!-- Top bar -->
-            <div class="w-full max-w-4xl flex items-center justify-between text-white border-b border-slate-800 pb-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-sm font-bold text-emerald-400">📄 Dokumento Full Preview</span>
-                    <span class="text-xs text-slate-400 font-mono">(Suriin kung malinaw ang pirma ng CEO)</span>
-                </div>
+            <div style="width: 100%; max-width: 720px; display: flex; align-items: center; justify-content: space-between; color: white; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+                <span style="font-size: 14px; font-weight: 700; color: #34d399;">📄 Preview ng Dokumento</span>
                 <button
                     type="button"
                     @click="showZoomModal = false"
-                    class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 transition-colors"
+                    style="background: #1e293b; color: white; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;"
                 >
-                    ✕ Isara Preview
+                    ✕ Isara
                 </button>
             </div>
 
-            <!-- Image Viewport -->
-            <div class="flex-1 w-full max-w-4xl flex items-center justify-center overflow-auto my-3">
-                <img :src="state" alt="Full Preview" class="max-h-[75vh] max-w-full object-contain rounded-xl border border-slate-700 shadow-2xl" />
+            <div style="flex: 1; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 12px 0;">
+                <img :src="state" alt="Full Preview" style="max-height: 72vh; max-width: 90vw; object-fit: contain; border-radius: 8px; border: 1px solid #475569; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);" />
             </div>
 
-            <!-- Bottom bar -->
-            <div class="w-full max-w-4xl flex items-center justify-between border-t border-slate-800 pt-3">
-                <p class="text-xs text-slate-300">
-                    Kung malabo o maling form, pindutin ang <b>"Kuhanan Ulit"</b> bago i-save.
-                </p>
+            <div style="width: 100%; max-width: 720px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #334155; padding-top: 10px;">
+                <span style="font-size: 12px; color: #94a3b8;">Nababasa ba ang pirma ng CEO?</span>
                 <button
                     type="button"
                     @click="showZoomModal = false"
-                    class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors"
+                    style="background: #059669; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;"
                 >
-                    ✓ Ayos na, I-save Ko Na
+                    ✓ Ayos Na, Gamitin Ito
                 </button>
             </div>
         </div>
@@ -374,33 +545,31 @@
 
     <!-- 2. LIVE CAMERA STREAMING STATE -->
     <template x-if="!state && isStreaming">
-        <div class="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative flex flex-col items-center">
+        <div class="doc-viewfinder-box">
             
             <!-- Shutter Flash Overlay -->
             <div
                 x-show="flashActive"
-                x-transition:leave="transition ease-out duration-200"
+                x-transition:leave="transition ease-out duration-150"
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0"
-                class="absolute inset-0 bg-white z-50 pointer-events-none"
+                style="position: absolute; inset: 0; background: white; z-index: 50; pointer-events: none;"
             ></div>
 
-            <!-- Header Controls Bar -->
-            <div class="w-full bg-slate-900/90 backdrop-blur-md px-4 py-2.5 flex items-center justify-between border-b border-slate-800 z-30">
-                <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">
-                        <span class="h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
-                        LIVE CAMERA
-                    </span>
-                </div>
+            <!-- Top bar -->
+            <div class="doc-viewfinder-topbar">
+                <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #f87171; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); padding: 2px 8px; border-radius: 9999px;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #ef4444;"></span>
+                    LIVE CAMERA
+                </span>
 
-                <div class="flex items-center gap-2">
+                <div style="display: flex; align-items: center; gap: 8px;">
                     <!-- Device Selector (if multiple cameras available) -->
                     <template x-if="devices.length > 1">
                         <select
                             x-model="selectedDeviceId"
                             @change="switchCamera()"
-                            class="text-xs bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1 focus:ring-emerald-500 focus:border-emerald-500 max-w-[150px] sm:max-w-[200px] truncate"
+                            style="font-size: 11px; background: #1e293b; color: #cbd5e1; border: 1px solid #334155; border-radius: 6px; padding: 3px 6px; max-width: 140px;"
                         >
                             <template x-for="(d, idx) in devices" :key="d.deviceId">
                                 <option :value="d.deviceId" x-text="d.label || ('Camera ' + (idx + 1))"></option>
@@ -408,14 +577,14 @@
                         </select>
                     </template>
 
-                    <!-- Flip Camera Button (Front/Back toggle for mobile) -->
+                    <!-- Flip Camera Button -->
                     <button
                         type="button"
                         @click="toggleFacingMode()"
                         title="Palitan ang camera (harap / likod)"
-                        class="p-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300 hover:text-white transition-colors cursor-pointer"
+                        style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; border-radius: 6px; padding: 4px 7px; cursor: pointer; display: flex; align-items: center;"
                     >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                     </button>
@@ -424,7 +593,7 @@
                     <button
                         type="button"
                         @click="stopCamera()"
-                        class="text-xs font-semibold px-2.5 py-1 bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-300 border border-slate-700 hover:border-red-500/40 rounded-lg transition-colors cursor-pointer"
+                        style="font-size: 11px; font-weight: 600; background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 4px 8px; cursor: pointer;"
                     >
                         ✕ Isara
                     </button>
@@ -432,50 +601,38 @@
             </div>
 
             <!-- Video Viewfinder Area with Document Guidelines -->
-            <div class="relative w-full aspect-[4/3] sm:aspect-[16/10] max-h-[420px] bg-black flex items-center justify-center overflow-hidden">
+            <div style="position: relative; width: 100%; overflow: hidden; background: #000;">
                 <video
                     x-ref="video"
                     autoplay
                     playsinline
                     muted
-                    class="w-full h-full object-cover"
+                    class="doc-viewfinder-video"
                 ></video>
 
-                <!-- Document Framing Bracket Overlay -->
-                <div class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-6 sm:p-8">
-                    <div class="w-full h-full border-2 border-dashed border-emerald-400/40 rounded-2xl relative flex flex-col justify-between p-3">
-                        <!-- Top-Left Corner Bracket -->
-                        <div class="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-emerald-400 rounded-tl-xl shadow-[0_0_12px_rgba(52,211,153,0.8)]"></div>
-                        <!-- Top-Right Corner Bracket -->
-                        <div class="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-emerald-400 rounded-tr-xl shadow-[0_0_12px_rgba(52,211,153,0.8)]"></div>
-                        <!-- Bottom-Left Corner Bracket -->
-                        <div class="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-emerald-400 rounded-bl-xl shadow-[0_0_12px_rgba(52,211,153,0.8)]"></div>
-                        <!-- Bottom-Right Corner Bracket -->
-                        <div class="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-emerald-400 rounded-br-xl shadow-[0_0_12px_rgba(52,211,153,0.8)]"></div>
+                <!-- Corner Brackets Overlay -->
+                <div class="corner-bracket corner-tl"></div>
+                <div class="corner-bracket corner-tr"></div>
+                <div class="corner-bracket corner-bl"></div>
+                <div class="corner-bracket corner-br"></div>
 
-                        <!-- Guide Label -->
-                        <div class="mx-auto bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-semibold text-emerald-300 border border-emerald-500/30">
-                            📄 I-sentro ang pirmadong papel sa loob ng border
-                        </div>
-
-                        <!-- Subtle bottom hint -->
-                        <div class="mx-auto text-[10px] text-white/70 font-mono tracking-wider">
-                            Panatilihing steady ang kamay para hindi lumabo
-                        </div>
-                    </div>
+                <!-- Center Guide label -->
+                <div style="position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.65); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; pointer-events: none; white-space: nowrap;">
+                    📄 I-sentro ang papel sa loob ng border
                 </div>
             </div>
 
             <!-- Bottom Shutter Action Bar -->
-            <div class="w-full bg-slate-900/95 backdrop-blur-md p-4 flex items-center justify-center border-t border-slate-800">
+            <div class="doc-viewfinder-bottombar">
                 <button
                     type="button"
                     @click="capture()"
-                    class="group inline-flex items-center gap-2.5 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-bold text-sm sm:text-base rounded-full shadow-[0_0_25px_rgba(16,185,129,0.35)] transition-all cursor-pointer"
+                    class="doc-shutter-btn"
                 >
-                    <div class="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center">
-                        <div class="w-3.5 h-3.5 rounded-full bg-white group-hover:scale-110 transition-transform"></div>
-                    </div>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
                     <span>KUHANAN NG LITRATO (CAPTURE)</span>
                 </button>
             </div>
@@ -484,70 +641,63 @@
 
     <!-- 3. INACTIVE CAMERA / LAUNCH SCREEN STATE -->
     <template x-if="!state && !isStreaming">
-        <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl p-6 text-center text-slate-100 shadow-xl relative overflow-hidden">
-            <!-- Decorative background glow -->
-            <div class="absolute -top-16 -right-16 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="absolute -bottom-16 -left-16 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="doc-scanner-card">
+            
+            <!-- Compact Icon Badge (Explicit 48px) -->
+            <div class="doc-scanner-icon-badge">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
 
-            <div class="max-w-md mx-auto flex flex-col items-center gap-4 relative z-10">
-                <!-- Icon badge -->
-                <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.15)]">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            <!-- Title & Subtitle -->
+            <h3 class="doc-scanner-title">
+                Live Camera Scanner
+            </h3>
+            <p class="doc-scanner-subtitle">
+                Direktang picturan ang pirmadong Trip Ticket o dokumento gamit ang iyong webcam o cellphone camera.
+            </p>
+
+            <!-- Error alert if camera permission failed -->
+            <template x-if="errorMessage">
+                <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 8px 12px; margin-bottom: 14px; font-size: 11.5px; color: #fca5a5; text-align: left;">
+                    <span x-text="errorMessage"></span>
+                </div>
+            </template>
+
+            <!-- Primary Action: Open Camera Button -->
+            <button
+                type="button"
+                @click="startCamera()"
+                :disabled="isLoading"
+                class="doc-scanner-btn-primary"
+            >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span x-text="isLoading ? 'Binubuksan ang Camera...' : '📷 Buksan ang Camera / Scanner'"></span>
+            </button>
+
+            <!-- Divider -->
+            <div class="doc-scanner-divider">O KAYA</div>
+
+            <!-- Alternative: Native Device Camera / File Picker -->
+            <div>
+                <label class="doc-scanner-btn-secondary">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                </div>
-
-                <div>
-                    <h3 class="text-base font-bold text-white tracking-tight">
-                        Live Camera & Document Scanner
-                    </h3>
-                    <p class="text-xs text-slate-400 mt-1 max-w-sm">
-                        Gamitin ang iyong laptop webcam o cellphone camera para direktang kuhanan ng litrato ang dokumentong may pirma ng CEO.
-                    </p>
-                </div>
-
-                <!-- Error alert if camera permission failed -->
-                <template x-if="errorMessage">
-                    <div class="w-full bg-red-950/40 border border-red-800/60 rounded-xl p-3 text-xs text-red-300 text-left flex items-start gap-2">
-                        <svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        <span x-text="errorMessage"></span>
-                    </div>
-                </template>
-
-                <!-- Primary Action: Open Camera Button -->
-                <button
-                    type="button"
-                    @click="startCamera()"
-                    :disabled="isLoading"
-                    class="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/30 hover:shadow-emerald-500/50 transition-all cursor-pointer w-full sm:w-auto"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span x-text="isLoading ? 'Binubuksan ang Camera...' : '📷 Buksan ang Camera / Start Scanner'"></span>
-                </button>
-
-                <!-- Alternative: Native Device Camera / File Picker -->
-                <div class="w-full pt-3 mt-1 border-t border-slate-800/80 flex flex-col items-center gap-2">
-                    <span class="text-[11px] text-slate-500 font-medium">O kaya pumili ng litrato mula sa iyong device / gallery:</span>
-                    <label class="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700 rounded-lg cursor-pointer transition-colors">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span>Pumili ng Larawan</span>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            @change="handleNativeFileInput($event)"
-                            class="hidden"
-                        />
-                    </label>
-                </div>
+                    <span>Pumili ng Larawan mula sa Gallery / Device</span>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        @change="handleNativeFileInput($event)"
+                        style="display: none;"
+                    />
+                </label>
             </div>
         </div>
     </template>
