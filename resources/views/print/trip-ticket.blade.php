@@ -209,22 +209,24 @@
 
         <!-- Certifications & Prepared/Approved signatures -->
         <div class="mb-6 text-xs">
-            <p class="italic font-semibold mb-6">I CERTIFY that the vehicle is in GOOD RUNNING CONDITION:</p>
+            <p class="italic font-semibold mb-4">I CERTIFY that the vehicle is in GOOD RUNNING CONDITION:</p>
             
-            <div class="grid grid-cols-2 gap-6 text-center mt-4">
-                <div class="flex flex-col justify-end min-h-[65px]">
-                    <span class="text-xs font-bold text-black">JOEL A. TUMAMAO</span>
-                    <span class="text-[9px] text-black uppercase font-semibold">General Services Officer</span>
-                    <div class="border-t border-black pt-1 mt-1 text-[9px] uppercase font-bold text-black">Prepared by:</div>
-                    <span class="text-[8px] font-mono text-gray-600 mt-1">Prepared: {{ \Carbon\Carbon::parse($ticket->created_at)->format('M d, Y - h:i A') }}</span>
+            <div class="grid grid-cols-2 gap-8 mt-2">
+                <!-- Left: Prepared by Joel A. Tumamao -->
+                <div class="flex flex-col text-left">
+                    <span class="text-xs text-black font-semibold mb-6">Prepared by:</span>
+                    <span class="text-xs font-extrabold text-black uppercase">JOEL A. TUMAMAO</span>
+                    <span class="text-[10px] text-black font-semibold">General Services Officer</span>
+                    <span class="text-[8px] font-mono text-gray-500 mt-1">Prepared: {{ \Carbon\Carbon::parse($ticket->created_at)->format('M d, Y - h:i A') }}</span>
                 </div>
                 
-                <div class="flex flex-col justify-end min-h-[65px]">
-                    <span class="text-xs font-bold text-black">ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.</span>
-                    <span class="text-[9px] text-black uppercase font-semibold">Campus Executive Officer</span>
-                    <div class="border-t border-black pt-1 mt-1 text-[9px] uppercase font-bold text-black">Approved by:</div>
+                <!-- Right: Approved by Engr. James B. Cabildo -->
+                <div class="flex flex-col text-center">
+                    <span class="text-xs text-black font-semibold mb-6 text-left pl-4">Approved by:</span>
+                    <span class="text-xs font-extrabold text-black uppercase">ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.</span>
+                    <span class="text-[10px] text-black font-semibold">Campus Executive Officer</span>
                     @if(in_array($ticket->status, ['active', 'completed']) || !empty($ticket->document))
-                        <span class="text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-1 py-0.5 rounded mt-1 inline-block">
+                        <span class="text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-1 py-0.5 rounded mt-1 inline-block self-center">
                             ✓ CEO Signed & Approved &middot; {{ \Carbon\Carbon::parse($ticket->updated_at)->format('M d, Y - h:i A') }}
                         </span>
                     @else
