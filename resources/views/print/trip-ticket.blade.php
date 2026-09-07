@@ -159,9 +159,13 @@
                     <span class="text-xs font-bold text-black">ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.</span>
                     <span class="text-[9px] text-black uppercase font-semibold">Campus Executive Officer</span>
                     <div class="border-t border-black pt-1 mt-1 text-[9px] uppercase font-bold text-black">Approved by:</div>
-                    @if(in_array($ticket->status, ['pending', 'active', 'completed']))
+                    @if(in_array($ticket->status, ['active', 'completed']) || !empty($ticket->document))
                         <span class="text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-1 py-0.5 rounded mt-1 inline-block">
-                            ✓ Approved Timestamp: {{ \Carbon\Carbon::parse($ticket->created_at)->format('M d, Y - h:i:s A') }}
+                            ✓ CEO Signed & Approved &middot; {{ \Carbon\Carbon::parse($ticket->updated_at)->format('M d, Y - h:i A') }}
+                        </span>
+                    @else
+                        <span class="text-[8px] font-mono text-gray-500 mt-1 inline-block">
+                            (Signature of Campus Executive Officer)
                         </span>
                     @endif
                 </div>
@@ -174,6 +178,22 @@
             <span class="text-[10px] font-extrabold uppercase tracking-wide text-black block mb-1">To be filled up by Driver:</span>
             <span class="text-xs underline font-bold text-black block mb-1">Itinerary of Travel:</span>
             
+            @php
+                $depLog = \App\Models\ActivityLog::where('model_type', \App\Models\TripTicket::class)
+                    ->where('model_id', $ticket->id)
+                    ->where('action', 'Departure Logged')
+                    ->first();
+                $arrLog = \App\Models\ActivityLog::where('model_type', \App\Models\TripTicket::class)
+                    ->where('model_id', $ticket->id)
+                    ->where('action', 'Arrival Logged')
+                    ->first();
+                $hasDigitalLogs = ($depLog || $arrLog || $ticket->status === 'completed');
+                $travelDate = $ticket->vehicleRequest?->date ? \Carbon\Carbon::parse($ticket->vehicleRequest->date)->format('M d, Y') : '';
+                $depTime = $depLog ? \Carbon\Carbon::parse($depLog->created_at)->format('g:i A') : ($ticket->vehicleRequest?->time ? \Carbon\Carbon::parse($ticket->vehicleRequest->time)->format('g:i A') : '');
+                $arrTime = $arrLog ? \Carbon\Carbon::parse($arrLog->created_at)->format('g:i A') : ($ticket->status === 'completed' ? \Carbon\Carbon::parse($ticket->updated_at)->format('g:i A') : '');
+                $dest = $ticket->vehicleRequest?->destination ?? '';
+            @endphp
+
             <table class="w-full border-collapse border border-black text-[10px]">
                 <thead>
                     <tr>
@@ -189,15 +209,34 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for($i=0; $i<4; $i++)
+                    @if($hasDigitalLogs)
                         <tr>
-                            <td class="border border-black p-2 h-6"></td>
-                            <td class="border border-black p-2"></td>
-                            <td class="border border-black p-2"></td>
-                            <td class="border border-black p-2"></td>
-                            <td class="border border-black p-2"></td>
+                            <td class="border border-black p-2 font-mono font-semibold text-center">{{ $travelDate }}</td>
+                            <td class="border border-black p-2 font-mono font-semibold text-center">{{ $depTime }}</td>
+                            <td class="border border-black p-2 font-semibold">CSU Lal-lo Campus</td>
+                            <td class="border border-black p-2 font-mono font-semibold text-center">{{ $arrTime ?: '---' }}</td>
+                            <td class="border border-black p-2 font-semibold">{{ $dest }}</td>
                         </tr>
-                    @endfor
+                        @for($i=0; $i<3; $i++)
+                            <tr>
+                                <td class="border border-black p-2 h-6"></td>
+                                <td class="border border-black p-2"></td>
+                                <td class="border border-black p-2"></td>
+                                <td class="border border-black p-2"></td>
+                                <td class="border border-black p-2"></td>
+                            </tr>
+                        @endfor
+                    @else
+                        @for($i=0; $i<4; $i++)
+                            <tr>
+                                <td class="border border-black p-2 h-6"></td>
+                                <td class="border border-black p-2"></td>
+                                <td class="border border-black p-2"></td>
+                                <td class="border border-black p-2"></td>
+                                <td class="border border-black p-2"></td>
+                            </tr>
+                        @endfor
+                    @endif
                 </tbody>
             </table>
 
@@ -223,7 +262,7 @@
             <div class="flex justify-between items-end">
                 <div class="flex flex-col gap-1.5">
                     <label class="flex items-center gap-2 cursor-default pointer-events-none">
-                        <input type="checkbox" disabled class="w-4 h-4 accent-black pointer-events-none cursor-default" />
+                        <input type="checkbox" disabled {{ $ticket->status === 'completed' ? 'checked' : '' }} class="w-4 h-4 accent-black pointer-events-none cursor-default" />
                         <span class="font-bold text-black">GOOD</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-default pointer-events-none">
