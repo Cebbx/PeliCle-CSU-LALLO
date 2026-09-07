@@ -32,6 +32,11 @@ class ListVehicleRequests extends ListRecords
         return [
             CreateAction::make()
                 ->hidden(fn () => $this->isArchived),
+            Action::make('refresh')
+                ->label('Refresh Table')
+                ->icon('heroicon-o-arrow-path')
+                ->color('gray')
+                ->action(fn () => null),
             Action::make('toggle_archived')
                 ->label(fn () => $this->isArchived ? 'Back to Active Requests' : 'View Archived')
                 ->icon(fn () => $this->isArchived ? 'heroicon-o-arrow-left' : 'heroicon-o-archive-box')

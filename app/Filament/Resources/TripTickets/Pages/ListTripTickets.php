@@ -14,6 +14,11 @@ class ListTripTickets extends ListRecords
     {
         return [
             CreateAction::make(),
+            \Filament\Actions\Action::make('refresh')
+                ->label('Refresh Table')
+                ->icon('heroicon-o-arrow-path')
+                ->color('gray')
+                ->action(fn () => null),
         ];
     }
 
