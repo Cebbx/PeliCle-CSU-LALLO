@@ -412,18 +412,30 @@ class VehicleRequestsTable
                 ->button(),
             ])
             ->filters([
-                SelectFilter::make('status')
-                    ->options([
-                        'pending' => 'Pending (New)',
-                        'approved' => 'Approved',
-                        'on_trip' => 'On Trip',
-                        'rejected' => 'Disapproved',
-                        'cancelled' => 'Cancelled',
-                        'completed' => 'Completed',
-                        'expired' => 'Expired',
-                    ]),
-                TernaryFilter::make('is_urgent')
-                    ->label('Urgent Requests Only'),
+                \Filament\Tables\Filters\Filter::make('status')
+                    ->form([
+                        \Filament\Forms\Components\CheckboxList::make('status')
+                            ->label('Filter by Status')
+                            ->options([
+                                'pending' => 'Pending (New)',
+                                'approved' => 'Approved',
+                                'on_trip' => 'On Trip',
+                                'completed' => 'Completed',
+                                'cancelled' => 'Cancelled',
+                                'rejected' => 'Disapproved',
+                                'expired' => 'Expired',
+                            ])
+                            ->bulkToggleable(),
+                    ])
+                    ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data): \Illuminate\Database\Eloquent\Builder {
+                        return $query->when(
+                            !empty($data['status']),
+                            fn (\Illuminate\Database\Eloquent\Builder $query) => $query->whereIn('status', $data['status'])
+                        );
+                    }),
+                \Filament\Tables\Filters\Filter::make('is_urgent')
+                    ->label('Urgent Requests Only')
+                    ->query(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('is_urgent', true)),
             ]);
     }
 }
