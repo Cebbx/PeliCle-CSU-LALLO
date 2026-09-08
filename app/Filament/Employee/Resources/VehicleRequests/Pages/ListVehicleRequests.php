@@ -45,41 +45,42 @@ class ListVehicleRequests extends ListRecords
 
         $userId = auth()->id();
 
-        // If employee has active checkboxes in the Filter popover, let the filter take precedence
-        $rawFilter = $this->tableFilters['status']['status'] ?? [];
-        $hasCustomFilter = !empty(array_filter((array) $rawFilter));
-
         return [
             'all' => Tab::make('All'),
             'pending' => Tab::make('Pending')
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'pending')->count())
                 ->badgeColor('warning')
-                ->modifyQueryUsing(fn (Builder $query) => $hasCustomFilter ? null : $query->where('status', 'pending')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'pending')),
             'approved' => Tab::make('Approved')
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'approved')->count())
                 ->badgeColor('success')
-                ->modifyQueryUsing(fn (Builder $query) => $hasCustomFilter ? null : $query->where('status', 'approved')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'approved')),
             'on_trip' => Tab::make('On Trip')
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'on_trip')->count())
                 ->badgeColor('info')
-                ->modifyQueryUsing(fn (Builder $query) => $hasCustomFilter ? null : $query->where('status', 'on_trip')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'on_trip')),
             'completed' => Tab::make('Completed')
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'completed')->count())
                 ->badgeColor('success')
-                ->modifyQueryUsing(fn (Builder $query) => $hasCustomFilter ? null : $query->where('status', 'completed')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'completed')),
             'cancelled' => Tab::make('Cancelled')
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'cancelled')->count())
                 ->badgeColor('danger')
-                ->modifyQueryUsing(fn (Builder $query) => $hasCustomFilter ? null : $query->where('status', 'cancelled')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'cancelled')),
             'rejected' => Tab::make('Disapproved')
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'rejected')->count())
                 ->badgeColor('danger')
-                ->modifyQueryUsing(fn (Builder $query) => $hasCustomFilter ? null : $query->where('status', 'rejected')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'rejected')),
             'expired' => Tab::make('Expired')
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'expired')->count())
                 ->badgeColor('gray')
-                ->modifyQueryUsing(fn (Builder $query) => $hasCustomFilter ? null : $query->where('status', 'expired')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'expired')),
         ];
+    }
+
+    public function updatedActiveTab(): void
+    {
+        $this->resetTable();
     }
 
     public function mount(): void
