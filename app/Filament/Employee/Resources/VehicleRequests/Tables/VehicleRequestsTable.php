@@ -151,11 +151,11 @@ class VehicleRequestsTable
                         ->url(fn ($record) => route('trip-tickets.print', $record->tripTicket->id))
                         ->openUrlInNewTab(),
                     Action::make('upload_document')
-                        ->label('Upload / Scan Document')
+                        ->label('Upload or Scan Document')
                         ->icon('heroicon-o-camera')
                         ->color('success')
                         ->modalHeading('📄 Upload or Scan CEO Signed Document')
-                        ->modalDescription('Pumili kung gagamit ng Live Camera Scanner o mag-a-upload ng PDF/larawan mula sa device.')
+                        ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
                         ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Save & Activate Trip')
                         ->visible(fn ($record) => !$record->trashed() && $record->status === 'approved' && !$record->document)
@@ -163,7 +163,7 @@ class VehicleRequestsTable
                             \Filament\Schemas\Components\Tabs::make('document_source')
                                 ->tabs([
                                     \Filament\Schemas\Components\Tabs\Tab::make('camera_scan')
-                                        ->label('📸 Live Camera / Scanner')
+                                        ->label('📸 Camera Scanner')
                                         ->icon('heroicon-o-camera')
                                         ->schema([
                                             \Filament\Forms\Components\ViewField::make('captured_image')
@@ -171,7 +171,7 @@ class VehicleRequestsTable
                                                 ->columnSpanFull(),
                                         ]),
                                     \Filament\Schemas\Components\Tabs\Tab::make('file_upload')
-                                        ->label('📁 Upload File (PDF / Larawan)')
+                                        ->label('📁 Upload Document')
                                         ->icon('heroicon-o-arrow-up-tray')
                                         ->schema([
                                             \Filament\Forms\Components\FileUpload::make('document')
@@ -181,7 +181,7 @@ class VehicleRequestsTable
                                                 ->visibility('public')
                                                 ->imagePreviewHeight('250')
                                                 ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
-                                                ->helperText('Piliin ang na-scan na PDF o larawan mula sa iyong computer o cellphone.')
+                                                ->helperText('Select the scanned document or photo from your computer or phone.')
                                                 ->columnSpanFull(),
                                         ]),
                                 ]),
@@ -216,8 +216,8 @@ class VehicleRequestsTable
 
                             if (!$finalPath) {
                                 \Filament\Notifications\Notification::make()
-                                    ->title('Kailangan ang Dokumento')
-                                    ->body('Mangyaring kumuha ng scan gamit ang camera o mag-upload ng PDF / larawan bago i-save.')
+                                    ->title('Document Required')
+                                    ->body('Please capture a scan using the camera or upload a document before saving.')
                                     ->danger()
                                     ->send();
 
@@ -246,7 +246,7 @@ class VehicleRequestsTable
                         ->icon('heroicon-o-arrow-path')
                         ->color('warning')
                         ->modalHeading('📄 Replace CEO Signed Document')
-                        ->modalDescription('Pumili kung kukuha ng bagong scan gamit ang Live Camera o mag-a-upload ng bagong PDF/larawan.')
+                        ->modalDescription('Choose whether to scan using the camera or upload a new document from your device.')
                         ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Update Document')
                         ->visible(fn ($record) => !$record->trashed() && !empty($record->document) && in_array($record->status, ['approved', 'on_trip']))
@@ -254,7 +254,7 @@ class VehicleRequestsTable
                             \Filament\Schemas\Components\Tabs::make('document_source')
                                 ->tabs([
                                     \Filament\Schemas\Components\Tabs\Tab::make('camera_scan')
-                                        ->label('📸 Live Camera / Scanner')
+                                        ->label('📸 Camera Scanner')
                                         ->icon('heroicon-o-camera')
                                         ->schema([
                                             \Filament\Forms\Components\ViewField::make('captured_image')
@@ -262,7 +262,7 @@ class VehicleRequestsTable
                                                 ->columnSpanFull(),
                                         ]),
                                     \Filament\Schemas\Components\Tabs\Tab::make('file_upload')
-                                        ->label('📁 Upload File (PDF / Larawan)')
+                                        ->label('📁 Upload Document')
                                         ->icon('heroicon-o-arrow-up-tray')
                                         ->schema([
                                             \Filament\Forms\Components\FileUpload::make('document')
@@ -272,7 +272,7 @@ class VehicleRequestsTable
                                                 ->visibility('public')
                                                 ->imagePreviewHeight('250')
                                                 ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
-                                                ->helperText('Piliin ang na-scan na PDF o larawan mula sa iyong computer o cellphone.')
+                                                ->helperText('Select the scanned document or photo from your computer or phone.')
                                                 ->columnSpanFull(),
                                         ]),
                                 ]),
@@ -307,8 +307,8 @@ class VehicleRequestsTable
 
                             if (!$finalPath) {
                                 \Filament\Notifications\Notification::make()
-                                    ->title('Kailangan ang Dokumento')
-                                    ->body('Mangyaring kumuha ng scan gamit ang camera o mag-upload ng PDF / larawan bago i-save.')
+                                    ->title('Document Required')
+                                    ->body('Please capture a scan using the camera or upload a document before saving.')
                                     ->danger()
                                     ->send();
 

@@ -84,7 +84,7 @@ class TripTicketsTable
                                 \Filament\Schemas\Components\Tabs::make('document_source')
                                     ->tabs([
                                         \Filament\Schemas\Components\Tabs\Tab::make('camera_scan')
-                                            ->label('📸 Live Camera / Scanner')
+                                            ->label('📸 Camera Scanner')
                                             ->icon('heroicon-o-camera')
                                             ->schema([
                                                 \Filament\Forms\Components\ViewField::make('captured_image')
@@ -92,7 +92,7 @@ class TripTicketsTable
                                                     ->columnSpanFull(),
                                             ]),
                                         \Filament\Schemas\Components\Tabs\Tab::make('file_upload')
-                                            ->label('📁 Upload File (PDF / Larawan)')
+                                            ->label('📁 Upload Document')
                                             ->icon('heroicon-o-arrow-up-tray')
                                             ->schema([
                                                 \Filament\Forms\Components\FileUpload::make('document')

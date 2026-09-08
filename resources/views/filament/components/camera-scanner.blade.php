@@ -28,7 +28,7 @@
             this.isLoading = true;
 
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                this.errorMessage = 'Hindi suportado ng browser ang live camera access. Maaari mong gamitin ang Upload File tab o ang file button sa ibaba.';
+                this.errorMessage = 'Camera access is not supported by your browser. Please use the Upload Document tab or choose a file below.';
                 this.isLoading = false;
                 return;
             }
@@ -55,11 +55,11 @@
             } catch (err) {
                 console.error('Camera access error:', err);
                 if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    this.errorMessage = 'Kailangan ng Camera Permission: Paki-click ang camera icon sa browser address bar para payagan ang camera.';
+                    this.errorMessage = 'Camera Permission Required: Please click the camera icon in your browser address bar to allow camera access.';
                 } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                    this.errorMessage = 'Walang nakitang camera sa device na ito. Pakisaksak ang webcam o mag-upload ng file.';
+                    this.errorMessage = 'No camera found on this device. Please connect a webcam or upload a file.';
                 } else {
-                    this.errorMessage = 'Hindi mabuksan ang camera (' + (err.message || 'Error') + '). Pakisubukan ulit.';
+                    this.errorMessage = 'Unable to open camera (' + (err.message || 'Error') + '). Please try again.';
                 }
             } finally {
                 this.isLoading = false;
@@ -442,9 +442,9 @@
             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 12px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
-                    <span style="font-size: 13px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.04em;">✓ Dokumento Na-Scan</span>
+                    <span style="font-size: 13px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.04em;">✓ Document Captured</span>
                 </div>
-                <span style="font-size: 11px; color: #64748b; font-family: monospace;">Handa nang i-save</span>
+                <span style="font-size: 11px; color: #64748b; font-family: monospace;">Ready to save</span>
             </div>
 
             <!-- Smart Sharpness / Blur Detection Alert -->
@@ -452,15 +452,15 @@
                 <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px; text-align: left;">
                     <span style="font-size: 16px; line-height: 1;">⚠️</span>
                     <div style="font-size: 11.5px; color: #fde68a; line-height: 1.4;">
-                        <strong style="color: #fbbf24; display: block; margin-bottom: 2px;">Medyo Malabo ang Pagkaka-scan</strong>
-                        Pakitingnan kung malinaw at nababasa ang pirma ni CEO. Kung malabo, pindutin ang <b>"Kuhanan Ulit (Retake)"</b> sa ibaba.
+                        <strong style="color: #fbbf24; display: block; margin-bottom: 2px;">Image Appears Blurry</strong>
+                        Please ensure the CEO signature is clearly readable. If blurry, click <b>"Retake"</b> below.
                     </div>
                 </div>
             </template>
 
             <template x-if="!isBlurry && sharpnessScore > 0">
                 <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 6px 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #34d399;">
-                    <span>✓ Malinaw at maayos ang kuha</span>
+                    <span>✓ Image is clear and readable</span>
                     <span style="font-family: monospace; font-size: 10px; color: #059669;">Quality: Good</span>
                 </div>
             </template>
@@ -469,18 +469,18 @@
             <div
                 @click="showZoomModal = true"
                 class="doc-preview-img-wrap"
-                title="Pindutin para i-zoom"
+                title="Click to zoom"
             >
                 <img :src="state" alt="CEO Signed Document Scan" class="doc-preview-img" />
                 <div style="position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,0.75); color: #34d399; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-family: monospace;">
-                    🔍 Pindutin para i-zoom
+                    🔍 Click to zoom
                 </div>
             </div>
 
             <!-- Action Controls for Captured State -->
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #1e293b;">
                 <span style="font-size: 11px; color: #64748b;">
-                    Siguraduhing kita ang lagda ni CEO.
+                    Ensure the CEO signature is visible.
                 </span>
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <button
@@ -495,14 +495,14 @@
                         @click="retake()"
                         style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #f59e0b; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; cursor: pointer;"
                     >
-                        🔄 Kuhanan Ulit
+                        🔄 Retake
                     </button>
                     <button
                         type="button"
                         @click="clear()"
                         style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; cursor: pointer;"
                     >
-                        ✕ Alisin
+                        ✕ Remove
                     </button>
                 </div>
             </div>
@@ -516,13 +516,13 @@
             @keydown.escape.window="showZoomModal = false"
         >
             <div style="width: 100%; max-width: 720px; display: flex; align-items: center; justify-content: space-between; color: white; border-bottom: 1px solid #334155; padding-bottom: 10px;">
-                <span style="font-size: 14px; font-weight: 700; color: #34d399;">📄 Preview ng Dokumento</span>
+                <span style="font-size: 14px; font-weight: 700; color: #34d399;">📄 Document Preview</span>
                 <button
                     type="button"
                     @click="showZoomModal = false"
                     style="background: #1e293b; color: white; border: 1px solid #475569; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;"
                 >
-                    ✕ Isara
+                    ✕ Close
                 </button>
             </div>
 
@@ -531,13 +531,13 @@
             </div>
 
             <div style="width: 100%; max-width: 720px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #334155; padding-top: 10px;">
-                <span style="font-size: 12px; color: #94a3b8;">Nababasa ba ang pirma ng CEO?</span>
+                <span style="font-size: 12px; color: #94a3b8;">Is the CEO signature readable?</span>
                 <button
                     type="button"
                     @click="showZoomModal = false"
                     style="background: #059669; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;"
                 >
-                    ✓ Ayos Na, Gamitin Ito
+                    ✓ Looks Good, Use This
                 </button>
             </div>
         </div>
@@ -581,7 +581,7 @@
                     <button
                         type="button"
                         @click="toggleFacingMode()"
-                        title="Palitan ang camera (harap / likod)"
+                        title="Switch camera (front or back)"
                         style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; border-radius: 6px; padding: 4px 7px; cursor: pointer; display: flex; align-items: center;"
                     >
                         <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -595,7 +595,7 @@
                         @click="stopCamera()"
                         style="font-size: 11px; font-weight: 600; background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 4px 8px; cursor: pointer;"
                     >
-                        ✕ Isara
+                        ✕ Close
                     </button>
                 </div>
             </div>
@@ -618,7 +618,7 @@
 
                 <!-- Center Guide label -->
                 <div style="position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.65); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; pointer-events: none; white-space: nowrap;">
-                    📄 I-sentro ang papel sa loob ng border
+                    📄 Center document within frame
                 </div>
             </div>
 
@@ -633,7 +633,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span>KUHANAN NG LITRATO (CAPTURE)</span>
+                    <span>CAPTURE PHOTO</span>
                 </button>
             </div>
         </div>
@@ -653,10 +653,10 @@
 
             <!-- Title & Subtitle -->
             <h3 class="doc-scanner-title">
-                Live Camera Scanner
+                Camera Scanner
             </h3>
             <p class="doc-scanner-subtitle">
-                Direktang picturan ang pirmadong Trip Ticket o dokumento gamit ang iyong webcam o cellphone camera.
+                Take a clear photo of the signed document using your webcam or phone camera.
             </p>
 
             <!-- Error alert if camera permission failed -->
@@ -677,11 +677,11 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span x-text="isLoading ? 'Binubuksan ang Camera...' : '📷 Buksan ang Camera / Scanner'"></span>
+                <span x-text="isLoading ? 'Opening Camera...' : '📷 Open Camera'"></span>
             </button>
 
             <!-- Divider -->
-            <div class="doc-scanner-divider">O KAYA</div>
+            <div class="doc-scanner-divider">OR</div>
 
             <!-- Alternative: Native Device Camera / File Picker -->
             <div>
@@ -689,7 +689,7 @@
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span>Pumili ng Larawan mula sa Gallery / Device</span>
+                    <span>Choose Photo from Device</span>
                     <input
                         type="file"
                         accept="image/*"
