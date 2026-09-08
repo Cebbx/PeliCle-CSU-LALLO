@@ -194,60 +194,12 @@ class VehicleRequestForm
                 Fieldset::make('Trip Purpose & Schedule')
                     ->columnSpan(1)
                     ->schema([
-                        Select::make('purpose_select')
+                        Textarea::make('purpose')
                             ->label('Purpose of Trip')
-                            ->options([
-                                'Meeting' => 'Meeting',
-                                'Seminar' => 'Seminar',
-                                'Workshop' => 'Workshop',
-                                'Outreach' => 'Outreach',
-                                'Business Visit' => 'Business Visit',
-                                'Emergency' => 'Emergency',
-                                'Others' => 'Others (Specify below)',
-                            ])
-                            ->default('Meeting')
-                            ->live()
-                            ->dehydrated(false)
-                            ->columnSpanFull()
-                            ->afterStateHydrated(function ($state, callable $set, $record) {
-                                if ($record) {
-                                    $predefined = ['Meeting', 'Seminar', 'Workshop', 'Outreach', 'Business Visit', 'Emergency'];
-                                    if (in_array($record->purpose, $predefined)) {
-                                        $set('purpose_select', $record->purpose);
-                                    } elseif ($record->purpose) {
-                                        $set('purpose_select', 'Others');
-                                        $set('other_purpose', $record->purpose);
-                                    }
-                                }
-                            })
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                if ($state === 'Emergency') {
-                                    $set('is_urgent', 1);
-                                }
-                                if ($state !== 'Others') {
-                                    $set('purpose', $state);
-                                } else {
-                                    $set('purpose', null);
-                                }
-                            })
-                            ->required(),
-
-                        TextInput::make('other_purpose')
-                            ->label('Specify Custom Purpose')
-                            ->placeholder('Type custom purpose here')
-                            ->visible(fn (callable $get) => $get('purpose_select') === 'Others')
-                            ->required(fn (callable $get) => $get('purpose_select') === 'Others')
-                            ->live(onBlur: true)
-                            ->dehydrated(false)
-                            ->columnSpanFull()
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                $set('purpose', $state);
-                            }),
-
-                        Hidden::make('purpose')
-                            ->default('Meeting')
-                            ->dehydrated()
-                            ->required(),
+                            ->placeholder('Enter the reason or purpose of the trip...')
+                            ->rows(3)
+                            ->required()
+                            ->columnSpanFull(),
 
                         DatePicker::make('date')
                             ->label('Travel Departure Date')
