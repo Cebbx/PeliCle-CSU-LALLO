@@ -309,6 +309,7 @@ class VehicleRequestForm
                     ->columnSpanFull()
                     ->schema([
                         Repeater::make('passenger_names')
+                            ->hiddenLabel()
                             ->table([
                                 TableColumn::make('Passenger Full Name'),
                             ])
@@ -336,10 +337,10 @@ class VehicleRequestForm
                                         },
                                     ]),
                             ])
-                            ->label('Passenger Manifest')
                             ->addActionLabel('+ Add Passenger')
                             ->default([['name' => '']])
                             ->reorderable()
+                            ->reorderAction(fn (\Filament\Actions\Action $action) => $action->icon('heroicon-m-arrow-down'))
                             ->live()
                             ->afterStateUpdated(function (callable $set, $state) {
                                 $names = array_filter(array_map(fn ($item) => trim($item['name'] ?? ''), $state ?? []));

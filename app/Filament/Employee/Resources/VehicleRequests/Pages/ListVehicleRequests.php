@@ -44,7 +44,6 @@ class ListVehicleRequests extends ListRecords
         VehicleRequest::expirePastPendingRequests();
 
         $userId = auth()->id();
-        $archivedCount = VehicleRequest::onlyTrashed()->where('user_id', $userId)->count();
 
         return [
             'all' => Tab::make('All'),
@@ -76,10 +75,6 @@ class ListVehicleRequests extends ListRecords
                 ->badge(VehicleRequest::where('user_id', $userId)->where('status', 'expired')->count())
                 ->badgeColor('gray')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'expired')),
-            'archived' => Tab::make('Archived')
-                ->badge($archivedCount ?: null)
-                ->badgeColor('gray')
-                ->modifyQueryUsing(fn (Builder $query) => $query->onlyTrashed()),
         ];
     }
 

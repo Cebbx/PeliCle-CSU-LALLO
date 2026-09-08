@@ -405,40 +405,6 @@ class VehicleRequestsTable
                                 ->warning()
                                 ->send();
                         }),
-                    Action::make('archive')
-                        ->label('Archive Request')
-                        ->icon('heroicon-o-archive-box')
-                        ->color('warning')
-                        ->visible(fn ($record) => !$record->trashed() && in_array($record->status, ['completed', 'cancelled', 'rejected', 'expired']))
-                        ->requiresConfirmation()
-                        ->modalHeading('Archive Vehicle Request')
-                        ->modalDescription('Are you sure you want to archive this request? It will be moved to your Archived tab.')
-                        ->modalSubmitActionLabel('Archive')
-                        ->action(function ($record) {
-                            $record->delete();
-                            \Filament\Notifications\Notification::make()
-                                ->title('Request Archived')
-                                ->body("Vehicle request {$record->request_number} has been archived.")
-                                ->success()
-                                ->send();
-                        }),
-                    Action::make('restore')
-                        ->label('Restore Request')
-                        ->icon('heroicon-o-arrow-uturn-left')
-                        ->color('success')
-                        ->visible(fn ($record) => $record->trashed())
-                        ->requiresConfirmation()
-                        ->modalHeading('Restore Vehicle Request')
-                        ->modalDescription('Do you want to restore this request back to your active list?')
-                        ->modalSubmitActionLabel('Restore')
-                        ->action(function ($record) {
-                            $record->restore();
-                            \Filament\Notifications\Notification::make()
-                                ->title('Request Restored')
-                                ->body("Vehicle request {$record->request_number} has been restored.")
-                                ->success()
-                                ->send();
-                        }),
                 ])
                 ->label('Actions')
                 ->icon('heroicon-m-ellipsis-vertical')
@@ -458,18 +424,6 @@ class VehicleRequestsTable
                     ]),
                 TernaryFilter::make('is_urgent')
                     ->label('Urgent Requests Only'),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->label('Archive Selected')
-                        ->icon('heroicon-o-archive-box')
-                        ->color('warning'),
-                    \Filament\Actions\RestoreBulkAction::make()
-                        ->label('Restore Selected')
-                        ->icon('heroicon-o-arrow-uturn-left')
-                        ->color('success'),
-                ]),
             ]);
     }
 }
