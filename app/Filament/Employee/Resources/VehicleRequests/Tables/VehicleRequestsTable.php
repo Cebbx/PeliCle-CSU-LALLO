@@ -425,17 +425,33 @@ class VehicleRequestsTable
                                 'rejected' => 'Disapproved',
                                 'expired' => 'Expired',
                             ])
-                            ->bulkToggleable(),
+                            ->bulkToggleable()
+                            ->live(),
                     ])
                     ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data): \Illuminate\Database\Eloquent\Builder {
+                        $statuses = [];
+                        if (!empty($data['status']) && is_array($data['status'])) {
+                            foreach ($data['status'] as $key => $val) {
+                                if (is_string($key) && !is_numeric($key)) {
+                                    if (!empty($val)) {
+                                        $statuses[] = $key;
+                                    }
+                                } elseif (!empty($val) && is_string($val)) {
+                                    $statuses[] = $val;
+                                }
+                            }
+                        }
+                        $statuses = array_values(array_unique($statuses));
+
                         return $query->when(
-                            !empty($data['status']),
-                            fn (\Illuminate\Database\Eloquent\Builder $query) => $query->whereIn('status', $data['status'])
+                            !empty($statuses),
+                            fn (\Illuminate\Database\Eloquent\Builder $query) => $query->whereIn('status', $statuses)
                         );
                     }),
                 \Filament\Tables\Filters\Filter::make('is_urgent')
                     ->label('Urgent Requests Only')
                     ->query(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('is_urgent', true)),
-            ]);
+            ])
+            ->deferFilters(false);
     }
 }
