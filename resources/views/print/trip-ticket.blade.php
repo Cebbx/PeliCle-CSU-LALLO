@@ -334,11 +334,6 @@
                         @endif
                     </div>
                     <div class="w-full border-t border-black text-center pt-1 text-[10px] font-bold text-black uppercase">Driver's Signature</div>
-                    @if($ticket->status === 'completed')
-                        <span class="text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-1 py-0.5 rounded mt-1 inline-block">
-                            ✓ Trip Completed: {{ \Carbon\Carbon::parse($ticket->updated_at)->format('M d, Y - h:i A') }}
-                        </span>
-                    @endif
                 </div>
             </div>
         </div>

@@ -26,6 +26,7 @@ class EmployeePanelProvider extends PanelProvider
             ->id('employee')
             ->path('employee')
             ->login()
+            ->authGuard('employee')
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -39,55 +40,129 @@ class EmployeePanelProvider extends PanelProvider
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn () => new \Illuminate\Support\HtmlString('
                     <style>
-                        /* Ensure all input boxes have clearly visible rounded borders and clean backgrounds */
-                        .fi-input-wrp {
-                            border: 1px solid rgba(255, 255, 255, 0.16) !important;
-                            border-radius: 0.5rem !important;
-                            background-color: rgba(255, 255, 255, 0.03) !important;
-                        }
-
-                        html:not(.dark) .fi-input-wrp {
-                            border: 1px solid #d1d5db !important;
+                        /* -------------------------------------------------------------
+                           1. ACTIVE & EDITABLE INPUTS (Fields user needs to fill up)
+                           ------------------------------------------------------------- */
+                        .fi-input-wrp:not(.fi-disabled):not(:has(input:disabled)):not(:has(input[readonly])):not(:has(textarea:disabled)):not(:has(select:disabled)) {
+                            border: 1.5px solid #94a3b8 !important;
                             border-radius: 0.5rem !important;
                             background-color: #ffffff !important;
+                            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
                         }
 
-                        /* Prevent yellow/amber focus ring when clicking read-only or disabled boxes */
-                        .fi-input-wrp:has(input[readonly]):focus-within,
-                        .fi-input-wrp:has(input:disabled):focus-within,
-                        .fi-input-wrp.fi-disabled:focus-within {
-                            border-color: rgba(255, 255, 255, 0.25) !important;
-                            --tw-ring-color: transparent !important;
-                            --tw-ring-shadow: none !important;
-                            box-shadow: none !important;
+                        html.dark .fi-input-wrp:not(.fi-disabled):not(:has(input:disabled)):not(:has(input[readonly])):not(:has(textarea:disabled)):not(:has(select:disabled)) {
+                            border: 1.5px solid rgba(255, 255, 255, 0.22) !important;
+                            background-color: rgba(255, 255, 255, 0.04) !important;
+                        }
+
+                        /* Hover on editable fields */
+                        .fi-input-wrp:not(.fi-disabled):not(:has(input:disabled)):not(:has(input[readonly])):not(:has(textarea:disabled)):not(:has(select:disabled)):hover {
+                            border-color: #d97706 !important;
+                        }
+
+                        html.dark .fi-input-wrp:not(.fi-disabled):not(:has(input:disabled)):not(:has(input[readonly])):not(:has(textarea:disabled)):not(:has(select:disabled)):hover {
+                            border-color: #f59e0b !important;
+                        }
+
+                        /* Focus / Active on editable fields - Amber Glow */
+                        .fi-input-wrp:not(.fi-disabled):not(:has(input:disabled)):not(:has(input[readonly])):not(:has(textarea:disabled)):not(:has(select:disabled)):focus-within {
+                            border-color: #d97706 !important;
+                            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2) !important;
                             outline: none !important;
                         }
 
-                        html:not(.dark) .fi-input-wrp:has(input[readonly]):focus-within,
-                        html:not(.dark) .fi-input-wrp:has(input:disabled):focus-within,
-                        html:not(.dark) .fi-input-wrp.fi-disabled:focus-within {
-                            border-color: #9ca3af !important;
-                            --tw-ring-color: transparent !important;
-                            --tw-ring-shadow: none !important;
-                            box-shadow: none !important;
+                        html.dark .fi-input-wrp:not(.fi-disabled):not(:has(input:disabled)):not(:has(input[readonly])):not(:has(textarea:disabled)):not(:has(select:disabled)):focus-within {
+                            border-color: #fbbf24 !important;
+                            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.25) !important;
                             outline: none !important;
                         }
 
-                        input[readonly],
-                        input:disabled {
-                            cursor: default !important;
+                        .fi-input-wrp:not(.fi-disabled) input:not([readonly]):not(:disabled) {
+                            color: #0f172a !important;
+                            cursor: text !important;
+                        }
+
+                        html.dark .fi-input-wrp:not(.fi-disabled) input:not([readonly]):not(:disabled) {
                             color: #f8fafc !important;
                         }
 
-                        html:not(.dark) input[readonly],
-                        html:not(.dark) input:disabled {
-                            color: #0f172a !important;
+                        /* -------------------------------------------------------------
+                           2. LOCKED / DEFAULT / SYSTEM-GENERATED BOXES
+                           (Request Number, Department, Destination Preview)
+                           ------------------------------------------------------------- */
+                        .fi-input-wrp.fi-disabled,
+                        .fi-input-wrp:has(input:disabled),
+                        .fi-input-wrp:has(input[readonly]),
+                        .fi-input-wrp:has(textarea:disabled),
+                        .fi-input-wrp:has(select:disabled) {
+                            border: 1px solid #cbd5e1 !important;
+                            border-radius: 0.5rem !important;
+                            background-color: #f1f5f9 !important; /* Soft Slate-100 */
+                            cursor: not-allowed !important;
+                            box-shadow: none !important;
+                            outline: none !important;
                         }
 
-                        input[readonly]:focus,
-                        input:disabled:focus {
-                            outline: none !important;
+                        html.dark .fi-input-wrp.fi-disabled,
+                        html.dark .fi-input-wrp:has(input:disabled),
+                        html.dark .fi-input-wrp:has(input[readonly]),
+                        html.dark .fi-input-wrp:has(textarea:disabled),
+                        html.dark .fi-input-wrp:has(select:disabled) {
+                            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                            background-color: rgba(15, 23, 42, 0.6) !important; /* Subdued Dark Slate */
+                            cursor: not-allowed !important;
                             box-shadow: none !important;
+                            outline: none !important;
+                        }
+
+                        .fi-input-wrp.fi-disabled:focus-within,
+                        .fi-input-wrp:has(input:disabled):focus-within,
+                        .fi-input-wrp:has(input[readonly]):focus-within {
+                            border-color: #cbd5e1 !important;
+                            box-shadow: none !important;
+                            outline: none !important;
+                        }
+
+                        html.dark .fi-input-wrp.fi-disabled:focus-within,
+                        html.dark .fi-input-wrp:has(input:disabled):focus-within,
+                        html.dark .fi-input-wrp:has(input[readonly]):focus-within {
+                            border-color: rgba(255, 255, 255, 0.1) !important;
+                            box-shadow: none !important;
+                            outline: none !important;
+                        }
+
+                        .fi-input-wrp.fi-disabled input,
+                        .fi-input-wrp:has(input:disabled) input,
+                        .fi-input-wrp:has(input[readonly]) input,
+                        input[readonly],
+                        input:disabled {
+                            cursor: not-allowed !important;
+                            color: #475569 !important; /* Muted Slate-600 */
+                            font-weight: 500 !important;
+                        }
+
+                        html.dark .fi-input-wrp.fi-disabled input,
+                        html.dark .fi-input-wrp:has(input:disabled) input,
+                        html.dark .fi-input-wrp:has(input[readonly]) input,
+                        html.dark input[readonly],
+                        html.dark input:disabled {
+                            color: #94a3b8 !important; /* Slate-400 */
+                        }
+
+                        /* -------------------------------------------------------------
+                           3. REQUIRED FIELD ASTERISK & HELPER TEXT HIGHLIGHT
+                           ------------------------------------------------------------- */
+                        .fi-fo-field-wrp-label sup,
+                        .fi-fo-field-wrp-label span[class*="text-danger"],
+                        .text-danger-600 {
+                            color: #ef4444 !important;
+                            font-weight: 700 !important;
+                        }
+
+                        .fi-fo-field-wrp-helper-text {
+                            font-size: 0.75rem !important;
+                            line-height: 1rem !important;
+                            margin-top: 0.25rem !important;
                         }
                     </style>
                     <script>
@@ -123,6 +198,7 @@ class EmployeePanelProvider extends PanelProvider
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
+                \App\Http\Middleware\SetPanelAuthGuard::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,

@@ -25,11 +25,12 @@ class VehicleRequestResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $user = auth()->user();
+        $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
         if ($user && $user->role === 'admin') {
             return parent::getEloquentQuery();
         }
-        return parent::getEloquentQuery()->where('user_id', auth()->id());
+        $userId = $user?->id ?? auth('employee')->id() ?? auth()->id();
+        return parent::getEloquentQuery()->where('user_id', $userId);
     }
 
     public static function form(Schema $schema): Schema

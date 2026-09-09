@@ -18,7 +18,7 @@ Route::get('/guard/scanner', [App\Http\Controllers\QrCodeController::class, 'sca
 Route::post('/guard/verify-pin', [App\Http\Controllers\QrCodeController::class, 'verifyPin'])->name('guard.verify-pin');
 
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
     Route::view('post','livewire.post.index')->name('post.index');
     

@@ -43,7 +43,7 @@ class ListVehicleRequests extends ListRecords
     {
         VehicleRequest::expirePastPendingRequests();
 
-        $userId = auth()->id();
+        $userId = \Filament\Facades\Filament::auth()->id() ?? auth('employee')->id() ?? auth()->id();
 
         return [
             'all' => Tab::make('All'),

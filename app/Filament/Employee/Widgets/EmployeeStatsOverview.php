@@ -10,7 +10,7 @@ class EmployeeStatsOverview extends StatsOverviewWidget
 {
     protected function getStats(): array
     {
-        $userId = auth()->id();
+        $userId = \Filament\Facades\Filament::auth()->id() ?? auth('employee')->id() ?? auth()->id();
 
         $totalRequests = VehicleRequest::where('user_id', $userId)->count();
         $pendingRequests = VehicleRequest::where('user_id', $userId)->where('status', 'pending')->count();

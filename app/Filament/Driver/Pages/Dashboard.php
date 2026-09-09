@@ -12,7 +12,8 @@ class Dashboard extends BaseDashboard
 
     public function getDriverModel(): ?\App\Models\Driver
     {
-        return \App\Models\Driver::where('name', auth()->user()->name)->first();
+        $user = \Filament\Facades\Filament::auth()->user() ?? auth('driver')->user() ?? auth()->user();
+        return $user ? \App\Models\Driver::where('name', $user->name)->first() : null;
     }
 
     public function getAssignedTrips()

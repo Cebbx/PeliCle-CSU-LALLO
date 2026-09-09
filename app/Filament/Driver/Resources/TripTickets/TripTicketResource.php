@@ -29,7 +29,8 @@ class TripTicketResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $driverId = auth()->user()->driver?->id ?? 0;
+        $user = \Filament\Facades\Filament::auth()->user() ?? auth('driver')->user() ?? auth()->user();
+        $driverId = $user?->driver?->id ?? 0;
         return parent::getEloquentQuery()->where('driver_id', $driverId);
     }
 

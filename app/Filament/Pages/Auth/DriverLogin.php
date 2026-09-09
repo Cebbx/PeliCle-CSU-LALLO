@@ -11,6 +11,7 @@ use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Filament\Notifications\Notification;
+use Filament\Facades\Filament;
 
 class DriverLogin extends BaseLogin
 {
@@ -32,12 +33,6 @@ class DriverLogin extends BaseLogin
                 redirect()->intended(Filament::getUrl());
                 return;
             }
-
-            // If currently logged in as Employee or Admin, clear the session
-            // so the driver login form displays cleanly without a 403 error
-            Auth::logout();
-            session()->invalidate();
-            session()->regenerateToken();
         }
 
         $this->form->fill();
@@ -97,7 +92,7 @@ class DriverLogin extends BaseLogin
             $user->update(['role' => 'driver']);
         }
 
-        Auth::login($user, remember: true);
+        Filament::auth()->login($user, remember: true);
 
         session()->regenerate();
 

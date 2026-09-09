@@ -17,7 +17,7 @@ class Dashboard extends BaseDashboard
     public function getStats(): array
     {
         VehicleRequest::expirePastPendingRequests();
-        $userId = auth()->id();
+        $userId = \Filament\Facades\Filament::auth()->id() ?? auth('employee')->id() ?? auth()->id();
         return [
             'total' => VehicleRequest::where('user_id', $userId)->count(),
             'pending' => VehicleRequest::where('user_id', $userId)->where('status', 'pending')->count(),
@@ -29,7 +29,8 @@ class Dashboard extends BaseDashboard
 
     public function getRecentRequests()
     {
-        return VehicleRequest::where('user_id', auth()->id())
+        $userId = \Filament\Facades\Filament::auth()->id() ?? auth('employee')->id() ?? auth()->id();
+        return VehicleRequest::where('user_id', $userId)
             ->latest('id')
             ->take(5)
             ->get();
@@ -37,8 +38,9 @@ class Dashboard extends BaseDashboard
 
     public function getActiveTrips()
     {
+        $userId = \Filament\Facades\Filament::auth()->id() ?? auth('employee')->id() ?? auth()->id();
         // Get active requests (approved or on_trip) that have assigned trip tickets and drivers
-        return VehicleRequest::where('user_id', auth()->id())
+        return VehicleRequest::where('user_id', $userId)
             ->whereIn('status', ['approved', 'on_trip'])
             ->whereHas('tripTicket')
             ->with(['tripTicket.driver'])

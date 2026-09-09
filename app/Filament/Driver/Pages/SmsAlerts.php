@@ -19,7 +19,8 @@ class SmsAlerts extends Page
 
     public function getSmsLogs()
     {
-        $driverId = auth()->user()->driver?->id ?? 0;
+        $user = \Filament\Facades\Filament::auth()->user() ?? auth('driver')->user() ?? auth()->user();
+        $driverId = $user?->driver?->id ?? 0;
         
         return SmsLog::where('driver_id', $driverId)
             ->oldest() // Oldest first to show in conversational order

@@ -28,6 +28,7 @@ class DriverPanelProvider extends PanelProvider
             ->id('driver')
             ->path('driver')
             ->login(DriverLogin::class)
+            ->authGuard('driver')
             ->colors([
                 'primary' => Color::Orange,
             ])
@@ -51,6 +52,7 @@ class DriverPanelProvider extends PanelProvider
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
+                \App\Http\Middleware\SetPanelAuthGuard::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,

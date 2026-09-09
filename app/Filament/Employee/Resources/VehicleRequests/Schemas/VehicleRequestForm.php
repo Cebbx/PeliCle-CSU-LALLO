@@ -25,71 +25,88 @@ class VehicleRequestForm
     {
         return $schema
             ->components([
-                TextInput::make('request_number')
-                    ->label('Request Number')
-                    ->default(function () {
-                        $lastRecord = \App\Models\VehicleRequest::latest('id')->first();
-                        $nextId = $lastRecord ? ($lastRecord->id + 1) : 1;
-                        return 'VR-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-                    })
-                    ->disabled()
-                    ->dehydrated()
-                    ->required(),
+                Grid::make(3)
+                    ->columnSpanFull()
+                    ->schema([
+                        TextInput::make('request_number')
+                            ->label('Request Number')
+                            ->default(function () {
+                                $lastRecord = \App\Models\VehicleRequest::latest('id')->first();
+                                $nextId = $lastRecord ? ($lastRecord->id + 1) : 1;
+                                return 'VR-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+                            })
+                            ->helperText('Auto-generated tracking number')
+                            ->disabled()
+                            ->dehydrated()
+                            ->required(),
 
-                TextInput::make('employee_name')
-                    ->label('Requester Name')
-                    ->default(fn () => auth()->user()?->name ?? 'Employee User')
-                    ->required(),
+                        TextInput::make('department')
+                            ->label('Department / Office')
+                            ->default(function () {
+                                $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
+                                if (!empty($user?->department)) {
+                                    return $user->department;
+                                }
+                                $name = $user?->name ?? '';
+                                $email = $user?->email ?? '';
+                                $prefix = strtolower(explode('@', $email)[0]);
+                                $validDepts = [
+                                    'employee' => 'CICS',
+                                    'admin' => 'Administration Office',
+                                    'ceo' => 'Office of the CEO',
+                                    'hrmo' => 'HRMO',
+                                    'accounting' => 'Accounting Office',
+                                    'budget' => 'Budget Office',
+                                    'property' => 'Property and Supply Office',
+                                    'records' => 'Records Office',
+                                    'planning' => 'Planning Office',
+                                    'mis' => 'MIS Office',
+                                    'registrar' => 'Office of the Campus Registrar',
+                                    'admission' => 'Campus Admission Office',
+                                    'publication' => 'Campus Publication Office',
+                                    'library' => 'University Library',
+                                    'cics' => 'CICS',
+                                    'cte' => 'CTE',
+                                    'chm' => 'CHM',
+                                    'coa' => 'COA',
+                                    'cafevalena' => 'Café Valena',
+                                    'csc' => 'Campus Student Council'
+                                ];
+                                if (isset($validDepts[$prefix])) {
+                                    return $validDepts[$prefix];
+                                }
+                                foreach ($validDepts as $key => $deptName) {
+                                    if (stripos($name, $deptName) !== false || stripos($name, $key) !== false) {
+                                        return $deptName;
+                                    }
+                                }
+                                return 'Campus Student Council';
+                            })
+                            ->helperText('Auto-filled from your department')
+                            ->disabled()
+                            ->dehydrated()
+                            ->required(),
+
+                        TextInput::make('employee_name')
+                            ->label('Requester Name')
+                            ->placeholder('e.g. Dr. Juan Dela Cruz / Full Name')
+                            ->helperText('Please enter the full name of requester')
+                            ->default(function () {
+                                $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
+                                $name = $user?->name ?? '';
+                                $deptIndicators = ['College of', 'Office of', 'Department', 'Administration Office', 'Campus', 'Café Valena', 'CICS', 'CTE', 'CHM', 'COA', 'HRMO', 'MIS', 'Employee User'];
+                                foreach ($deptIndicators as $ind) {
+                                    if (stripos($name, $ind) !== false) {
+                                        return null;
+                                    }
+                                }
+                                return $name ?: null;
+                            })
+                            ->required(),
+                    ]),
 
                 Hidden::make('user_id')
-                    ->default(fn () => auth()->id()),
-
-                TextInput::make('department')
-                    ->label('Department / Office')
-                    ->default(function () {
-                        $user = auth()->user();
-                        if (!empty($user?->department)) {
-                            return $user->department;
-                        }
-                        $email = $user?->email ?? '';
-                        $prefix = strtolower(explode('@', $email)[0]);
-                        $validDepts = [
-                            'employee' => 'CICS',
-                            'admin' => 'Administration Office',
-                            'ceo' => 'Office of the CEO',
-                            'hrmo' => 'HRMO',
-                            'accounting' => 'Accounting Office',
-                            'budget' => 'Budget Office',
-                            'property' => 'Property and Supply Office',
-                            'records' => 'Records Office',
-                            'planning' => 'Planning Office',
-                            'mis' => 'MIS Office',
-                            'registrar' => 'Office of the Campus Registrar',
-                            'admission' => 'Campus Admission Office',
-                            'publication' => 'Campus Publication Office',
-                            'library' => 'University Library',
-                            'cics' => 'CICS',
-                            'cte' => 'CTE',
-                            'chm' => 'CHM',
-                            'coa' => 'COA',
-                            'cafevalena' => 'Café Valena',
-                            'csc' => 'Campus Student Council'
-                        ];
-                        return $validDepts[$prefix] ?? 'Campus Student Council';
-                    })
-                    ->disabled()
-                    ->dehydrated()
-                    ->required(),
-
-                Radio::make('is_urgent')
-                    ->label('Priority Level')
-                    ->options([
-                        0 => 'Regular',
-                        1 => 'Urgent',
-                    ])
-                    ->default(0)
-                    ->inline()
-                    ->helperText('Select "Urgent" for immediate official business or emergency dispatch.'),
+                    ->default(fn () => \Filament\Facades\Filament::auth()->id() ?? auth('employee')->id() ?? auth()->id()),
 
                 Fieldset::make('Destination Address')
                     ->columnSpan(1)
@@ -102,7 +119,6 @@ class VehicleRequestForm
                             ->afterStateUpdated(function (Set $set) {
                                 $set('province_code', null);
                                 $set('city_code', null);
-                                $set('brgy_code', null);
                                 $set('destination', null);
                             })
                             ->required(),
@@ -113,94 +129,75 @@ class VehicleRequestForm
                             ->dehydrated(false)
                             ->afterStateUpdated(function (Set $set) {
                                 $set('city_code', null);
-                                $set('brgy_code', null);
                                 $set('destination', null);
                             })
                             ->disabled(fn (Get $get) => empty($get('region_code')))
                             ->required(),
                         Select::make('city_code')
-                            ->label('City/Municipality')
+                            ->label('City / Municipality')
                             ->options(fn (Get $get) => \App\Services\PhilippineAddressService::getCities($get('province_code')))
                             ->live()
                             ->dehydrated(false)
-                            ->afterStateUpdated(function (Set $set) {
-                                $set('brgy_code', null);
-                                $set('destination', null);
+                            ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                                $cityName = \App\Services\PhilippineAddressService::getCities($get('province_code'))[$state] ?? '';
+                                $provinceName = \App\Services\PhilippineAddressService::getProvinces($get('region_code'))[$get('province_code')] ?? '';
+                                $addressParts = array_filter([$cityName, $provinceName]);
+                                $set('destination', implode(', ', $addressParts));
                             })
                             ->disabled(fn (Get $get) => empty($get('province_code')))
                             ->required(),
-                        Select::make('brgy_code')
-                            ->label('Barangay')
-                            ->options(fn (Get $get) => \App\Services\PhilippineAddressService::getBarangays($get('city_code')))
-                            ->live()
-                            ->dehydrated(false)
-                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                $regionName = \App\Services\PhilippineAddressService::getRegions()[$get('region_code')] ?? '';
-                                $provinceName = \App\Services\PhilippineAddressService::getProvinces($get('region_code'))[$get('province_code')] ?? '';
-                                $cityName = \App\Services\PhilippineAddressService::getCities($get('province_code'))[$get('city_code')] ?? '';
-                                $brgyName = \App\Services\PhilippineAddressService::getBarangays($get('city_code'))[$get('brgy_code')] ?? '';
-
-                                $addressParts = array_filter([$regionName, $provinceName, $cityName, $brgyName, $get('street_name')]);
-                                $set('destination', implode(', ', $addressParts));
-                            })
-                            ->disabled(fn (Get $get) => empty($get('city_code')))
-                            ->required(),
-                        TextInput::make('street_name')
-                            ->label('Street/Building/House No.')
-                            ->placeholder('e.g., Building Name, Sitio, or Street')
-                            ->live(onBlur: true)
-                            ->dehydrated(false)
-                            ->afterStateUpdated(function (Get $get, Set $set, $state) {
-                                $regionName = \App\Services\PhilippineAddressService::getRegions()[$get('region_code')] ?? '';
-                                $provinceName = \App\Services\PhilippineAddressService::getProvinces($get('region_code'))[$get('province_code')] ?? '';
-                                $cityName = \App\Services\PhilippineAddressService::getCities($get('province_code'))[$get('city_code')] ?? '';
-                                $brgyName = \App\Services\PhilippineAddressService::getBarangays($get('city_code'))[$get('brgy_code')] ?? '';
-
-                                $addressParts = array_filter([$regionName, $provinceName, $cityName, $brgyName, $state]);
-                                $set('destination', implode(', ', $addressParts));
-                            })
-                            ->disabled(fn (Get $get) => empty($get('brgy_code')))
-                            ->columnSpanFull()
-                            ->required(),
                         TextInput::make('destination')
-                            ->label('Full Destination Address (Preview)')
-                            ->helperText('Auto-generated from your address selections above.')
+                            ->label('Destination Preview')
+                            ->placeholder('Auto-generated based on City & Province')
+                            ->suffixIcon('heroicon-m-map-pin')
+                            ->suffixIconColor('gray')
                             ->disabled()
                             ->dehydrated()
                             ->required()
-                            ->columnSpanFull()
                             ->afterStateHydrated(function (Set $set, $state) {
                                 if (empty($state)) return;
-                                $parts = explode(', ', $state);
-                                $regionName = $parts[0] ?? null;
-                                $provinceName = $parts[1] ?? null;
-                                $cityName = $parts[2] ?? null;
-                                $brgyName = $parts[3] ?? null;
-                                $streetName = isset($parts[4]) ? implode(', ', array_slice($parts, 4)) : null;
+                                $parts = array_map('trim', explode(', ', $state));
+                                $regions = \App\Services\PhilippineAddressService::getRegions();
 
-                                list($regionCode, $provinceCode, $cityCode, $brgyCode) = \App\Services\PhilippineAddressService::getCodesFromNames(
-                                    $regionName, $provinceName, $cityName, $brgyName
-                                );
+                                if (isset($parts[0]) && in_array($parts[0], $regions)) {
+                                    $regionName = $parts[0] ?? null;
+                                    $provinceName = $parts[1] ?? null;
+                                    $cityName = $parts[2] ?? null;
+                                    list($regionCode, $provinceCode, $cityCode) = \App\Services\PhilippineAddressService::getCodesFromNames(
+                                        $regionName, $provinceName, $cityName, null
+                                    );
+                                } else {
+                                    $cityName = $parts[0] ?? null;
+                                    $provinceName = $parts[1] ?? null;
+                                    $regionCode = null;
+                                    $provinceCode = null;
+                                    $cityCode = null;
+
+                                    if ($provinceName) {
+                                        foreach ($regions as $rCode => $rName) {
+                                            $provs = \App\Services\PhilippineAddressService::getProvinces($rCode);
+                                            $foundPCode = array_search($provinceName, $provs);
+                                            if ($foundPCode) {
+                                                $regionCode = $rCode;
+                                                $provinceCode = $foundPCode;
+                                                $cities = \App\Services\PhilippineAddressService::getCities($provinceCode);
+                                                $cityCode = array_search($cityName, $cities) ?: null;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
 
                                 $set('region_code', $regionCode);
                                 $set('province_code', $provinceCode);
                                 $set('city_code', $cityCode);
-                                $set('brgy_code', $brgyCode);
-                                $set('street_name', $streetName);
                             }),
                     ])
                     ->columns(2),
 
-                Fieldset::make('Trip Purpose & Schedule')
+                Fieldset::make('Travel Schedule')
                     ->columnSpan(1)
                     ->schema([
-                        Textarea::make('purpose')
-                            ->label('Purpose of Trip')
-                            ->placeholder('Enter the reason or purpose of the trip...')
-                            ->rows(3)
-                            ->required()
-                            ->columnSpanFull(),
-
                         DatePicker::make('date')
                             ->label('Travel Departure Date')
                             ->default(now())
@@ -237,7 +234,6 @@ class VehicleRequestForm
                         TimePicker::make('return_time')
                             ->label('Expected Return Time')
                             ->default(fn () => now()->addHours(4))
-                            ->helperText('Tip: Please allocate a 1 to 2-hour buffer for traffic and unexpected travel delays.')
                             ->live()
                             ->rules([
                                 fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
@@ -256,6 +252,18 @@ class VehicleRequestForm
                             ->required(),
                     ])
                     ->columns(2),
+
+                Fieldset::make('Trip Purpose')
+                    ->columnSpanFull()
+                    ->schema([
+                        Textarea::make('purpose')
+                            ->label('Purpose of Trip')
+                            ->placeholder('Enter the reason or purpose of the trip...')
+                            ->rows(3)
+                            ->helperText('Please describe the official business, event, or academic purpose of the trip.')
+                            ->required()
+                            ->columnSpanFull(),
+                    ]),
 
                 Fieldset::make('Passenger Manifest / Companions')
                     ->columnSpanFull()

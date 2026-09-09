@@ -11,7 +11,11 @@ class PrintController extends Controller
     public function printRequest($id)
     {
         $request = VehicleRequest::findOrFail($id);
-        return view('print.vehicle-request', compact('request'));
+        return response()
+            ->view('print.vehicle-request', compact('request'))
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     public function viewSignedDocument($id)

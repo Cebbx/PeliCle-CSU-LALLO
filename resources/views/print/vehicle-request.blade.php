@@ -75,11 +75,6 @@
         <!-- Title -->
         <div class="text-center mb-4">
             <h1 class="text-base font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Request Form</h1>
-            @if($request->is_urgent)
-                <div class="mt-1">
-                    <span class="inline-block px-2.5 py-0.5 border border-red-600 text-red-600 font-extrabold text-[10px] tracking-widest uppercase rounded">🚨 URGENT DISPATCH</span>
-                </div>
-            @endif
         </div>
 
         <!-- Request Details Table Grid -->
@@ -94,7 +89,7 @@
                 <div class="col-span-4 p-3 flex flex-col justify-between" style="min-height: 70px;">
                     <span class="text-[10px] uppercase font-bold text-black">Date:</span>
                     <span class="text-sm font-bold text-black text-center mt-1 border-b border-gray-300 w-11/12 mx-auto">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</span>
-                    <span class="text-[9px] text-black text-center mt-0.5">Office: <span class="font-bold text-black">{{ $request->department }}</span> | Priority: <span class="font-bold {{ $request->is_urgent ? 'text-red-600' : 'text-black' }}">{{ $request->is_urgent ? 'URGENT' : 'REGULAR' }}</span></span>
+                    <span class="text-[9px] text-black text-center mt-0.5">Office: <span class="font-bold text-black">{{ $request->department }}</span></span>
                 </div>
             </div>
 
@@ -159,10 +154,10 @@
         </div>
 
         <!-- Footer approvals section -->
-        <div class="grid grid-cols-12 gap-8 mt-6 mb-auto">
+        <div class="grid grid-cols-12 gap-8 mt-6 mb-auto items-end">
             <!-- Left: Client's Signature -->
-            <div class="col-span-6 flex flex-col items-center justify-end mt-6">
-                <div class="w-full border-t border-black text-center pt-2">
+            <div class="col-span-6 flex flex-col items-center justify-end">
+                <div class="w-full border-t border-black text-center pt-1">
                     <span class="text-xs font-bold text-black uppercase">Client's Signature</span>
                 </div>
             </div>
@@ -198,32 +193,13 @@
                     </div>
                 </div>
 
-                <!-- GSO signature & Timestamp -->
+                <!-- GSO signature -->
                 <div class="flex flex-col items-center mt-2">
                     <span class="text-sm font-extrabold text-black">JOEL A. TUMAMAO</span>
                     <span class="text-[10px] text-black uppercase font-semibold">GSO</span>
                     <div class="w-full border-t border-black text-center mt-1 pt-1">
                         <span class="text-[10px] font-bold text-black uppercase">Received / Acted by:</span>
                     </div>
-                    @if(in_array($request->status, ['approved', 'on_trip', 'completed']))
-                        <div class="mt-2 text-center w-full">
-                            <span class="text-[9px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-400 px-2 py-0.5 rounded block">
-                                ✓ Approved & Signed on: {{ \Carbon\Carbon::parse($request->updated_at)->format('F d, Y \a\t g:i:s A') }}
-                            </span>
-                        </div>
-                    @elseif($request->status === 'rejected')
-                        <div class="mt-2 text-center w-full">
-                            <span class="text-[9px] font-mono font-bold text-red-800 bg-red-50 border border-red-400 px-2 py-0.5 rounded block">
-                                ✗ Disapproved on: {{ \Carbon\Carbon::parse($request->updated_at)->format('F d, Y \a\t g:i:s A') }}
-                            </span>
-                        </div>
-                    @else
-                        <div class="mt-2 text-center w-full">
-                            <span class="text-[9px] font-mono text-amber-700 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded block">
-                                ⏳ Pending Approval (Filed: {{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y - h:i A') }})
-                            </span>
-                        </div>
-                    @endif
                 </div>
             </div>
         </div>
