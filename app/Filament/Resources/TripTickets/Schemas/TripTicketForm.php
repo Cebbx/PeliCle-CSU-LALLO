@@ -112,7 +112,8 @@ class TripTicketForm
                                 }
                                 $badge = ($sameDate && $sameDest) ? ' ⭐ MATCH (Same Date & Dest)' : ($sameDate ? ' 📅 SAME DATE' : '');
                                 $paxCount = $r->number_of_passengers ?: 1;
-                                $label = "{$r->request_number} - {$r->department} ({$r->employee_name}) | {$r->destination} [{$paxCount} pax]{$badge}";
+                                $personWord = $paxCount > 1 ? 'persons' : 'person';
+                                $label = "{$r->request_number} - {$r->department} ({$r->employee_name}) | {$r->destination} [{$paxCount} {$personWord}]{$badge}";
                                 return [$r->id => $label];
                             });
                     })
@@ -171,14 +172,16 @@ class TripTicketForm
                         foreach ($allReqs as $r) {
                             $pax = $r->number_of_passengers ?: 1;
                             $totalPax += $pax;
-                            $deptBreakdown[] = "{$r->department} ({$pax} pax)";
+                            $pWord = $pax > 1 ? 'persons' : 'person';
+                            $deptBreakdown[] = "{$r->department} ({$pax} {$pWord})";
                         }
 
                         $carpoolCount = count($allReqs);
                         $recVehicle = $totalPax > 4 ? 'HIACE VAN (14-seater) or PTIA JEEP' : 'FORTUNER or MULTICAB';
+                        $totalPersonWord = $totalPax > 1 ? 'persons' : 'person';
 
                         $html = "<div class='text-xs space-y-1.5 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700'>";
-                        $html .= "<div><strong>👥 Total Passengers:</strong> <span class='text-primary-600 dark:text-primary-400 font-bold'>{$totalPax} pax</span> &mdash; " . implode(' + ', $deptBreakdown) . "</div>";
+                        $html .= "<div><strong>👥 Total Passengers:</strong> <span class='text-primary-600 dark:text-primary-400 font-bold'>{$totalPax} {$totalPersonWord}</span> &mdash; " . implode(' + ', $deptBreakdown) . "</div>";
                         if ($carpoolCount > 1) {
                             $html .= "<div><strong>🚐 Consolidated Carpool:</strong> <span class='text-emerald-600 dark:text-emerald-400 font-semibold'>{$carpoolCount} Departments</span> are consolidated into this single trip.</div>";
                         }

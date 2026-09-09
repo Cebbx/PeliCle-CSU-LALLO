@@ -139,7 +139,7 @@ test('admin can consolidate multiple department requests into a single trip tick
     $response = test()->actingAs($user1)->get(route('trip-tickets.print', $ticket->id));
     $response->assertStatus(200);
     $response->assertSee('CONSOLIDATED TRIP');
-    $response->assertSee('CICS (3 pax)');
-    $response->assertSee('CTE (4 pax)');
-    $response->assertSee('COA (2 pax)');
+    $response->assertSee('CICS (3 persons)');
+    $response->assertSee('CTE (4 persons)');
+    $response->assertSee('COA (2 persons)');
 });

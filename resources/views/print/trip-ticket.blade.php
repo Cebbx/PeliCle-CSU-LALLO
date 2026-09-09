@@ -133,7 +133,7 @@
                                     <div class="border-b border-gray-200 pb-1.5 last:border-b-0 last:pb-0">
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-black uppercase text-[10px] bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300">
-                                                {{ $req->department ?: 'N/A' }} ({{ $req->number_of_passengers }} pax)
+                                                {{ $req->department ?: 'N/A' }} ({{ $req->number_of_passengers }} {{ ($req->number_of_passengers ?: 1) > 1 ? 'persons' : 'person' }})
                                             </span>
                                             <span class="font-semibold text-black text-xs">
                                                 {{ $pNames ?: $req->employee_name }}
