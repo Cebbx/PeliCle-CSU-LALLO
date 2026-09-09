@@ -154,22 +154,32 @@
         </div>
 
         <!-- Footer approvals section -->
-        <div class="grid grid-cols-12 gap-8 mt-6 mb-auto items-end">
-            <!-- Left: Client's Signature -->
-            <div class="col-span-6 flex flex-col items-center justify-end">
-                <div class="w-full border-t border-black text-center pt-1">
-                    <span class="text-xs font-bold text-black uppercase">Client's Signature</span>
+        <div class="grid grid-cols-12 gap-8 mt-6 mb-auto">
+            <!-- Left: Client's Signature and Received by -->
+            <div class="col-span-6 flex flex-col justify-between pr-4">
+                <!-- Client's Signature -->
+                <div class="flex flex-col items-center">
+                    <div class="h-10"></div>
+                    <div class="w-full border-t border-black text-center pt-1">
+                        <span class="text-xs font-bold text-black uppercase">Client's Signature</span>
+                    </div>
+                </div>
+
+                <!-- Received by -->
+                <div class="flex flex-col mt-8">
+                    <span class="text-[10px] font-bold text-black uppercase">Received by:</span>
+                    <div class="w-full border-b border-black mt-6"></div>
                 </div>
             </div>
 
             <!-- Right: Approved / Disapproved checkboxes and Joel Tumamao signature -->
-            <div class="col-span-6 flex flex-col gap-4 pl-6">
+            <div class="col-span-6 flex flex-col justify-between pl-6">
                 <!-- Checkboxes (Read-only / Solid Black) -->
                 @php
                     $isApproved = in_array($request->status, ['approved', 'completed', 'on_trip']);
                     $isDisapproved = $request->status === 'rejected';
                 @endphp
-                <div class="flex items-center gap-6 text-xs font-bold text-black select-none pointer-events-none">
+                <div class="flex items-center gap-6 text-xs font-bold text-black select-none pointer-events-none h-14">
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 rounded flex items-center justify-center border border-black {{ $isApproved ? 'bg-black text-white' : 'bg-white' }}" style="border-width: 1.5px;">
                             @if($isApproved)
@@ -193,13 +203,13 @@
                     </div>
                 </div>
 
-                <!-- GSO signature -->
-                <div class="flex flex-col items-center mt-2">
-                    <span class="text-sm font-extrabold text-black">JOEL A. TUMAMAO</span>
-                    <span class="text-[10px] text-black uppercase font-semibold">GSO</span>
-                    <div class="w-full border-t border-black text-center mt-1 pt-1">
-                        <span class="text-[10px] font-bold text-black uppercase">Received / Acted by:</span>
+                <!-- GSO signature (Line is on top of JOEL A. TUMAMAO) -->
+                <div class="flex flex-col items-center mt-8">
+                    <div class="h-6"></div>
+                    <div class="w-full border-t border-black text-center pt-1">
+                        <span class="text-sm font-extrabold text-black uppercase tracking-wide">JOEL A. TUMAMAO</span>
                     </div>
+                    <span class="text-[10px] text-black uppercase font-semibold">GSO</span>
                 </div>
             </div>
         </div>
