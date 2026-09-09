@@ -36,6 +36,8 @@ class VehicleRequestsTable
                     ->searchable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
+                    ->placeholder('To be assigned')
+                    ->default('To be assigned')
                     ->formatStateUsing(function ($state, $record) {
                         if (!empty($state)) {
                             return $state;
@@ -45,8 +47,8 @@ class VehicleRequestsTable
                         }
                         return 'To be assigned';
                     })
-                    ->badge(fn ($state, $record) => empty($state) && (!$record->tripTicket || empty($record->tripTicket->vehicle)))
-                    ->color('gray')
+                    ->badge()
+                    ->color(fn ($state, $record) => empty($record->vehicle) && (!$record->tripTicket || empty($record->tripTicket->vehicle)) ? 'gray' : 'info')
                     ->description(function ($record) {
                         if ($record->tripTicket) {
                             $otherCount = $record->tripTicket->vehicleRequests()->where('id', '!=', $record->id)->count();
