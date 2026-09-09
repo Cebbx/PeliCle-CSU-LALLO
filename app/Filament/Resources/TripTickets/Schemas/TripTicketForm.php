@@ -90,10 +90,17 @@ class TripTicketForm
                     ->options(function (callable $get, ?TripTicket $record) {
                         $primaryId = $get('vehicle_request_id');
                         $primaryReq = $primaryId ? VehicleRequest::find($primaryId) : null;
-                        $primaryDate = $primaryReq?->date;
+                        if (!$primaryReq) {
+                            return [];
+                        }
+
+                        $primaryDate = $primaryReq->date;
+                        $primaryTime = $primaryReq->time;
+                        $primaryCity = strtolower(trim(explode(',', $primaryReq->destination ?? '')[0] ?? ''));
 
                         return VehicleRequest::whereIn('status', ['pending', 'approved'])
-                            ->when($primaryId, fn ($q) => $q->where('id', '!=', $primaryId))
+                            ->where('id', '!=', $primaryId)
+                            ->where('date', $primaryDate)
                             ->where(function ($q) use ($record) {
                                 $q->whereNull('trip_ticket_id');
                                 if ($record) {
@@ -102,18 +109,38 @@ class TripTicketForm
                             })
                             ->latest('id')
                             ->get()
-                            ->mapWithKeys(function ($r) use ($primaryDate, $primaryReq) {
-                                $sameDate = $primaryDate && $r->date === $primaryDate;
-                                $sameDest = false;
-                                if ($primaryReq && $primaryReq->destination && $r->destination) {
-                                    $primaryCity = strtolower(explode(',', $primaryReq->destination)[0] ?? '');
-                                    $rCity = strtolower(explode(',', $r->destination)[0] ?? '');
-                                    $sameDest = !empty($primaryCity) && (str_contains(strtolower($r->destination), $primaryCity) || str_contains(strtolower($primaryReq->destination), $rCity));
+                            ->filter(function ($r) use ($primaryCity, $primaryReq) {
+                                if (empty($primaryCity) || empty($r->destination)) {
+                                    return false;
                                 }
-                                $badge = ($sameDate && $sameDest) ? ' ⭐ MATCH (Same Date & Dest)' : ($sameDate ? ' 📅 SAME DATE' : '');
+                                $rCity = strtolower(trim(explode(',', $r->destination)[0] ?? ''));
+                                return str_contains(strtolower($r->destination), $primaryCity) 
+                                    || str_contains(strtolower($primaryReq->destination), $rCity);
+                            })
+                            ->mapWithKeys(function ($r) use ($primaryTime) {
                                 $paxCount = $r->number_of_passengers ?: 1;
                                 $personWord = $paxCount > 1 ? 'persons' : 'person';
-                                $label = "{$r->request_number} - {$r->department} ({$r->employee_name}) | {$r->destination} [{$paxCount} {$personWord}]{$badge}";
+                                $timeStr = $r->time ? \Carbon\Carbon::parse($r->time)->format('g:i A') : 'No time';
+                                $primaryTimeStr = $primaryTime ? \Carbon\Carbon::parse($primaryTime)->format('g:i A') : 'No time';
+
+                                $timeBadge = '';
+                                if ($primaryTime && $r->time) {
+                                    $dtPrimary = \Carbon\Carbon::parse("2000-01-01 " . $primaryTime);
+                                    $dtR = \Carbon\Carbon::parse("2000-01-01 " . $r->time);
+                                    $diffHours = abs($dtPrimary->diffInMinutes($dtR)) / 60;
+
+                                    if ($diffHours <= 1.5) {
+                                        $timeBadge = " ⭐ MATCH (Leaves @ {$timeStr})";
+                                    } elseif ($diffHours <= 3.0) {
+                                        $timeBadge = " ⏱️ DEPARTS @ {$timeStr} (" . round($diffHours, 1) . "h gap)";
+                                    } else {
+                                        $timeBadge = " ⚠️ TIME GAP (Departs @ {$timeStr} &bull; " . round($diffHours, 1) . "h gap from Lead {$primaryTimeStr})";
+                                    }
+                                } else {
+                                    $timeBadge = " @ {$timeStr}";
+                                }
+
+                                $label = "{$r->request_number} - {$r->department} ({$r->employee_name}) [{$paxCount} {$personWord}]{$timeBadge}";
                                 return [$r->id => $label];
                             });
                     })
@@ -180,12 +207,30 @@ class TripTicketForm
                         $recVehicle = $totalPax > 4 ? 'HIACE VAN (14-seater) or PTIA JEEP' : 'FORTUNER or MULTICAB';
                         $totalPersonWord = $totalPax > 1 ? 'persons' : 'person';
 
+                        // Check if any selected companion has large time gap (> 2 hours)
+                        $hasLargeTimeGap = false;
+                        if ($primaryReq->time) {
+                            $dtPrimary = \Carbon\Carbon::parse("2000-01-01 " . $primaryReq->time);
+                            foreach ($allReqs as $r) {
+                                if ($r->id != $primaryId && $r->time) {
+                                    $dtR = \Carbon\Carbon::parse("2000-01-01 " . $r->time);
+                                    if (abs($dtPrimary->diffInMinutes($dtR)) > 120) {
+                                        $hasLargeTimeGap = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
                         $html = "<div class='text-xs space-y-1.5 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700'>";
                         $html .= "<div><strong>👥 Total Passengers:</strong> <span class='text-primary-600 dark:text-primary-400 font-bold'>{$totalPax} {$totalPersonWord}</span> &mdash; " . implode(' + ', $deptBreakdown) . "</div>";
                         if ($carpoolCount > 1) {
                             $html .= "<div><strong>🚐 Consolidated Carpool:</strong> <span class='text-emerald-600 dark:text-emerald-400 font-semibold'>{$carpoolCount} Departments</span> are consolidated into this single trip.</div>";
                         }
                         $html .= "<div><strong>💡 Recommended Vehicle:</strong> <span class='font-semibold'>{$recVehicle}</span> <span class='text-slate-500 text-[11px]'>(Auto-selected below; Dispatcher can modify if needed)</span></div>";
+                        if ($hasLargeTimeGap) {
+                            $html .= "<div class='text-amber-700 dark:text-amber-400 text-[11px] pt-1.5 border-t border-amber-200 dark:border-amber-900/40'><strong>⚠️ Paalala sa Oras:</strong> May napiling biyahe na higit 2 oras ang pagitan ng alis mula sa Lead Request. Siguraduhing napagkasunduan ang oras ng pagsakay.</div>";
+                        }
                         $html .= "</div>";
 
                         return new \Illuminate\Support\HtmlString($html);
@@ -442,7 +487,7 @@ class TripTicketForm
 
                         $text = "<strong>Driver Schedule for " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . ":</strong><br>";
                         $text .= "<span style='color: #16a34a;'>✅ Available:</span> " . ($availableDrivers ?: "None") . "<br>";
-                        $text .= "<span style='color: #dc2626;'>❌ Busy / On Trip / Off Duty:</span> " . ($busyDrivers ?: "None");
+                        $text .= "<span style='color: #dc2626;'>❌ On Trip / On Leave:</span> " . ($busyDrivers ?: "None");
                         
                         return new \Illuminate\Support\HtmlString($text);
                     })
