@@ -44,6 +44,12 @@
     <div class="no-print max-w-[8.5in] mx-auto mb-4 flex items-center justify-between bg-white p-4 rounded-xl shadow-md border border-gray-200 gap-4">
         <span class="text-gray-700 font-bold text-sm">Vehicle Trip Ticket</span>
         <div class="flex gap-2">
+            <a href="{{ route('trip-tickets.print-travel-order', [$ticket->id, 'type' => 'driver']) }}" target="_blank" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Driver Travel Order
+            </a>
             <button onclick="downloadPDF()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -80,15 +86,12 @@
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-sm font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Trip Ticket</h1>
-                <div class="text-xs font-bold text-black mt-2 font-mono">TT No. Lal-2026 - {{ substr($ticket->ticket_number, 3) }}</div>
-                <div class="mt-1 flex flex-wrap items-center gap-1.5">
-                    @if($hasAnyUrgent)
+                <div class="text-xs font-bold text-black mt-2 font-mono">{{ $ticket->formatted_ticket_number }}</div>
+                @if($hasAnyUrgent)
+                    <div class="mt-1 flex flex-wrap items-center gap-1.5">
                         <span class="inline-block px-2 py-0.5 border border-red-600 text-red-600 font-extrabold text-[9px] tracking-widest uppercase rounded">🚨 URGENT DISPATCH</span>
-                    @endif
-                    @if($isCarpool)
-                        <span class="inline-block px-2 py-0.5 border border-blue-600 text-blue-700 font-extrabold text-[9px] tracking-widest uppercase rounded bg-blue-50">🚐 CONSOLIDATED TRIP ({{ count($allRequests) }} DEPTS)</span>
-                    @endif
-                </div>
+                    </div>
+                @endif
             </div>
             
             <!-- Scan to Complete QR Code -->
@@ -244,7 +247,7 @@
                     ->where('action', 'Arrival Logged')
                     ->first();
                 $hasDigitalLogs = ($depLog || $arrLog || $ticket->status === 'completed');
-                $travelDate = $ticket->vehicleRequest?->date ? \Carbon\Carbon::parse($ticket->vehicleRequest->date)->format('M d, Y') : '';
+                $travelDate = $ticket->vehicleRequest?->date ? \Carbon\Carbon::parse($ticket->vehicleRequest->date)->format('Y-m-d') : '';
                 $depTime = $depLog ? \Carbon\Carbon::parse($depLog->created_at)->format('g:i A') : ($ticket->vehicleRequest?->time ? \Carbon\Carbon::parse($ticket->vehicleRequest->time)->format('g:i A') : '');
                 $arrTime = $arrLog ? \Carbon\Carbon::parse($arrLog->created_at)->format('g:i A') : ($ticket->status === 'completed' ? \Carbon\Carbon::parse($ticket->updated_at)->format('g:i A') : '');
                 $dest = $ticket->vehicleRequest?->destination ?? '';

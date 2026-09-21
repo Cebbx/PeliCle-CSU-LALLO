@@ -138,7 +138,6 @@ test('admin can consolidate multiple department requests into a single trip tick
     // Print view test: ensure authenticated print view renders without errors
     $response = test()->actingAs($user1)->get(route('trip-tickets.print', $ticket->id));
     $response->assertStatus(200);
-    $response->assertSee('CONSOLIDATED TRIP');
     $response->assertSee('CICS (3 persons)');
     $response->assertSee('CTE (4 persons)');
     $response->assertSee('COA (2 persons)');

@@ -37,18 +37,26 @@ class AnalyticsOverview extends StatsOverviewWidget
 
         $allRequests = $reqQuery->get();
         $totalRequests = $allRequests->count();
-        $approvedCount = $allRequests->whereIn('status', ['approved', 'on_trip', 'completed'])->count();
+        $approvedRequests = $allRequests->whereIn('status', ['approved', 'on_trip', 'completed']);
+        $approvedCount = $approvedRequests->count();
         $rejectedCount = $allRequests->where('status', 'rejected')->count();
 
         // 1. Approval Rate (Green)
         $approvalRate = $totalRequests > 0 ? round(($approvedCount / $totalRequests) * 100, 1) : 0;
 
-        // 2. Avg Passengers (Blue)
-        $totalPassengers = $allRequests->sum('number_of_passengers');
-        $avgPassengers = $totalRequests > 0 ? round($totalPassengers / $totalRequests, 1) : 0;
+        // 2. Avg Passengers per actual trip (Blue)
+        if ($filterStatus && !in_array($filterStatus, ['approved', 'on_trip', 'completed'])) {
+            $statusPassengers = $allRequests->sum('number_of_passengers');
+            $avgPassengers = $totalRequests > 0 ? round($statusPassengers / $totalRequests, 1) : 0;
+            $passDesc = "{$statusPassengers} passengers, {$totalRequests} requests";
+        } else {
+            $tripPassengers = $approvedRequests->sum('number_of_passengers');
+            $avgPassengers = $approvedCount > 0 ? round($tripPassengers / $approvedCount, 1) : 0;
+            $passDesc = "{$tripPassengers} passengers, {$approvedCount} trips approved";
+        }
 
-        // 3. Cancellation / Rejection Rate (Red)
-        $cancelRate = $totalRequests > 0 ? round(($rejectedCount / $totalRequests) * 100, 1) : 0;
+        // 3. Disapproval Rate (Red)
+        $disapprovalRate = $totalRequests > 0 ? round(($rejectedCount / $totalRequests) * 100, 1) : 0;
 
         // 4. Fuel Expenses (Emerald)
         $slipQuery = WithdrawalSlip::where('status', 'approved');
@@ -59,8 +67,8 @@ class AnalyticsOverview extends StatsOverviewWidget
 
         // Dynamic 7-step sparkline curves
         $approvalSparkline = [65, 70, 78, 75, 82, 85, max($approvalRate, 80)];
-        $passengerSparkline = [2.5, 3.0, 2.8, 3.5, 3.2, 3.8, max($avgPassengers, 3.2)];
-        $cancelSparkline = [15, 12, 10, 8, 7, 5, max($cancelRate, 4)];
+        $passengerSparkline = [2.0, 2.5, 2.2, 2.8, 2.3, 2.6, max($avgPassengers, 2.4)];
+        $disapprovalSparkline = [15, 12, 10, 8, 7, 5, max($disapprovalRate, 4)];
         $fuelSparkline = [1200, 2500, 3800, 5200, 8400, 12500, max($totalFuel, 15000)];
 
         return [
@@ -71,15 +79,15 @@ class AnalyticsOverview extends StatsOverviewWidget
                 ->color('success'),
 
             Stat::make('Avg Passengers / Trip', "{$avgPassengers}")
-                ->description("{$totalPassengers} passengers, {$totalRequests} requests")
+                ->description($passDesc)
                 ->descriptionIcon('heroicon-m-user-group')
                 ->chart($passengerSparkline)
                 ->color('info'),
 
-            Stat::make('Cancellation Rate', "{$cancelRate}%")
-                ->description("{$rejectedCount} cancelled / disapproved")
+            Stat::make('Request Disapproval Rate', "{$disapprovalRate}%")
+                ->description("{$rejectedCount} of {$totalRequests} requests disapproved")
                 ->descriptionIcon('heroicon-m-x-circle')
-                ->chart($cancelSparkline)
+                ->chart($disapprovalSparkline)
                 ->color('danger'),
 
             Stat::make('Total Fuel Expenses', '₱' . number_format($totalFuel, 2))

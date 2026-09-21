@@ -9,7 +9,9 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -20,38 +22,66 @@ class DriversTable
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->label('Driver Name')
+                    ->icon('heroicon-m-user')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+
                 TextColumn::make('license_number')
+                    ->label('License No.')
+                    ->icon('heroicon-m-identification')
+                    ->fontFamily('mono')
                     ->searchable(),
+
                 TextColumn::make('contact_number')
+                    ->label('Contact Number')
+                    ->icon('heroicon-m-phone')
+                    ->fontFamily('mono')
                     ->searchable(),
+
                 TextColumn::make('status')
+                    ->label('Duty Status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'available' => 'success',
                         'on_trip' => 'info',
-                        'off_duty' => 'gray',
-                        'unavailable' => 'danger',
+                        'off_duty', 'unavailable' => 'gray',
                         default => 'gray',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'available' => 'heroicon-m-check-circle',
+                        'on_trip' => 'heroicon-m-truck',
+                        'off_duty', 'unavailable' => 'heroicon-m-pause-circle',
+                        default => 'heroicon-m-question-mark-circle',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'available' => 'Available',
                         'on_trip' => 'On Trip',
-                        'off_duty' => 'Off Duty',
-                        'unavailable' => 'Off Duty',
+                        'off_duty', 'unavailable' => 'Off Duty',
                         default => ucwords(str_replace('_', ' ', $state)),
                     })
                     ->searchable(),
+
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('status')
+                    ->label('Duty Status')
+                    ->options([
+                        'available' => 'Available',
+                        'on_trip' => 'On Trip',
+                        'off_duty' => 'Off Duty',
+                    ]),
+
                 TrashedFilter::make()
                     ->label('Archive Status'),
             ])
@@ -64,13 +94,15 @@ class DriversTable
                     ->action(function ($record) {
                         $newStatus = in_array($record->status, ['off_duty', 'unavailable']) ? 'available' : 'off_duty';
                         $record->update(['status' => $newStatus]);
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Driver Status Updated')
                             ->body("{$record->name} is now " . ($newStatus === 'available' ? 'Available' : 'Off Duty') . ".")
                             ->success()
                             ->send();
                     }),
+
                 EditAction::make(),
+
                 DeleteAction::make()
                     ->label('Archive')
                     ->icon('heroicon-o-archive-box')
@@ -78,6 +110,7 @@ class DriversTable
                     ->modalHeading('Archive Driver')
                     ->modalDescription('Are you sure you want to archive this driver? The record can be restored anytime.')
                     ->modalSubmitActionLabel('Yes, Archive'),
+
                 RestoreAction::make()
                     ->label('Restore')
                     ->icon('heroicon-o-arrow-uturn-left')

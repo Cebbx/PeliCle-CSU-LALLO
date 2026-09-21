@@ -17,11 +17,8 @@ class TripTicketForm
         return $schema
             ->components([
                 TextInput::make('ticket_number')
-                    ->default(function () {
-                        $lastRecord = TripTicket::latest('id')->first();
-                        $nextId = $lastRecord ? ($lastRecord->id + 1) : 1;
-                        return 'TT-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-                    })
+                    ->label('Trip Ticket Number (TT No. Lal-lo)')
+                    ->default(fn () => TripTicket::generateNextTicketNumber())
                     ->unique('trip_tickets', 'ticket_number', ignoreRecord: true)
                     ->disabled()
                     ->dehydrated()
@@ -48,16 +45,11 @@ class TripTicketForm
                     ->placeholder('Select lead request number')
                     ->live()
                     ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                        $set('companion_requests', []);
                         if ($state) {
                             $primaryReq = VehicleRequest::find($state);
                             if ($primaryReq) {
-                                $companionIds = $get('companion_requests') ?? [];
-                                $allIds = array_unique(array_merge([$state], is_array($companionIds) ? $companionIds : []));
-                                $allReqs = VehicleRequest::whereIn('id', $allIds)->get();
-                                $totalPax = 0;
-                                foreach ($allReqs as $r) {
-                                    $totalPax += ($r->number_of_passengers ?: 1);
-                                }
+                                $totalPax = $primaryReq->number_of_passengers ?: 1;
 
                                 $availableVehicles = \App\Models\Vehicle::where('status', 'available')->get();
                                 if ($availableVehicles->isEmpty()) {

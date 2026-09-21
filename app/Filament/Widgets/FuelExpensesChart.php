@@ -12,7 +12,9 @@ class FuelExpensesChart extends ChartWidget
 
     protected ?string $heading = 'Fuel Expenses by Vehicle (₱)';
 
-    protected static ?int $sort = 5; // Put below vehicle usage and driver trips
+    protected static ?int $sort = 7;
+
+    protected int | string | array $columnSpan = 1;
 
     protected function getType(): string
     {
@@ -50,11 +52,8 @@ class FuelExpensesChart extends ChartWidget
 
         $vehicleExpenses = [];
         foreach ($slips as $slip) {
-            $vehicle = $slip->tripTicket->vehicle ?? 'Other/Unknown';
-            if (str_contains($vehicle, ' - ')) {
-                $parts = explode(' - ', $vehicle);
-                $vehicle = trim($parts[0]); // Use brand name for nicer chart labels
-            }
+            $rawVehicle = $slip->tripTicket->vehicle ?? null;
+            $vehicle = !empty($rawVehicle) ? \App\Models\Vehicle::getVehicleName($rawVehicle) : 'Other/Unknown';
             if (!isset($vehicleExpenses[$vehicle])) {
                 $vehicleExpenses[$vehicle] = 0.00;
             }

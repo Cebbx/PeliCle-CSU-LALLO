@@ -15,6 +15,9 @@ class WithdrawalSlip extends Model
     protected $fillable = [
         'slip_number',
         'trip_ticket_id',
+        'driver_name',
+        'vehicle_name',
+        'destination_address',
         'purpose',
         'requested_items',
         'amount',
@@ -62,14 +65,19 @@ class WithdrawalSlip extends Model
     protected static function booted(): void
     {
         static::creating(function ($withdrawalSlip) {
+            if (empty($withdrawalSlip->slip_number)) {
+                $lastRecord = static::withTrashed()->latest('id')->first();
+                $nextId = $lastRecord ? ($lastRecord->id + 1) : 1;
+                $withdrawalSlip->slip_number = 'WS-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+            }
             if (empty($withdrawalSlip->purpose)) {
                 $withdrawalSlip->loadMissing('tripTicket.vehicleRequest');
                 $withdrawalSlip->purpose = $withdrawalSlip->tripTicket?->vehicleRequest?->purpose ?? 'Official Business';
             }
-            if (empty($withdrawalSlip->requested_items)) {
-                $withdrawalSlip->requested_items = [
+            if (empty($withdrawalSlip->attributes['requested_items'])) {
+                $withdrawalSlip->attributes['requested_items'] = json_encode([
                     ['item' => 'diesel', 'quantity' => 20]
-                ];
+                ]);
             }
         });
     }

@@ -15,25 +15,18 @@ class WithdrawalSlipForm
         return $schema
             ->components([
                 TextInput::make('slip_number')
+                    ->label('Control / Slip No.')
                     ->default(function () {
                         $lastRecord = \App\Models\WithdrawalSlip::latest('id')->first();
                         $nextId = $lastRecord ? ($lastRecord->id + 1) : 1;
                         return 'WS-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
                     })
                     ->unique('withdrawal_slips', 'slip_number', ignoreRecord: true)
-                    ->disabled()
-                    ->dehydrated()
                     ->required(),
                 Select::make('trip_ticket_id')
-                    ->default(function () {
-                        $tripId = request()->query('trip_ticket_id');
-                        if ($tripId) {
-                            return $tripId;
-                        }
-                        return \App\Models\TripTicket::whereDoesntHave('withdrawalSlips')
-                            ->orderBy('created_at', 'desc')
-                            ->value('id');
-                    })
+                    ->label('Trip Ticket')
+                    ->placeholder('Select a Trip Ticket')
+                    ->default(fn () => request()->query('trip_ticket_id'))
                     ->relationship('tripTicket', 'ticket_number', function ($query, $record) {
                         $tripId = request()->query('trip_ticket_id');
                         return $query->with(['driver', 'vehicleRequest'])
@@ -80,52 +73,77 @@ class WithdrawalSlipForm
                             $set('purpose', null);
                         }
                     })
-                    ->afterStateHydrated(function ($state, callable $set) {
-                        if ($state) {
-                            $ticket = \App\Models\TripTicket::with(['driver', 'vehicleRequest'])->find($state);
-                            if ($ticket) {
-                                $set('driver_name', $ticket->driver?->name ?? 'No Driver');
-                                $dbVehicle = \App\Models\Vehicle::where('plate_number', $ticket->vehicle)->first();
-                                $vehicleName = $dbVehicle ? "{$dbVehicle->brand} ({$dbVehicle->plate_number})" : $ticket->vehicle;
-                                $set('vehicle_name', $vehicleName);
-                                $set('destination_address', $ticket->vehicleRequest?->destination ?? 'No Destination');
-                                $set('purpose', $ticket->vehicleRequest?->purpose ?? 'Official Business');
-                            }
-                        }
-                    })
                     ->disabled(fn (string $operation) => $operation === 'edit' || request()->has('trip_ticket_id'))
                     ->dehydrated()
                     ->required(),
                 TextInput::make('driver_name')
                     ->label('Driver Assigned')
-                    ->disabled()
-                    ->dehydrated(false)
-                    ->placeholder('Select a Trip Ticket to view driver details'),
+                    ->placeholder('Enter or edit driver name')
+                    ->helperText('Pre-filled from Trip Ticket. Editable if different.')
+                    ->default(function (callable $get, ?\App\Models\WithdrawalSlip $record) {
+                        if ($record && $record->driver_name) {
+                            return $record->driver_name;
+                        }
+                        $tripId = $get('trip_ticket_id') ?? request()->query('trip_ticket_id') ?? ($record?->trip_ticket_id);
+                        if ($tripId) {
+                            $ticket = \App\Models\TripTicket::with('driver')->find($tripId);
+                            return $ticket?->driver?->name ?? null;
+                        }
+                        return null;
+                    })
+                    ->dehydrated(),
                 TextInput::make('vehicle_name')
                     ->label('Vehicle Assigned')
-                    ->disabled()
-                    ->dehydrated(false)
-                    ->placeholder('Select a Trip Ticket to view vehicle details'),
+                    ->placeholder('Enter or edit vehicle details')
+                    ->helperText('Pre-filled from Trip Ticket. Editable if different.')
+                    ->default(function (callable $get, ?\App\Models\WithdrawalSlip $record) {
+                        if ($record && $record->vehicle_name) {
+                            return $record->vehicle_name;
+                        }
+                        $tripId = $get('trip_ticket_id') ?? request()->query('trip_ticket_id') ?? ($record?->trip_ticket_id);
+                        if ($tripId) {
+                            $ticket = \App\Models\TripTicket::find($tripId);
+                            if ($ticket) {
+                                $dbVehicle = \App\Models\Vehicle::where('plate_number', $ticket->vehicle)->first();
+                                return $dbVehicle ? "{$dbVehicle->brand} ({$dbVehicle->plate_number})" : $ticket->vehicle;
+                            }
+                        }
+                        return null;
+                    })
+                    ->dehydrated(),
                 TextInput::make('destination_address')
                     ->label('Destination')
-                    ->disabled()
-                    ->dehydrated(false)
-                    ->placeholder('Select a Trip Ticket to view destination details'),
-                Hidden::make('purpose')
-                    ->default(function () {
-                        $tripId = request()->query('trip_ticket_id');
-                        if (!$tripId) {
-                            $tripId = \App\Models\TripTicket::whereDoesntHave('withdrawalSlips')
-                                ->orderBy('created_at', 'desc')
-                                ->value('id');
+                    ->placeholder('Enter or edit destination')
+                    ->helperText('Pre-filled from Trip Ticket. Editable if different.')
+                    ->default(function (callable $get, ?\App\Models\WithdrawalSlip $record) {
+                        if ($record && $record->destination_address) {
+                            return $record->destination_address;
                         }
+                        $tripId = $get('trip_ticket_id') ?? request()->query('trip_ticket_id') ?? ($record?->trip_ticket_id);
+                        if ($tripId) {
+                            $ticket = \App\Models\TripTicket::with('vehicleRequest')->find($tripId);
+                            return $ticket?->vehicleRequest?->destination ?? null;
+                        }
+                        return null;
+                    })
+                    ->dehydrated(),
+                TextInput::make('purpose')
+                    ->label('Purpose')
+                    ->placeholder('Enter or edit purpose')
+                    ->helperText('Pre-filled from Trip Ticket. Editable if different.')
+                    ->default(function (callable $get, ?\App\Models\WithdrawalSlip $record) {
+                        if ($record && $record->purpose) {
+                            return $record->purpose;
+                        }
+                        $tripId = $get('trip_ticket_id') ?? request()->query('trip_ticket_id') ?? ($record?->trip_ticket_id);
                         if ($tripId) {
                             $ticket = \App\Models\TripTicket::with(['vehicleRequest'])->find($tripId);
                             return $ticket?->vehicleRequest?->purpose ?? 'Official Business';
                         }
                         return 'Official Business';
                     })
-                    ->dehydrated(),
+                    ->dehydrated()
+                    ->required(),
                 Repeater::make('requested_items')
                     ->label('Requested Items (Drag to reorder or add items)')
                     ->helperText('Select the fuel, oil, or fluid items required. Drag items to reorder.')

@@ -19,33 +19,41 @@ class VehicleRequestsTable
         return $table
             ->columns([
                 TextColumn::make('request_number')
-                    ->label('Request #')
-                    ->searchable()
+                    ->label('Vehicle Request')
+                    ->width('110px')
+                    ->formatStateUsing(fn ($state) => preg_replace('/^VR-(?=\d{4}-)/', '', $state))
+                    ->searchable(query: function (\Illuminate\Database\Eloquent\Builder $query, string $search): \Illuminate\Database\Eloquent\Builder {
+                        return $query->where(function ($q) use ($search) {
+                            $q->where('request_number', 'like', "%{$search}%")
+                              ->orWhere('request_number', 'like', "%VR-{$search}%");
+                        });
+                    })
                     ->sortable()
                     ->weight('bold')
                     ->description(fn ($record) => $record->is_urgent ? '🚨 URGENT' : null),
                 TextColumn::make('employee_name')
                     ->label('Requester')
+                    ->width('105px')
                     ->limit(13)
                     ->tooltip(fn ($record) => $record->employee_name)
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('department')
+                    ->width('85px')
                     ->limit(8)
                     ->tooltip(fn ($record) => $record->department)
                     ->searchable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
+                    ->width('135px')
                     ->placeholder('To be assigned')
                     ->default('To be assigned')
                     ->formatStateUsing(function ($state, $record) {
-                        if (!empty($state)) {
-                            return $state;
+                        $raw = !empty($state) ? $state : ($record->tripTicket?->vehicle ?? null);
+                        if (empty($raw)) {
+                            return 'To be assigned';
                         }
-                        if ($record->tripTicket && !empty($record->tripTicket->vehicle)) {
-                            return $record->tripTicket->vehicle;
-                        }
-                        return 'To be assigned';
+                        return \App\Models\Vehicle::getVehicleName($raw);
                     })
                     ->badge()
                     ->color(fn ($state, $record) => empty($record->vehicle) && (!$record->tripTicket || empty($record->tripTicket->vehicle)) ? 'gray' : 'info')
@@ -58,36 +66,49 @@ class VehicleRequestsTable
                         }
                         return null;
                     })
-                    ->tooltip(function ($record) {
+                    ->tooltip(function ($state, $record) {
+                        $raw = !empty($state) ? $state : ($record->tripTicket?->vehicle ?? null);
+                        $name = \App\Models\Vehicle::getVehicleName($raw);
+                        $plate = \App\Models\Vehicle::getPlateNumber($raw);
+
+                        $carpoolNote = '';
                         if ($record->tripTicket) {
                             $otherDepts = $record->tripTicket->vehicleRequests()->pluck('department')->filter()->unique()->join(', ');
                             if ($otherDepts) {
-                                return "Consolidated Trip with: {$otherDepts}";
+                                $carpoolNote = " | Carpool with: {$otherDepts}";
                             }
                         }
-                        return $record->vehicle ?? 'Assigned by GSO Motorpool upon approval';
+
+                        if ($plate && $plate !== $name) {
+                            return "{$name} (Plate: {$plate}){$carpoolNote}";
+                        }
+                        return $name ? "{$name}{$carpoolNote}" : 'Assigned by GSO Motorpool upon approval';
                     })
                     ->searchable(),
                 TextColumn::make('destination')
+                    ->width('120px')
                     ->limit(15)
                     ->tooltip(fn ($record) => $record->destination)
                     ->searchable(),
                 TextColumn::make('date')
                     ->label('Schedule')
+                    ->width('110px')
                     ->date('M d, Y')
                     ->description(fn ($record) => $record->time ? \Carbon\Carbon::parse($record->time)->format('h:i A') : null)
                     ->sortable(),
                 TextColumn::make('return_date')
                     ->label('Return')
+                    ->width('95px')
                     ->date('M d, Y')
                     ->description(fn ($record) => $record->return_time ? \Carbon\Carbon::parse($record->return_time)->format('h:i A') : null)
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
+                    ->width('130px')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn (string $state, $record): string => match ($state) {
                         'pending' => 'warning',
-                        'approved' => 'success',
+                        'approved' => !empty($record->document) ? 'info' : 'success',
                         'on_trip' => 'info',
                         'rejected' => 'danger',
                         'cancelled' => 'danger',
@@ -95,15 +116,30 @@ class VehicleRequestsTable
                         'expired' => 'gray',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state) => match ($state) {
-                        'pending' => 'Pending',
-                        'approved' => 'Approved',
-                        'on_trip' => 'On Trip',
-                        'rejected' => 'Disapproved',
-                        'cancelled' => 'Cancelled',
-                        'completed' => 'Completed',
-                        'expired' => 'Expired',
-                        default => ucfirst($state),
+                    ->formatStateUsing(function (string $state, $record) {
+                        if ($state === 'approved') {
+                            return !empty($record->document) ? 'Ready (Waiting)' : 'Approved';
+                        }
+                        return match ($state) {
+                            'pending' => 'Pending',
+                            'on_trip' => 'On Trip',
+                            'rejected' => 'Disapproved',
+                            'cancelled' => 'Cancelled',
+                            'completed' => 'Completed',
+                            'expired' => 'Expired',
+                            default => ucfirst($state),
+                        };
+                    })
+                    ->description(function ($record) {
+                        if ($record->status === 'approved') {
+                            if (!empty($record->document)) {
+                                return $record->time 
+                                    ? '⏳ Departs ' . \Carbon\Carbon::parse($record->time)->format('g:i A')
+                                    : '✅ Doc Attached';
+                            }
+                            return '📄 Awaiting CEO Doc';
+                        }
+                        return null;
                     })
                     ->tooltip(function ($record) {
                         if ($record->status === 'rejected' && $record->rejection_reason) {
@@ -127,7 +163,7 @@ class VehicleRequestsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('request_number', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->recordActions([
                 ActionGroup::make([
                     EditAction::make()
@@ -231,15 +267,37 @@ class VehicleRequestsTable
                                 'document' => $finalPath,
                             ]);
 
+                            $now = \Illuminate\Support\Carbon::now('Asia/Manila');
+                            $depDate = $record->date ?? $now->format('Y-m-d');
+                            $depTime = $record->time ?? '00:00:00';
+                            $tripDateTime = \Illuminate\Support\Carbon::parse("{$depDate} {$depTime}", 'Asia/Manila');
+                            $timeArrived = $now->greaterThanOrEqualTo($tripDateTime);
+
                             if ($record->tripTicket) {
-                                $record->tripTicket->updateQuietly([
-                                    'document' => $finalPath,
-                                ]);
+                                $tripTicket = $record->tripTicket;
+                                $tripTicket->document = $finalPath;
+                                if ($timeArrived) {
+                                    $tripTicket->status = 'active';
+                                    $tripTicket->save();
+                                    $record->update(['status' => 'on_trip']);
+                                } else {
+                                    if ($tripTicket->status === 'cancelled') {
+                                        $tripTicket->status = 'pending';
+                                    }
+                                    $tripTicket->save();
+                                    $record->update(['status' => 'approved']);
+                                }
+                            } elseif ($timeArrived) {
+                                $record->update(['status' => 'on_trip']);
                             }
+
+                            $msg = $timeArrived 
+                                ? 'CEO Signed Document uploaded! Scheduled travel time has arrived — Trip is now ON TRIP!'
+                                : 'CEO Signed Document uploaded! Request is now Ready (Waiting for departure at ' . ($record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time') . ').';
 
                             \Filament\Notifications\Notification::make()
                                 ->title('Document Uploaded')
-                                ->body('CEO Signed Document uploaded successfully! Trip ticket is now active!')
+                                ->body($msg)
                                 ->success()
                                 ->send();
                         }),
@@ -411,7 +469,7 @@ class VehicleRequestsTable
                 ->label('Actions')
                 ->icon('heroicon-m-ellipsis-vertical')
                 ->color('gray')
-                ->button(),
+                ->iconButton(),
             ])
             ->filters([
                 \Filament\Tables\Filters\Filter::make('status')

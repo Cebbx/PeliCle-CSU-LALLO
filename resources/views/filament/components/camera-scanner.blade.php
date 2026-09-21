@@ -72,8 +72,19 @@
             const video = this.$refs.video;
             const canvas = this.$refs.canvas;
 
-            const width = video.videoWidth || 1280;
-            const height = video.videoHeight || 720;
+            let width = video.videoWidth || 1280;
+            let height = video.videoHeight || 720;
+
+            const maxDim = 1600;
+            if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                }
+            }
 
             canvas.width = width;
             canvas.height = height;
@@ -87,7 +98,7 @@
             this.sharpnessScore = this.calculateSharpness(ctx, width, height);
             this.isBlurry = this.sharpnessScore < 60;
 
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
             this.state = dataUrl;
 
             this.stopCamera();

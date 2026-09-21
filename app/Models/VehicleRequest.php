@@ -43,6 +43,49 @@ class VehicleRequest extends Model
         'is_urgent' => 'boolean',
     ];
 
+    public static function generateNextRequestNumber(?\Carbon\Carbon $date = null): string
+    {
+        $date = $date ?? now();
+        $year = $date->format('Y');
+        $month = $date->format('m');
+        $prefix = "{$year}-{$month}-";
+
+        $existing = static::withTrashed()
+            ->where(function ($q) use ($prefix) {
+                $q->where('request_number', 'like', "{$prefix}%")
+                  ->orWhere('request_number', 'like', "VR-{$prefix}%");
+            })
+            ->pluck('request_number');
+
+        $maxSeq = 0;
+        foreach ($existing as $reqNum) {
+            $parts = explode('-', $reqNum);
+            $seqStr = end($parts);
+            if (is_numeric($seqStr)) {
+                $seq = (int) $seqStr;
+                if ($seq > $maxSeq) {
+                    $maxSeq = $seq;
+                }
+            }
+        }
+
+        $nextSeq = str_pad($maxSeq + 1, 2, '0', STR_PAD_LEFT);
+        $candidate = "{$prefix}{$nextSeq}";
+
+        $counter = $maxSeq + 1;
+        while (static::withTrashed()->where('request_number', $candidate)->orWhere('request_number', "VR-{$candidate}")->exists()) {
+            $counter++;
+            $candidate = $prefix . str_pad($counter, 2, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
+    }
+
+    public function getFormattedRequestNumberAttribute(): string
+    {
+        return preg_replace('/^VR-(?=\d{4}-)/', '', $this->request_number ?? '');
+    }
+
     protected static function booted(): void
     {
         static::created(function ($vehicleRequest) {

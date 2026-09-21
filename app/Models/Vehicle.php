@@ -34,6 +34,59 @@ class Vehicle extends Model
         return $dueDate->isFuture() && $dueDate->diffInDays(now()) <= 14;
     }
 
+    public static function getVehicleName(?string $raw): string
+    {
+        if (empty($raw)) {
+            return 'To be assigned';
+        }
+
+        // Strip "BRAND - PLATE" if formatted like "FORTUNER - SBA1749"
+        if (str_contains($raw, ' - ')) {
+            $parts = explode(' - ', $raw);
+            return trim($parts[0]);
+        }
+
+        // Match plate number against vehicles in database
+        static $plateMap = null;
+        if ($plateMap === null) {
+            $plateMap = static::all()->pluck('brand', 'plate_number')->toArray();
+        }
+
+        if (isset($plateMap[$raw])) {
+            return $plateMap[$raw];
+        }
+
+        // Case-insensitive match on plate
+        foreach ($plateMap as $plate => $brand) {
+            if (strcasecmp($plate, $raw) === 0) {
+                return $brand;
+            }
+        }
+
+        return $raw;
+    }
+
+    public static function getPlateNumber(?string $raw): ?string
+    {
+        if (empty($raw)) return null;
+
+        if (str_contains($raw, ' - ')) {
+            $parts = explode(' - ', $raw);
+            return trim(end($parts));
+        }
+
+        static $brandMap = null;
+        if ($brandMap === null) {
+            $brandMap = static::all()->pluck('plate_number', 'brand')->toArray();
+        }
+
+        if (isset($brandMap[$raw])) {
+            return $brandMap[$raw];
+        }
+
+        return $raw;
+    }
+
     public function tripTickets(): HasMany
     {
         return $this->hasMany(TripTicket::class);

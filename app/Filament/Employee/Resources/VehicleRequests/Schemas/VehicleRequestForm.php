@@ -29,12 +29,8 @@ class VehicleRequestForm
                     ->columnSpanFull()
                     ->schema([
                         TextInput::make('request_number')
-                            ->label('Request Number')
-                            ->default(function () {
-                                $lastRecord = \App\Models\VehicleRequest::latest('id')->first();
-                                $nextId = $lastRecord ? ($lastRecord->id + 1) : 1;
-                                return 'VR-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-                            })
+                            ->label('Vehicle Request')
+                            ->default(fn () => \App\Models\VehicleRequest::generateNextRequestNumber())
                             ->helperText('Auto-generated tracking number')
                             ->disabled()
                             ->dehydrated()

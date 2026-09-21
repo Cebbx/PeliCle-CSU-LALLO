@@ -50,41 +50,65 @@ class AppServiceProvider extends ServiceProvider
         // Real-time trip status activation based on travel date and time
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('trip_tickets')) {
+                // 1. Activate trips with uploaded document whose departure time has arrived
                 $pendingReadyTrips = \App\Models\TripTicket::where('status', 'pending')
-                    ->whereHas('vehicleRequest', function ($q) {
-                        $q->whereNotNull('document');
+                    ->where(function ($query) {
+                        $query->whereNotNull('document')
+                            ->orWhereHas('vehicleRequests', function ($q) {
+                                $q->whereNotNull('document');
+                            })
+                            ->orWhereHas('vehicleRequest', function ($q) {
+                                $q->whereNotNull('document');
+                            });
                     })
-                    ->with(['vehicleRequest', 'driver'])
+                    ->with(['vehicleRequest', 'vehicleRequests', 'driver'])
                     ->get();
 
                 $now = \Illuminate\Support\Carbon::now('Asia/Manila');
 
                 foreach ($pendingReadyTrips as $trip) {
-                    $tripDateTime = \Illuminate\Support\Carbon::parse(
-                        $trip->vehicleRequest->date . ' ' . $trip->vehicleRequest->time, 
-                        'Asia/Manila'
-                    );
+                    $primaryReq = $trip->vehicleRequest ?? $trip->vehicleRequests->first();
+                    if (!$primaryReq) continue;
+
+                    $depDate = $primaryReq->date ?? ($trip->created_at ? $trip->created_at->format('Y-m-d') : $now->format('Y-m-d'));
+                    $depTime = $primaryReq->time ?? '00:00:00';
+                    $tripDateTime = \Illuminate\Support\Carbon::parse("{$depDate} {$depTime}", 'Asia/Manila');
 
                     if ($now->greaterThanOrEqualTo($tripDateTime)) {
                         // Activate trip ticket!
                         $trip->status = 'active';
-                        $trip->save(); // This triggers model saving/saved hooks, updating driver status to 'on_trip' and sending SMS notification!
+                        if (!$trip->document) {
+                            $doc = $trip->vehicleRequests->pluck('document')->filter()->first() ?? $primaryReq->document;
+                            $trip->document = $doc;
+                        }
+                        $trip->save(); // This triggers model saving/saved hooks, updating driver status to 'on_trip' and syncing all requests!
                     }
                 }
 
-                // 2. Auto-decline pending trips with no document after 2 hours of travel time
+                // 2. Auto-decline pending trips with NO document after 2+ hours of travel time AND 2+ hours since creation
                 $expiredTrips = \App\Models\TripTicket::where('status', 'pending')
-                    ->whereHas('vehicleRequest', function ($q) {
-                        $q->whereNull('document');
+                    ->whereNull('document')
+                    ->whereDoesntHave('vehicleRequests', function ($q) {
+                        $q->whereNotNull('document');
+                    })
+                    ->whereDoesntHave('vehicleRequest', function ($q) {
+                        $q->whereNotNull('document');
                     })
                     ->with(['vehicleRequest', 'driver'])
                     ->get();
 
                 foreach ($expiredTrips as $trip) {
-                    $tripDateTime = \Illuminate\Support\Carbon::parse(
-                        $trip->vehicleRequest->date . ' ' . $trip->vehicleRequest->time, 
-                        'Asia/Manila'
-                    );
+                    $primaryReq = $trip->vehicleRequest ?? $trip->vehicleRequests->first();
+                    if (!$primaryReq) continue;
+
+                    // Must be at least 2 hours since ticket was created to give reasonable upload window
+                    if ($trip->created_at && $trip->created_at->diffInHours($now) < 2) {
+                        continue;
+                    }
+
+                    $depDate = $primaryReq->date ?? $trip->created_at->format('Y-m-d');
+                    $depTime = $primaryReq->time ?? '00:00:00';
+                    $tripDateTime = \Illuminate\Support\Carbon::parse("{$depDate} {$depTime}", 'Asia/Manila');
 
                     // If current time is 2 hours (120 minutes) past the travel time
                     if ($now->diffInMinutes($tripDateTime, false) < -120) {

@@ -3,21 +3,24 @@
 namespace App\Filament\Widgets;
 
 use App\Models\VehicleRequest;
+use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
-use Filament\Actions\Action;
+use Illuminate\Database\Eloquent\Builder;
 
 class AnalyticsTripLogsWidget extends TableWidget
 {
     use InteractsWithPageFilters;
 
-    protected static ?string $heading = 'Detailed Trip Activity & Passenger Logs';
+    protected static ?string $heading = 'Recent Trip Activity Logs';
 
     protected static ?int $sort = 10;
 
     protected int|string|array $columnSpan = 'full';
+
+    protected string $view = 'filament.widgets.analytics-trip-logs-widget';
 
     public function table(Table $table): Table
     {
@@ -26,8 +29,8 @@ class AnalyticsTripLogsWidget extends TableWidget
         $filterStatus = $this->filters['status'] ?? null;
         $filterDept = $this->filters['department'] ?? null;
 
-        $query = VehicleRequest::with(['tripTicket.driver'])
-            ->latest('date');
+        $query = VehicleRequest::query()
+            ->with(['tripTicket.driver']);
 
         if ($startDate) {
             $query->where('date', '>=', $startDate);
@@ -44,66 +47,88 @@ class AnalyticsTripLogsWidget extends TableWidget
 
         return $table
             ->query($query)
+            ->defaultSort('date', 'desc')
             ->defaultPaginationPageOption(5)
             ->paginationPageOptions([5, 10, 25])
+            ->emptyStateHeading('No Trip Activity Logs Found')
+            ->emptyStateDescription('No vehicle requests or trips match the selected filters. Try adjusting the date range, department, or status.')
+            ->emptyStateIcon('heroicon-o-clipboard-document-list')
+            ->recordAction('view_details')
+            ->recordActionsAlignment('start')
             ->columns([
                 TextColumn::make('request_number')
                     ->label('Request #')
+                    ->width('1%')
+                    ->extraHeaderAttributes(['style' => 'white-space: nowrap;'])
+                    ->extraCellAttributes(['style' => 'white-space: nowrap;'])
                     ->weight('bold')
-                    ->searchable(),
+                    ->sortable()
+                    ->searchable()
+                    ->description(fn ($record) => $record->is_urgent ? '🚨 URGENT' : null),
 
                 TextColumn::make('employee_name')
-                    ->label('Requester (Client)')
-                    ->description(fn ($record) => $record->department)
-                    ->searchable(),
+                    ->label('Requester')
+                    ->extraHeaderAttributes(['style' => 'white-space: nowrap;'])
+                    ->extraCellAttributes(['style' => 'white-space: nowrap;'])
+                    ->weight('semibold')
+                    ->tooltip(fn ($record) => $record->employee_name)
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('department')
+                    ->label('Office')
+                    ->placeholder('—')
+                    ->weight('medium')
+                    ->extraHeaderAttributes(['style' => 'white-space: nowrap;'])
+                    ->extraCellAttributes(['style' => 'white-space: nowrap;'])
+                    ->tooltip(fn ($record) => $record->department)
+                    ->searchable()
+                    ->sortable(),
 
                 TextColumn::make('destination')
                     ->label('Destination')
-                    ->limit(35)
                     ->tooltip(fn ($record) => $record->destination)
                     ->searchable(),
 
-                TextColumn::make('purpose')
-                    ->label('Purpose')
-                    ->limit(25)
-                    ->tooltip(fn ($record) => $record->purpose)
-                    ->searchable(),
-
                 TextColumn::make('date')
-                    ->label('Travel Schedule')
-                    ->formatStateUsing(fn ($record) => \Carbon\Carbon::parse($record->date)->format('M d, Y') . ' (' . \Carbon\Carbon::parse($record->time)->format('g:i A') . ')')
+                    ->label('Travel Date')
+                    ->width('1%')
+                    ->extraHeaderAttributes(['style' => 'white-space: nowrap;'])
+                    ->extraCellAttributes(['style' => 'white-space: nowrap;'])
+                    ->date('M d, Y')
+                    ->description(fn ($record) => $record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : null)
                     ->sortable(),
 
                 TextColumn::make('vehicle')
-                    ->label('Vehicle & Driver')
-                    ->formatStateUsing(function ($record) {
-                        $driver = $record->tripTicket?->driver?->name ?? 'No Driver Assigned';
-                        $vehicle = $record->vehicle ?? 'N/A';
-                        return "{$vehicle} • {$driver}";
+                    ->label('Vehicle')
+                    ->width('1%')
+                    ->extraHeaderAttributes(['style' => 'white-space: nowrap; text-align: center;'])
+                    ->extraCellAttributes(['style' => 'white-space: nowrap; text-align: center;'])
+                    ->alignCenter()
+                    ->placeholder('To be assigned')
+                    ->default('To be assigned')
+                    ->formatStateUsing(function ($state, $record) {
+                        $raw = !empty($state) ? $state : ($record->tripTicket?->vehicle ?? null);
+                        if (empty($raw)) {
+                            return 'To be assigned';
+                        }
+                        return \App\Models\Vehicle::getVehicleName($raw);
                     })
                     ->badge()
-                    ->color('gray'),
-
-                TextColumn::make('passenger_names')
-                    ->label('Passengers')
-                    ->formatStateUsing(function ($record) {
-                        $passengers = $record->passenger_names ?? [];
-                        if (is_string($passengers)) {
-                            $passengers = json_decode($passengers, true) ?? [];
-                        }
-                        $names = collect($passengers)->pluck('name')->filter()->join(', ');
-                        return $names ?: ($record->number_of_passengers . ' passenger(s)');
+                    ->color(fn ($state, $record) => empty($record->vehicle) && (!$record->tripTicket || empty($record->tripTicket->vehicle)) ? 'gray' : 'info')
+                    ->tooltip(function ($state, $record) {
+                        $raw = !empty($state) ? $state : ($record->tripTicket?->vehicle ?? null);
+                        $plate = \App\Models\Vehicle::getPlateNumber($raw);
+                        return $plate ? "Plate: {$plate}" : null;
                     })
-                    ->limit(30)
-                    ->tooltip(function ($record) {
-                        $passengers = $record->passenger_names ?? [];
-                        if (is_string($passengers)) {
-                            $passengers = json_decode($passengers, true) ?? [];
-                        }
-                        return collect($passengers)->pluck('name')->filter()->join(', ');
-                    }),
+                    ->searchable(),
 
                 TextColumn::make('status')
+                    ->label('Status')
+                    ->width('1%')
+                    ->extraHeaderAttributes(['style' => 'white-space: nowrap; text-align: center;'])
+                    ->extraCellAttributes(['style' => 'white-space: nowrap; text-align: center;'])
+                    ->alignCenter()
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'warning',
@@ -111,6 +136,8 @@ class AnalyticsTripLogsWidget extends TableWidget
                         'on_trip' => 'info',
                         'rejected' => 'danger',
                         'completed' => 'success',
+                        'expired' => 'gray',
+                        'cancelled' => 'gray',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state) => match ($state) {
@@ -119,8 +146,25 @@ class AnalyticsTripLogsWidget extends TableWidget
                         'on_trip' => 'On Trip',
                         'rejected' => 'Disapproved',
                         'completed' => 'Completed',
+                        'expired' => 'Expired',
+                        'cancelled' => 'Cancelled',
                         default => ucfirst($state),
                     }),
+            ])
+            ->recordActions([
+                Action::make('view_details')
+                    ->label('View')
+                    ->icon('heroicon-o-eye')
+                    ->color('gray')
+                    ->tooltip('Click to view full details')
+                    ->modalHeading(fn (VehicleRequest $record) => "Trip Request Details — " . ($record->formatted_request_number ?? $record->request_number))
+                    ->modalWidth('2xl')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close')
+                    ->modalContent(fn (VehicleRequest $record) => view('filament.widgets.analytics-trip-details-modal', [
+                        'record' => $record,
+                        'tripTicket' => $record->tripTicket ?? \App\Models\TripTicket::where('vehicle_request_id', $record->id)->first(),
+                    ])),
             ]);
     }
 }

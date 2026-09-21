@@ -126,7 +126,7 @@
 
                 <!-- Authorization Paragraph -->
                 <div class="leading-relaxed text-justify pt-1">
-                    This is to AUTHORIZE <span class="border-b border-black font-bold px-3 inline-block min-w-[280px] text-center">{{ $slip->tripTicket?->driver?->name ?? '_______________' }}</span> official driver 
+                    This is to AUTHORIZE <span class="border-b border-black font-bold px-3 inline-block min-w-[280px] text-center">{{ $driverName ?? ($slip->driver_name ?: ($slip->tripTicket?->driver?->name ?? '_______________')) }}</span> official driver 
                     of <span class="border-b border-black font-bold px-3 inline-block min-w-[160px] text-center">{{ $vehicleModel ?: '_______________' }}</span> with plate No. <span class="border-b border-black font-bold px-3 inline-block min-w-[150px] text-center">{{ $vehiclePlate ?: '_______________' }}</span> to withdraw the following:
                 </div>
             </div>

@@ -13,7 +13,9 @@ class VehicleUsageChart extends ChartWidget
 
     protected ?string $heading = 'Vehicle Usage Frequency';
     
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 6;
+
+    protected int | string | array $columnSpan = 1;
 
     protected function getType(): string
     {

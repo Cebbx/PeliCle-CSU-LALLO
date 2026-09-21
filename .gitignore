@@ -21,3 +21,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+cloudflared.exe
+/scratch/
+storage/test_print.html

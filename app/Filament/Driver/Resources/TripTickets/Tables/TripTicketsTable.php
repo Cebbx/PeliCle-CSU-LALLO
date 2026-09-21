@@ -32,9 +32,11 @@ class TripTicketsTable
                     ->sortable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
-                    ->formatStateUsing(function ($state) {
-                        $vehicle = \App\Models\Vehicle::where('plate_number', $state)->first();
-                        return $vehicle ? "{$vehicle->brand} - {$vehicle->plate_number}" : $state;
+                    ->formatStateUsing(fn ($state) => \App\Models\Vehicle::getVehicleName($state))
+                    ->tooltip(function ($state) {
+                        $name = \App\Models\Vehicle::getVehicleName($state);
+                        $plate = \App\Models\Vehicle::getPlateNumber($state);
+                        return ($plate && $plate !== $name) ? "{$name} (Plate: {$plate})" : $name;
                     })
                     ->searchable()
                     ->sortable(),
@@ -83,6 +85,12 @@ class TripTicketsTable
                     ->icon('heroicon-o-qr-code')
                     ->color('info')
                     ->url(fn ($record) => route('trip-tickets.print', $record->id))
+                    ->openUrlInNewTab(),
+                Action::make('print_travel_order')
+                    ->label('Driver Travel Order')
+                    ->icon('heroicon-o-document-text')
+                    ->color('warning')
+                    ->url(fn ($record) => route('trip-tickets.print-travel-order', [$record->id, 'type' => 'driver']))
                     ->openUrlInNewTab(),
             ])
             ->toolbarActions([

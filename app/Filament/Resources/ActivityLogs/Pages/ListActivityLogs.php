@@ -12,7 +12,7 @@ class ListActivityLogs extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            // Audit logs are read-only, no manual creation!
+            // Read-only audit log
         ];
     }
 }

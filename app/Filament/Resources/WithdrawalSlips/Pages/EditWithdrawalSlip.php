@@ -30,6 +30,22 @@ class EditWithdrawalSlip extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        if (!empty($data['trip_ticket_id'])) {
+            $ticket = \App\Models\TripTicket::with(['driver', 'vehicleRequest'])->find($data['trip_ticket_id']);
+            if ($ticket) {
+                if (empty($data['driver_name'])) {
+                    $data['driver_name'] = $ticket->driver?->name ?? 'No Driver';
+                }
+                if (empty($data['vehicle_name'])) {
+                    $dbVehicle = \App\Models\Vehicle::where('plate_number', $ticket->vehicle)->first();
+                    $data['vehicle_name'] = $dbVehicle ? "{$dbVehicle->brand} ({$dbVehicle->plate_number})" : $ticket->vehicle;
+                }
+                if (empty($data['destination_address'])) {
+                    $data['destination_address'] = $ticket->vehicleRequest?->destination ?? 'No Destination';
+                }
+            }
+        }
+
         if (isset($data['requested_items']) && !is_array($data['requested_items'])) {
             $decoded = json_decode($data['requested_items'], true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {

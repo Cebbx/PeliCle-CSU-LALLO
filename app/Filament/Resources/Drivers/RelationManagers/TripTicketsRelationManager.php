@@ -67,7 +67,8 @@ class TripTicketsRelationManager extends RelationManager
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('vehicleRequest.request_number')
-                    ->label('Request Number')
+                    ->label('Vehicle Request')
+                    ->formatStateUsing(fn ($state) => preg_replace('/^VR-(?=\d{4}-)/', '', $state))
                     ->searchable(),
                 TextColumn::make('vehicleRequest.date')
                     ->label('Trip Date')
@@ -82,6 +83,12 @@ class TripTicketsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
+                    ->formatStateUsing(fn ($state) => \App\Models\Vehicle::getVehicleName($state))
+                    ->tooltip(function ($state) {
+                        $name = \App\Models\Vehicle::getVehicleName($state);
+                        $plate = \App\Models\Vehicle::getPlateNumber($state);
+                        return ($plate && $plate !== $name) ? "{$name} (Plate: {$plate})" : $name;
+                    })
                     ->searchable(),
                 TextColumn::make('status')
                     ->badge()

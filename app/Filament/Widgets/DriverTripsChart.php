@@ -14,7 +14,9 @@ class DriverTripsChart extends ChartWidget
 
     protected ?string $heading = 'Driver Performance (Trips Completed)';
     
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 5;
+
+    protected int | string | array $columnSpan = 1;
 
     protected function getType(): string
     {

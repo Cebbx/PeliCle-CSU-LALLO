@@ -19,15 +19,18 @@ class TripTicketsTable
                 TextColumn::make('ticket_number')
                     ->searchable(),
                 TextColumn::make('vehicleRequest.request_number')
-                    ->label('Request Number')
+                    ->label('Vehicle Request')
+                    ->formatStateUsing(fn ($state) => preg_replace('/^VR-(?=\d{4}-)/', '', $state))
                     ->searchable(),
                 TextColumn::make('driver.name')
                     ->searchable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
-                    ->formatStateUsing(function ($state) {
-                        $vehicle = \App\Models\Vehicle::where('plate_number', $state)->first();
-                        return $vehicle ? "{$vehicle->brand} - {$vehicle->plate_number}" : $state;
+                    ->formatStateUsing(fn ($state) => \App\Models\Vehicle::getVehicleName($state))
+                    ->tooltip(function ($state) {
+                        $name = \App\Models\Vehicle::getVehicleName($state);
+                        $plate = \App\Models\Vehicle::getPlateNumber($state);
+                        return ($plate && $plate !== $name) ? "{$name} (Plate: {$plate})" : $name;
                     })
                     ->searchable(),
                 TextColumn::make('status')
@@ -46,9 +49,9 @@ class TripTicketsTable
                         'cancelled' => 'Cancelled',
                         default => ucfirst($state),
                     })
-                    ->description(function ($record) {
+                    ->tooltip(function ($record) {
                         if ($record->status === 'cancelled' && $record->cancellation_reason) {
-                            return 'Reason: ' . \Illuminate\Support\Str::limit($record->cancellation_reason, 35);
+                            return 'Reason: ' . $record->cancellation_reason;
                         }
                         return null;
                     })
@@ -323,14 +326,6 @@ class TripTicketsTable
                                 ->send();
                         })
                         ->requiresConfirmation(),
-                    Action::make('create_slip')
-                        ->label('Create Withdrawal Slip')
-                        ->icon('heroicon-o-document-plus')
-                        ->color('warning')
-                        ->visible(fn ($record) => !$record->withdrawalSlips()->exists() && in_array($record->status, ['pending', 'active']))
-                        ->url(fn ($record) => \App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('create', [
-                            'trip_ticket_id' => $record->id,
-                        ])),
                     Action::make('view_signed_document')
                         ->label('View Signed Document')
                         ->icon('heroicon-o-document-check')
@@ -343,12 +338,6 @@ class TripTicketsTable
                         ->icon('heroicon-o-printer')
                         ->color('info')
                         ->url(fn ($record) => route('trip-tickets.print', $record->id))
-                        ->openUrlInNewTab(),
-                    Action::make('print_travel_order_employee')
-                        ->label('Print Passenger TO')
-                        ->icon('heroicon-o-document-text')
-                        ->color('warning')
-                        ->url(fn ($record) => route('trip-tickets.print-travel-order', [$record->id, 'type' => 'employee']))
                         ->openUrlInNewTab(),
                     Action::make('print_travel_order_driver')
                         ->label('Print Driver TO')
@@ -371,7 +360,7 @@ class TripTicketsTable
                 ->label('Actions')
                 ->icon('heroicon-m-ellipsis-vertical')
                 ->color('gray')
-                ->button(),
+                ->iconButton(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

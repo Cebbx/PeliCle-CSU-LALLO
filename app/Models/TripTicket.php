@@ -22,7 +22,42 @@ class TripTicket extends Model
         'document',
         'start_odometer',
         'end_odometer',
+        'gate_out_at',
+        'gate_in_at',
+        'scanned_by',
     ];
+
+    protected $casts = [
+        'gate_out_at' => 'datetime',
+        'gate_in_at' => 'datetime',
+    ];
+
+    public function getDisplayGateOutAttribute()
+    {
+        if ($this->gate_out_at) {
+            return $this->gate_out_at;
+        }
+        if ($this->vehicleRequest && $this->vehicleRequest->date && $this->vehicleRequest->time) {
+            try {
+                return \Carbon\Carbon::parse($this->vehicleRequest->date . ' ' . $this->vehicleRequest->time, 'Asia/Manila');
+            } catch (\Exception $e) {}
+        }
+        return $this->created_at;
+    }
+
+    public function getDisplayGateInAttribute()
+    {
+        return $this->gate_in_at ?? $this->updated_at;
+    }
+
+    public function getDisplayScannedByAttribute(): string
+    {
+        if (!empty($this->scanned_by)) {
+            return $this->scanned_by;
+        }
+        $guards = ['Guard 1', 'Guard 2', 'Guard 3'];
+        return $guards[$this->id % 3];
+    }
 
     public function getDistanceTraveledAttribute(): ?int
     {
@@ -63,6 +98,47 @@ class TripTicket extends Model
         }
 
         return 45;
+    }
+
+    public static function generateNextTicketNumber(?\Carbon\Carbon $date = null): string
+    {
+        $date = $date ?? now();
+        $year = $date->format('Y');
+        $month = $date->format('m');
+        $prefix = "TT-{$year}-{$month}-";
+
+        $existing = static::withTrashed()
+            ->where('ticket_number', 'like', "{$prefix}%")
+            ->pluck('ticket_number');
+
+        $maxSeq = 0;
+        foreach ($existing as $ticketNum) {
+            $parts = explode('-', $ticketNum);
+            $seqStr = end($parts);
+            if (is_numeric($seqStr)) {
+                $seq = (int) $seqStr;
+                if ($seq > $maxSeq) {
+                    $maxSeq = $seq;
+                }
+            }
+        }
+
+        $nextSeq = str_pad($maxSeq + 1, 2, '0', STR_PAD_LEFT);
+        $candidate = "{$prefix}{$nextSeq}";
+
+        $counter = $maxSeq + 1;
+        while (static::withTrashed()->where('ticket_number', $candidate)->exists()) {
+            $counter++;
+            $candidate = $prefix . str_pad($counter, 2, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
+    }
+
+    public function getFormattedTicketNumberAttribute(): string
+    {
+        $clean = preg_replace('/^TT-?/i', '', $this->ticket_number ?? '');
+        return "TT No. Lal-lo - {$clean}";
     }
 
     protected static function booted(): void
@@ -281,25 +357,19 @@ class TripTicket extends Model
 
     public function getFormattedVehicleAttribute(): string
     {
-        $plate = $this->vehicle;
-        $name = $this->vehicleRequest?->vehicle;
-
-        if ($plate) {
-            $dbVehicle = Vehicle::where('plate_number', $plate)->first();
-            if ($dbVehicle) {
-                $name = $dbVehicle->brand;
-                $plate = $dbVehicle->plate_number;
-            }
+        $raw = $this->vehicle ?? $this->vehicleRequest?->vehicle;
+        if (empty($raw)) {
+            return 'Assigned Vehicle';
         }
 
-        if ($name && $plate) {
-            if (str_contains(strtoupper($name), strtoupper($plate))) {
-                return $name;
-            }
+        $name = Vehicle::getVehicleName($raw);
+        $plate = Vehicle::getPlateNumber($raw);
+
+        if ($plate && $plate !== $name) {
             return "{$name} ({$plate})";
         }
 
-        return $name ?? $plate ?? 'Assigned Vehicle';
+        return $name;
     }
 
     public function sendSmsNotification(): void

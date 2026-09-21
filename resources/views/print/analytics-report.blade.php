@@ -70,7 +70,7 @@
                 <div class="text-center flex-1">
                     <p class="text-[10px] tracking-widest uppercase font-semibold text-gray-700">Republic of the Philippines</p>
                     <h2 class="text-base font-extrabold text-black uppercase tracking-wide">Cagayan State University</h2>
-                    <p class="text-xs font-bold text-gray-800">Sanchez Mira Campus</p>
+                    <p class="text-xs font-bold text-gray-800">Lal-lo Campus</p>
                     <p class="text-[11px] font-semibold text-gray-700">GENERAL SERVICES OFFICE (GSO)</p>
                     <h3 class="text-sm font-black uppercase text-black mt-2 underline tracking-wider">
                         FLEET DISPATCH & VEHICLE UTILIZATION REPORT

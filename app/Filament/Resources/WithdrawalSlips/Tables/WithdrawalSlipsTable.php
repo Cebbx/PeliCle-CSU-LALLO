@@ -5,7 +5,6 @@ namespace App\Filament\Resources\WithdrawalSlips\Tables;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -18,9 +17,13 @@ class WithdrawalSlipsTable
                 TextColumn::make('slip_number')
                     ->searchable()
                     ->label('Slip ID'),
-                TextColumn::make('tripTicket.driver.name')
+                TextColumn::make('driver_name')
                     ->label('Driver')
-                    ->searchable()
+                    ->state(fn ($record) => $record->driver_name ?: ($record->tripTicket?->driver?->name ?? 'N/A'))
+                    ->searchable(query: function ($query, string $search) {
+                        $query->where('driver_name', 'like', "%{$search}%")
+                            ->orWhereHas('tripTicket.driver', fn ($q) => $q->where('name', 'like', "%{$search}%"));
+                    })
                     ->default('N/A'),
                 TextColumn::make('tripTicket.ticket_number')
                     ->label('Trip ID'),
@@ -82,7 +85,6 @@ class WithdrawalSlipsTable
                             ->success()
                             ->send();
                     }),
-                EditAction::make(),
                 Action::make('print')
                     ->label('Print Slip')
                     ->icon('heroicon-o-printer')

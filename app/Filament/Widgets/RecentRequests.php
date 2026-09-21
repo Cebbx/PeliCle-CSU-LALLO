@@ -24,7 +24,8 @@ class RecentRequests extends TableWidget
             ->paginated(false)
             ->columns([
                 TextColumn::make('request_number')
-                    ->label('Request #')
+                    ->label('Vehicle Request')
+                    ->formatStateUsing(fn ($state) => preg_replace('/^VR-(?=\d{4}-)/', '', $state))
                     ->weight('bold'),
                 TextColumn::make('employee_name')
                     ->label('Employee'),

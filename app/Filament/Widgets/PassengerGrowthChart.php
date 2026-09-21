@@ -12,7 +12,7 @@ class PassengerGrowthChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected ?string $heading = 'Passenger Demand & Fleet Growth';
+    protected ?string $heading = 'Average Passengers per Trip (Monthly Trend)';
     
     protected static ?int $sort = 3;
 
@@ -43,19 +43,24 @@ class PassengerGrowthChart extends ChartWidget
             $monthStr = $monthObj->format('Y-m');
             $labels[] = $monthObj->format('M Y');
 
-            $passengerSum = (clone $query)
-                ->where(DB::raw("strftime('%Y-%m', date)"), $monthStr)
-                ->sum('number_of_passengers');
+            $monthQuery = (clone $query)->where(DB::raw("strftime('%Y-%m', date)"), $monthStr);
+            
+            $tripCount = $filterStatus 
+                ? (clone $monthQuery)->count()
+                : (clone $monthQuery)->whereIn('status', ['approved', 'on_trip', 'completed'])->count();
 
-            $passengerData[] = (int) $passengerSum;
+            $passengerSum = (clone $monthQuery)->sum('number_of_passengers');
+
+            $avg = $tripCount > 0 ? round($passengerSum / $tripCount, 1) : 0;
+            $passengerData[] = $avg;
         }
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Total Passengers Carried',
+                    'label' => 'Avg Passengers / Trip',
                     'data' => $passengerData,
-                    'borderColor' => '#10b981', // electric emerald green matching screenshot
+                    'borderColor' => '#10b981', // emerald green
                     'backgroundColor' => 'rgba(16, 185, 129, 0.12)',
                     'pointBackgroundColor' => '#10b981',
                     'pointBorderColor' => '#ffffff',
@@ -67,6 +72,21 @@ class PassengerGrowthChart extends ChartWidget
                 ],
             ],
             'labels' => $labels,
+        ];
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            'scales' => [
+                'y' => [
+                    'beginAtZero' => true,
+                    'title' => [
+                        'display' => true,
+                        'text' => 'Passengers / Trip',
+                    ],
+                ],
+            ],
         ];
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\WithdrawalSlips;
 
 use App\Filament\Resources\WithdrawalSlips\Pages\CreateWithdrawalSlip;
-use App\Filament\Resources\WithdrawalSlips\Pages\EditWithdrawalSlip;
 use App\Filament\Resources\WithdrawalSlips\Pages\ListWithdrawalSlips;
 use App\Filament\Resources\WithdrawalSlips\Schemas\WithdrawalSlipForm;
 use App\Filament\Resources\WithdrawalSlips\Tables\WithdrawalSlipsTable;
@@ -13,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class WithdrawalSlipResource extends Resource
 {
@@ -23,6 +23,11 @@ class WithdrawalSlipResource extends Resource
     protected static ?string $recordTitleAttribute = 'slip_number';
 
     protected static ?int $navigationSort = 3;
+
+    public static function canEdit(Model $record): bool
+    {
+        return false;
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -46,7 +51,6 @@ class WithdrawalSlipResource extends Resource
         return [
             'index' => ListWithdrawalSlips::route('/'),
             'create' => CreateWithdrawalSlip::route('/create'),
-            'edit' => EditWithdrawalSlip::route('/{record}/edit'),
         ];
     }
 }

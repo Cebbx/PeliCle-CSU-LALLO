@@ -85,9 +85,7 @@ class CreateVehicleRequest extends CreateRecord
         }
 
         if (empty($data['request_number']) || \App\Models\VehicleRequest::where('request_number', $data['request_number'])->exists()) {
-            $lastRecord = \App\Models\VehicleRequest::latest('id')->first();
-            $nextId = $lastRecord ? ($lastRecord->id + 1) : 1;
-            $data['request_number'] = 'VR-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+            $data['request_number'] = \App\Models\VehicleRequest::generateNextRequestNumber();
         }
 
         return $data;

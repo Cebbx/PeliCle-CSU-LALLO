@@ -22,17 +22,36 @@ class QrCodeController extends Controller
             );
         }
 
-        // Check if user is authenticated (Admin/Driver) or session is guard_verified or PIN provided
-        $providedPin = $request->input('pin') ?? $request->query('pin');
+        // Check if user is authenticated (Admin/Driver) or session is guard_verified or guard_id provided
+        $guards = [
+            '1001' => ['name' => 'Guard 1'],
+            '1002' => ['name' => 'Guard 2'],
+            '1003' => ['name' => 'Guard 3'],
+        ];
+
+        $guardId = trim($request->input('guard_id', $request->input('pin', $request->query('guard_id', $request->query('pin', '')))));
+
         $isAuthorized = session('guard_verified', false) 
             || auth()->check() 
-            || $providedPin === '1234';
+            || ($guardId && isset($guards[$guardId]))
+            || ($guardId === '1234');
 
         if (!$isAuthorized) {
-            // If they submitted a wrong PIN
-            $errorMsg = $request->isMethod('post') ? 'Incorrect Security PIN. Please enter 1234.' : null;
+            $errorMsg = $request->isMethod('post') ? 'Invalid Guard ID! Please enter your assigned Guard ID (1001, 1002, or 1003).' : null;
             return $this->renderPinPrompt($ticket, $errorMsg);
         }
+
+        // Set session if authorized by guard_id
+        if ($guardId && (isset($guards[$guardId]) || $guardId === '1234') && !session('guard_verified')) {
+            $effectiveId = isset($guards[$guardId]) ? $guardId : '1001';
+            session([
+                'guard_verified' => true,
+                'guard_id' => $effectiveId,
+                'guard_name' => $guards[$effectiveId]['name'],
+            ]);
+        }
+
+        $guardName = session('guard_name', 'Guard 1');
 
         // Check current status
         if ($ticket->status === 'completed') {
@@ -53,8 +72,29 @@ class QrCodeController extends Controller
             );
         }
 
+        $inTime = now('Asia/Manila');
+
+        // Determine Gate OUT time
+        $outTime = $ticket->gate_out_at;
+        if (!$outTime) {
+            if ($ticket->vehicleRequest && $ticket->vehicleRequest->date && $ticket->vehicleRequest->time) {
+                try {
+                    $outTime = Carbon::parse($ticket->vehicleRequest->date . ' ' . $ticket->vehicleRequest->time, 'Asia/Manila');
+                } catch (\Exception $e) {
+                    $outTime = $ticket->created_at;
+                }
+            } else {
+                $outTime = $ticket->created_at;
+            }
+        }
+
         // Complete the trip ticket!
-        $ticket->update(['status' => 'completed']);
+        $ticket->update([
+            'status' => 'completed',
+            'gate_out_at' => $outTime,
+            'gate_in_at' => $inTime,
+            'scanned_by' => $guardName,
+        ]);
 
         // Sync associated Vehicle Request
         if ($ticket->vehicleRequest) {
@@ -68,7 +108,7 @@ class QrCodeController extends Controller
         return $this->renderResponse(
             'success',
             'Gate Clearance Verified! Trip Completed',
-            "Trip ticket <strong>{$ticketNumber}</strong> has been successfully completed. The driver and vehicle are now available.",
+            "Trip ticket <strong>{$ticketNumber}</strong> has been successfully cleared and completed by <strong>{$guardName}</strong>. The driver and vehicle are now available.",
             $ticket
         );
     }
@@ -76,7 +116,7 @@ class QrCodeController extends Controller
     private function renderPinPrompt(TripTicket $ticket, $errorMessage = null)
     {
         $driverName = e($ticket->driver?->name ?? 'N/A');
-        $vehicleName = e($ticket->vehicle ?? 'N/A');
+        $vehicleName = e(\App\Models\Vehicle::getVehicleName($ticket->vehicle));
         $destination = e($ticket->vehicleRequest?->destination ?? 'N/A');
         $actionUrl = route('trip-tickets.complete-via-qr', ['ticket_number' => $ticket->ticket_number]);
 
@@ -109,9 +149,25 @@ class QrCodeController extends Controller
                 </span>
 
                 <h1 class='text-xl font-extrabold text-white mb-1'>Gate Clearance Pass</h1>
-                <p class='text-xs text-slate-400 mb-5'>Enter the 4-digit Security PIN to complete and record trip arrival.</p>
+                <p class='text-xs text-slate-400 mb-4'>Enter your 4-digit Guard ID to record vehicle arrival.</p>
 
                 {$errorAlert}
+
+                <!-- Duty Guards Reference -->
+                <div class='grid grid-cols-3 gap-2 mb-4 text-center'>
+                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-1.5 px-1'>
+                        <span class='block text-[10px] font-bold text-slate-300'>Guard 1</span>
+                        <span class='block text-[11px] font-mono font-extrabold text-emerald-400'>ID: 1001</span>
+                    </div>
+                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-1.5 px-1'>
+                        <span class='block text-[10px] font-bold text-slate-300'>Guard 2</span>
+                        <span class='block text-[11px] font-mono font-extrabold text-cyan-400'>ID: 1002</span>
+                    </div>
+                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-1.5 px-1'>
+                        <span class='block text-[10px] font-bold text-slate-300'>Guard 3</span>
+                        <span class='block text-[11px] font-mono font-extrabold text-purple-400'>ID: 1003</span>
+                    </div>
+                </div>
 
                 <!-- Trip Details Summary -->
                 <div class='bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 text-left text-xs space-y-2.5 mb-5'>
@@ -122,23 +178,22 @@ class QrCodeController extends Controller
                 </div>
 
                 <!-- Form -->
-                <form method='POST' action='{$actionUrl}' class='space-y-4'>
+                <form method='POST' action='{$actionUrl}' class='space-y-3.5'>
                     <input type='hidden' name='_token' value='" . csrf_token() . "'>
                     
-                    <div>
-                        <label class='block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2'>Security Guard PIN</label>
-                        <input type='password' name='pin' value='1234' maxlength='6' required autofocus class='w-full text-center tracking-[0.4em] font-mono text-xl py-3 bg-slate-950 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-emerald-500 transition shadow-inner'>
-                        <span class='text-[10px] text-slate-500 mt-1 block'>Default Campus Gate PIN: 1234</span>
+                    <div class='text-left'>
+                        <label class='block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1'>Guard ID / Badge Number</label>
+                        <input type='text' name='guard_id' placeholder='e.g. 1001' required autofocus inputmode='numeric' maxlength='6' class='w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-center text-base font-mono font-bold focus:outline-none focus:border-emerald-500 transition shadow-inner'>
                     </div>
 
-                    <button type='submit' class='w-full py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-emerald-950/30 active:scale-95 cursor-pointer flex items-center justify-center gap-2'>
+                    <button type='submit' class='w-full py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-emerald-950/30 active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-4'>
                         <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M5 13l4 4L19 7'/></svg>
-                        Verify & Complete Trip
+                        Verify Guard & Complete Trip
                     </button>
                 </form>
 
                 <div class='mt-6 pt-4 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-500'>
-                    <span>CSU-SM Security Clearance</span>
+                    <span>CSU Lal-lo Gate Clearance</span>
                     <a href='/guard/scanner' class='text-emerald-400 hover:underline font-semibold'>Open Scanner Camera &rarr;</a>
                 </div>
             </div>
@@ -180,17 +235,21 @@ class QrCodeController extends Controller
 
         $detailsHtml = '';
         if ($ticket) {
-            $driverName = $ticket->driver?->name ?? 'N/A';
-            $vehicleName = $ticket->vehicle ?? 'N/A';
-            $destination = $ticket->vehicleRequest?->destination ?? 'N/A';
-            $completedAt = Carbon::now('Asia/Manila')->format('F d, Y h:i A');
+            $driverName = e($ticket->driver?->name ?? 'N/A');
+            $vehicleName = e(\App\Models\Vehicle::getVehicleName($ticket->vehicle));
+            $destination = e($ticket->vehicleRequest?->destination ?? 'N/A');
+            $outAt = $ticket->gate_out_at ? Carbon::parse($ticket->gate_out_at)->timezone('Asia/Manila')->format('M d, Y - h:i A') : '---';
+            $inAt = $ticket->gate_in_at ? Carbon::parse($ticket->gate_in_at)->timezone('Asia/Manila')->format('M d, Y - h:i A') : Carbon::now('Asia/Manila')->format('M d, Y - h:i A');
+            $scannedBy = e($ticket->scanned_by ?? session('guard_name', 'Guard 1'));
 
             $detailsHtml = "
-            <div class='mt-8 pt-6 border-t border-slate-800/60 text-left text-xs text-slate-400 space-y-3.5'>
+            <div class='mt-6 pt-5 border-t border-slate-800/60 text-left text-xs text-slate-400 space-y-2.5'>
                 <div class='flex justify-between items-center'><span class='text-slate-500'>Driver:</span> <strong class='text-slate-200'>{$driverName}</strong></div>
                 <div class='flex justify-between items-center'><span class='text-slate-500'>Vehicle:</span> <strong class='text-slate-200'>{$vehicleName}</strong></div>
                 <div class='flex justify-between items-start gap-4'><span class='text-slate-500 shrink-0'>Destination:</span> <strong class='text-slate-200 text-right'>{$destination}</strong></div>
-                <div class='flex justify-between items-center'><span class='text-slate-500'>Completed:</span> <strong class='text-slate-200'>{$completedAt}</strong></div>
+                <div class='flex justify-between items-center'><span class='text-slate-500'>Date & Time OUT:</span> <strong class='text-slate-300 font-mono text-[11px]'>{$outAt}</strong></div>
+                <div class='flex justify-between items-center'><span class='text-slate-500'>Date & Time IN:</span> <strong class='text-emerald-400 font-mono text-[11px]'>{$inAt}</strong></div>
+                <div class='flex justify-between items-center pt-1 border-t border-slate-800/50'><span class='text-slate-500'>Scanned By:</span> <span class='px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'>👮 {$scannedBy}</span></div>
             </div>";
         }
 
@@ -228,7 +287,7 @@ class QrCodeController extends Controller
                 </div>
 
                 <div class='mt-6 shrink-0'>
-                    <span class='inline-block text-[10px] uppercase tracking-widest text-slate-500 font-semibold'>PeliCle Trip Management</span>
+                    <span class='inline-block text-[10px] uppercase tracking-widest text-slate-500 font-semibold'>PeliCle Gate Clearance System</span>
                 </div>
             </div>
         </body>
@@ -237,19 +296,160 @@ class QrCodeController extends Controller
         return response($html);
     }
 
-    public function scannerPage()
+    public function scannerPage(Request $request)
     {
         $isVerified = session('guard_verified', false);
-        return view('guard.scanner', compact('isVerified'));
+        $guardName = session('guard_name', 'Guard 1');
+        $guardId = session('guard_id', '1001');
+
+        $selectedMonth = $request->query('month', now('Asia/Manila')->format('m'));
+        $selectedYear = $request->query('year', now('Asia/Manila')->format('Y'));
+        $selectedMonth = str_pad($selectedMonth, 2, '0', STR_PAD_LEFT);
+
+        // Unified master gate logbook: lists ALL completed trips regardless of which guard scanned them
+        $monthTrips = TripTicket::with(['vehicleRequest', 'vehicleRequests', 'driver'])
+            ->where('status', 'completed')
+            ->where(function ($q) use ($selectedMonth, $selectedYear) {
+                $q->whereMonth('updated_at', $selectedMonth)
+                  ->whereYear('updated_at', $selectedYear);
+            })
+            ->latest('updated_at')
+            ->get();
+
+        $todayTrips = TripTicket::with(['vehicleRequest', 'vehicleRequests', 'driver'])
+            ->where('status', 'completed')
+            ->whereDate('updated_at', now('Asia/Manila')->toDateString())
+            ->latest('updated_at')
+            ->get();
+
+        $todayCount = $todayTrips->count();
+        $monthCount = $monthTrips->count();
+
+        $paxCount = 0;
+        foreach ($monthTrips as $t) {
+            foreach ($t->all_vehicle_requests as $r) {
+                $paxCount += ($r->number_of_passengers ?: 1);
+            }
+        }
+
+        $monthName = \Carbon\Carbon::createFromDate($selectedYear, (int) $selectedMonth, 1)->format('F Y');
+
+        return view('guard.scanner', compact(
+            'isVerified',
+            'guardName',
+            'guardId',
+            'monthTrips',
+            'todayTrips',
+            'monthCount',
+            'todayCount',
+            'paxCount',
+            'selectedMonth',
+            'selectedYear',
+            'monthName'
+        ));
+    }
+
+    public function printGateLogbook(Request $request)
+    {
+        $monthInput = $request->query('month');
+        $yearInput = $request->query('year');
+
+        if ($monthInput && str_contains($monthInput, '-')) {
+            $parts = explode('-', $monthInput);
+            $selectedYear = $parts[0];
+            $selectedMonth = str_pad($parts[1], 2, '0', STR_PAD_LEFT);
+        } else {
+            $selectedYear = $yearInput ?: now('Asia/Manila')->format('Y');
+            $selectedMonth = str_pad($monthInput ?: now('Asia/Manila')->format('m'), 2, '0', STR_PAD_LEFT);
+        }
+
+        // Unified master gate logbook for printing
+        $trips = TripTicket::with(['vehicleRequest', 'vehicleRequests', 'driver'])
+            ->where('status', 'completed')
+            ->where(function ($q) use ($selectedMonth, $selectedYear) {
+                $q->whereMonth('updated_at', $selectedMonth)
+                  ->whereYear('updated_at', $selectedYear);
+            })
+            ->orderBy('updated_at', 'asc')
+            ->get();
+
+        $totalTrips = $trips->count();
+        $totalPax = 0;
+        foreach ($trips as $t) {
+            foreach ($t->all_vehicle_requests as $r) {
+                $totalPax += ($r->number_of_passengers ?: 1);
+            }
+        }
+
+        $monthName = \Carbon\Carbon::createFromDate($selectedYear, (int) $selectedMonth, 1)->format('F Y');
+        $guardName = session('guard_name', 'Security Guard on Duty');
+
+        return view('print.gate-logbook', compact(
+            'trips',
+            'totalTrips',
+            'totalPax',
+            'monthName',
+            'selectedMonth',
+            'selectedYear',
+            'guardName'
+        ));
     }
 
     public function verifyPin(Request $request)
     {
-        $pin = $request->input('pin');
-        if ($pin === '1234') {
-            session(['guard_verified' => true]);
-            return response()->json(['success' => true]);
+        $guards = [
+            '1001' => ['name' => 'Guard 1'],
+            '1002' => ['name' => 'Guard 2'],
+            '1003' => ['name' => 'Guard 3'],
+        ];
+
+        $guardId = trim($request->input('guard_id', $request->input('pin', '')));
+
+        if (empty($guardId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please enter your Guard ID / Badge number.',
+            ]);
         }
-        return response()->json(['success' => false, 'message' => 'Incorrect PIN code! Please try again.']);
+
+        // Master fallback
+        if ($guardId === '1234') {
+            session([
+                'guard_verified' => true,
+                'guard_id' => '1001',
+                'guard_name' => 'Guard 1',
+            ]);
+            return response()->json([
+                'success' => true,
+                'guard_name' => 'Guard 1',
+                'guard_id' => '1001',
+            ]);
+        }
+
+        if (!isset($guards[$guardId])) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Guard ID not recognized. Please check your assigned ID (1001, 1002, or 1003).'
+            ]);
+        }
+
+        $guardName = $guards[$guardId]['name'];
+        session([
+            'guard_verified' => true,
+            'guard_id' => $guardId,
+            'guard_name' => $guardName,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'guard_name' => $guardName,
+            'guard_id' => $guardId,
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        session()->forget(['guard_verified', 'guard_id', 'guard_name']);
+        return redirect()->route('guard.scanner');
     }
 }

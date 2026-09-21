@@ -361,7 +361,7 @@
                     <table class="req-table">
                         <thead>
                             <tr>
-                                <th>Req ID</th>
+                                <th>Vehicle Request</th>
                                 <th>Destination</th>
                                 <th>Travel Date & Time</th>
                                 <th>Vehicle Type</th>
@@ -372,7 +372,7 @@
                         <tbody>
                             @forelse($recentRequests as $req)
                                 <tr>
-                                    <td style="font-weight: 700; font-family: monospace;">{{ $req->request_number }}</td>
+                                    <td style="font-weight: 700; font-family: monospace;">{{ $req->formatted_request_number }}</td>
                                     <td style="font-weight: 600;">{{ $req->destination }}</td>
                                     <td>
                                         <strong>{{ $req->date ? \Carbon\Carbon::parse($req->date)->format('M d, Y') : 'N/A' }}</strong>
@@ -380,7 +380,7 @@
                                             {{ $req->time ? \Carbon\Carbon::parse($req->time)->format('g:i A') : 'N/A' }}
                                         </div>
                                     </td>
-                                    <td>{{ $req->vehicle }}</td>
+                                    <td>{{ \App\Models\Vehicle::getVehicleName($req->vehicle) }}</td>
                                     <td>
                                         <span class="badge-status badge-{{ $req->status }}">
                                             {{ $req->status === 'rejected' ? 'Disapproved' : ucwords(str_replace('_', ' ', $req->status)) }}
@@ -424,7 +424,7 @@
                             @endphp
                             <div class="active-trip-card">
                                 <div class="active-trip-header">
-                                    <span>{{ $tripReq->request_number }}</span>
+                                    <span>{{ $tripReq->formatted_request_number }}</span>
                                     <span class="badge-status badge-{{ $tripReq->status }}">{{ $tripReq->status === 'rejected' ? 'Disapproved' : ucwords(str_replace('_', ' ', $tripReq->status)) }}</span>
                                 </div>
                                 <div style="font-size: 12px; line-height: 1.6;">
