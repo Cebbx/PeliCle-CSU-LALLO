@@ -74,13 +74,18 @@
             color: #ffffff;
         }
 
-        /* 2. Three Role Cards Grid */
+        /* 2. Four Role Cards Grid (Admin, Employee, Driver, Guard) */
         .rbac-roles-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 14px;
         }
-        @media (max-width: 1024px) {
+        @media (max-width: 1280px) {
+            .rbac-roles-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
             .rbac-roles-grid {
                 grid-template-columns: 1fr;
             }
@@ -127,6 +132,7 @@
         .role-icon-admin { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #f59e0b; }
         .role-icon-employee { background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.3); color: #38bdf8; }
         .role-icon-driver { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; }
+        .role-icon-guard { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; }
 
         .role-name-text {
             font-size: 14px;
@@ -144,6 +150,7 @@
         .tag-admin { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
         .tag-employee { background: rgba(2, 132, 199, 0.2); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3); }
         .tag-driver { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .tag-guard { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
 
         .role-desc {
             font-size: 11.5px;
@@ -256,6 +263,7 @@
         }
         .perm-full { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
         .perm-view { background: rgba(2, 132, 199, 0.15); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3); }
+        .perm-guard { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
         .perm-none { background: rgba(100, 116, 139, 0.1); color: #64748b; border: 1px solid rgba(100, 116, 139, 0.2); }
 
         /* ========================================================
@@ -317,10 +325,14 @@
                     <span>🚗 Drivers:</span>
                     <span class="rbac-stat-num" style="color: #34d399;">{{ $driverCount ?? 0 }}</span>
                 </div>
+                <div class="rbac-stat-pill">
+                    <span>🛡️ Guards:</span>
+                    <span class="rbac-stat-num" style="color: #c084fc;">{{ $guardCount ?? 3 }}</span>
+                </div>
             </div>
         </div>
 
-        <!-- 2. Role Cards (Admin, Employee, Driver) -->
+        <!-- 2. Four Role Cards Grid (Admin, Employee, Driver, Security Guard) -->
         <div class="rbac-roles-grid">
             
             <!-- Admin Role Card -->
@@ -411,16 +423,45 @@
                 </a>
             </div>
 
+            <!-- Security Guard Role Card -->
+            <div class="role-card">
+                <div>
+                    <div class="role-card-top">
+                        <div class="role-badge-wrap">
+                            <div class="role-icon-box role-icon-guard">🛡️</div>
+                            <div>
+                                <div class="role-name-text">Security Guard</div>
+                                <span style="font-size: 10px; color: #94a3b8;">Gate Terminal Pass</span>
+                            </div>
+                        </div>
+                        <span class="role-tag-pill tag-guard">Gatekeeper</span>
+                    </div>
+                    <div class="role-desc">
+                        On-duty campus gate security (Edward Cabbat, Monhel Bumagat, Matthew Baldera) who scan vehicle QR passes with Email OTP authentication.
+                    </div>
+                    <div class="role-capabilities-wrap">
+                        <span class="capability-pill">QR Pass Scanner</span>
+                        <span class="capability-pill">Email OTP Auth</span>
+                        <span class="capability-pill">Gate IN / OUT Log</span>
+                        <span class="capability-pill">Print Gate Log</span>
+                    </div>
+                </div>
+                <a href="/guard/scanner" target="_blank" class="role-bottom-btn">
+                    <span>Open Gate Scanner ({{ $guardCount ?? 3 }} Stations)</span>
+                    <span>→</span>
+                </a>
+            </div>
+
         </div>
 
-        <!-- 3. Permission Clearance Matrix Table -->
+        <!-- 3. Permission Clearance Matrix Table (4 Roles) -->
         <div class="rbac-matrix-card">
             <div class="matrix-title-bar">
                 <div class="matrix-title">
                     <span style="color: #f59e0b;">📊</span>
                     <span>Module Authorization Matrix</span>
                 </div>
-                <span style="font-size: 10.5px; color: #94a3b8;">CSU Lal-lo Campus Security Policy v2.4</span>
+                <span style="font-size: 10.5px; color: #94a3b8;">CSU Lal-lo Campus Security Policy v2.5</span>
             </div>
 
             <div style="overflow-x: auto;">
@@ -431,6 +472,7 @@
                             <th>👑 Administrator</th>
                             <th>👤 Employee</th>
                             <th>🚗 Driver</th>
+                            <th>🛡️ Security Guard</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -439,11 +481,13 @@
                             <td><span class="perm-badge perm-full">✔ Full Access</span></td>
                             <td><span class="perm-badge perm-view">👁️ Personal Stats</span></td>
                             <td><span class="perm-badge perm-view">👁️ Driver Stats</span></td>
+                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                         </tr>
                         <tr>
                             <td>Vehicle Requests (Reservations)</td>
                             <td><span class="perm-badge perm-full">✔ Full / Approve / Reject</span></td>
                             <td><span class="perm-badge perm-view">✔ Create & Track Own</span></td>
+                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                             <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                         </tr>
                         <tr>
@@ -451,40 +495,54 @@
                             <td><span class="perm-badge perm-full">✔ Create / Issue / Print</span></td>
                             <td><span class="perm-badge perm-view">👁️ View & Print Own</span></td>
                             <td><span class="perm-badge perm-view">👁️ View Assigned Tickets</span></td>
+                            <td><span class="perm-badge perm-guard">👁️ Verify Gate Pass</span></td>
                         </tr>
                         <tr>
                             <td>Gasoline Withdrawal Slips</td>
                             <td><span class="perm-badge perm-full">✔ Full / Review & Approve</span></td>
                             <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                             <td><span class="perm-badge perm-view">✔ Request Fuel Slip</span></td>
+                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                         </tr>
                         <tr>
                             <td>Vehicles Fleet & Maintenance</td>
                             <td><span class="perm-badge perm-full">✔ Full Management</span></td>
                             <td><span class="perm-badge perm-view">👁️ View Availability</span></td>
                             <td><span class="perm-badge perm-view">👁️ View Assigned Vehicle</span></td>
+                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                         </tr>
                         <tr>
                             <td>Drivers Roster & Assignments</td>
                             <td><span class="perm-badge perm-full">✔ Full Management</span></td>
                             <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                             <td><span class="perm-badge perm-view">👁️ View Own Profile</span></td>
+                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                         </tr>
                         <tr>
                             <td>Gate Security QR Scanner</td>
                             <td><span class="perm-badge perm-full">✔ Oversee & Complete</span></td>
                             <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                             <td><span class="perm-badge perm-view">✔ Present QR Code</span></td>
+                            <td><span class="perm-badge perm-full">✔ Full Scanner Terminal</span></td>
+                        </tr>
+                        <tr>
+                            <td>Gate Dispatch Logbook & Sheets</td>
+                            <td><span class="perm-badge perm-full">✔ Full Oversight</span></td>
+                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
+                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
+                            <td><span class="perm-badge perm-full">✔ Print & Log Sheet</span></td>
                         </tr>
                         <tr>
                             <td>Executive Analytics & Reports</td>
                             <td><span class="perm-badge perm-full">✔ Full Export & Print</span></td>
                             <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                             <td><span class="perm-badge perm-none">🔒 No Access</span></td>
+                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                         </tr>
                         <tr>
                             <td>User Accounts & Role Settings</td>
                             <td><span class="perm-badge perm-full">✔ Full Management</span></td>
+                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                             <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                             <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                         </tr>

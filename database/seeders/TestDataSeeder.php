@@ -167,18 +167,7 @@ class TestDataSeeder extends Seeder
                     $request->update(['status' => 'completed']);
                 }
 
-                // Create a Withdrawal Slip for completed or on_trip tickets
-                if (in_array($status, ['on_trip', 'completed'])) {
-                    $wsNum = 'WS-' . str_pad(WithdrawalSlip::count() + 1, 5, '0', STR_PAD_LEFT);
-                    WithdrawalSlip::create([
-                        'slip_number' => $wsNum,
-                        'trip_ticket_id' => $ticket->id,
-                        'purpose' => 'Fuel Refill & Toll Fees',
-                        'requested_items' => "1. Refuel 30 Liters Diesel\n2. Tollway RFID Load",
-                        'status' => $status === 'completed' ? 'approved' : 'pending',
-                        'amount' => $status === 'completed' ? rand(1500, 4500) : 0,
-                    ]);
-                }
+                // Note: Withdrawal slips are not seeded automatically to keep transactions clean until created by users.
             }
         }
 

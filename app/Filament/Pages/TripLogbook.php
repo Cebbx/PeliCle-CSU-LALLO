@@ -101,6 +101,9 @@ class TripLogbook extends Page implements HasTable
             )
             ->heading('Monthly GSO Vehicle Dispatch Logbook')
             ->description('Official record of all vehicle trips organized by Month and Control Sequence Number.')
+            ->emptyStateHeading('No Vehicle Trips Found')
+            ->emptyStateDescription('No dispatch records have been logged for this period.')
+            ->emptyStateIcon('heroicon-o-document-text')
             ->columns([
                 TextColumn::make('index')
                     ->label('#')
@@ -128,8 +131,9 @@ class TripLogbook extends Page implements HasTable
                     ->formatStateUsing(fn ($state) => $state ? Carbon::parse($state)->format('g:i A') : '---')
                     ->fontFamily(FontFamily::Mono),
 
-                TextColumn::make('department_passengers')
-                    ->label('Dept & Passenger')
+                TextColumn::make('travelers')
+                    ->label('Dept & Passengers')
+                    ->wrap()
                     ->state(function ($record) {
                         $all = $record->all_vehicle_requests;
                         if ($all->count() > 1) {
@@ -164,6 +168,7 @@ class TripLogbook extends Page implements HasTable
 
                 TextColumn::make('vehicleRequest.destination')
                     ->label('Destination')
+                    ->wrap()
                     ->limit(28)
                     ->tooltip(fn ($record) => $record->vehicleRequest?->destination)
                     ->searchable(),

@@ -27,11 +27,6 @@ class WithdrawalSlipsTable
                     ->default('N/A'),
                 TextColumn::make('tripTicket.ticket_number')
                     ->label('Trip ID'),
-                TextColumn::make('amount')
-                    ->label('Amount Spent')
-                    ->money('PHP')
-                    ->sortable()
-                    ->default('₱0.00'),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -61,27 +56,18 @@ class WithdrawalSlipsTable
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->visible(fn ($record) => $record->status === 'pending')
-                    ->form([
-                        \Filament\Forms\Components\TextInput::make('amount')
-                            ->label('Actual Amount Spent (₱)')
-                            ->numeric()
-                            ->prefix('₱')
-                            ->placeholder('0.00')
-                            ->required()
-                            ->default(fn ($record) => $record->amount > 0 ? $record->amount : null)
-                            ->helperText('Enter the official receipt amount from the gas station.'),
-                    ])
+                    ->requiresConfirmation()
                     ->modalHeading('Approve Fuel Withdrawal Slip')
-                    ->modalSubmitActionLabel('Approve & Save Amount')
-                    ->action(function ($record, array $data) {
+                    ->modalDescription(fn ($record) => "Are you sure you want to approve fuel withdrawal slip {$record->slip_number}?")
+                    ->modalSubmitActionLabel('Yes, Approve Slip')
+                    ->action(function ($record) {
                         $record->update([
-                            'amount' => (float)$data['amount'],
                             'status' => 'approved',
                         ]);
 
                         \Filament\Notifications\Notification::make()
                             ->title('Withdrawal Slip Approved')
-                            ->body("Slip {$record->slip_number} approved with actual expense of ₱" . number_format($data['amount'], 2))
+                            ->body("Slip {$record->slip_number} has been approved.")
                             ->success()
                             ->send();
                     }),

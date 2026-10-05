@@ -121,24 +121,6 @@ class StatsOverview extends StatsOverviewWidget
         }
         $pendingSlips = $pendingSlipsQuery->count();
 
-        // 5. Gas Expenses Calculations
-        $todayGas = WithdrawalSlip::where('status', 'approved')
-            ->whereDate('created_at', today())
-            ->sum('amount');
-
-        $thisWeekGas = WithdrawalSlip::where('status', 'approved')
-            ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
-            ->sum('amount');
-
-        $thisMonthGas = WithdrawalSlip::where('status', 'approved')
-            ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->sum('amount');
-
-        $todayGasFormatted = number_format($todayGas, 2);
-        $thisWeekGasFormatted = number_format($thisWeekGas, 2);
-        $thisMonthGasFormatted = number_format($thisMonthGas, 2);
-
         return [
             Stat::make('Driver Availability', "{$availDrivers} / {$totalDrivers} Available")
                 ->description('Drivers ready for dispatch')
@@ -181,13 +163,6 @@ class StatsOverview extends StatsOverviewWidget
                 ->chart([2, $pendingSlips + 1, $pendingSlips])
                 ->color($pendingSlips > 0 ? 'warning' : 'gray')
                 ->url(\App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index', ['tab' => 'pending'])),
-
-            Stat::make('This Month\'s Gas Expenses', "₱{$thisMonthGasFormatted}")
-                ->description("Today: ₱{$todayGasFormatted} | Week: ₱{$thisWeekGasFormatted}")
-                ->descriptionIcon('heroicon-m-fire')
-                ->chart([$todayGas, $thisWeekGas / 7, $thisWeekGas, $thisMonthGas])
-                ->color('danger')
-                ->url(\App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index', ['tab' => 'approved'])),
         ];
     }
 }

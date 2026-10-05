@@ -210,7 +210,7 @@ class VehicleRequestsTable
                             \Filament\Schemas\Components\Tabs::make('document_source')
                                 ->tabs([
                                     \Filament\Schemas\Components\Tabs\Tab::make('camera_scan')
-                                        ->label('📸 Camera Scanner')
+                                        ->label('Camera Scanner')
                                         ->icon('heroicon-o-camera')
                                         ->schema([
                                             \Filament\Forms\Components\ViewField::make('captured_image')
@@ -218,7 +218,7 @@ class VehicleRequestsTable
                                                 ->columnSpanFull(),
                                         ]),
                                     \Filament\Schemas\Components\Tabs\Tab::make('file_upload')
-                                        ->label('📁 Upload Document')
+                                        ->label('Upload Document')
                                         ->icon('heroicon-o-arrow-up-tray')
                                         ->schema([
                                             \Filament\Forms\Components\FileUpload::make('document')
@@ -323,7 +323,7 @@ class VehicleRequestsTable
                             \Filament\Schemas\Components\Tabs::make('document_source')
                                 ->tabs([
                                     \Filament\Schemas\Components\Tabs\Tab::make('camera_scan')
-                                        ->label('📸 Camera Scanner')
+                                        ->label('Camera Scanner')
                                         ->icon('heroicon-o-camera')
                                         ->schema([
                                             \Filament\Forms\Components\ViewField::make('captured_image')
@@ -331,7 +331,7 @@ class VehicleRequestsTable
                                                 ->columnSpanFull(),
                                         ]),
                                     \Filament\Schemas\Components\Tabs\Tab::make('file_upload')
-                                        ->label('📁 Upload Document')
+                                        ->label('Upload Document')
                                         ->icon('heroicon-o-arrow-up-tray')
                                         ->schema([
                                             \Filament\Forms\Components\FileUpload::make('document')

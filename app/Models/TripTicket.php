@@ -55,8 +55,11 @@ class TripTicket extends Model
         if (!empty($this->scanned_by)) {
             return $this->scanned_by;
         }
-        $guards = ['Guard 1', 'Guard 2', 'Guard 3'];
-        return $guards[$this->id % 3];
+        $guardNames = \App\Models\User::where('role', 'guard')->pluck('name')->toArray();
+        if (!empty($guardNames)) {
+            return $guardNames[$this->id % count($guardNames)];
+        }
+        return 'Gate Security Officer';
     }
 
     public function getDistanceTraveledAttribute(): ?int

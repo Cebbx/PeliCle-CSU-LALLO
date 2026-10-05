@@ -38,25 +38,45 @@
         }
     </style>
 </head>
+@php
+    $backUrl = url()->previous();
+    if ($backUrl === url()->current() || empty($backUrl)) {
+        if (auth('driver')->check()) {
+            $backUrl = url('/driver/trip-tickets');
+        } elseif (auth('employee')->check()) {
+            $backUrl = url('/employee');
+        } else {
+            $backUrl = url('/admin/trip-tickets');
+        }
+    }
+@endphp
 <body class="bg-gray-100 py-6 px-4">
 
     <!-- Floating Top Bar (hidden on print) -->
     <div class="no-print max-w-[8.5in] mx-auto mb-4 flex items-center justify-between bg-white p-4 rounded-xl shadow-md border border-gray-200 gap-4">
-        <span class="text-gray-700 font-bold text-sm">Vehicle Trip Ticket</span>
+        <div class="flex items-center gap-3">
+            <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-2 px-3.5 rounded-lg transition-colors flex items-center gap-1.5 text-sm border border-gray-300 shadow-sm cursor-pointer" title="Go Back">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                <span>Back</span>
+            </a>
+            <span class="text-gray-700 font-bold text-sm">Vehicle Trip Ticket</span>
+        </div>
         <div class="flex gap-2">
-            <a href="{{ route('trip-tickets.print-travel-order', [$ticket->id, 'type' => 'driver']) }}" target="_blank" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm">
+            <a href="{{ route('trip-tickets.print-travel-order', [$ticket->id, 'type' => 'driver']) }}" target="_blank" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm cursor-pointer">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Driver Travel Order
             </a>
-            <button onclick="downloadPDF()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm">
+            <button onclick="downloadPDF()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm cursor-pointer">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 Download PDF File
             </button>
-            <button onclick="window.print()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm">
+            <button onclick="window.print()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm cursor-pointer">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
@@ -331,7 +351,7 @@
                 </div>
                 
                 <div class="flex flex-col items-center w-64">
-                    <div class="h-6 border-b border-gray-300 w-11/12 mx-auto mb-1 flex items-center justify-center">
+                    <div class="h-6 flex items-center justify-center">
                         @if($ticket->status === 'completed')
                             <span class="text-[10px] font-bold text-black uppercase tracking-wider">{{ $ticket->driver?->name }}</span>
                         @endif
@@ -350,6 +370,22 @@
 
     <!-- PDF Download Script -->
     <script>
+        function handleBack(event) {
+            if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
+                event.preventDefault();
+                window.history.back();
+                return;
+            }
+            if (window.opener) {
+                event.preventDefault();
+                window.close();
+                return;
+            }
+            try {
+                window.close();
+            } catch (e) {}
+        }
+
         function downloadPDF() {
             const element = document.querySelector('.print-container');
             const opt = {

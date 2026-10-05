@@ -17,6 +17,7 @@ class VehicleRequest extends Model
         'user_id',
         'vehicle',
         'employee_name',
+        'requester_signature',
         'department',
         'destination',
         'purpose',
@@ -207,5 +208,22 @@ class VehicleRequest extends Model
         } catch (\Throwable $e) {
             // Quietly handle any parsing errors
         }
+    }
+
+    public function getSignatureUrlAttribute(): ?string
+    {
+        if (empty($this->requester_signature)) {
+            return null;
+        }
+
+        if (str_starts_with($this->requester_signature, 'data:image')) {
+            return $this->requester_signature;
+        }
+
+        if (str_starts_with($this->requester_signature, 'http://') || str_starts_with($this->requester_signature, 'https://')) {
+            return $this->requester_signature;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->requester_signature);
     }
 }

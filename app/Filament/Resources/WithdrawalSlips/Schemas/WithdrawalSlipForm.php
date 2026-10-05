@@ -230,11 +230,6 @@ class WithdrawalSlipForm
                         'gear_oil' => '🔧 Gear Oil: ' . ($state['quantity'] ?? 0) . ' Liters',
                         default => null,
                     }),
-                TextInput::make('amount')
-                    ->label('Actual Amount Spent')
-                    ->numeric()
-                    ->prefix('₱')
-                    ->placeholder('0.00'),
                 Hidden::make('status')
                     ->default('approved')
                     ->dehydrated(),

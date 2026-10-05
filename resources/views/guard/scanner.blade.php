@@ -103,75 +103,139 @@
                     </div>
                 </div>
 
-                <!-- Error Alert Box -->
+                <!-- Error & Success Alert Boxes -->
                 <div id="login-error-alert" class="hidden p-3 bg-red-500/15 border border-red-500/30 text-red-300 text-xs rounded-xl mb-4 text-center font-medium shadow-sm"></div>
+                <div id="login-success-alert" class="hidden p-3 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs rounded-xl mb-4 text-center font-medium shadow-sm"></div>
 
-                <!-- Login Form -->
-                <form id="guard-login-form" onsubmit="handleGuardLogin(event)" class="space-y-4">
-                    <!-- Guard ID / Badge No Field -->
-                    <div>
-                        <label for="guard_id" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
-                                <span>Guard ID / Badge Number</span>
-                            </span>
-                            <span class="text-[10px] text-slate-500 font-mono font-semibold">Duty Sign-in</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            id="guard_id" 
-                            name="guard_id" 
-                            required 
-                            autofocus 
-                            inputmode="numeric" 
-                            pattern="[0-9]*"
-                            maxlength="6"
-                            autocomplete="off"
-                            placeholder="e.g. 1001" 
-                            class="w-full px-4 py-3.5 bg-slate-950/90 border border-slate-700/90 rounded-2xl text-white placeholder-slate-600 text-center text-lg font-mono font-bold tracking-widest focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition shadow-inner"
-                        />
+                <!-- STEP 1: Guard Name Selection & Official Email Entry -->
+                <div id="step-guard-id">
+                    <!-- Duty Guard Profile Selector Cards (No IDs displayed) -->
+                    <div class="mb-4">
+                        <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2 text-left">Select Officer on Duty:</span>
+                        @php
+                            $guardsList = $activeGuards ?? \App\Http\Controllers\QrCodeController::getActiveGuards();
+                            $firstGuard = reset($guardsList);
+                            $firstGuardName = $firstGuard['name'] ?? 'Edward Cabbat';
+                            $firstGuardEmail = $firstGuard['email'] ?? 'edwarddufale3@gmail.com';
+                            $guardColors = [
+                                ['border' => 'border-emerald-500/50', 'ring' => 'ring-2 ring-emerald-500/30', 'bg' => 'bg-emerald-500/20', 'text' => 'text-emerald-400'],
+                                ['border' => 'border-cyan-500/40', 'ring' => 'ring-2 ring-cyan-500/30', 'bg' => 'bg-cyan-500/20', 'text' => 'text-cyan-400'],
+                                ['border' => 'border-purple-500/40', 'ring' => 'ring-2 ring-purple-500/30', 'bg' => 'bg-purple-500/20', 'text' => 'text-purple-400'],
+                                ['border' => 'border-amber-500/40', 'ring' => 'ring-2 ring-amber-500/30', 'bg' => 'bg-amber-500/20', 'text' => 'text-amber-400'],
+                                ['border' => 'border-rose-500/40', 'ring' => 'ring-2 ring-rose-500/30', 'bg' => 'bg-rose-500/20', 'text' => 'text-rose-400'],
+                            ];
+                            $gridColsClass = count($guardsList) > 3 ? 'grid-cols-2 sm:grid-cols-4' : (count($guardsList) === 2 ? 'grid-cols-2' : (count($guardsList) === 1 ? 'grid-cols-1' : 'grid-cols-3'));
+                        @endphp
+                        <div class="grid {{ $gridColsClass }} gap-2 text-center" id="guard-cards-container">
+                            @foreach($guardsList as $gKey => $gData)
+                                @php
+                                    $isFirst = $loop->first;
+                                    $c = $guardColors[$loop->index % count($guardColors)];
+                                @endphp
+                                <div onclick="selectGuard('{{ addslashes($gData['name']) }}', '{{ addslashes($gData['email']) }}', this)" 
+                                     class="guard-select-card cursor-pointer {{ $isFirst ? 'bg-slate-950/90 border ' . $c['border'] . ' ' . $c['ring'] . ' shadow-md' : 'bg-slate-950/60 border border-slate-800/80 hover:' . $c['border'] }} rounded-2xl py-3 px-1.5 transition-all">
+                                    <div class="w-8 h-8 rounded-full {{ $c['bg'] }} {{ $c['text'] }} border border-slate-700/50 flex items-center justify-center mx-auto mb-1.5 text-xs font-bold">
+                                        👮
+                                    </div>
+                                    <span class="block text-xs font-extrabold {{ $isFirst ? 'text-white' : 'text-slate-300' }} truncate" title="{{ $gData['name'] }}">{{ $gData['name'] }}</span>
+                                    <span class="block text-[9px] {{ $c['text'] }} font-semibold mt-0.5 truncate">{{ $gData['badge'] ?? 'Gate Officer' }}</span>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
 
-                    <!-- Submit Button -->
-                    <button 
-                        type="submit" 
-                        id="login-submit-btn" 
-                        class="w-full py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-emerald-950/40 cursor-pointer flex items-center justify-center gap-2 mt-4"
-                    >
-                        <span id="btn-text">Sign In to Gate Duty</span>
-                        <svg id="btn-arrow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                        <svg id="btn-spinner" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    </button>
-                </form>
+                    <!-- Login Form Step 1: Email Entry -->
+                    <form id="guard-login-form" onsubmit="handleGuardLogin(event)" class="space-y-4">
+                        <input type="hidden" id="selected_guard_name" name="guard_name" value="{{ $firstGuardName }}">
+                        <div>
+                            <label for="guard_email" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                    <span id="email-field-label">Official Registered Email</span>
+                                </span>
+                                <span class="text-[10px] text-slate-500 font-mono font-semibold">Verification</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                id="guard_email" 
+                                name="email" 
+                                required 
+                                autofocus 
+                                autocomplete="email"
+                                placeholder="Enter Gmail (e.g. {{ $firstGuardEmail }})" 
+                                class="w-full px-4 py-3.5 bg-slate-950/90 border border-slate-700/90 rounded-2xl text-white placeholder-slate-600 text-center text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition shadow-inner"
+                            />
+                        </div>
 
-                <!-- Shift Roster Notice (Click-to-fill for Demo / Defense Reference) -->
-                <div class="mt-5 p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 text-left">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1">
-                            <span>📋</span>
-                            <span>Campus Guard Duty Roster</span>
-                        </span>
-                        <span class="text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                            Demo Reference
-                        </span>
+                        <button 
+                            type="submit" 
+                            id="login-submit-btn" 
+                            class="w-full py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-emerald-950/40 cursor-pointer flex items-center justify-center gap-2 mt-4"
+                        >
+                            <span id="btn-text">Send Authentication Code &rarr;</span>
+                            <svg id="btn-spinner" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- STEP 2: Email Authentication Code (OTP) Form -->
+                <div id="step-guard-otp" class="hidden">
+                    <div class="bg-slate-950/80 border border-emerald-500/30 rounded-2xl p-3.5 mb-4 text-left shadow-lg">
+                        <div class="flex items-center gap-2.5 mb-2">
+                            <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold shrink-0">
+                                📩
+                            </div>
+                            <div>
+                                <span class="block text-xs font-extrabold text-white" id="otp-guard-name">Edward Cabbat</span>
+                                <span class="block text-[10px] text-slate-400 font-mono" id="otp-masked-email">edw***@gmail.com</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-snug">
+                            A 6-digit authentication code was sent to your registered Gmail. Enter it below to authorize gate clearance access.
+                        </p>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 text-center text-xs">
-                        <button type="button" onclick="quickSelectGuard('1001')" title="Click to fill ID: 1001" class="group bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 hover:border-emerald-500/40 rounded-xl py-2 px-1 transition cursor-pointer active:scale-95 flex flex-col items-center">
-                            <span class="block text-[11px] font-bold text-slate-200 group-hover:text-emerald-400 transition-colors">Guard 1</span>
-                            <span class="block text-[10px] font-mono font-bold text-emerald-400">ID: 1001</span>
+
+                    <form id="guard-otp-form" onsubmit="handleGuardOtp(event)" class="space-y-4">
+                        <div>
+                            <label for="guard_otp" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    <span>Enter 6-Digit Code</span>
+                                </span>
+                                <span class="text-[10px] text-amber-400 font-mono font-semibold">Expires in 10 mins</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="guard_otp" 
+                                name="guard_otp" 
+                                required 
+                                inputmode="numeric" 
+                                pattern="[0-9]*"
+                                maxlength="6"
+                                autocomplete="one-time-code"
+                                placeholder="000000" 
+                                class="w-full px-4 py-3.5 bg-slate-950 border border-emerald-500/50 rounded-2xl text-white placeholder-slate-700 text-center text-2xl font-mono font-extrabold tracking-[0.4em] focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 transition shadow-inner"
+                            />
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            id="otp-submit-btn" 
+                            class="w-full py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-emerald-950/40 cursor-pointer flex items-center justify-center gap-2 mt-4"
+                        >
+                            <span id="otp-btn-text">Verify Code & Enter Terminal</span>
+                            <svg id="otp-btn-spinner" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         </button>
-                        <button type="button" onclick="quickSelectGuard('1002')" title="Click to fill ID: 1002" class="group bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 hover:border-cyan-500/40 rounded-xl py-2 px-1 transition cursor-pointer active:scale-95 flex flex-col items-center">
-                            <span class="block text-[11px] font-bold text-slate-200 group-hover:text-cyan-400 transition-colors">Guard 2</span>
-                            <span class="block text-[10px] font-mono font-bold text-cyan-400">ID: 1002</span>
-                        </button>
-                        <button type="button" onclick="quickSelectGuard('1003')" title="Click to fill ID: 1003" class="group bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 hover:border-purple-500/40 rounded-xl py-2 px-1 transition cursor-pointer active:scale-95 flex flex-col items-center">
-                            <span class="block text-[11px] font-bold text-slate-200 group-hover:text-purple-400 transition-colors">Guard 3</span>
-                            <span class="block text-[10px] font-mono font-bold text-purple-400">ID: 1003</span>
-                        </button>
-                    </div>
-                    <p class="text-[10px] text-slate-500 text-center mt-2">
-                        * Click a roster card or type your assigned Guard ID above.
-                    </p>
+
+                        <div class="flex items-center justify-between text-[11px] pt-2 px-1">
+                            <button type="button" onclick="backToGuardId()" class="text-slate-400 hover:text-white transition-colors cursor-pointer font-semibold">
+                                &larr; Change Guard ID
+                            </button>
+                            <button type="button" id="btn-resend-otp" onclick="resendOtpCode()" class="text-emerald-400 hover:underline transition-colors cursor-pointer font-semibold">
+                                Resend Email Code
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -452,43 +516,82 @@
             updateTerminalClock();
             setInterval(updateTerminalClock, 1000);
 
-            // Quick select Guard ID from roster demo chips
-            window.quickSelectGuard = function(id) {
-                const guardIdInput = document.getElementById('guard_id');
-                if (!guardIdInput) return;
-                guardIdInput.value = id;
-                guardIdInput.focus();
-                guardIdInput.classList.add('ring-2', 'ring-emerald-500');
-                setTimeout(() => {
-                    guardIdInput.classList.remove('ring-2', 'ring-emerald-500');
-                }, 500);
+            // Selection handler for Guard Profile Cards
+            let currentSelectedGuard = 'Edward Cabbat';
+
+            window.selectGuard = function(name, email, cardElement) {
+                currentSelectedGuard = name;
+                const hiddenInput = document.getElementById('selected_guard_name');
+                if (hiddenInput) hiddenInput.value = name;
+
+                const label = document.getElementById('email-field-label');
+                if (label) label.innerText = "Enter Official Email for " + name;
+
+                const emailInput = document.getElementById('guard_email');
+                if (emailInput) {
+                    emailInput.placeholder = "Enter " + name + "'s Gmail";
+                    emailInput.focus();
+                }
+
+                // Update visual card selection
+                document.querySelectorAll('.guard-select-card').forEach(c => {
+                    c.classList.remove('border-emerald-500/50', 'ring-2', 'ring-emerald-500/30', 'bg-slate-950/90');
+                    c.classList.add('border-slate-800/80', 'bg-slate-950/60');
+                    const text = c.querySelector('span.truncate');
+                    if (text) {
+                        text.classList.remove('text-white');
+                        text.classList.add('text-slate-300');
+                    }
+                });
+
+                if (cardElement) {
+                    cardElement.classList.add('border-emerald-500/50', 'ring-2', 'ring-emerald-500/30', 'bg-slate-950/90');
+                    cardElement.classList.remove('border-slate-800/80', 'bg-slate-950/60');
+                    const text = cardElement.querySelector('span.truncate');
+                    if (text) {
+                        text.classList.add('text-white');
+                        text.classList.remove('text-slate-300');
+                    }
+                }
             };
 
-            // Handle Guard ID duty login submission
+
+            window.backToGuardId = function() {
+                document.getElementById('step-guard-otp').classList.add('hidden');
+                document.getElementById('step-guard-id').classList.remove('hidden');
+                const err = document.getElementById('login-error-alert');
+                const succ = document.getElementById('login-success-alert');
+                if (err) err.classList.add('hidden');
+                if (succ) succ.classList.add('hidden');
+                const emailInput = document.getElementById('guard_email');
+                if (emailInput) emailInput.focus();
+            };
+
+            // STEP 1: Submit Guard Email -> Generates & Sends OTP
             window.handleGuardLogin = function(e) {
                 e.preventDefault();
-                const guardIdInput = document.getElementById('guard_id');
+                const emailInput = document.getElementById('guard_email');
+                const selectedGuardName = document.getElementById('selected_guard_name') ? document.getElementById('selected_guard_name').value : 'Edward Cabbat';
                 const errorAlert = document.getElementById('login-error-alert');
+                const successAlert = document.getElementById('login-success-alert');
                 const submitBtn = document.getElementById('login-submit-btn');
                 const btnText = document.getElementById('btn-text');
                 const btnSpinner = document.getElementById('btn-spinner');
-                const btnArrow = document.getElementById('btn-arrow');
-                const loginScreen = document.getElementById('login-screen');
 
-                const guardId = guardIdInput ? guardIdInput.value.trim() : '';
+                const email = emailInput ? emailInput.value.trim() : '';
 
-                if (!guardId) {
-                    errorAlert.innerText = "Please enter your Guard ID / Badge number.";
+                if (!email) {
+                    errorAlert.innerText = "Please enter your registered security guard email address.";
                     errorAlert.classList.remove('hidden');
                     return;
                 }
 
                 // UI loading state
                 errorAlert.classList.add('hidden');
+                if (successAlert) successAlert.classList.add('hidden');
                 submitBtn.disabled = true;
-                btnText.innerText = "Signing in...";
+                btnText.innerText = "Sending code to email...";
                 btnSpinner.classList.remove('hidden');
-                btnArrow.classList.add('hidden');
 
                 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -499,44 +602,46 @@
                         'X-CSRF-TOKEN': csrfToken
                     },
                     body: JSON.stringify({ 
-                        guard_id: guardId
+                        email: email,
+                        guard_name: selectedGuardName
                     })
                 })
                 .then(res => res.json())
                 .then(data => {
+                    submitBtn.disabled = false;
+                    btnText.innerText = "Send Authentication Code \u2192";
+                    btnSpinner.classList.add('hidden');
+
                     if (data.success) {
-                        // Successfully authenticated!
-                        if (data.guard_name) {
-                            const guardLabel = document.getElementById('active-guard-label');
-                            if (guardLabel) guardLabel.innerText = "👮 " + data.guard_name;
-                        }
+                        if (data.requires_otp) {
+                            // Transition to Step 2: OTP Entry
+                            document.getElementById('step-guard-id').classList.add('hidden');
+                            document.getElementById('step-guard-otp').classList.remove('hidden');
 
-                        loginScreen.classList.add('opacity-0');
-                        setTimeout(() => {
-                            loginScreen.classList.add('hidden');
-                            const scannerScreen = document.getElementById('scanner-screen');
-                            scannerScreen.classList.remove('hidden');
-                            isVerified = true;
+                            document.getElementById('otp-guard-name').innerText = "👮 " + data.guard_name;
+                            document.getElementById('otp-masked-email').innerText = data.email || data.masked_email;
 
-                            const urlParams = new URLSearchParams(window.location.search);
-                            if (urlParams.get('tab') === 'logbook') {
-                                switchTab('logbook');
-                            } else {
-                                initScanner();
+                            if (successAlert) {
+                                successAlert.innerText = "Verification code dispatched to " + (data.masked_email || data.email) + "! Check your Gmail inbox.";
+                                successAlert.classList.remove('hidden');
                             }
-                        }, 300);
+
+                            const otpInput = document.getElementById('guard_otp');
+                            if (otpInput) {
+                                otpInput.value = '';
+                                otpInput.focus();
+                            }
+                        } else {
+                            // Direct bypass (e.g. 1234 master code)
+                            completeDutySignIn(data.guard_name);
+                        }
                     } else {
                         // Failed authentication
-                        errorAlert.innerText = data.message || "Guard ID not recognized. Please try again.";
+                        errorAlert.innerText = data.message || "Email not recognized. Please check your entered email.";
                         errorAlert.classList.remove('hidden');
-                        submitBtn.disabled = false;
-                        btnText.innerText = "Sign In to Gate Duty";
-                        btnSpinner.classList.add('hidden');
-                        btnArrow.classList.remove('hidden');
-
-                        if (guardIdInput) {
-                            guardIdInput.select();
-                            guardIdInput.focus();
+                        if (emailInput) {
+                            emailInput.select();
+                            emailInput.focus();
                         }
                     }
                 })
@@ -544,11 +649,141 @@
                     errorAlert.innerText = "Network connection error! Please check your connection and try again.";
                     errorAlert.classList.remove('hidden');
                     submitBtn.disabled = false;
-                    btnText.innerText = "Sign In to Gate Duty";
+                    btnText.innerText = "Send Authentication Code \u2192";
                     btnSpinner.classList.add('hidden');
-                    btnArrow.classList.remove('hidden');
                 });
             };
+
+            // STEP 2: Submit OTP Code -> Verifies identity and enters gate terminal
+            window.handleGuardOtp = function(e) {
+                e.preventDefault();
+                const otpInput = document.getElementById('guard_otp');
+                const errorAlert = document.getElementById('login-error-alert');
+                const successAlert = document.getElementById('login-success-alert');
+                const submitBtn = document.getElementById('otp-submit-btn');
+                const btnText = document.getElementById('otp-btn-text');
+                const btnSpinner = document.getElementById('otp-btn-spinner');
+
+                const otp = otpInput ? otpInput.value.trim() : '';
+
+                if (!otp || otp.length < 4) {
+                    errorAlert.innerText = "Please enter the 6-digit authentication code.";
+                    errorAlert.classList.remove('hidden');
+                    return;
+                }
+
+                errorAlert.classList.add('hidden');
+                if (successAlert) successAlert.classList.add('hidden');
+                submitBtn.disabled = true;
+                btnText.innerText = "Verifying code...";
+                btnSpinner.classList.remove('hidden');
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                fetch('{{ route("guard.verify-otp") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({ 
+                        otp: otp
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    submitBtn.disabled = false;
+                    btnText.innerText = "Verify Code & Enter Terminal";
+                    btnSpinner.classList.add('hidden');
+
+                    if (data.success) {
+                        completeDutySignIn(data.guard_name);
+                    } else {
+                        errorAlert.innerText = data.message || "Invalid authentication code. Please try again.";
+                        errorAlert.classList.remove('hidden');
+                        if (otpInput) {
+                            otpInput.select();
+                            otpInput.focus();
+                        }
+                        if (data.restart) {
+                            setTimeout(backToGuardId, 2000);
+                        }
+                    }
+                })
+                .catch(() => {
+                    errorAlert.innerText = "Network connection error! Please try again.";
+                    errorAlert.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    btnText.innerText = "Verify Code & Enter Terminal";
+                    btnSpinner.classList.add('hidden');
+                });
+            };
+
+            // Resend OTP
+            window.resendOtpCode = function() {
+                const btnResend = document.getElementById('btn-resend-otp');
+                const errorAlert = document.getElementById('login-error-alert');
+                const successAlert = document.getElementById('login-success-alert');
+
+                btnResend.innerText = "Resending...";
+                btnResend.disabled = true;
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                fetch('{{ route("guard.resend-otp") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btnResend.innerText = "Resend Email Code";
+                    btnResend.disabled = false;
+
+                    if (data.success) {
+                        if (successAlert) {
+                            successAlert.innerText = data.message + " Check your Gmail inbox.";
+                            successAlert.classList.remove('hidden');
+                        }
+                        errorAlert.classList.add('hidden');
+                    } else {
+                        errorAlert.innerText = data.message;
+                        errorAlert.classList.remove('hidden');
+                        if (data.restart) backToGuardId();
+                    }
+                })
+                .catch(() => {
+                    btnResend.innerText = "Resend Email Code";
+                    btnResend.disabled = false;
+                    errorAlert.innerText = "Failed to resend code. Please check your connection.";
+                    errorAlert.classList.remove('hidden');
+                });
+            };
+
+            function completeDutySignIn(guardName) {
+                const loginScreen = document.getElementById('login-screen');
+                if (guardName) {
+                    const guardLabel = document.getElementById('active-guard-label');
+                    if (guardLabel) guardLabel.innerText = "👮 " + guardName;
+                }
+
+                loginScreen.classList.add('opacity-0');
+                setTimeout(() => {
+                    loginScreen.classList.add('hidden');
+                    const scannerScreen = document.getElementById('scanner-screen');
+                    scannerScreen.classList.remove('hidden');
+                    isVerified = true;
+
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('tab') === 'logbook') {
+                        switchTab('logbook');
+                    } else {
+                        initScanner();
+                    }
+                }, 300);
+            }
  
             // Scanner functionality
             const startBtn = document.getElementById('start-camera-btn');

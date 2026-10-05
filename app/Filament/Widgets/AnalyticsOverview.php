@@ -58,18 +58,10 @@ class AnalyticsOverview extends StatsOverviewWidget
         // 3. Disapproval Rate (Red)
         $disapprovalRate = $totalRequests > 0 ? round(($rejectedCount / $totalRequests) * 100, 1) : 0;
 
-        // 4. Fuel Expenses (Emerald)
-        $slipQuery = WithdrawalSlip::where('status', 'approved');
-        if ($startDate) $slipQuery->whereDate('created_at', '>=', $startDate);
-        if ($endDate) $slipQuery->whereDate('created_at', '<=', $endDate);
-        $totalFuel = $slipQuery->sum('amount');
-        $avgFuelPerTrip = $approvedCount > 0 ? round($totalFuel / $approvedCount, 2) : 0;
-
         // Dynamic 7-step sparkline curves
         $approvalSparkline = [65, 70, 78, 75, 82, 85, max($approvalRate, 80)];
         $passengerSparkline = [2.0, 2.5, 2.2, 2.8, 2.3, 2.6, max($avgPassengers, 2.4)];
         $disapprovalSparkline = [15, 12, 10, 8, 7, 5, max($disapprovalRate, 4)];
-        $fuelSparkline = [1200, 2500, 3800, 5200, 8400, 12500, max($totalFuel, 15000)];
 
         return [
             Stat::make('Request Approval Rate', "{$approvalRate}%")
@@ -89,12 +81,6 @@ class AnalyticsOverview extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-x-circle')
                 ->chart($disapprovalSparkline)
                 ->color('danger'),
-
-            Stat::make('Total Fuel Expenses', '₱' . number_format($totalFuel, 2))
-                ->description("₱" . number_format($avgFuelPerTrip, 0) . " avg per trip")
-                ->descriptionIcon('heroicon-m-currency-dollar')
-                ->chart($fuelSparkline)
-                ->color('success'),
         ];
     }
 }

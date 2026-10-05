@@ -47,7 +47,10 @@ class BookingsOverTimeChart extends ChartWidget
             $labels[] = $monthObj->format('M Y');
 
             // Count for this month
-            $count = (clone $currentQuery)->where(DB::raw("strftime('%Y-%m', date)"), $monthStr)->count();
+            $count = (clone $currentQuery)
+                ->whereYear('date', $monthObj->year)
+                ->whereMonth('date', $monthObj->month)
+                ->count();
             $currentData[] = $count;
 
             // Comparison (Previous year/period - slightly varied for realistic baseline)

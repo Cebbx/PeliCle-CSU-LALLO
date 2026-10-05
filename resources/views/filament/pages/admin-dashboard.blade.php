@@ -64,6 +64,12 @@
             gap: 12px;
             margin-bottom: 12px;
         }
+        .row-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
         .row-grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -83,6 +89,7 @@
         }
         @media (max-width: 640px) {
             .row-grid-4 { grid-template-columns: 1fr; }
+            .row-grid-2 { grid-template-columns: 1fr; }
             .row-grid-3 { grid-template-columns: 1fr; }
         }
 
@@ -140,6 +147,7 @@
         .bg-icon-sky { background: #0ea5e9; color: #ffffff; }
         .bg-icon-amber { background: #f59e0b; color: #ffffff; }
         .bg-icon-red { background: #ef4444; color: #ffffff; }
+        .bg-icon-purple { background: #8b5cf6; color: #ffffff; }
 
         .card-title-text {
             font-size: 12.5px;
@@ -180,6 +188,7 @@
         .color-amber { color: #fbbf24; }
         .color-red { color: #f87171; }
         .color-slate { color: #94a3b8; }
+        .color-purple { color: #c084fc; }
 
         /* Smooth Bottom Sparklines */
         .card-wave-box {
@@ -304,6 +313,178 @@
         .status-pill-completed { background: #059669; color: #ffffff; }
         .status-pill-rejected { background: #dc2626; color: #ffffff; }
 
+        .traveler-rank-pill {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 9999px;
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .traveler-rank-pill:hover {
+            background: rgba(168, 85, 247, 0.25);
+            transform: scale(1.05);
+        }
+
+        /* Travelers Leaderboard Modal */
+        .travelers-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .travelers-modal-card {
+            background: #0d121d;
+            border: 1px solid #1f293d;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalPopIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .travelers-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            border-bottom: 1px solid #1a2233;
+        }
+        .travelers-modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+        }
+        .travelers-modal-desc {
+            font-size: 11px;
+            color: #94a3b8;
+            margin: 2px 0 0 0;
+        }
+        .travelers-modal-close {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, color 0.15s;
+        }
+        .travelers-modal-close:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+        .travelers-list-wrap {
+            padding: 16px 20px;
+            max-height: 380px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .traveler-row-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #111827;
+            border: 1px solid #1f293d;
+            border-radius: 10px;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .traveler-row-item:hover {
+            background: #151f32;
+            border-color: rgba(168, 85, 247, 0.35);
+        }
+        .traveler-rank-badge {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+            border: 1px solid transparent;
+            flex-shrink: 0;
+        }
+        .traveler-row-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #f1f5f9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 230px;
+        }
+        .traveler-row-dept {
+            font-size: 10.5px;
+            color: #94a3b8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 230px;
+        }
+        .traveler-trip-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 9999px;
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            white-space: nowrap;
+        }
+        .travelers-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-top: 1px solid #1a2233;
+            background: #090e17;
+        }
+        .travelers-view-requests-btn {
+            font-size: 12px;
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.15s;
+        }
+        .travelers-view-requests-btn:hover {
+            color: #7dd3fc;
+            text-decoration: underline;
+        }
+        .travelers-close-btn {
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #334155;
+            padding: 6px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .travelers-close-btn:hover {
+            background: #334155;
+            color: #ffffff;
+        }
+
         .feed-timestamp {
             font-size: 9px;
             color: #64748b;
@@ -391,9 +572,65 @@
         html:not(.dark) .donut-legend-val {
             color: #0f172a !important;
         }
+
+        /* Light mode overrides for travelers modal */
+        html:not(.dark) .travelers-modal-card {
+            background: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+        }
+        html:not(.dark) .travelers-modal-header {
+            border-bottom-color: #e2e8f0 !important;
+        }
+        html:not(.dark) .travelers-modal-title {
+            color: #0f172a !important;
+        }
+        html:not(.dark) .travelers-modal-desc {
+            color: #64748b !important;
+        }
+        html:not(.dark) .traveler-row-item {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+        html:not(.dark) .traveler-row-item:hover {
+            background: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+        }
+        html:not(.dark) .traveler-row-name {
+            color: #0f172a !important;
+        }
+        html:not(.dark) .traveler-row-dept {
+            color: #64748b !important;
+        }
+        html:not(.dark) .traveler-trip-badge {
+            background: #f3e8ff !important;
+            color: #7e22ce !important;
+            border-color: #d8b4fe !important;
+        }
+        html:not(.dark) .travelers-modal-footer {
+            border-top-color: #e2e8f0 !important;
+            background: #f8fafc !important;
+        }
+        html:not(.dark) .travelers-close-btn {
+            background: #e2e8f0 !important;
+            color: #334155 !important;
+            border-color: #cbd5e1 !important;
+        }
+        html:not(.dark) .travelers-close-btn:hover {
+            background: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+        html:not(.dark) .color-purple {
+            color: #7e22ce !important;
+        }
+        html:not(.dark) .traveler-rank-pill {
+            background: #f3e8ff !important;
+            color: #7e22ce !important;
+            border-color: #d8b4fe !important;
+        }
     </style>
 
-    <div class="dashboard-wrapper" wire:poll.3s>
+    <div class="dashboard-wrapper" wire:poll.3s x-data="{ showTravelersModal: false }">
 
         <!-- Top Greeting Header -->
         <div class="dash-header">
@@ -511,7 +748,7 @@
 
         </div>
 
-        <!-- ROW 2: Three Wide Executive Cards (Clickable Links) -->
+        <!-- ROW 2: Three Executive Cards (Clickable Links) -->
         <div class="row-grid-3">
             
             <!-- 1. Active Trips (Links to Trip Tickets) -->
@@ -558,28 +795,44 @@
                 </div>
             </a>
 
-            <!-- 3. This Month's Gas Expenses (Links to Slips) -->
-            <a href="{{ \App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index', ['tab' => 'approved']) }}" class="dash-card dash-card-link" style="padding-bottom: 8px;">
+            <!-- 3. Most Frequent Traveler (Click to view Leaderboard) -->
+            <div @click="showTravelersModal = true" class="dash-card dash-card-link" style="padding-bottom: 8px; cursor: pointer;">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
-                        <div class="card-icon-round bg-icon-red">
-                            <svg style="width: 12px; height: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        <div class="card-icon-round bg-icon-purple">
+                            <svg style="width: 13px; height: 13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                             </svg>
                         </div>
-                        <span class="card-title-text">This Month's Gas Expenses</span>
+                        <span class="card-title-text">Most Frequent Traveler</span>
                     </div>
+                    @if(!empty($mostTravelers))
+                        <span class="traveler-rank-pill" title="Click to view Top Rankings">
+                            🏆 Top 1
+                        </span>
+                    @endif
                 </div>
                 <div class="card-mid-section">
-                    <div class="card-number-bold">₱{{ number_format($gasExpenses['month'], 2) }}</div>
-                    <div class="card-subtitle-note color-red">
-                        Today: ₱{{ number_format($gasExpenses['today'], 2) }} | Week: ₱{{ number_format($gasExpenses['week'], 2) }}
-                    </div>
+                    @if(!empty($mostTravelers[0]))
+                        <div class="card-number-bold" style="font-size: 16px; font-weight: 800; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $mostTravelers[0]['name'] }}">
+                            {{ $mostTravelers[0]['name'] }}
+                        </div>
+                        <div class="card-subtitle-note color-purple" style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                            <span>{{ $mostTravelers[0]['trips'] }} {{ Str::plural('trip', $mostTravelers[0]['trips']) }} &bull; {{ $mostTravelers[0]['department'] }}</span>
+                            <span style="font-size: 10px; text-decoration: underline; opacity: 0.85;">View Top 5 &rarr;</span>
+                        </div>
+                    @else
+                        <div class="card-number-bold" style="font-size: 15px; color: #94a3b8;">No travelers yet</div>
+                        <div class="card-subtitle-note color-purple">Awaiting trip dispatches</div>
+                    @endif
                 </div>
-                <div style="width: 100%; height: 2px; background: rgba(239, 68, 68, 0.2); border-radius: 99px; margin-top: 6px; overflow: hidden;">
-                    <div style="height: 100%; background: #ef4444; width: 100%;"></div>
+                <!-- Smooth Purple Wave -->
+                <div class="card-wave-box">
+                    <svg viewBox="0 0 300 35" class="card-wave-svg" preserveAspectRatio="none">
+                        <path d="M0,30 C70,22 130,6 190,12 C250,18 280,26 300,30" fill="none" stroke="#a855f7" stroke-width="2" />
+                    </svg>
                 </div>
-            </a>
+            </div>
 
         </div>
 
@@ -825,6 +1078,73 @@
                 </div>
             </div>
 
+        <!-- Travelers Leaderboard Modal -->
+        <div x-show="showTravelersModal" 
+             x-cloak 
+             class="travelers-modal-backdrop" 
+             style="display: none;"
+             @click.self="showTravelersModal = false"
+             @keydown.escape.window="showTravelersModal = false">
+            <div class="travelers-modal-card" @click.stop>
+                <div class="travelers-modal-header">
+                    <div>
+                        <h3 class="travelers-modal-title">🏆 Most Frequent Travelers</h3>
+                        <p class="travelers-modal-desc">Top employees and passengers with the highest number of trips</p>
+                    </div>
+                    <button type="button" @click="showTravelersModal = false" class="travelers-modal-close" title="Close">
+                        <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="travelers-list-wrap">
+                    @forelse($mostTravelers as $idx => $traveler)
+                        @php
+                            $rank = $idx + 1;
+                            $badgeBg = match($rank) {
+                                1 => 'background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);',
+                                2 => 'background: linear-gradient(135deg, #94a3b8, #64748b); color: #ffffff;',
+                                3 => 'background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff;',
+                                default => 'background: #1e293b; color: #94a3b8; border-color: #334155;'
+                            };
+                            $medal = match($rank) {
+                                1 => '🥇',
+                                2 => '🥈',
+                                3 => '🥉',
+                                default => '#' . $rank
+                            };
+                        @endphp
+                        <div class="traveler-row-item">
+                            <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                                <div class="traveler-rank-badge" style="{{ $badgeBg }}">
+                                    {{ $medal }}
+                                </div>
+                                <div style="min-width: 0;">
+                                    <div class="traveler-row-name" title="{{ $traveler['name'] }}">{{ $traveler['name'] }}</div>
+                                    <div class="traveler-row-dept" title="{{ $traveler['department'] }}">{{ $traveler['department'] }}</div>
+                                </div>
+                            </div>
+                            <span class="traveler-trip-badge">
+                                {{ $traveler['trips'] }} {{ Str::plural('trip', $traveler['trips']) }}
+                            </span>
+                        </div>
+                    @empty
+                        <div style="padding: 32px 16px; text-align: center; color: #64748b; font-size: 13px;">
+                            No traveler history recorded yet.
+                        </div>
+                    @endforelse
+                </div>
+
+                <div class="travelers-modal-footer">
+                    <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index') }}" class="travelers-view-requests-btn">
+                        View All Vehicle Requests &rarr;
+                    </a>
+                    <button type="button" @click="showTravelersModal = false" class="travelers-close-btn">
+                        Close
+                    </button>
+                </div>
+            </div>
         </div>
 
     </div>

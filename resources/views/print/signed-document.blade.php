@@ -44,12 +44,28 @@
         }
     </style>
 </head>
+@php
+    $backUrl = url()->previous();
+    if ($backUrl === url()->current() || empty($backUrl)) {
+        if ($type === 'vehicle-request') {
+            $backUrl = auth('employee')->check() ? url('/employee/vehicle-requests') : url('/admin/vehicle-requests');
+        } else {
+            $backUrl = auth('driver')->check() ? url('/driver/trip-tickets') : url('/admin/trip-tickets');
+        }
+    }
+@endphp
 <body class="bg-gray-100 py-6 px-4 min-h-screen flex flex-col">
 
     <!-- Floating Top Bar (hidden on print) -->
     <div class="no-print max-w-[8.5in] w-full mx-auto mb-4 flex flex-wrap items-center justify-between bg-white p-4 rounded-xl shadow-md border border-gray-200 gap-4">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+            <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-2 px-3.5 rounded-lg transition-colors flex items-center gap-1.5 text-sm border border-gray-300 shadow-sm cursor-pointer mr-1" title="Go Back">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                <span>Back</span>
+            </a>
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
@@ -111,6 +127,22 @@
 
     <!-- Print Script -->
     <script>
+        function handleBack(event) {
+            if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
+                event.preventDefault();
+                window.history.back();
+                return;
+            }
+            if (window.opener) {
+                event.preventDefault();
+                window.close();
+                return;
+            }
+            try {
+                window.close();
+            } catch (e) {}
+        }
+
         function triggerPrint() {
             @if($extension === 'pdf')
                 const frame = document.getElementById('pdfFrame');

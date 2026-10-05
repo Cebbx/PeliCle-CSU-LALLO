@@ -26,6 +26,7 @@ class UserForm
                         'employee' => 'Employee',
                         'staff' => 'Staff / Department Account',
                         'driver' => 'Driver',
+                        'guard' => 'Security Guard',
                     ])
                     ->required()
                     ->live(),
@@ -54,6 +55,24 @@ class UserForm
                     ->required(fn (callable $get) => in_array($get('role'), ['employee', 'staff']))
                     ->placeholder('Select a department')
                     ->label('Department'),
+                TextInput::make('guard_id')
+                    ->label('Guard ID / Badge Number')
+                    ->placeholder('e.g. 1004')
+                    ->helperText('Used for Gate Clearance scanner and PIN login')
+                    ->visible(fn (callable $get) => $get('role') === 'guard')
+                    ->unique('users', 'guard_id', ignoreRecord: true)
+                    ->maxLength(50),
+                TextInput::make('position')
+                    ->label('Designation / Rank')
+                    ->placeholder('e.g. Gate Security Officer')
+                    ->visible(fn (callable $get) => $get('role') === 'guard')
+                    ->default('Gate Security Officer')
+                    ->maxLength(100),
+                TextInput::make('contact_number')
+                    ->label('Contact Number')
+                    ->placeholder('e.g. 09123456789')
+                    ->visible(fn (callable $get) => in_array($get('role'), ['guard', 'driver']))
+                    ->maxLength(50),
                 TextInput::make('password')
                     ->password()
                     ->dehydrateStateUsing(fn ($state) => \Hash::make($state))

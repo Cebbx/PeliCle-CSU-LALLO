@@ -9,6 +9,51 @@ use Carbon\Carbon;
 
 class QrCodeController extends Controller
 {
+    public static array $guards = [
+        '1001' => [
+            'name' => 'Edward Cabbat',
+            'email' => 'edwarddufale3@gmail.com',
+            'badge' => 'ID: 1001',
+            'role' => 'Lead Gate Guard',
+        ],
+        '1002' => [
+            'name' => 'Monhel Bumagat',
+            'email' => 'bumagatmonhelmirafuente@gmail.com',
+            'badge' => 'ID: 1002',
+            'role' => 'Gate Security Officer',
+        ],
+        '1003' => [
+            'name' => 'Matthew Baldera',
+            'email' => 'balderajohnmatthew@gmail.com',
+            'badge' => 'ID: 1003',
+            'role' => 'Gate Security Officer',
+        ],
+    ];
+
+    public static function getActiveGuards(): array
+    {
+        try {
+            $guards = \App\Models\User::where('role', 'guard')->get();
+            if ($guards->isNotEmpty()) {
+                $list = [];
+                foreach ($guards as $g) {
+                    $key = (string) ($g->guard_id ?: $g->id);
+                    $list[$key] = [
+                        'id' => $g->id,
+                        'name' => $g->name,
+                        'email' => $g->email,
+                        'badge' => 'ID: ' . ($g->guard_id ?: $g->id),
+                        'role' => $g->position ?: 'Gate Security Officer',
+                        'contact' => $g->contact_number,
+                    ];
+                }
+                return $list;
+            }
+        } catch (\Throwable $e) {}
+
+        return self::$guards;
+    }
+
     public function completeTrip(Request $request, $ticketNumber)
     {
         $ticket = TripTicket::where('ticket_number', $ticketNumber)->first();
@@ -23,11 +68,7 @@ class QrCodeController extends Controller
         }
 
         // Check if user is authenticated (Admin/Driver) or session is guard_verified or guard_id provided
-        $guards = [
-            '1001' => ['name' => 'Guard 1'],
-            '1002' => ['name' => 'Guard 2'],
-            '1003' => ['name' => 'Guard 3'],
-        ];
+        $guards = self::getActiveGuards();
 
         $guardId = trim($request->input('guard_id', $request->input('pin', $request->query('guard_id', $request->query('pin', '')))));
 
@@ -37,21 +78,22 @@ class QrCodeController extends Controller
             || ($guardId === '1234');
 
         if (!$isAuthorized) {
-            $errorMsg = $request->isMethod('post') ? 'Invalid Guard ID! Please enter your assigned Guard ID (1001, 1002, or 1003).' : null;
+            $errorMsg = $request->isMethod('post') ? 'Invalid Guard ID! Please enter your assigned Guard ID.' : null;
             return $this->renderPinPrompt($ticket, $errorMsg);
         }
 
         // Set session if authorized by guard_id
         if ($guardId && (isset($guards[$guardId]) || $guardId === '1234') && !session('guard_verified')) {
-            $effectiveId = isset($guards[$guardId]) ? $guardId : '1001';
+            $effectiveId = isset($guards[$guardId]) ? $guardId : array_key_first($guards);
             session([
                 'guard_verified' => true,
                 'guard_id' => $effectiveId,
-                'guard_name' => $guards[$effectiveId]['name'],
+                'guard_name' => $guards[$effectiveId]['name'] ?? 'Gate Officer',
+                'guard_email' => $guards[$effectiveId]['email'] ?? '',
             ]);
         }
 
-        $guardName = session('guard_name', 'Guard 1');
+        $guardName = session('guard_name', 'Edward Cabbat');
 
         // Check current status
         if ($ticket->status === 'completed') {
@@ -149,23 +191,23 @@ class QrCodeController extends Controller
                 </span>
 
                 <h1 class='text-xl font-extrabold text-white mb-1'>Gate Clearance Pass</h1>
-                <p class='text-xs text-slate-400 mb-4'>Enter your 4-digit Guard ID to record vehicle arrival.</p>
+                <p class='text-xs text-slate-400 mb-4'>Enter your registered Security Officer Email or Pass to record vehicle arrival.</p>
 
                 {$errorAlert}
 
                 <!-- Duty Guards Reference -->
                 <div class='grid grid-cols-3 gap-2 mb-4 text-center'>
-                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-1.5 px-1'>
-                        <span class='block text-[10px] font-bold text-slate-300'>Guard 1</span>
-                        <span class='block text-[11px] font-mono font-extrabold text-emerald-400'>ID: 1001</span>
+                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-2 px-1'>
+                        <span class='block text-[11px] font-bold text-white truncate'>Edward Cabbat</span>
+                        <span class='block text-[10px] font-semibold text-emerald-400'>Gate Officer</span>
                     </div>
-                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-1.5 px-1'>
-                        <span class='block text-[10px] font-bold text-slate-300'>Guard 2</span>
-                        <span class='block text-[11px] font-mono font-extrabold text-cyan-400'>ID: 1002</span>
+                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-2 px-1'>
+                        <span class='block text-[11px] font-bold text-white truncate'>Monhel Bumagat</span>
+                        <span class='block text-[10px] font-semibold text-cyan-400'>Gate Officer</span>
                     </div>
-                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-1.5 px-1'>
-                        <span class='block text-[10px] font-bold text-slate-300'>Guard 3</span>
-                        <span class='block text-[11px] font-mono font-extrabold text-purple-400'>ID: 1003</span>
+                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-2 px-1'>
+                        <span class='block text-[11px] font-bold text-white truncate'>Matthew Baldera</span>
+                        <span class='block text-[10px] font-semibold text-purple-400'>Gate Officer</span>
                     </div>
                 </div>
 
@@ -240,7 +282,7 @@ class QrCodeController extends Controller
             $destination = e($ticket->vehicleRequest?->destination ?? 'N/A');
             $outAt = $ticket->gate_out_at ? Carbon::parse($ticket->gate_out_at)->timezone('Asia/Manila')->format('M d, Y - h:i A') : '---';
             $inAt = $ticket->gate_in_at ? Carbon::parse($ticket->gate_in_at)->timezone('Asia/Manila')->format('M d, Y - h:i A') : Carbon::now('Asia/Manila')->format('M d, Y - h:i A');
-            $scannedBy = e($ticket->scanned_by ?? session('guard_name', 'Guard 1'));
+            $scannedBy = e($ticket->scanned_by ?? session('guard_name', 'Edward Cabbat'));
 
             $detailsHtml = "
             <div class='mt-6 pt-5 border-t border-slate-800/60 text-left text-xs text-slate-400 space-y-2.5'>
@@ -299,7 +341,7 @@ class QrCodeController extends Controller
     public function scannerPage(Request $request)
     {
         $isVerified = session('guard_verified', false);
-        $guardName = session('guard_name', 'Guard 1');
+        $guardName = session('guard_name', 'Edward Cabbat');
         $guardId = session('guard_id', '1001');
 
         $selectedMonth = $request->query('month', now('Asia/Manila')->format('m'));
@@ -333,6 +375,7 @@ class QrCodeController extends Controller
         }
 
         $monthName = \Carbon\Carbon::createFromDate($selectedYear, (int) $selectedMonth, 1)->format('F Y');
+        $activeGuards = self::getActiveGuards();
 
         return view('guard.scanner', compact(
             'isVerified',
@@ -345,7 +388,8 @@ class QrCodeController extends Controller
             'paxCount',
             'selectedMonth',
             'selectedYear',
-            'monthName'
+            'monthName',
+            'activeGuards'
         ));
     }
 
@@ -397,59 +441,268 @@ class QrCodeController extends Controller
 
     public function verifyPin(Request $request)
     {
-        $guards = [
-            '1001' => ['name' => 'Guard 1'],
-            '1002' => ['name' => 'Guard 2'],
-            '1003' => ['name' => 'Guard 3'],
-        ];
+        $inputEmail = strtolower(trim($request->input('email', $request->input('guard_id', $request->input('pin', '')))));
+        $selectedName = trim($request->input('guard_name', ''));
+        $guardId = trim($request->input('guard_id', ''));
 
-        $guardId = trim($request->input('guard_id', $request->input('pin', '')));
-
-        if (empty($guardId)) {
+        if (empty($inputEmail)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Please enter your Guard ID / Badge number.',
+                'message' => 'Please enter your registered security guard email address.',
             ]);
         }
 
-        // Master fallback
-        if ($guardId === '1234') {
+        // Master bypass for testing / rapid capstone defense demo
+        if ($inputEmail === '1234' || $inputEmail === '123456' || $guardId === '1234') {
             session([
                 'guard_verified' => true,
                 'guard_id' => '1001',
-                'guard_name' => 'Guard 1',
+                'guard_name' => 'Edward Cabbat',
+                'guard_email' => 'edwarddufale3@gmail.com',
             ]);
             return response()->json([
                 'success' => true,
-                'guard_name' => 'Guard 1',
+                'requires_otp' => false,
+                'guard_name' => 'Edward Cabbat',
                 'guard_id' => '1001',
+                'message' => 'Master security badge authorized. Welcome, Edward Cabbat.',
             ]);
         }
 
-        if (!isset($guards[$guardId])) {
+        // Find guard by email or by selected guard
+        $matchedGuard = null;
+        $matchedKey = null;
+
+        foreach (self::getActiveGuards() as $key => $guard) {
+            // If specific guard was selected by name, verify that the email matches that guard
+            if ($selectedName && (stripos($guard['name'], $selectedName) !== false || $selectedName === $key)) {
+                if (strtolower($guard['email']) === $inputEmail) {
+                    $matchedGuard = $guard;
+                    $matchedKey = $key;
+                    break;
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "The email entered does not match the registered record for {$guard['name']}. Please try again.",
+                    ]);
+                }
+            }
+
+            // Or direct email match
+            if (strtolower($guard['email']) === $inputEmail) {
+                $matchedGuard = $guard;
+                $matchedKey = $key;
+                break;
+            }
+
+            // Fallback if they typed Guard ID
+            if ($inputEmail === $key) {
+                $matchedGuard = $guard;
+                $matchedKey = $key;
+                break;
+            }
+        }
+
+        if (!$matchedGuard) {
             return response()->json([
                 'success' => false, 
-                'message' => 'Guard ID not recognized. Please check your assigned ID (1001, 1002, or 1003).'
+                'message' => 'Email address not recognized. Please use your official registered security email (e.g. edwarddufale3@gmail.com).'
             ]);
         }
 
-        $guardName = $guards[$guardId]['name'];
+        $guard = $matchedGuard;
+        $guardId = $matchedKey;
+        $otp = (string) mt_rand(100000, 999999);
+
+        // Store OTP in session
         session([
-            'guard_verified' => true,
-            'guard_id' => $guardId,
-            'guard_name' => $guardName,
+            'pending_guard_auth' => [
+                'guard_id' => $guardId,
+                'guard_name' => $guard['name'],
+                'email' => $guard['email'],
+                'otp' => $otp,
+                'expires_at' => now()->addMinutes(10)->timestamp,
+            ]
         ]);
+
+        // Dispatch authentication email
+        $mailSent = false;
+        try {
+            \Illuminate\Support\Facades\Mail::raw(
+                "CSU Lal-lo Campus Security Gate Clearance Portal\n\nHello {$guard['name']},\n\nYour 6-digit authentication code for Gate Duty Sign-in is: {$otp}\n\nThis verification code will expire in 10 minutes.\nIf you did not request this login attempt, please notify the System Administrator immediately.\n\n---\nPeliCle Vehicle Dispatch Management System\nCagayan State University - Lal-lo Campus",
+                function ($message) use ($guard, $otp) {
+                    $message->to($guard['email'])
+                            ->subject("CSU Gate Duty - Authentication Code [{$otp}]");
+                }
+            );
+            $mailSent = true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Guard OTP email dispatch failed: " . $e->getMessage());
+        }
+
+        \Illuminate\Support\Facades\Log::info("CSU Gate Duty OTP for {$guard['name']} ({$guard['email']}): {$otp}");
+
+        // Mask email for privacy display: e.g. edw***@gmail.com
+        $emailParts = explode('@', $guard['email']);
+        $localPart = $emailParts[0];
+        $maskedLocal = strlen($localPart) > 3 
+            ? substr($localPart, 0, 3) . str_repeat('*', min(4, strlen($localPart) - 3)) 
+            : $localPart . '***';
+        $maskedEmail = $maskedLocal . '@' . ($emailParts[1] ?? 'gmail.com');
+
+        if (!$mailSent) {
+            return response()->json([
+                'success' => false,
+                'message' => "Unable to send authentication email to {$guard['email']}. Please ensure a valid Google App Password is set in .env (SMTP Authentication required).",
+                'mail_sent' => false,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
-            'guard_name' => $guardName,
+            'requires_otp' => true,
             'guard_id' => $guardId,
+            'guard_name' => $guard['name'],
+            'email' => $guard['email'],
+            'masked_email' => $maskedEmail,
+            'message' => "Authentication code has been sent to {$maskedEmail}. Please check your email inbox.",
+            'mail_sent' => true,
+        ]);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $inputOtp = trim($request->input('otp', ''));
+        $pending = session('pending_guard_auth');
+
+        if (empty($inputOtp)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please enter the 6-digit authentication code.',
+            ]);
+        }
+
+        // Master bypass code (123456 or 1234)
+        if ($inputOtp === '123456' || $inputOtp === '1234') {
+            $guards = self::getActiveGuards();
+            $effectiveGuardId = $pending['guard_id'] ?? array_key_first($guards);
+            $guard = $guards[$effectiveGuardId] ?? reset($guards);
+            
+            session([
+                'guard_verified' => true,
+                'guard_id' => $effectiveGuardId,
+                'guard_name' => $guard['name'],
+                'guard_email' => $guard['email'],
+            ]);
+            session()->forget('pending_guard_auth');
+
+            return response()->json([
+                'success' => true,
+                'guard_name' => $guard['name'],
+                'guard_id' => $effectiveGuardId,
+                'message' => "Master bypass verified. Welcome, {$guard['name']}!",
+            ]);
+        }
+
+        if (!$pending) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication session expired. Please enter your Guard ID again.',
+                'restart' => true,
+            ]);
+        }
+
+        if (now()->timestamp > ($pending['expires_at'] ?? 0)) {
+            session()->forget('pending_guard_auth');
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication code has expired. Please request a new one.',
+                'expired' => true,
+            ]);
+        }
+
+        if ($inputOtp !== $pending['otp']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid authentication code. Please check your email and try again.',
+            ]);
+        }
+
+        // Verification success!
+        session([
+            'guard_verified' => true,
+            'guard_id' => $pending['guard_id'],
+            'guard_name' => $pending['guard_name'],
+            'guard_email' => $pending['email'],
+        ]);
+        session()->forget('pending_guard_auth');
+
+        return response()->json([
+            'success' => true,
+            'guard_name' => $pending['guard_name'],
+            'guard_id' => $pending['guard_id'],
+            'message' => "Identity confirmed! Welcome on duty, {$pending['guard_name']}.",
+        ]);
+    }
+
+    public function resendOtp(Request $request)
+    {
+        $pending = session('pending_guard_auth');
+        $guards = self::getActiveGuards();
+
+        if (!$pending || !isset($guards[$pending['guard_id']])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active authentication session. Please enter your Guard ID again.',
+                'restart' => true,
+            ]);
+        }
+
+        $guard = $guards[$pending['guard_id']];
+        $otp = (string) mt_rand(100000, 999999);
+
+        session([
+            'pending_guard_auth' => [
+                'guard_id' => $pending['guard_id'],
+                'guard_name' => $guard['name'],
+                'email' => $guard['email'],
+                'otp' => $otp,
+                'expires_at' => now()->addMinutes(10)->timestamp,
+            ]
+        ]);
+
+        $mailSent = false;
+        try {
+            \Illuminate\Support\Facades\Mail::raw(
+                "CSU Lal-lo Campus Security Gate Clearance Portal\n\nHello {$guard['name']},\n\nYour NEW 6-digit authentication code for Gate Duty Sign-in is: {$otp}\n\nThis verification code will expire in 10 minutes.\n\n---\nPeliCle Vehicle Dispatch Management System\nCagayan State University - Lal-lo Campus",
+                function ($message) use ($guard, $otp) {
+                    $message->to($guard['email'])
+                            ->subject("CSU Gate Duty - New Authentication Code [{$otp}]");
+                }
+            );
+            $mailSent = true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Guard OTP resend email failed: " . $e->getMessage());
+        }
+
+        \Illuminate\Support\Facades\Log::info("CSU Gate Duty Resend OTP for {$guard['name']} ({$guard['email']}): {$otp}");
+
+        if (!$mailSent) {
+            return response()->json([
+                'success' => false,
+                'message' => "Unable to send authentication email to {$guard['email']}. Please ensure a valid Google App Password is set in .env.",
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "A new authentication code has been sent to {$guard['email']}.",
         ]);
     }
 
     public function logout(Request $request)
     {
-        session()->forget(['guard_verified', 'guard_id', 'guard_name']);
+        session()->forget(['guard_verified', 'guard_id', 'guard_name', 'guard_email', 'pending_guard_auth']);
         return redirect()->route('guard.scanner');
     }
 }

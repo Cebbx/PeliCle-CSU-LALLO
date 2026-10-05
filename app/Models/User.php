@@ -48,6 +48,10 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'role',
         'department',
+        'guard_id',
+        'contact_number',
+        'position',
+        'signature',
     ];
 
     /**
@@ -90,5 +94,15 @@ class User extends Authenticatable implements FilamentUser
     public function driver(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(Driver::class, 'name', 'name');
+    }
+
+    public function isGuard(): bool
+    {
+        return strtolower($this->role ?? '') === 'guard';
+    }
+
+    public function getScannedTripsCountAttribute(): int
+    {
+        return \App\Models\TripTicket::where('scanned_by', $this->name)->count();
     }
 }

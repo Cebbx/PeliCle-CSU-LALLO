@@ -38,11 +38,27 @@
         }
     </style>
 </head>
+@php
+    $backUrl = url()->previous();
+    if ($backUrl === url()->current() || empty($backUrl)) {
+        if (auth('driver')->check()) {
+            $backUrl = url('/driver/trip-tickets');
+        } else {
+            $backUrl = route('trip-tickets.print', $ticket->id);
+        }
+    }
+@endphp
 <body class="bg-gray-100 py-6 px-4">
 
     <!-- Floating Top Bar (hidden on print) -->
     <div class="no-print max-w-[7.5in] mx-auto mb-4 flex flex-wrap items-center justify-between bg-white p-4 rounded-xl shadow-md border border-gray-200 gap-3">
         <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-1.5 px-3 rounded-lg transition-colors flex items-center gap-1.5 text-xs border border-gray-300 shadow-sm cursor-pointer mr-1" title="Go Back">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                <span>Back</span>
+            </a>
             <span class="text-gray-800 font-bold text-sm mr-1">Travel Order</span>
             <!-- Interactive Purpose Selection Pills -->
             <div class="flex items-center gap-1.5 bg-gray-100 p-1 rounded-lg border border-gray-300">
@@ -301,6 +317,22 @@
                 }
             });
         });
+
+        function handleBack(event) {
+            if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
+                event.preventDefault();
+                window.history.back();
+                return;
+            }
+            if (window.opener) {
+                event.preventDefault();
+                window.close();
+                return;
+            }
+            try {
+                window.close();
+            } catch (e) {}
+        }
 
         function downloadPDF() {
             const element = document.querySelector('.print-container');

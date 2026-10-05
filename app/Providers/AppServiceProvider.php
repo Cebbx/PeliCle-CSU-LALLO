@@ -15,6 +15,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton('files', function () {
+            return new \App\Support\WindowsSafeFilesystem;
+        });
+
+        $this->app->singleton(\Illuminate\Filesystem\Filesystem::class, function ($app) {
+            return $app['files'];
+        });
+
         $this->app->bind(
             \Filament\Auth\Http\Controllers\LogoutController::class,
             \App\Http\Controllers\Auth\PanelLogoutController::class

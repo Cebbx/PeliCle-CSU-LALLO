@@ -23,14 +23,17 @@ class RolesAndPermissions extends Page
     public function getViewData(): array
     {
         $adminCount = \App\Models\User::where('role', 'admin')->count();
-        $employeeCount = \App\Models\User::where('role', 'employee')->count();
+        $employeeCount = \App\Models\User::whereIn('role', ['employee', 'staff'])->count();
         $driverCount = \App\Models\User::where('role', 'driver')->count();
+        $guardUserCount = \App\Models\User::where('role', 'guard')->count();
+        $guardCount = $guardUserCount > 0 ? $guardUserCount : 3;
         $totalUsers = \App\Models\User::count();
 
         return [
             'adminCount' => $adminCount,
             'employeeCount' => $employeeCount,
             'driverCount' => $driverCount,
+            'guardCount' => $guardCount,
             'totalUsers' => $totalUsers,
         ];
     }

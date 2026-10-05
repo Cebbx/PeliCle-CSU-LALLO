@@ -43,7 +43,9 @@ class PassengerGrowthChart extends ChartWidget
             $monthStr = $monthObj->format('Y-m');
             $labels[] = $monthObj->format('M Y');
 
-            $monthQuery = (clone $query)->where(DB::raw("strftime('%Y-%m', date)"), $monthStr);
+            $monthQuery = (clone $query)
+                ->whereYear('date', $monthObj->year)
+                ->whereMonth('date', $monthObj->month);
             
             $tripCount = $filterStatus 
                 ? (clone $monthQuery)->count()

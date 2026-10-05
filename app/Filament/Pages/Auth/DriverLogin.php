@@ -22,7 +22,7 @@ class DriverLogin extends BaseLogin
 
     public function getSubheading(): string
     {
-        return 'Enter your Driver Name, License ID, or Contact Number';
+        return 'Sign in to access your assigned trips and vehicle schedules';
     }
 
     public function mount(): void
@@ -45,10 +45,9 @@ class DriverLogin extends BaseLogin
         return $schema
             ->components([
                 TextInput::make('license_number')
-                    ->label('Driver Name, License ID, or Contact Number')
-                    ->placeholder('e.g. Joel Tumamao, N01-27-556983, or 09275569838')
+                    ->label('License ID or Contact Number')
+                    ->placeholder('e.g. N01-24-123456 or 09171234567')
                     ->datalist($driverNames)
-                    ->helperText('💡 Tip: Pwedeng i-type ang Pangalan ng driver (e.g. Joel Tumamao), License ID, o Mobile number.')
                     ->required()
                     ->autofocus(),
             ])
@@ -71,7 +70,7 @@ class DriverLogin extends BaseLogin
         if (! $driver) {
             Notification::make()
                 ->title('Driver Not Found')
-                ->body('Hindi mahanap ang driver gamit ang "' . $input . '". Subukang i-type: Joel Tumamao, Lucio Collado, o Norman Cristobal.')
+                ->body('No driver record found matching "' . e($input) . '". Please verify your License ID or contact number.')
                 ->danger()
                 ->send();
 

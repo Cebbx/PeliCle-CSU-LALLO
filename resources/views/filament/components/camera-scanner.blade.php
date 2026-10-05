@@ -11,6 +11,7 @@
         sharpnessScore: 0,
         isBlurry: false,
         showZoomModal: false,
+        currentStream: null,
 
         async init() {
             if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
@@ -28,7 +29,7 @@
             this.isLoading = true;
 
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                this.errorMessage = 'Camera access is not supported by your browser. Please use the Upload Document tab or choose a file below.';
+                this.errorMessage = 'Camera access is not supported by your browser. Please switch to the \'Upload Document\' tab above to attach your file.';
                 this.isLoading = false;
                 return;
             }
@@ -44,9 +45,19 @@
                 };
 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                this.$refs.video.srcObject = stream;
-                await this.$refs.video.play();
+                this.currentStream = stream;
                 this.isStreaming = true;
+
+                await this.$nextTick();
+
+                if (this.$refs.video) {
+                    this.$refs.video.srcObject = stream;
+                    try {
+                        await this.$refs.video.play();
+                    } catch (playErr) {
+                        console.warn('Video play interrupted or autoplay blocked:', playErr);
+                    }
+                }
 
                 try {
                     const allDevices = await navigator.mediaDevices.enumerateDevices();
@@ -55,11 +66,13 @@
             } catch (err) {
                 console.error('Camera access error:', err);
                 if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    this.errorMessage = 'Camera Permission Required: Please click the camera icon in your browser address bar to allow camera access.';
+                    this.errorMessage = 'Camera Permission Required: Please allow camera access in browser settings, or switch to the \'Upload Document\' tab above.';
                 } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                    this.errorMessage = 'No camera found on this device. Please connect a webcam or upload a file.';
+                    this.errorMessage = 'No camera found on this device. Please switch to the \'Upload Document\' tab above.';
+                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                    this.errorMessage = 'Camera is in use by another app or browser. Please close other camera apps or switch to the \'Upload Document\' tab above.';
                 } else {
-                    this.errorMessage = 'Unable to open camera (' + (err.message || 'Error') + '). Please try again.';
+                    this.errorMessage = 'Unable to open camera (' + (err.message || 'Error') + '). Please switch to the \'Upload Document\' tab above.';
                 }
             } finally {
                 this.isLoading = false;
@@ -176,10 +189,18 @@
         },
 
         stopCamera() {
+            if (this.currentStream) {
+                try {
+                    this.currentStream.getTracks().forEach(track => track.stop());
+                } catch (e) {}
+                this.currentStream = null;
+            }
             if (this.$refs.video && this.$refs.video.srcObject) {
-                const stream = this.$refs.video.srcObject;
-                const tracks = stream.getTracks();
-                tracks.forEach(track => track.stop());
+                try {
+                    const stream = this.$refs.video.srcObject;
+                    const tracks = stream.getTracks();
+                    tracks.forEach(track => track.stop());
+                } catch (e) {}
                 this.$refs.video.srcObject = null;
             }
             this.isStreaming = false;
@@ -446,79 +467,76 @@
     <canvas x-ref="canvas" style="display: none;"></canvas>
 
     <!-- 1. CAPTURED PREVIEW STATE -->
-    <template x-if="state">
-        <div class="doc-preview-box">
-            
-            <!-- Status Header -->
-            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 12px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
-                    <span style="font-size: 13px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.04em;">✓ Document Captured</span>
-                </div>
-                <span style="font-size: 11px; color: #64748b; font-family: monospace;">Ready to save</span>
+    <div x-show="state" style="display: none;" class="doc-preview-box">
+        <!-- Status Header -->
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
+                <span style="font-size: 13px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.04em;">✓ Document Captured</span>
             </div>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">Ready to save</span>
+        </div>
 
-            <!-- Smart Sharpness / Blur Detection Alert -->
-            <template x-if="isBlurry">
-                <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px; text-align: left;">
-                    <span style="font-size: 16px; line-height: 1;">⚠️</span>
-                    <div style="font-size: 11.5px; color: #fde68a; line-height: 1.4;">
-                        <strong style="color: #fbbf24; display: block; margin-bottom: 2px;">Image Appears Blurry</strong>
-                        Please ensure the CEO signature is clearly readable. If blurry, click <b>"Retake"</b> below.
-                    </div>
-                </div>
-            </template>
-
-            <template x-if="!isBlurry && sharpnessScore > 0">
-                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 6px 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #34d399;">
-                    <span>✓ Image is clear and readable</span>
-                    <span style="font-family: monospace; font-size: 10px; color: #059669;">Quality: Good</span>
-                </div>
-            </template>
-
-            <!-- Image Snapshot Frame with Click to Zoom -->
-            <div
-                @click="showZoomModal = true"
-                class="doc-preview-img-wrap"
-                title="Click to zoom"
-            >
-                <img :src="state" alt="CEO Signed Document Scan" class="doc-preview-img" />
-                <div style="position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,0.75); color: #34d399; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-family: monospace;">
-                    🔍 Click to zoom
+        <!-- Smart Sharpness / Blur Detection Alert -->
+        <template x-if="isBlurry">
+            <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px; text-align: left;">
+                <span style="font-size: 16px; line-height: 1;">⚠️</span>
+                <div style="font-size: 11.5px; color: #fde68a; line-height: 1.4;">
+                    <strong style="color: #fbbf24; display: block; margin-bottom: 2px;">Image Appears Blurry</strong>
+                    Please ensure the CEO signature is clearly readable. If blurry, click <b>"Retake"</b> below.
                 </div>
             </div>
+        </template>
 
-            <!-- Action Controls for Captured State -->
-            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #1e293b;">
-                <span style="font-size: 11px; color: #64748b;">
-                    Ensure the CEO signature is visible.
-                </span>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <button
-                        type="button"
-                        @click="showZoomModal = true"
-                        style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; cursor: pointer;"
-                    >
-                        🔍 Zoom
-                    </button>
-                    <button
-                        type="button"
-                        @click="retake()"
-                        style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #f59e0b; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; cursor: pointer;"
-                    >
-                        🔄 Retake
-                    </button>
-                    <button
-                        type="button"
-                        @click="clear()"
-                        style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; cursor: pointer;"
-                    >
-                        ✕ Remove
-                    </button>
-                </div>
+        <template x-if="!isBlurry && sharpnessScore > 0">
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 6px 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #34d399;">
+                <span>✓ Image is clear and readable</span>
+                <span style="font-family: monospace; font-size: 10px; color: #059669;">Quality: Good</span>
+            </div>
+        </template>
+
+        <!-- Image Snapshot Frame with Click to Zoom -->
+        <div
+            @click="showZoomModal = true"
+            class="doc-preview-img-wrap"
+            title="Click to zoom"
+        >
+            <img :src="state" alt="CEO Signed Document Scan" class="doc-preview-img" />
+            <div style="position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,0.75); color: #34d399; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-family: monospace;">
+                🔍 Click to zoom
             </div>
         </div>
-    </template>
+
+        <!-- Action Controls for Captured State -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #1e293b;">
+            <span style="font-size: 11px; color: #64748b;">
+                Ensure the CEO signature is visible.
+            </span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <button
+                    type="button"
+                    @click="showZoomModal = true"
+                    style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; cursor: pointer;"
+                >
+                    🔍 Zoom
+                </button>
+                <button
+                    type="button"
+                    @click="retake()"
+                    style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #f59e0b; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; cursor: pointer;"
+                >
+                    🔄 Retake
+                </button>
+                <button
+                    type="button"
+                    @click="clear()"
+                    style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; cursor: pointer;"
+                >
+                    ✕ Remove
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- FULLSCREEN / ZOOM PREVIEW MODAL -->
     <template x-if="showZoomModal && state">
@@ -555,8 +573,7 @@
     </template>
 
     <!-- 2. LIVE CAMERA STREAMING STATE -->
-    <template x-if="!state && isStreaming">
-        <div class="doc-viewfinder-box">
+    <div x-show="!state && isStreaming" style="display: none;" class="doc-viewfinder-box">
             
             <!-- Shutter Flash Overlay -->
             <div
@@ -648,11 +665,9 @@
                 </button>
             </div>
         </div>
-    </template>
 
     <!-- 3. INACTIVE CAMERA / LAUNCH SCREEN STATE -->
-    <template x-if="!state && !isStreaming">
-        <div class="doc-scanner-card">
+    <div x-show="!state && !isStreaming" class="doc-scanner-card">
             
             <!-- Compact Icon Badge (Explicit 48px) -->
             <div class="doc-scanner-icon-badge">
@@ -688,28 +703,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span x-text="isLoading ? 'Opening Camera...' : '📷 Open Camera'"></span>
+                <span x-text="isLoading ? 'Opening Camera...' : 'Open Camera'"></span>
             </button>
 
-            <!-- Divider -->
-            <div class="doc-scanner-divider">OR</div>
-
-            <!-- Alternative: Native Device Camera / File Picker -->
-            <div>
-                <label class="doc-scanner-btn-secondary">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span>Choose Photo from Device</span>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        @change="handleNativeFileInput($event)"
-                        style="display: none;"
-                    />
-                </label>
+            <!-- Helpful Guide to Tab -->
+            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #1e293b; font-size: 11.5px; color: #94a3b8; line-height: 1.5;">
+                💡 <span>May saved photo o PDF na sa device? Gamitin ang <b>Upload Document</b> tab sa itaas.</span>
             </div>
         </div>
-    </template>
 </div>

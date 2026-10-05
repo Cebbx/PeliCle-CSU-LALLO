@@ -12,6 +12,7 @@ use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -339,13 +340,15 @@ class VehicleRequestForm
                     ->schema([
                         DatePicker::make('date')
                             ->label('Travel Departure Date')
-                            ->default(now())
-                            ->minDate(fn (?string $operation = null) => $operation === 'create' ? now()->startOfDay() : null)
+                            ->extraInputAttributes(['lang' => 'en-US'])
+                            ->default(fn () => now('Asia/Manila')->toDateString())
+                            ->minDate(fn (?string $operation = null) => $operation === 'create' ? now('Asia/Manila')->startOfDay() : null)
                             ->live()
                             ->required(),
                         TimePicker::make('time')
                             ->label('Travel Departure Time')
-                            ->default(now())
+                            ->default(fn () => now('Asia/Manila')->format('H:i'))
+                            ->seconds(false)
                             ->live()
                             ->rules([
                                 fn (Get $get, ?string $operation = null): \Closure => function (string $attribute, $value, \Closure $fail) use ($get, $operation) {
@@ -363,13 +366,15 @@ class VehicleRequestForm
                             ->required(),
                         DatePicker::make('return_date')
                             ->label('Expected Return Date')
-                            ->default(now())
-                            ->minDate(fn (callable $get) => \Carbon\Carbon::parse($get('date') ?? now())->startOfDay())
+                            ->extraInputAttributes(['lang' => 'en-US'])
+                            ->default(fn () => now('Asia/Manila')->toDateString())
+                            ->minDate(fn (callable $get) => \Carbon\Carbon::parse($get('date') ?? now('Asia/Manila'))->startOfDay())
                             ->live()
                             ->required(),
                         TimePicker::make('return_time')
                             ->label('Expected Return Time')
-                            ->default(fn () => now()->addHours(4))
+                            ->default(fn () => now('Asia/Manila')->addHours(4)->format('H:i'))
+                            ->seconds(false)
                             ->live()
                             ->rules([
                                 fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
@@ -464,6 +469,16 @@ class VehicleRequestForm
                     ->required(fn (Get $get) => (bool) $get('has_other_passengers'))
                     ->columnSpanFull()
                     ->rows(2),
+
+                Fieldset::make('Requester E-Signature')
+                    ->columnSpanFull()
+                    ->schema([
+                        ViewField::make('requester_signature')
+                            ->label('Client Electronic Signature')
+                            ->view('filament.components.signature-pad')
+                            ->columnSpanFull(),
+                    ]),
+
                 Select::make('status')
                     ->options([
                         'pending' => 'Pending',

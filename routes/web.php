@@ -16,6 +16,8 @@ Route::view('/', 'welcome')->name('home');
 Route::match(['get', 'post'], '/trip-tickets/{ticket_number}/complete-via-qr', [App\Http\Controllers\QrCodeController::class, 'completeTrip'])->name('trip-tickets.complete-via-qr');
 Route::get('/guard/scanner', [App\Http\Controllers\QrCodeController::class, 'scannerPage'])->name('guard.scanner');
 Route::post('/guard/verify-pin', [App\Http\Controllers\QrCodeController::class, 'verifyPin'])->name('guard.verify-pin');
+Route::post('/guard/verify-otp', [App\Http\Controllers\QrCodeController::class, 'verifyOtp'])->name('guard.verify-otp');
+Route::post('/guard/resend-otp', [App\Http\Controllers\QrCodeController::class, 'resendOtp'])->name('guard.resend-otp');
 Route::match(['get', 'post'], '/guard/logout', [App\Http\Controllers\QrCodeController::class, 'logout'])->name('guard.logout');
 Route::get('/guard/logbook/print', [App\Http\Controllers\QrCodeController::class, 'printGateLogbook'])->name('guard.logbook.print');
 

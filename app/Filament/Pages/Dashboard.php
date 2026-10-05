@@ -35,7 +35,7 @@ class Dashboard extends BaseDashboard
             'approvedRequests' => $this->getApprovedRequestsCount(),
             'activeTrips' => $this->getActiveTripsCount(),
             'pendingSlips' => $this->getPendingWithdrawalSlipsCount(),
-            'gasExpenses' => $this->getGasExpenses(),
+            'mostTravelers' => $this->getMostTravelers(),
             'statusBreakdown' => $this->getVehicleRequestStatusBreakdown(),
             'recentRequests' => $this->getRecentRequests(),
             'tripActivity' => $this->getTripActivityData(),
@@ -217,5 +217,73 @@ class Dashboard extends BaseDashboard
     {
         VehicleRequest::expirePastPendingRequests();
         return VehicleRequest::latest('id')->take(7)->get();
+    }
+
+    public function getMostTravelers(int $limit = 5): array
+    {
+        $requests = VehicleRequest::whereNotIn('status', ['rejected', 'cancelled', 'expired'])
+            ->get();
+
+        if ($requests->isEmpty()) {
+            $requests = VehicleRequest::whereNotIn('status', ['rejected', 'cancelled'])->get();
+        }
+
+        $counts = [];
+
+        foreach ($requests as $req) {
+            $seenInThisTrip = [];
+
+            // 1. Lead Requester
+            $emp = trim($req->employee_name ?? '');
+            if ($emp !== '') {
+                $key = mb_strtolower($emp);
+                $seenInThisTrip[$key] = [
+                    'name' => $emp,
+                    'department' => $req->department ?: 'General',
+                ];
+            }
+
+            // 2. Passengers
+            $passengers = $req->passenger_names;
+            if (is_string($passengers)) {
+                $decoded = json_decode($passengers, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $passengers = $decoded;
+                }
+            }
+
+            if (is_array($passengers)) {
+                foreach ($passengers as $p) {
+                    $pName = trim(is_string($p) ? $p : ($p['name'] ?? ''));
+                    if ($pName !== '') {
+                        $key = mb_strtolower($pName);
+                        if (!isset($seenInThisTrip[$key])) {
+                            $seenInThisTrip[$key] = [
+                                'name' => $pName,
+                                'department' => $req->department ?: 'General',
+                            ];
+                        }
+                    }
+                }
+            }
+
+            foreach ($seenInThisTrip as $key => $data) {
+                if (!isset($counts[$key])) {
+                    $counts[$key] = [
+                        'name' => $data['name'],
+                        'department' => $data['department'],
+                        'trips' => 0,
+                    ];
+                }
+                $counts[$key]['trips']++;
+                if ($counts[$key]['department'] === 'General' && $data['department'] !== 'General') {
+                    $counts[$key]['department'] = $data['department'];
+                }
+            }
+        }
+
+        uasort($counts, fn($a, $b) => $b['trips'] <=> $a['trips']);
+
+        return array_values(array_slice($counts, 0, $limit));
     }
 }

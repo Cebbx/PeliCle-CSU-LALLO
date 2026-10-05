@@ -88,6 +88,12 @@ class CreateVehicleRequest extends CreateRecord
             $data['request_number'] = \App\Models\VehicleRequest::generateNextRequestNumber();
         }
 
+        if (!empty($data['requester_signature']) && $user && empty($user->signature)) {
+            try {
+                $user->updateQuietly(['signature' => $data['requester_signature']]);
+            } catch (\Throwable $e) {}
+        }
+
         return $data;
     }
 

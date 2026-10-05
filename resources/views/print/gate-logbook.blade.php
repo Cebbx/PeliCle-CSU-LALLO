@@ -35,14 +35,31 @@
             }
         }
     </style>
-</head>
+@php
+    $backUrl = url()->previous();
+    if ($backUrl === url()->current() || empty($backUrl)) {
+        if (session()->has('guard_authenticated')) {
+            $backUrl = route('guard.scanner');
+        } else {
+            $backUrl = url('/admin');
+        }
+    }
+@endphp
 <body class="bg-gray-100 py-6 px-4">
 
     <!-- Top Action Bar -->
     <div class="no-print max-w-[13in] mx-auto mb-4 flex items-center justify-between bg-white p-4 rounded-xl shadow-md border border-gray-200 gap-4">
-        <div>
-            <h1 class="text-gray-800 font-bold text-base">Monthly Gate Vehicle Clearance Logbook &mdash; {{ $monthName }}</h1>
-            <p class="text-xs text-gray-500 font-mono">Official Campus Gate Security Record &bull; Generated: {{ \Carbon\Carbon::now('Asia/Manila')->format('F d, Y h:i A') }}</p>
+        <div class="flex items-center gap-3">
+            <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-2 px-3.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs border border-gray-300 shadow-sm cursor-pointer" title="Go Back">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                <span>Back</span>
+            </a>
+            <div>
+                <h1 class="text-gray-800 font-bold text-base">Monthly Gate Vehicle Clearance Logbook &mdash; {{ $monthName }}</h1>
+                <p class="text-xs text-gray-500 font-mono">Official Campus Gate Security Record &bull; Generated: {{ \Carbon\Carbon::now('Asia/Manila')->format('F d, Y h:i A') }}</p>
+            </div>
         </div>
         <div class="flex gap-2">
             <button onclick="downloadPDF()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-xs shadow-sm cursor-pointer">
@@ -185,6 +202,22 @@
 
     <!-- PDF Download Script -->
     <script>
+        function handleBack(event) {
+            if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
+                event.preventDefault();
+                window.history.back();
+                return;
+            }
+            if (window.opener) {
+                event.preventDefault();
+                window.close();
+                return;
+            }
+            try {
+                window.close();
+            } catch (e) {}
+        }
+
         function downloadPDF() {
             const element = document.querySelector('.print-container');
             const opt = {
