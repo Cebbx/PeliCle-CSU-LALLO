@@ -70,6 +70,38 @@ class TripTicket extends Model
         return null;
     }
 
+    public function getScheduledDepartureDateTime(): ?\Carbon\Carbon
+    {
+        $primaryReq = $this->vehicleRequest ?? $this->vehicleRequests()->first();
+        if (!$primaryReq || empty($primaryReq->date)) {
+            return null;
+        }
+        $time = $primaryReq->time ?: '00:00:00';
+        try {
+            return \Carbon\Carbon::parse("{$primaryReq->date} {$time}", 'Asia/Manila');
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    public function isDepartureTimeArrived(): bool
+    {
+        $dep = $this->getScheduledDepartureDateTime();
+        if (!$dep) {
+            return false;
+        }
+        return \Carbon\Carbon::now('Asia/Manila')->greaterThanOrEqualTo($dep);
+    }
+
+    public function isDepartureTimePassed(int $graceMinutes = 0): bool
+    {
+        $dep = $this->getScheduledDepartureDateTime();
+        if (!$dep) {
+            return false;
+        }
+        return \Carbon\Carbon::now('Asia/Manila')->diffInMinutes($dep, false) < -$graceMinutes;
+    }
+
     public static function estimateDistance(string $destination): int
     {
         $dest = strtolower($destination);
@@ -177,11 +209,12 @@ class TripTicket extends Model
 
         static::creating(function ($tripTicket) {
             $tripTicket->loadMissing('vehicleRequest');
-            if ($tripTicket->vehicleRequest?->document) {
+            if ($tripTicket->vehicleRequest?->document && !$tripTicket->document) {
                 $tripTicket->document = $tripTicket->vehicleRequest->document;
             }
 
-            if ($tripTicket->document) {
+            // Only set to active if document exists AND scheduled departure time has already arrived
+            if ($tripTicket->document && $tripTicket->isDepartureTimeArrived()) {
                 $tripTicket->status = 'active';
             } else {
                 $tripTicket->status = 'pending';
@@ -222,9 +255,11 @@ class TripTicket extends Model
                 $tripTicket->document = $tripTicket->vehicleRequest->document;
             }
 
-            // Set active if document uploaded
+            // Set active ONLY if document uploaded AND scheduled departure time has arrived
             if ($tripTicket->document && $tripTicket->status === 'pending') {
-                $tripTicket->status = 'active';
+                if ($tripTicket->isDepartureTimeArrived()) {
+                    $tripTicket->status = 'active';
+                }
             }
         });
 
@@ -233,6 +268,7 @@ class TripTicket extends Model
             if ($tripTicket->wasChanged('status')) {
                 if ($tripTicket->status === 'active') {
                     \App\Models\ActivityLog::log('Started Trip', $tripTicket, "Trip {$tripTicket->ticket_number} started (On Trip).");
+                    $tripTicket->sendSmsNotification();
                 } elseif ($tripTicket->status === 'completed') {
                     \App\Models\ActivityLog::log('Completed Trip', $tripTicket, "Trip {$tripTicket->ticket_number} marked as completed.");
                 } elseif ($tripTicket->status === 'cancelled') {

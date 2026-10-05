@@ -195,7 +195,7 @@ class VehicleRequestsTable
                         ->modalHeading('📄 Upload or Scan CEO Signed Document')
                         ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
                         ->modalWidth('2xl')
-                        ->modalSubmitActionLabel('Save & Activate Trip')
+                        ->modalSubmitActionLabel('Save Document')
                         ->visible(fn ($record) => !$record->trashed() && $record->status === 'approved' && !$record->document)
                         ->form([
                             \Filament\Schemas\Components\Tabs::make('document_source')
@@ -263,41 +263,92 @@ class VehicleRequestsTable
                                 return;
                             }
 
+                            $now = \Illuminate\Support\Carbon::now('Asia/Manila');
+                            $depDateTime = $record->getScheduledDepartureDateTime();
+
+                            // 1. Check if late upload (departure time has already passed)
+                            if ($depDateTime && $now->greaterThan($depDateTime)) {
+                                $formattedSchedule = $depDateTime->format('M d, Y h:i A');
+                                $reason = "Auto-declined: CEO signed document was uploaded late after the scheduled departure date/time ({$formattedSchedule}).";
+
+                                $record->update([
+                                    'document' => $finalPath,
+                                    'status' => 'rejected',
+                                    'rejection_reason' => $reason,
+                                ]);
+
+                                if ($record->tripTicket) {
+                                    $tripTicket = $record->tripTicket;
+                                    $tripTicket->status = 'cancelled';
+                                    $tripTicket->cancellation_reason = "Auto-cancelled: CEO signed document was uploaded late after scheduled departure ({$formattedSchedule}).";
+                                    $tripTicket->document = $finalPath;
+                                    $tripTicket->saveQuietly();
+
+                                    if ($tripTicket->driver_id) {
+                                        $driver = \App\Models\Driver::find($tripTicket->driver_id);
+                                        if ($driver) {
+                                            $driver->update(['status' => 'available']);
+                                        }
+                                        if (method_exists($tripTicket, 'sendCancellationSms')) {
+                                            $tripTicket->sendCancellationSms("Trip schedule lapsed ({$formattedSchedule}). CEO signed document was uploaded late.");
+                                        }
+                                    }
+
+                                    \App\Models\TripTicket::syncVehicleStatus($tripTicket->vehicle);
+                                }
+
+                                \App\Models\ActivityLog::create([
+                                    'user_id' => auth()->id(),
+                                    'user_name' => auth()->user()?->name ?? 'System',
+                                    'action' => 'Auto-Declined Request (Late Upload)',
+                                    'model_type' => \App\Models\VehicleRequest::class,
+                                    'model_id' => $record->id,
+                                    'details' => "Request {$record->request_number} auto-declined due to late CEO signed document upload after departure time ({$formattedSchedule}).",
+                                    'ip_address' => request()->ip() ?? '127.0.0.1',
+                                ]);
+
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Request Auto-Declined')
+                                    ->body("CEO signed document was uploaded late after the scheduled departure time ({$formattedSchedule}). The request has been automatically declined.")
+                                    ->danger()
+                                    ->persistent()
+                                    ->send();
+
+                                return;
+                            }
+
+                            // 2. On-time upload (future departure)
                             $record->update([
                                 'document' => $finalPath,
+                                'status' => 'approved',
                             ]);
-
-                            $now = \Illuminate\Support\Carbon::now('Asia/Manila');
-                            $depDate = $record->date ?? $now->format('Y-m-d');
-                            $depTime = $record->time ?? '00:00:00';
-                            $tripDateTime = \Illuminate\Support\Carbon::parse("{$depDate} {$depTime}", 'Asia/Manila');
-                            $timeArrived = $now->greaterThanOrEqualTo($tripDateTime);
 
                             if ($record->tripTicket) {
                                 $tripTicket = $record->tripTicket;
                                 $tripTicket->document = $finalPath;
-                                if ($timeArrived) {
-                                    $tripTicket->status = 'active';
-                                    $tripTicket->save();
-                                    $record->update(['status' => 'on_trip']);
-                                } else {
-                                    if ($tripTicket->status === 'cancelled') {
-                                        $tripTicket->status = 'pending';
+                                $tripTicket->status = 'pending';
+                                $tripTicket->saveQuietly();
+
+                                if ($tripTicket->driver_id) {
+                                    $driver = \App\Models\Driver::find($tripTicket->driver_id);
+                                    if ($driver) {
+                                        $hasActive = \App\Models\TripTicket::where('driver_id', $driver->id)
+                                            ->where('status', 'active')
+                                            ->where('id', '!=', $tripTicket->id)
+                                            ->exists();
+                                        if (!$hasActive) {
+                                            $driver->update(['status' => 'available']);
+                                        }
                                     }
-                                    $tripTicket->save();
-                                    $record->update(['status' => 'approved']);
                                 }
-                            } elseif ($timeArrived) {
-                                $record->update(['status' => 'on_trip']);
                             }
 
-                            $msg = $timeArrived 
-                                ? 'CEO Signed Document uploaded! Scheduled travel time has arrived — Trip is now ON TRIP!'
-                                : 'CEO Signed Document uploaded! Request is now Ready (Waiting for departure at ' . ($record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time') . ').';
+                            $formattedTime = $record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time';
+                            $formattedDate = $record->date ? \Carbon\Carbon::parse($record->date)->format('M d, Y') : 'scheduled date';
 
                             \Filament\Notifications\Notification::make()
-                                ->title('Document Uploaded')
-                                ->body($msg)
+                                ->title('Document Uploaded Successfully')
+                                ->body("CEO Signed Document has been saved! The trip is scheduled for {$formattedDate} at {$formattedTime}. Status remains 'Approved' and will automatically activate to 'On Trip' when departure time arrives.")
                                 ->success()
                                 ->send();
                         }),

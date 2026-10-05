@@ -120,50 +120,107 @@ class VehicleRequest extends Model
             // When document is uploaded, check if there is an associated TripTicket
             if ($vehicleRequest->document && $vehicleRequest->wasChanged('document')) {
                 \App\Models\ActivityLog::log('Uploaded Document', $vehicleRequest, "Uploaded CEO signed document for request {$vehicleRequest->request_number}");
+
+                $now = \Illuminate\Support\Carbon::now('Asia/Manila');
+                $depDateTime = $vehicleRequest->getScheduledDepartureDateTime();
+
+                // 1. If late upload (scheduled departure time has already passed): Auto-Decline!
+                if ($depDateTime && $now->greaterThan($depDateTime)) {
+                    $formattedSchedule = $depDateTime->format('M d, Y h:i A');
+                    $autoReason = "Auto-declined: CEO signed document was uploaded late after the scheduled departure date/time ({$formattedSchedule}).";
+
+                    $vehicleRequest->status = 'rejected';
+                    $vehicleRequest->rejection_reason = $autoReason;
+                    $vehicleRequest->saveQuietly();
+
+                    $tripTicket = $vehicleRequest->tripTicket;
+                    if ($tripTicket) {
+                        $tripTicket->status = 'cancelled';
+                        $tripTicket->cancellation_reason = "Auto-cancelled: CEO signed document was uploaded late after scheduled departure ({$formattedSchedule}).";
+                        $tripTicket->document = $vehicleRequest->document;
+                        $tripTicket->saveQuietly();
+
+                        if ($tripTicket->driver_id) {
+                            $driver = Driver::find($tripTicket->driver_id);
+                            if ($driver) {
+                                $driver->update(['status' => 'available']);
+                            }
+                            if (method_exists($tripTicket, 'sendCancellationSms')) {
+                                $tripTicket->sendCancellationSms("Trip schedule lapsed ({$formattedSchedule}). CEO signed document was uploaded late.");
+                            }
+                        }
+
+                        TripTicket::syncVehicleStatus($tripTicket->vehicle);
+                    }
+                    return;
+                }
+
+                // 2. On-time upload (future departure): Keep request approved and ticket pending
                 $tripTicket = $vehicleRequest->tripTicket;
                 if ($tripTicket) {
-                    if ($tripTicket->status === 'pending') {
-                        // Check if travel time has already arrived
-                        $now = \Illuminate\Support\Carbon::now('Asia/Manila');
-                        $tripDateTime = \Illuminate\Support\Carbon::parse($vehicleRequest->date . ' ' . $vehicleRequest->time, 'Asia/Manila');
+                    $tripTicket->document = $vehicleRequest->document;
+                    $tripTicket->status = 'pending';
+                    $tripTicket->saveQuietly();
 
-                        if ($now->greaterThanOrEqualTo($tripDateTime)) {
-                            // Travel time has already arrived, so activate it immediately!
-                            $tripTicket->status = 'active';
-                            $tripTicket->document = $vehicleRequest->document;
-                            $tripTicket->saveQuietly();
-
-                            // Sync driver status manually
-                            if ($tripTicket->driver_id) {
-                                $driver = Driver::find($tripTicket->driver_id);
-                                if ($driver) {
-                                    $driver->update(['status' => 'on_trip']);
-                                }
+                    // Ensure driver remains available
+                    if ($tripTicket->driver_id) {
+                        $driver = Driver::find($tripTicket->driver_id);
+                        if ($driver) {
+                            $hasActive = TripTicket::where('driver_id', $driver->id)
+                                ->where('status', 'active')
+                                ->where('id', '!=', $tripTicket->id)
+                                ->exists();
+                            if (!$hasActive) {
+                                $driver->update(['status' => 'available']);
                             }
-
-                            // Send notification manually
-                            $tripTicket->sendSmsNotification();
-
-                            // Update Vehicle Request status quietly to on_trip
-                            $vehicleRequest->status = 'on_trip';
-                            $vehicleRequest->saveQuietly();
-                        } else {
-                            // Travel time has not arrived yet! Keep ticket as pending.
-                            // Only update the request status to 'approved' and copy the document
-                            $tripTicket->document = $vehicleRequest->document;
-                            $tripTicket->saveQuietly();
-
-                            $vehicleRequest->status = 'approved';
-                            $vehicleRequest->saveQuietly();
                         }
                     }
+
+                    $vehicleRequest->status = 'approved';
+                    $vehicleRequest->saveQuietly();
                 } else {
-                    // No Trip Ticket exists yet, so request is approved
                     $vehicleRequest->status = 'approved';
                     $vehicleRequest->saveQuietly();
                 }
             }
         });
+    }
+
+    public function getScheduledDepartureDateTime(): ?\Carbon\Carbon
+    {
+        if (empty($this->date)) {
+            return null;
+        }
+        $dateStr = $this->date instanceof \Carbon\CarbonInterface 
+            ? $this->date->format('Y-m-d') 
+            : (string)$this->date;
+        $timeStr = $this->time instanceof \Carbon\CarbonInterface 
+            ? $this->time->format('H:i:s') 
+            : ($this->time ?: '00:00:00');
+
+        try {
+            return \Carbon\Carbon::parse("{$dateStr} {$timeStr}", 'Asia/Manila');
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    public function isDepartureTimeArrived(): bool
+    {
+        $dep = $this->getScheduledDepartureDateTime();
+        if (!$dep) {
+            return false;
+        }
+        return \Carbon\Carbon::now('Asia/Manila')->greaterThanOrEqualTo($dep);
+    }
+
+    public function isDepartureTimePassed(int $graceMinutes = 0): bool
+    {
+        $dep = $this->getScheduledDepartureDateTime();
+        if (!$dep) {
+            return false;
+        }
+        return \Carbon\Carbon::now('Asia/Manila')->diffInMinutes($dep, false) < -$graceMinutes;
     }
 
     public function user(): BelongsTo
@@ -180,28 +237,36 @@ class VehicleRequest extends Model
     {
         try {
             $now = \Illuminate\Support\Carbon::now('Asia/Manila');
-            $pending = static::where('status', 'pending')->get();
-            foreach ($pending as $req) {
-                if ($req->date) {
-                    $scheduledEndOfDay = \Illuminate\Support\Carbon::parse($req->date, 'Asia/Manila')->endOfDay();
-                    if ($now->greaterThan($scheduledEndOfDay)) {
-                        $reason = 'Scheduled travel date ended without approval or uploaded CEO signed document.';
-                        $req->updateQuietly([
-                            'status' => 'expired',
+
+            // Check requests without document whose scheduled departure time has passed (past 30 mins)
+            $unsubmittedRequests = static::whereNull('document')
+                ->whereIn('status', ['pending', 'approved'])
+                ->get();
+
+            foreach ($unsubmittedRequests as $req) {
+                $depDateTime = $req->getScheduledDepartureDateTime();
+                if ($depDateTime && $now->diffInMinutes($depDateTime, false) < -30) {
+                    $formattedSchedule = $depDateTime->format('M d, Y h:i A');
+                    $reason = "Auto-declined: Scheduled departure time ({$formattedSchedule}) passed without uploaded CEO signed approval document.";
+
+                    $req->updateQuietly([
+                        'status' => 'rejected',
+                        'rejection_reason' => $reason,
+                    ]);
+
+                    if ($req->tripTicket && $req->tripTicket->status === 'pending') {
+                        $ticket = $req->tripTicket;
+                        if ($ticket->driver_id) {
+                            if (method_exists($ticket, 'sendCancellationSms')) {
+                                $ticket->sendCancellationSms("Trip schedule lapsed ({$formattedSchedule}) without uploaded CEO signed document.");
+                            }
+                            Driver::where('id', $ticket->driver_id)->update(['status' => 'available']);
+                        }
+                        $ticket->updateQuietly([
+                            'status' => 'cancelled',
                             'cancellation_reason' => $reason,
                         ]);
-                        if ($req->tripTicket && $req->tripTicket->status === 'pending') {
-                            if ($req->tripTicket->driver_id) {
-                                if (method_exists($req->tripTicket, 'sendCancellationSms')) {
-                                    $req->tripTicket->sendCancellationSms('Scheduled trip expired at the end of the day without uploaded CEO signed document.');
-                                }
-                                Driver::where('id', $req->tripTicket->driver_id)->update(['status' => 'available']);
-                            }
-                            $req->tripTicket->updateQuietly([
-                                'status' => 'cancelled',
-                                'cancellation_reason' => $reason,
-                            ]);
-                        }
+                        TripTicket::syncVehicleStatus($ticket->vehicle);
                     }
                 }
             }

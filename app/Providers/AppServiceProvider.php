@@ -82,7 +82,8 @@ class AppServiceProvider extends ServiceProvider
                     $depTime = $primaryReq->time ?? '00:00:00';
                     $tripDateTime = \Illuminate\Support\Carbon::parse("{$depDate} {$depTime}", 'Asia/Manila');
 
-                    if ($now->greaterThanOrEqualTo($tripDateTime)) {
+                    // Check if departure time has arrived AND is within reasonable activation window (within past 24 hours)
+                    if ($now->greaterThanOrEqualTo($tripDateTime) && $now->diffInHours($tripDateTime, false) >= -24) {
                         // Activate trip ticket!
                         $trip->status = 'active';
                         if (!$trip->document) {
@@ -93,7 +94,7 @@ class AppServiceProvider extends ServiceProvider
                     }
                 }
 
-                // 2. Auto-decline pending trips with NO document after 2+ hours of travel time AND 2+ hours since creation
+                // 2. Auto-decline pending trips with NO document after scheduled departure time has passed (past 30 mins)
                 $expiredTrips = \App\Models\TripTicket::where('status', 'pending')
                     ->whereNull('document')
                     ->whereDoesntHave('vehicleRequests', function ($q) {
@@ -102,36 +103,36 @@ class AppServiceProvider extends ServiceProvider
                     ->whereDoesntHave('vehicleRequest', function ($q) {
                         $q->whereNotNull('document');
                     })
-                    ->with(['vehicleRequest', 'driver'])
+                    ->with(['vehicleRequest', 'vehicleRequests', 'driver'])
                     ->get();
 
                 foreach ($expiredTrips as $trip) {
                     $primaryReq = $trip->vehicleRequest ?? $trip->vehicleRequests->first();
                     if (!$primaryReq) continue;
 
-                    // Must be at least 2 hours since ticket was created to give reasonable upload window
-                    if ($trip->created_at && $trip->created_at->diffInHours($now) < 2) {
-                        continue;
-                    }
-
-                    $depDate = $primaryReq->date ?? $trip->created_at->format('Y-m-d');
+                    $depDate = $primaryReq->date ?? ($trip->created_at ? $trip->created_at->format('Y-m-d') : $now->format('Y-m-d'));
                     $depTime = $primaryReq->time ?? '00:00:00';
                     $tripDateTime = \Illuminate\Support\Carbon::parse("{$depDate} {$depTime}", 'Asia/Manila');
 
-                    // If current time is 2 hours (120 minutes) past the travel time
-                    if ($now->diffInMinutes($tripDateTime, false) < -120) {
-                        $autoReason = 'Auto-declined: 2 hours passed past scheduled travel time without uploaded CEO signed approval document.';
+                    // If current time is 30 minutes past scheduled departure time without document
+                    if ($now->diffInMinutes($tripDateTime, false) < -30) {
+                        $formattedSchedule = $tripDateTime->format('M d, Y h:i A');
+                        $autoReason = "Auto-declined: Scheduled departure time ({$formattedSchedule}) passed without uploaded CEO signed approval document.";
 
-                        // Cancel Trip Ticket quietly to prevent triggers
+                        // Cancel Trip Ticket quietly to prevent unintended recursive events
                         $trip->status = 'cancelled';
                         $trip->cancellation_reason = $autoReason;
                         $trip->saveQuietly();
 
-                        // Reject Vehicle Request quietly
-                        if ($trip->vehicleRequest) {
-                            $trip->vehicleRequest->status = 'rejected';
-                            $trip->vehicleRequest->rejection_reason = $autoReason;
-                            $trip->vehicleRequest->saveQuietly();
+                        // Reject linked Vehicle Request(s) quietly
+                        $allReqs = $trip->vehicleRequests()->get();
+                        if ($allReqs->isEmpty() && $trip->vehicleRequest) {
+                            $allReqs = collect([$trip->vehicleRequest]);
+                        }
+                        foreach ($allReqs as $r) {
+                            $r->status = 'rejected';
+                            $r->rejection_reason = $autoReason;
+                            $r->saveQuietly();
                         }
 
                         // Release Driver status manually
@@ -140,7 +141,13 @@ class AppServiceProvider extends ServiceProvider
                             if ($driver) {
                                 $driver->update(['status' => 'available']);
                             }
+                            if (method_exists($trip, 'sendCancellationSms')) {
+                                $trip->sendCancellationSms("Trip schedule lapsed ({$formattedSchedule}) without uploaded CEO signed document.");
+                            }
                         }
+
+                        // Release Vehicle status
+                        \App\Models\TripTicket::syncVehicleStatus($trip->vehicle);
 
                         // Log to ActivityLog
                         \App\Models\ActivityLog::create([
@@ -149,7 +156,7 @@ class AppServiceProvider extends ServiceProvider
                             'action' => 'Auto-Declined Request',
                             'model_type' => \App\Models\TripTicket::class,
                             'model_id' => $trip->id,
-                            'details' => "System automatically declined request {$trip->vehicleRequest?->request_number} and cancelled ticket {$trip->ticket_number} (Travel time {$tripDateTime->format('h:i A')} passed by 2+ hours without CEO signature upload).",
+                            'details' => "System automatically declined request {$primaryReq->request_number} and cancelled ticket {$trip->ticket_number} (Departure time {$formattedSchedule} passed by 30+ minutes without CEO signature upload).",
                             'ip_address' => '127.0.0.1',
                         ]);
                     }
