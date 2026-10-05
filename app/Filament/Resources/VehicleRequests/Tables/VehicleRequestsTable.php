@@ -194,7 +194,7 @@ class VehicleRequestsTable
                         ->label('Print Trip Ticket (QR Code)')
                         ->icon('heroicon-o-ticket')
                         ->color('success')
-                        ->visible(fn ($record) => $record->tripTicket()->exists())
+                        ->visible(fn ($record) => $record->tripTicket()->exists() && empty($record->document) && empty($record->tripTicket?->document))
                         ->url(fn ($record) => route('trip-tickets.print', $record->tripTicket->id))
                         ->openUrlInNewTab(),
                     Action::make('upload_document')
