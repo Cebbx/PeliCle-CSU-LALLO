@@ -219,10 +219,10 @@ test('system functional test: complete trip via QR handles departure and arrival
         'status' => 'active',
     ]);
 
-    // 1st Access without PIN: Prompts for PIN
+    // 1st Access without Guard ID: Prompts for Guard ID
     $promptResponse = $this->get("/trip-tickets/{$ticket->ticket_number}/complete-via-qr");
     $promptResponse->assertSuccessful()
-        ->assertSee('Security PIN');
+        ->assertSee('Guard ID');
 
     // 2nd Access with valid PIN: Completes trip and releases driver
     $completeResponse = $this->post("/trip-tickets/{$ticket->ticket_number}/complete-via-qr", [
