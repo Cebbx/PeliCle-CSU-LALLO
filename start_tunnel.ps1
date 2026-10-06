@@ -43,7 +43,7 @@ while (-not $proc.HasExited) {
         continue
     }
     
-    if ($line -match "https://[a-zA-Z0-9-]+\.trycloudflare\.com") {
+    if ($line -match "https://([a-zA-Z0-9-]+)\.trycloudflare\.com" -and $matches[1] -ne "api") {
         $tunnelUrl = $matches[0]
         break
     }

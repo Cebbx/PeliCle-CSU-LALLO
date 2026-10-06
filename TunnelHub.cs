@@ -433,9 +433,9 @@ namespace PeliCleTunnelHub
 
         private void ParseTunnelOutput(string line)
         {
-            // Scan for trycloudflare URL
-            Match m = Regex.Match(line, @"https://[a-zA-Z0-9-]+\.trycloudflare\.com");
-            if (m.Success)
+            // Scan for trycloudflare URL (excluding api.trycloudflare.com)
+            Match m = Regex.Match(line, @"https://([a-zA-Z0-9-]+)\.trycloudflare\.com");
+            if (m.Success && !m.Value.Contains("api.trycloudflare.com"))
             {
                 string foundUrl = m.Value;
                 if (foundUrl != currentUrl)
