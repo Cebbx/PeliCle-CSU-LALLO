@@ -25,3 +25,4 @@ cloudflared.exe
 /scratch/
 storage/test_print.html
 cf_tunnel.log
+TunnelHub.exe
