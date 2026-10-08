@@ -24,9 +24,18 @@ class Analytics extends BaseDashboard
 
     protected static ?int $navigationSort = 5;
 
+    public function getMaxContentWidth(): \Filament\Support\Enums\Width | string | null
+    {
+        return \Filament\Support\Enums\Width::Full;
+    }
+
     public function getColumns(): int | array
     {
-        return 2;
+        return [
+            'default' => 1,
+            'md' => 2,
+            'lg' => 2,
+        ];
     }
 
     protected function getHeaderActions(): array

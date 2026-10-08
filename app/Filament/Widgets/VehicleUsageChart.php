@@ -15,7 +15,9 @@ class VehicleUsageChart extends ChartWidget
     
     protected static ?int $sort = 6;
 
-    protected int | string | array $columnSpan = 1;
+    protected int | string | array $columnSpan = 'full';
+
+    protected ?string $maxHeight = '240px';
 
     protected function getType(): string
     {

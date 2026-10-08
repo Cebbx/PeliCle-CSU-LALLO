@@ -17,6 +17,8 @@ class RequestsPerDepartmentChart extends ChartWidget
 
     protected int | string | array $columnSpan = 1;
 
+    protected ?string $maxHeight = '240px';
+
     protected function getType(): string
     {
         return 'doughnut';
@@ -107,6 +109,25 @@ class RequestsPerDepartmentChart extends ChartWidget
                 ],
             ],
             'labels' => $labels,
+        ];
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            'maintainAspectRatio' => false,
+            'plugins' => [
+                'legend' => [
+                    'position' => 'bottom',
+                    'labels' => [
+                        'boxWidth' => 10,
+                        'padding' => 8,
+                        'font' => [
+                            'size' => 11,
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 }

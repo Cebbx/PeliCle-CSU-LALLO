@@ -18,6 +18,8 @@ class DriverTripsChart extends ChartWidget
 
     protected int | string | array $columnSpan = 1;
 
+    protected ?string $maxHeight = '240px';
+
     protected function getType(): string
     {
         return 'bar';

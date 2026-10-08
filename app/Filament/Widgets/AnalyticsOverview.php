@@ -16,9 +16,14 @@ class AnalyticsOverview extends StatsOverviewWidget
 
     protected static ?int $sort = 1;
 
-    protected function getColumns(): int
+    protected function getColumns(): int | array
     {
-        return 4;
+        return [
+            'default' => 1,
+            'sm' => 2,
+            'md' => 4,
+            'lg' => 4,
+        ];
     }
 
     protected function getStats(): array
@@ -59,11 +64,18 @@ class AnalyticsOverview extends StatsOverviewWidget
         $disapprovalRate = $totalRequests > 0 ? round(($rejectedCount / $totalRequests) * 100, 1) : 0;
 
         // Dynamic 7-step sparkline curves
+        $totalSparkline = [max(1, $totalRequests - 6), max(1, $totalRequests - 5), max(1, $totalRequests - 3), max(1, $totalRequests - 2), max(1, $totalRequests - 1), $totalRequests];
         $approvalSparkline = [65, 70, 78, 75, 82, 85, max($approvalRate, 80)];
         $passengerSparkline = [2.0, 2.5, 2.2, 2.8, 2.3, 2.6, max($avgPassengers, 2.4)];
         $disapprovalSparkline = [15, 12, 10, 8, 7, 5, max($disapprovalRate, 4)];
 
         return [
+            Stat::make('Total Vehicle Requests', (string) $totalRequests)
+                ->description("{$approvedCount} approved • {$rejectedCount} rejected")
+                ->descriptionIcon('heroicon-m-clipboard-document-check')
+                ->chart($totalSparkline)
+                ->color('primary'),
+
             Stat::make('Request Approval Rate', "{$approvalRate}%")
                 ->description("{$approvedCount} of {$totalRequests} requests approved")
                 ->descriptionIcon('heroicon-m-arrow-path')
