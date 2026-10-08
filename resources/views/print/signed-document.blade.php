@@ -12,15 +12,20 @@
             color: black;
         }
         @media print {
-            body {
+            html, body {
+                display: block !important;
                 background: white !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
+                width: 100% !important;
             }
             .no-print {
                 display: none !important;
             }
             .print-container {
+                display: block !important;
                 min-height: 0 !important;
                 height: auto !important;
                 border: none !important;
@@ -36,6 +41,7 @@
                 object-fit: contain !important;
                 display: block !important;
                 margin: 0 auto !important;
+                page-break-inside: avoid !important;
             }
             @page {
                 size: letter portrait;
@@ -90,7 +96,7 @@
 
         <div class="flex items-center gap-2 w-full sm:w-auto">
             <!-- Download Button -->
-            <a href="{{ $fileUrl }}" download="{{ $downloadFilename }}" class="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm text-center">
+            <a href="{{ $downloadUrl ?? $fileUrl }}" download="{{ $downloadFilename }}" class="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm text-center">
                 <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
@@ -110,7 +116,26 @@
     <!-- Document Viewer Container -->
     <div class="max-w-[8.5in] w-full mx-auto flex-1 flex flex-col print-container">
         @if($extension === 'pdf')
-            <!-- PDF Viewer -->
+            <!-- Mobile Friendly Notice for Phone Browsers -->
+            <div class="sm:hidden no-print bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 text-xs text-blue-900 flex flex-col gap-2 shadow-sm">
+                <div class="flex items-center gap-2 font-bold text-xs">
+                    <span>📱</span>
+                    <span>Para sa Cellphone Users:</span>
+                </div>
+                <p class="text-[11px] text-blue-800 leading-relaxed">
+                    Kung hindi lumalabas ang PDF preview sa ibaba, gamitin ang button upang i-download o buksan direkta sa iyong PDF viewer / Google Drive:
+                </p>
+                <div class="flex gap-2 pt-1">
+                    <a href="{{ $downloadUrl ?? $fileUrl }}" class="flex-1 bg-green-600 active:bg-green-700 text-white text-center font-bold py-2.5 px-3 rounded-lg text-xs shadow-sm flex items-center justify-center gap-1.5">
+                        <span>⬇️</span> Download PDF
+                    </a>
+                    <a href="{{ $fileUrl }}" target="_blank" class="flex-1 bg-blue-600 active:bg-blue-700 text-white text-center font-bold py-2.5 px-3 rounded-lg text-xs shadow-sm flex items-center justify-center gap-1.5">
+                        <span>👁️</span> Buksan sa Viewer
+                    </a>
+                </div>
+            </div>
+
+            <!-- PDF Viewer Frame -->
             <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden flex-1 min-h-[85vh]">
                 <iframe id="pdfFrame" src="{{ $fileUrl }}#toolbar=1&navpanes=0" class="w-full h-[85vh] border-0" title="PDF Document"></iframe>
             </div>
@@ -127,7 +152,7 @@
                 </svg>
                 <h2 class="text-lg font-bold text-gray-800 mb-1">{{ $fileName }}</h2>
                 <p class="text-sm text-gray-500 mb-6">This document format ({{ strtoupper($extension) }}) cannot be directly previewed inline.</p>
-                <a href="{{ $fileUrl }}" download="{{ $downloadFilename }}" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition-colors">
+                <a href="{{ $downloadUrl ?? $fileUrl }}" download="{{ $downloadFilename }}" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition-colors">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -171,6 +196,13 @@
             }
 
             @if($extension === 'pdf')
+                const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (isMobile) {
+                    if (confirm('Nasa cellphone ka. Upang ma-print ang PDF na ito, i-download muna ito sa iyong phone at buksan sa PDF viewer o Print service.\n\nGusto mo bang i-download ngayon?')) {
+                        window.location.href = "{{ $downloadUrl ?? $fileUrl }}";
+                    }
+                    return;
+                }
                 const frame = document.getElementById('pdfFrame');
                 if (frame && frame.contentWindow) {
                     try {

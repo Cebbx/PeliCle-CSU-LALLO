@@ -16,6 +16,7 @@ class VehicleRequestsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->poll('5s')
             ->columns([
                 TextColumn::make('request_number')
                     ->label('Vehicle Request')
@@ -184,6 +185,12 @@ class VehicleRequestsTable
                         ->visible(fn ($record) => !empty($record->document))
                         ->url(fn ($record) => route('vehicle-requests.view-signed-document', $record->id))
                         ->openUrlInNewTab(),
+                    Action::make('download_signed_document')
+                        ->label('Download Signed Document')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('success')
+                        ->visible(fn ($record) => !empty($record->document))
+                        ->url(fn ($record) => route('vehicle-requests.download-signed-document', $record->id)),
                     Action::make('print')
                         ->label('View Requisition Form')
                         ->icon('heroicon-o-document-text')

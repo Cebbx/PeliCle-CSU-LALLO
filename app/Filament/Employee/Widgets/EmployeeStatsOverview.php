@@ -8,6 +8,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class EmployeeStatsOverview extends StatsOverviewWidget
 {
+    protected ?string $pollingInterval = '5s';
     protected function getStats(): array
     {
         $userId = \Filament\Facades\Filament::auth()->id() ?? auth('employee')->id() ?? auth()->id();

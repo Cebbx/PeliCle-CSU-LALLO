@@ -18,6 +18,8 @@ class AnalyticsTripLogsWidget extends TableWidget
 
     protected static ?int $sort = 10;
 
+    protected ?string $pollingInterval = '5s';
+
     protected int|string|array $columnSpan = 'full';
 
     protected string $view = 'filament.widgets.analytics-trip-logs-widget';
@@ -46,6 +48,7 @@ class AnalyticsTripLogsWidget extends TableWidget
         }
 
         return $table
+            ->poll('5s')
             ->query($query)
             ->defaultSort('date', 'desc')
             ->defaultPaginationPageOption(5)

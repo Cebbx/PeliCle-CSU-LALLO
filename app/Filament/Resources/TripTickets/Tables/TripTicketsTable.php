@@ -15,6 +15,7 @@ class TripTicketsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->poll('5s')
             ->columns([
                 TextColumn::make('ticket_number')
                     ->searchable(),
@@ -333,6 +334,12 @@ class TripTicketsTable
                         ->visible(fn ($record) => !empty($record->document))
                         ->url(fn ($record) => route('trip-tickets.view-signed-document', $record->id))
                         ->openUrlInNewTab(),
+                    Action::make('download_signed_document')
+                        ->label('Download Signed Document')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('success')
+                        ->visible(fn ($record) => !empty($record->document))
+                        ->url(fn ($record) => route('trip-tickets.download-signed-document', $record->id)),
                     Action::make('print')
                         ->label('Print Trip Ticket')
                         ->icon('heroicon-o-printer')

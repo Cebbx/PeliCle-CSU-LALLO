@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\VehicleRequest;
 use App\Models\TripTicket;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PrintController extends Controller
 {
@@ -39,7 +40,22 @@ class PrintController extends Controller
             'extension' => $extension,
             'fileName' => basename($request->document),
             'downloadFilename' => $downloadFilename,
+            'downloadUrl' => route('vehicle-requests.download-signed-document', $request->id),
         ]);
+    }
+
+    public function downloadSignedDocument($id)
+    {
+        $request = VehicleRequest::findOrFail($id);
+        
+        if (!$request->document || !Storage::disk('public')->exists($request->document)) {
+            abort(404, 'No signed document found for this vehicle request.');
+        }
+
+        $extension = strtolower(pathinfo($request->document, PATHINFO_EXTENSION));
+        $downloadFilename = 'CEO-Signed-Document-' . $request->request_number . '.' . $extension;
+
+        return Storage::disk('public')->download($request->document, $downloadFilename);
     }
 
     public function viewTripTicketSignedDocument($id)
@@ -65,7 +81,23 @@ class PrintController extends Controller
             'extension' => $extension,
             'fileName' => basename($doc),
             'downloadFilename' => $downloadFilename,
+            'downloadUrl' => route('trip-tickets.download-signed-document', $ticket->id),
         ]);
+    }
+
+    public function downloadTripTicketSignedDocument($id)
+    {
+        $ticket = TripTicket::with('vehicleRequest')->findOrFail($id);
+        $doc = $ticket->document ?: $ticket->vehicleRequest?->document;
+
+        if (!$doc || !Storage::disk('public')->exists($doc)) {
+            abort(404, 'No signed document found for this trip ticket.');
+        }
+
+        $extension = strtolower(pathinfo($doc, PATHINFO_EXTENSION));
+        $downloadFilename = 'CEO-Signed-Document-' . $ticket->ticket_number . '.' . $extension;
+
+        return Storage::disk('public')->download($doc, $downloadFilename);
     }
 
     public function printTicket($id)

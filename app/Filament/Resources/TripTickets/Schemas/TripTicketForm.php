@@ -92,9 +92,18 @@ class TripTicketForm
 
                         $primaryDate = $primaryReq->date;
                         $primaryTime = $primaryReq->time;
-                        $primaryCity = strtolower(trim(explode(',', $primaryReq->destination ?? '')[0] ?? ''));
 
-                        return VehicleRequest::whereIn('status', ['pending', 'approved'])
+                        $cleanCity = function(?string $dest): string {
+                            if (empty($dest)) return '';
+                            $firstPart = explode(',', $dest)[0] ?? '';
+                            $clean = strtolower(trim($firstPart));
+                            $clean = preg_replace('/\b(city of|city|municipality of|municipality|mun\.)\b/i', '', $clean);
+                            return trim(preg_replace('/\s+/', ' ', $clean));
+                        };
+
+                        $primaryCityClean = $cleanCity($primaryReq->destination);
+
+                        $candidates = VehicleRequest::whereIn('status', ['pending', 'approved'])
                             ->where('id', '!=', $primaryId)
                             ->where('date', $primaryDate)
                             ->where(function ($q) use ($record) {
@@ -104,20 +113,36 @@ class TripTicketForm
                                 }
                             })
                             ->latest('id')
-                            ->get()
-                            ->filter(function ($r) use ($primaryCity, $primaryReq) {
-                                if (empty($primaryCity) || empty($r->destination)) {
-                                    return false;
-                                }
-                                $rCity = strtolower(trim(explode(',', $r->destination)[0] ?? ''));
-                                return str_contains(strtolower($r->destination), $primaryCity) 
-                                    || str_contains(strtolower($primaryReq->destination), $rCity);
+                            ->get();
+
+                        return $candidates
+                            ->sortByDesc(function ($r) use ($primaryCityClean, $cleanCity, $primaryReq) {
+                                $rCityClean = $cleanCity($r->destination);
+                                $isSameCity = ($primaryCityClean !== '' && $rCityClean !== '') && (
+                                    $primaryCityClean === $rCityClean ||
+                                    str_contains($primaryCityClean, $rCityClean) ||
+                                    str_contains($rCityClean, $primaryCityClean) ||
+                                    str_contains(strtolower($r->destination), $primaryCityClean) ||
+                                    str_contains(strtolower($primaryReq->destination), $rCityClean)
+                                );
+                                return $isSameCity ? 1 : 0;
                             })
-                            ->mapWithKeys(function ($r) use ($primaryTime) {
+                            ->mapWithKeys(function ($r) use ($primaryTime, $primaryCityClean, $cleanCity, $primaryReq) {
+                                $rCityClean = $cleanCity($r->destination);
+                                $isSameCity = ($primaryCityClean !== '' && $rCityClean !== '') && (
+                                    $primaryCityClean === $rCityClean ||
+                                    str_contains($primaryCityClean, $rCityClean) ||
+                                    str_contains($rCityClean, $primaryCityClean) ||
+                                    str_contains(strtolower($r->destination), $primaryCityClean) ||
+                                    str_contains(strtolower($primaryReq->destination), $rCityClean)
+                                );
+
                                 $paxCount = $r->number_of_passengers ?: 1;
                                 $personWord = $paxCount > 1 ? 'persons' : 'person';
                                 $timeStr = $r->time ? \Carbon\Carbon::parse($r->time)->format('g:i A') : 'No time';
                                 $primaryTimeStr = $primaryTime ? \Carbon\Carbon::parse($primaryTime)->format('g:i A') : 'No time';
+
+                                $destTag = $isSameCity ? '⭐ SAME DESTINATION' : "📍 {$r->destination}";
 
                                 $timeBadge = '';
                                 if ($primaryTime && $r->time) {
@@ -126,17 +151,17 @@ class TripTicketForm
                                     $diffHours = abs($dtPrimary->diffInMinutes($dtR)) / 60;
 
                                     if ($diffHours <= 1.5) {
-                                        $timeBadge = " ⭐ MATCH (Leaves @ {$timeStr})";
+                                        $timeBadge = " (Leaves @ {$timeStr})";
                                     } elseif ($diffHours <= 3.0) {
-                                        $timeBadge = " ⏱️ DEPARTS @ {$timeStr} (" . round($diffHours, 1) . "h gap)";
+                                        $timeBadge = " (Departs @ {$timeStr} • " . round($diffHours, 1) . "h gap)";
                                     } else {
-                                        $timeBadge = " ⚠️ TIME GAP (Departs @ {$timeStr} &bull; " . round($diffHours, 1) . "h gap from Lead {$primaryTimeStr})";
+                                        $timeBadge = " (Departs @ {$timeStr} • " . round($diffHours, 1) . "h gap from Lead)";
                                     }
                                 } else {
-                                    $timeBadge = " @ {$timeStr}";
+                                    $timeBadge = " (@ {$timeStr})";
                                 }
 
-                                $label = "{$r->request_number} - {$r->department} ({$r->employee_name}) [{$paxCount} {$personWord}]{$timeBadge}";
+                                $label = "{$r->request_number} - {$r->department} ({$r->employee_name}) [{$paxCount} {$personWord}] [{$destTag}]{$timeBadge}";
                                 return [$r->id => $label];
                             });
                     })

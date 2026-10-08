@@ -13,11 +13,14 @@ class RecentRequests extends TableWidget
 
     protected static ?int $sort = 2;
 
+    protected ?string $pollingInterval = '5s';
+
     protected int|string|array $columnSpan = 'full';
 
     public function table(Table $table): Table
     {
         return $table
+            ->poll('5s')
             ->query(
                 VehicleRequest::query()->latest()->limit(5)
             )

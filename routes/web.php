@@ -26,11 +26,13 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
     Route::view('post','livewire.post.index')->name('post.index');
     
-    // Protected Print Routes
+    // Protected Print & Download Routes
     Route::get('/vehicle-requests/{id}/print', [App\Http\Controllers\PrintController::class, 'printRequest'])->name('vehicle-requests.print');
     Route::get('/vehicle-requests/{id}/view-signed-document', [App\Http\Controllers\PrintController::class, 'viewSignedDocument'])->name('vehicle-requests.view-signed-document');
+    Route::get('/vehicle-requests/{id}/download-signed-document', [App\Http\Controllers\PrintController::class, 'downloadSignedDocument'])->name('vehicle-requests.download-signed-document');
     Route::get('/trip-tickets/{id}/print', [App\Http\Controllers\PrintController::class, 'printTicket'])->name('trip-tickets.print');
     Route::get('/trip-tickets/{id}/view-signed-document', [App\Http\Controllers\PrintController::class, 'viewTripTicketSignedDocument'])->name('trip-tickets.view-signed-document');
+    Route::get('/trip-tickets/{id}/download-signed-document', [App\Http\Controllers\PrintController::class, 'downloadTripTicketSignedDocument'])->name('trip-tickets.download-signed-document');
     Route::get('/trip-tickets/{id}/print-travel-order', [App\Http\Controllers\PrintController::class, 'printTravelOrder'])->name('trip-tickets.print-travel-order');
     Route::get('/withdrawal-slips/{id}/print', [App\Http\Controllers\PrintController::class, 'printSlip'])->name('withdrawal-slips.print');
     Route::get('/analytics/print', [App\Http\Controllers\PrintController::class, 'printAnalyticsReport'])->name('analytics.print');
