@@ -8,6 +8,8 @@
         ctx: null,
         lastX: 0,
         lastY: 0,
+
+        // Fullscreen state & canvas
         isFullscreen: false,
         fsCanvas: null,
         fsCtx: null,
@@ -44,13 +46,7 @@
             this.resizeCanvas();
 
             window.addEventListener('resize', () => {
-                if (this.isFullscreen) {
-                    const currentData = this.hasSignature && this.fsCanvas ? this.fsCanvas.toDataURL('image/png') : null;
-                    this.resizeFsCanvas();
-                    if (currentData) {
-                        this.loadExistingSignatureToCanvas(currentData, this.fsCanvas, this.fsCtx);
-                    }
-                } else if (!this.hasSignature) {
+                if (!this.isFullscreen && !this.hasSignature) {
                     this.resizeCanvas();
                 }
             });
@@ -313,9 +309,6 @@
                     this.fsCanvas.releasePointerCapture(e.pointerId);
                 }
             } catch (err) {}
-            if (this.hasSignature && this.fsCanvas) {
-                this.state = this.fsCanvas.toDataURL('image/png');
-            }
         },
 
         clearFs() {
@@ -327,7 +320,6 @@
     }"
     class="sigpad-root"
 >
-    <!-- Scoped CSS for Bulletproof Filament Rendering -->
     <style>
         [x-cloak] {
             display: none !important;
@@ -475,6 +467,104 @@
             vertical-align: middle;
         }
 
+        /* Mode Switcher Buttons */
+        .sigpad-mode-switcher {
+            display: inline-flex;
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 3px;
+            border: 1px solid #334155;
+            gap: 2px;
+        }
+        :root:not(.dark) .sigpad-mode-switcher,
+        html:not(.dark) .sigpad-mode-switcher {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+        }
+        .sigpad-mode-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            white-space: nowrap;
+        }
+        :root:not(.dark) .sigpad-mode-btn,
+        html:not(.dark) .sigpad-mode-btn {
+            color: #64748b;
+        }
+        .sigpad-mode-btn.active {
+            background: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+        }
+        .sigpad-mode-btn:hover:not(.active) {
+            color: #f8fafc;
+        }
+        :root:not(.dark) .sigpad-mode-btn:hover:not(.active) {
+            color: #0f172a;
+        }
+        .sigpad-mode-btn svg {
+            width: 13px !important;
+            height: 13px !important;
+            stroke-width: 2 !important;
+            fill: none !important;
+        }
+
+        /* 1. Canvas Interactive Drawing Box */
+        .sigpad-canvas-box {
+            position: relative;
+            background: #ffffff;
+            border-radius: 14px;
+            border: 2px dashed #cbd5e1;
+            height: 190px;
+            width: 100%;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            cursor: crosshair;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+            touch-action: none;
+        }
+        .sigpad-canvas-box:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .sigpad-canvas-element {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+        }
+
+        /* Subtle dotted line showing where to sign */
+        .sigpad-waterline {
+            position: absolute;
+            left: 24px;
+            right: 24px;
+            bottom: 38px;
+            border-bottom: 1.5px dashed #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            font-size: 11px;
+            font-family: monospace;
+            color: #94a3b8;
+            padding-bottom: 4px;
+            user-select: none;
+            z-index: 2;
+        }
+
         /* Floating Corner Fullscreen Badge inside Canvas */
         .sigpad-canvas-fs-badge {
             position: absolute;
@@ -511,28 +601,195 @@
             fill: none !important;
         }
 
-        /* Fullscreen Modal Overlay */
+        /* Watermark placeholder hint */
+        .sigpad-watermark {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            user-select: none;
+            color: #94a3b8;
+            z-index: 3;
+        }
+        .sigpad-watermark-icon {
+            font-size: 26px;
+            margin-bottom: 4px;
+            opacity: 0.75;
+        }
+        .sigpad-watermark-text {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .sigpad-watermark-sub {
+            font-size: 10.5px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* Floating Clear Button */
+        .sigpad-clear-btn {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            z-index: 20;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            background: rgba(244, 63, 94, 0.1);
+            color: #f43f5e;
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            backdrop-filter: blur(4px);
+        }
+        .sigpad-clear-btn:hover {
+            background: #f43f5e;
+            color: #ffffff;
+        }
+        .sigpad-clear-btn svg {
+            width: 11px !important;
+            height: 11px !important;
+            stroke-width: 2.5 !important;
+            fill: none !important;
+        }
+
+        /* 2. File Upload Box */
+        .sigpad-upload-box {
+            background: #ffffff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 14px;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            min-height: 190px;
+            user-select: none;
+        }
+        .sigpad-upload-box:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+        .sigpad-upload-icon-wrap {
+            font-size: 30px;
+            margin-bottom: 6px;
+            opacity: 0.85;
+        }
+        .sigpad-upload-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .sigpad-upload-sub {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+        .sigpad-preview-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 8px 16px;
+            max-width: 280px;
+            max-height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+        .sigpad-preview-img {
+            max-width: 100%;
+            max-height: 90px;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* Footer */
+        .sigpad-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #1e293b;
+            font-size: 11.5px;
+            color: #94a3b8;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        :root:not(.dark) .sigpad-footer,
+        html:not(.dark) .sigpad-footer {
+            border-top-color: #f1f5f9;
+            color: #64748b;
+        }
+        .sigpad-footer-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sigpad-footer-info svg {
+            width: 14px;
+            height: 14px;
+            color: #3b82f6;
+            flex-shrink: 0;
+            fill: none;
+        }
+        .sigpad-remove-btn {
+            background: none;
+            border: none;
+            color: #f43f5e;
+            font-size: 11.5px;
+            font-weight: 700;
+            text-decoration: underline;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.15s;
+        }
+        .sigpad-remove-btn:hover {
+            color: #e11d48;
+        }
+
+        /* ========================================================= */
+        /* FULLSCREEN MODAL OVERLAY (STRICTLY HIDDEN BY DEFAULT)    */
+        /* ========================================================= */
         .sigpad-fs-modal {
+            display: none !important;
             position: fixed !important;
             inset: 0 !important;
-            z-index: 999999 !important;
-            background: rgba(15, 23, 42, 0.96) !important;
-            backdrop-filter: blur(12px) !important;
-            display: flex;
-            flex-direction: column !important;
-            padding: 12px 16px !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
+            z-index: 9999999 !important;
+            background: rgba(15, 23, 42, 0.97) !important;
+            backdrop-filter: blur(14px) !important;
+            padding: 14px 18px !important;
             box-sizing: border-box !important;
-        }
-        .sigpad-fs-modal[style*="display: none"],
-        .sigpad-fs-modal[style*="display:none"] {
-            display: none !important;
+            flex-direction: column !important;
         }
         :root:not(.dark) .sigpad-fs-modal,
         html:not(.dark) .sigpad-fs-modal {
             background: rgba(241, 245, 249, 0.98) !important;
         }
+
+        /* Show ONLY when opened by Alpine */
+        .sigpad-fs-modal.is-open {
+            display: flex !important;
+        }
+
         @media (max-width: 640px) {
             .sigpad-fs-modal {
                 padding: 8px 10px !important;
@@ -723,313 +980,12 @@
         html:not(.dark) .sigpad-fs-footer {
             color: #64748b;
         }
-
-        /* Pill Mode Switcher */
-        .sigpad-mode-switcher {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-        }
-        :root:not(.dark) .sigpad-mode-switcher,
-        html:not(.dark) .sigpad-mode-switcher {
-            background: #f1f5f9;
-            border-color: #e2e8f0;
-        }
-        .sigpad-mode-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 14px;
-            font-size: 12px;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            color: #94a3b8;
-            background: transparent;
-            user-select: none;
-            white-space: nowrap;
-        }
-        :root:not(.dark) .sigpad-mode-btn,
-        html:not(.dark) .sigpad-mode-btn {
-            color: #64748b;
-        }
-        .sigpad-mode-btn:hover {
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        :root:not(.dark) .sigpad-mode-btn:hover,
-        html:not(.dark) .sigpad-mode-btn:hover {
-            color: #0f172a;
-            background: rgba(0, 0, 0, 0.04);
-        }
-        .sigpad-mode-btn.active {
-            background: #10b981 !important;
-            color: #ffffff !important;
-            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
-        }
-        .sigpad-mode-btn svg {
-            width: 14px !important;
-            height: 14px !important;
-            min-width: 14px !important;
-            min-height: 14px !important;
-            max-width: 14px !important;
-            max-height: 14px !important;
-            display: inline-block !important;
-            stroke: currentColor !important;
-            stroke-width: 2.2 !important;
-            fill: none !important;
-            vertical-align: middle;
-        }
-
-        /* 1. Canvas Pad Container */
-        .sigpad-canvas-box {
-            position: relative;
-            width: 100%;
-            height: 220px;
-            min-height: 220px;
-            background: #ffffff;
-            border: 2px solid #cbd5e1;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
-            touch-action: none;
-        }
-        .sigpad-canvas-box:hover {
-            border-color: #94a3b8;
-        }
-        .sigpad-canvas-element {
-            position: relative;
-            z-index: 10;
-            width: 100%;
-            height: 100%;
-            display: block;
-            cursor: crosshair;
-            touch-action: none;
-        }
-
-        /* Dotted Signature Baseline */
-        .sigpad-waterline {
-            position: absolute;
-            left: 32px;
-            right: 32px;
-            bottom: 40px;
-            border-bottom: 1.5px dashed #cbd5e1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: none;
-            font-size: 11px;
-            font-family: monospace;
-            color: #94a3b8;
-            padding: 0 4px 4px 4px;
-            user-select: none;
-            z-index: 4;
-        }
-
-        /* Initial Helper Placeholder */
-        .sigpad-watermark {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-            user-select: none;
-            color: #94a3b8;
-            text-align: center;
-            padding: 16px;
-            z-index: 5;
-        }
-        .sigpad-watermark-icon {
-            font-size: 24px;
-            opacity: 0.45;
-            margin-bottom: 4px;
-        }
-        .sigpad-watermark-text {
-            font-size: 12.5px;
-            font-weight: 600;
-            color: #64748b;
-        }
-        .sigpad-watermark-sub {
-            font-size: 10.5px;
-            color: #94a3b8;
-            margin-top: 2px;
-        }
-
-        /* Floating Clear Button */
-        .sigpad-clear-btn {
-            position: absolute;
-            bottom: 12px;
-            left: 14px;
-            z-index: 20;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 13px;
-            background: rgba(15, 23, 42, 0.88);
-            color: #ffffff;
-            font-size: 11.5px;
-            font-weight: 700;
-            border-radius: 9px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
-            backdrop-filter: blur(6px);
-            cursor: pointer;
-            transition: all 0.15s ease;
-            user-select: none;
-        }
-        .sigpad-clear-btn:hover {
-            background: #0f172a;
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
-        }
-        .sigpad-clear-btn:active {
-            transform: translateY(0);
-        }
-        .sigpad-clear-btn svg {
-            width: 13px !important;
-            height: 13px !important;
-            color: #f43f5e;
-            stroke-width: 2.5 !important;
-            fill: none !important;
-        }
-
-        /* 2. Upload Box */
-        .sigpad-upload-box {
-            position: relative;
-            width: 100%;
-            height: 220px;
-            min-height: 220px;
-            border: 2px dashed #475569;
-            border-radius: 14px;
-            background: #0b1120;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        :root:not(.dark) .sigpad-upload-box,
-        html:not(.dark) .sigpad-upload-box {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-        }
-        .sigpad-upload-box:hover {
-            border-color: #10b981;
-            background: rgba(16, 185, 129, 0.04);
-        }
-        .sigpad-upload-icon-wrap {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: rgba(16, 185, 129, 0.12);
-            color: #10b981;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            margin-bottom: 10px;
-            transition: transform 0.2s;
-        }
-        .sigpad-upload-box:hover .sigpad-upload-icon-wrap {
-            transform: scale(1.08);
-        }
-        .sigpad-upload-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 3px;
-        }
-        :root:not(.dark) .sigpad-upload-title,
-        html:not(.dark) .sigpad-upload-title {
-            color: #0f172a;
-        }
-        .sigpad-upload-sub {
-            font-size: 11px;
-            color: #94a3b8;
-        }
-
-        .sigpad-preview-card {
-            max-height: 120px;
-            max-width: 280px;
-            background: #ffffff;
-            border-radius: 10px;
-            padding: 8px 14px;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .sigpad-preview-img {
-            max-height: 90px;
-            max-width: 250px;
-            object-fit: contain;
-        }
-
-        /* Footer */
-        .sigpad-footer {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-top: 14px;
-            padding-top: 10px;
-            border-top: 1px solid #1e293b;
-            font-size: 11.5px;
-            color: #94a3b8;
-        }
-        :root:not(.dark) .sigpad-footer,
-        html:not(.dark) .sigpad-footer {
-            border-top-color: #f1f5f9;
-            color: #64748b;
-        }
-        .sigpad-footer-info {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .sigpad-footer-info svg {
-            width: 14px !important;
-            height: 14px !important;
-            color: #10b981;
-            stroke-width: 2 !important;
-            fill: none !important;
-            flex-shrink: 0;
-        }
-        .sigpad-remove-btn {
-            background: none;
-            border: none;
-            color: #f43f5e;
-            font-size: 11.5px;
-            font-weight: 700;
-            text-decoration: underline;
-            cursor: pointer;
-            padding: 0;
-            transition: color 0.15s;
-        }
-        .sigpad-remove-btn:hover {
-            color: #e11d48;
-        }
     </style>
 
     <!-- Outer Card Container -->
     <div class="sigpad-card">
-        
-        <!-- Header: Add your signature + Subtitle + Mode Switcher -->
+
+        <!-- Header: Add your signature + Subtitle + Actions -->
         <div class="sigpad-header">
             <div>
                 <div class="sigpad-title-wrap">
@@ -1037,7 +993,7 @@
                         ✍️
                     </div>
                     <h3 class="sigpad-title">
-                        Add your signature
+                        Requester Electronic Signature
                     </h3>
                     <template x-if="hasSignature">
                         <span class="sigpad-captured-badge">
@@ -1046,7 +1002,7 @@
                     </template>
                 </div>
                 <p class="sigpad-subtitle">
-                    Sign using your finger tips or mouse on the box below, or upload your signature image.
+                    Pumirma gamit ang daliri, stylus, o mouse sa kahon sa ibaba, o mag-upload ng image ng inyong pirma.
                 </p>
             </div>
 
@@ -1057,7 +1013,7 @@
                     type="button"
                     @click="openFullscreen()"
                     class="sigpad-fullscreen-btn"
-                    title="Open Full Screen Signature Pad (Mas malaking espasyo para sa e-sign)"
+                    title="Pumirma sa Full Screen para sa mas malaking espasyo"
                 >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
@@ -1076,7 +1032,7 @@
                         <svg viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
-                        <span>Draw Signature</span>
+                        <span>Draw</span>
                     </button>
                     <button
                         type="button"
@@ -1087,7 +1043,7 @@
                         <svg viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                         </svg>
-                        <span>Upload Image</span>
+                        <span>Upload</span>
                     </button>
                 </div>
             </div>
@@ -1096,7 +1052,6 @@
         <!-- 1. Interactive Drawing Canvas Pad -->
         <div x-show="mode === 'draw'" style="position: relative;">
             <div class="sigpad-canvas-box">
-                
                 <!-- Background subtle dotted water-line guide -->
                 <div class="sigpad-waterline">
                     <span>Signature Line</span>
@@ -1132,9 +1087,9 @@
                     x-show="!hasSignature"
                     class="sigpad-watermark"
                 >
-                    <span class="sigpad-watermark-icon">✏️</span>
-                    <span class="sigpad-watermark-text">Sign using your finger tips or mouse on the box</span>
-                    <span class="sigpad-watermark-sub">Smooth, responsive digital signature</span>
+                    <span class="sigpad-watermark-icon">✍️</span>
+                    <span class="sigpad-watermark-text">Pumirma gamit ang daliri, stylus, o mouse dito sa kahon</span>
+                    <span class="sigpad-watermark-sub">O pindutin ang "Full Screen" para sa mas malawak na pirmahan</span>
                 </div>
 
                 <!-- Floating Clear Button in corner -->
@@ -1143,7 +1098,7 @@
                     x-show="hasSignature"
                     @click="clear()"
                     class="sigpad-clear-btn"
-                    title="Clear and re-sign"
+                    title="Burahin ang pirma"
                 >
                     <svg viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -1173,10 +1128,10 @@
                             📁
                         </div>
                         <span class="sigpad-upload-title">
-                            Click to upload your signature image
+                            Pindutin para mag-upload ng larawan ng iyong pirma
                         </span>
                         <span class="sigpad-upload-sub">
-                            Supports PNG, JPG, or SVG (Transparent background recommended)
+                            Tumatanggap ng PNG, JPG, o SVG (Mas mainam kung transparent background)
                         </span>
                     </div>
                 </template>
@@ -1187,10 +1142,10 @@
                             <img :src="state" alt="Signature Preview" class="sigpad-preview-img" />
                         </div>
                         <span style="font-size: 12px; font-weight: 700; color: #10b981;">
-                            ✓ Signature file loaded
+                            ✓ Naka-upload na ang pirma
                         </span>
                         <span style="font-size: 10.5px; color: #94a3b8; text-decoration: underline; margin-top: 3px;">
-                            Click to choose a different file
+                            Pindutin para palitan ng ibang image
                         </span>
                     </div>
                 </template>
@@ -1203,7 +1158,7 @@
                 <svg viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>The e-sign will be positioned directly <b>above your requester name</b> on the printable form.</span>
+                <span>Ang e-signature ay awtomatikong ilalagay sa ibabaw ng inyong pangalan sa printable official form.</span>
             </div>
 
             <template x-if="hasSignature">
@@ -1212,7 +1167,7 @@
                     @click="clear()"
                     class="sigpad-remove-btn"
                 >
-                    Remove Signature
+                    Tanggalin ang Pirma
                 </button>
             </template>
         </div>
@@ -1221,17 +1176,11 @@
 
     <!-- Fullscreen Signature Pad Modal Overlay -->
     <div
-        x-show="isFullscreen"
         x-cloak
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 scale-95"
-        x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
+        x-show="isFullscreen"
+        :class="{ 'is-open': isFullscreen }"
         class="sigpad-fs-modal"
-        style="display: none;"
-        @keydown.escape.window="closeFullscreen(true)"
+        @keydown.escape.window="closeFullscreen(false)"
     >
         <!-- Modal Top Bar -->
         <div class="sigpad-fs-header">
@@ -1241,10 +1190,10 @@
                 </div>
                 <div>
                     <h3 class="sigpad-fs-title">
-                        E-Signature Pad &mdash; Full Screen
+                        Electronic Signature &mdash; Full Screen Mode
                     </h3>
                     <p class="sigpad-fs-sub">
-                        Pumirma gamit ang daliri o mouse sa buong screen para mas malapad at malinaw.
+                        Pumirma gamit ang daliri, stylus, o mouse sa buong screen para mas malapad at malinaw.
                     </p>
                 </div>
             </div>
@@ -1281,7 +1230,7 @@
                 <!-- Exit / Close Button -->
                 <button
                     type="button"
-                    @click="closeFullscreen(true)"
+                    @click="closeFullscreen(false)"
                     class="sigpad-fs-btn-close"
                     title="Isara ang Full Screen (Esc)"
                 >
@@ -1314,9 +1263,9 @@
                 x-show="!hasSignature"
                 class="sigpad-fs-watermark"
             >
-                <span style="font-size: 32px; opacity: 0.45; margin-bottom: 6px;">✏️</span>
-                <span style="font-size: 14px; font-weight: 700; color: #475569;">Iguhit ang iyong e-signature dito sa malawak na screen</span>
-                <span style="font-size: 11.5px; color: #94a3b8; margin-top: 3px;">Sign with your finger tip, stylus, or mouse</span>
+                <span style="font-size: 34px; opacity: 0.6; margin-bottom: 6px;">✏️</span>
+                <span style="font-size: 15px; font-weight: 700; color: #475569;">Iguhit ang inyong pirma dito sa malawak na screen</span>
+                <span style="font-size: 12px; color: #94a3b8; margin-top: 3px;">Pumirma gamit ang daliri, stylus, o mouse</span>
             </div>
         </div>
 
@@ -1324,10 +1273,10 @@
         <div class="sigpad-fs-footer">
             <div style="display: flex; align-items: center; gap: 6px;">
                 <span>💡</span>
-                <span><b>Tip para sa cellphone:</b> Maaari mong i-rotate ang iyong phone sa <b>Landscape (Pahiga)</b> para mas malapad ang pipirmahan!</span>
+                <span><b>Tip para sa Cellphone:</b> Maaari mong i-rotate ang iyong phone sa <b>Landscape (Pahiga)</b> para mas malapad ang pipirmahan!</span>
             </div>
             <div>
-                <span>Pindutin ang <b>Done / Save E-Sign</b> kapag tapos na.</span>
+                <span>Pindutin ang <b>Done / Save E-Sign</b> kapag tapos na pumirma.</span>
             </div>
         </div>
     </div>
