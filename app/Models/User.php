@@ -96,6 +96,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasOne(Driver::class, 'name', 'name');
     }
 
+    public function isAdmin(): bool
+    {
+        return strtolower($this->role ?? '') === 'admin';
+    }
+
     public function isGuard(): bool
     {
         return strtolower($this->role ?? '') === 'guard';

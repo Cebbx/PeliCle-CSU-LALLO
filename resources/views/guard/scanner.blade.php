@@ -346,19 +346,28 @@
                         </div>
                         @forelse($todayTrips->take(3) as $todayTrip)
                             @php
-                                $vehName = \App\Models\Vehicle::getVehicleName($todayTrip->vehicle);
+                                $todayPayload = $todayTrip->toGuardSummaryArray();
+                                $vehName = $todayPayload['vehicle_name'];
                                 $inStamp = $todayTrip->display_gate_in ? \Carbon\Carbon::parse($todayTrip->display_gate_in)->timezone('Asia/Manila')->format('g:i A') : '';
                             @endphp
-                            <div class="flex items-center justify-between py-2 border-b border-slate-800/40 last:border-0 text-xs">
-                                <div class="text-left">
-                                    <span class="font-bold text-white block">{{ $vehName }}</span>
-                                    <span class="text-[10px] text-slate-400">{{ $todayTrip->driver?->name ?? 'N/A' }} &bull; {{ $todayTrip->vehicleRequest?->destination ?? 'N/A' }}</span>
+                            <div class="flex items-center justify-between py-2 border-b border-slate-800/40 last:border-0 text-xs gap-2">
+                                <div class="text-left min-w-0 flex-1">
+                                    <span class="font-bold text-white block truncate">{{ $vehName }}</span>
+                                    <span class="text-[10px] text-slate-400 block truncate">{{ $todayTrip->driver?->name ?? 'N/A' }} &bull; {{ $todayPayload['primary_destination'] }}</span>
                                 </div>
-                                <div class="text-right">
-                                    <span class="text-[10px] font-mono text-emerald-400 block font-bold">{{ $inStamp }}</span>
-                                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20 font-semibold whitespace-nowrap">
-                                        👮 {{ $todayTrip->display_scanned_by }}
-                                    </span>
+                                <div class="text-right flex items-center gap-2 shrink-0">
+                                    <div class="text-right">
+                                        <span class="text-[10px] font-mono text-emerald-400 block font-bold">{{ $inStamp }}</span>
+                                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20 font-semibold whitespace-nowrap">
+                                            👮 {{ $todayTrip->display_scanned_by }}
+                                        </span>
+                                    </div>
+                                    <button type="button" 
+                                            onclick='openTripDetails(@json($todayPayload))' 
+                                            title="View Trip & Passengers" 
+                                            class="p-1.5 rounded-xl bg-slate-900 hover:bg-emerald-600/20 border border-slate-700 hover:border-emerald-500/50 text-slate-300 hover:text-emerald-400 transition cursor-pointer shadow-sm">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
                                 </div>
                             </div>
                         @empty
@@ -440,21 +449,23 @@
                                     <th class="p-2.5 font-bold whitespace-nowrap text-emerald-400">Date &amp; Time IN</th>
                                     <th class="p-2.5 font-bold whitespace-nowrap text-center">Scanned By</th>
                                     <th class="p-2.5 font-bold whitespace-nowrap text-center">Clearance</th>
+                                    <th class="p-2.5 font-bold whitespace-nowrap text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800/60 text-slate-300">
                                 @forelse($monthTrips as $trip)
                                     @php
-                                        $vehName = \App\Models\Vehicle::getVehicleName($trip->vehicle);
-                                        $outStamp = $trip->display_gate_out ? \Carbon\Carbon::parse($trip->display_gate_out)->timezone('Asia/Manila')->format('M d, Y - g:i A') : '---';
-                                        $inStamp = $trip->display_gate_in ? \Carbon\Carbon::parse($trip->display_gate_in)->timezone('Asia/Manila')->format('M d, Y - g:i A') : '---';
-                                        $guardWhoScanned = $trip->display_scanned_by;
+                                        $tripPayload = $trip->toGuardSummaryArray();
+                                        $vehName = $tripPayload['vehicle_name'];
+                                        $outStamp = $tripPayload['out_time'];
+                                        $inStamp = $tripPayload['in_time'];
+                                        $guardWhoScanned = $tripPayload['scanned_by'];
                                     @endphp
                                     <tr class="hover:bg-slate-900/50 transition">
                                         <td class="p-2.5 font-mono font-bold text-amber-400 whitespace-nowrap">{{ $trip->formatted_ticket_number }}</td>
                                         <td class="p-2.5 font-bold text-white whitespace-nowrap">{{ $vehName }}</td>
                                         <td class="p-2.5 whitespace-nowrap text-slate-200">{{ $trip->driver?->name ?? 'N/A' }}</td>
-                                        <td class="p-2.5 text-[11px] text-slate-400 max-w-[150px] truncate" title="{{ $trip->vehicleRequest?->destination }}">{{ $trip->vehicleRequest?->destination ?? 'N/A' }}</td>
+                                        <td class="p-2.5 text-[11px] text-slate-400 max-w-[150px] truncate" title="{{ $tripPayload['primary_destination'] }}">{{ $tripPayload['primary_destination'] }}</td>
                                         <td class="p-2.5 font-mono text-[11px] whitespace-nowrap text-slate-300">{{ $outStamp }}</td>
                                         <td class="p-2.5 font-mono text-[11px] whitespace-nowrap text-emerald-400 font-semibold">{{ $inStamp }}</td>
                                         <td class="p-2.5 text-center whitespace-nowrap">
@@ -467,10 +478,18 @@
                                                 &#10004; Cleared
                                             </span>
                                         </td>
+                                        <td class="p-2.5 text-center whitespace-nowrap">
+                                            <button type="button" 
+                                                    onclick='openTripDetails(@json($tripPayload))' 
+                                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-slate-900 hover:bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/60 transition shadow-sm cursor-pointer">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                <span>View</span>
+                                            </button>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="p-8 text-center text-xs text-slate-500 font-semibold">
+                                        <td colspan="9" class="p-8 text-center text-xs text-slate-500 font-semibold">
                                             No vehicle gate clearances recorded for {{ $monthName }}.
                                         </td>
                                     </tr>
@@ -488,6 +507,119 @@
 
         </div>
 
+    </div>
+
+    <!-- ========================================================
+         TRIP TRANSACTION & PASSENGER DETAILS MODAL
+         ======================================================== -->
+    <div id="trip-details-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-sm hidden transition-opacity duration-200">
+        <div class="relative w-full max-w-2xl max-h-[90vh] bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-slate-100">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-950/70">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-lg shrink-0">
+                        📋
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="modal-ticket-no" class="text-sm sm:text-base font-mono font-bold text-amber-400 leading-tight">TT No. Lal-lo - 2026-001</h3>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                ✓ Cleared
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-400">Campus Gate Transaction &bull; Passenger Clearance Record</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeTripDetails()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer text-sm font-bold" title="Close Modal">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Scrollable Body -->
+            <div class="p-5 overflow-y-auto space-y-4 text-xs">
+                
+                <!-- Vehicle & Driver Overview Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Vehicle Card -->
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">Vehicle Assignment</span>
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-2xl">🚗</span>
+                            <div class="min-w-0">
+                                <span id="modal-vehicle-name" class="font-bold text-white block text-sm truncate">Toyota Hilux</span>
+                                <span id="modal-vehicle-plate" class="text-[11px] font-mono text-emerald-400 font-semibold block truncate">Plate: SAA-1234</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Driver Card -->
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">Assigned Driver</span>
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-2xl">👤</span>
+                            <div class="min-w-0">
+                                <span id="modal-driver-name" class="font-bold text-white block text-sm truncate">Juan Driver</span>
+                                <span id="modal-driver-meta" class="text-[10px] text-slate-400 block truncate">License: N/A &bull; Contact: N/A</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gate Movement Timestamps & Duty Officer -->
+                <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5">
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">Gate Movement & Duty Log</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                        <div class="bg-slate-900/80 rounded-xl p-2.5 border border-cyan-500/20">
+                            <span class="text-[9px] uppercase font-bold text-cyan-400 block">Departure (Gate OUT)</span>
+                            <span id="modal-out-time" class="font-mono font-bold text-white block text-xs mt-0.5">---</span>
+                        </div>
+                        <div class="bg-slate-900/80 rounded-xl p-2.5 border border-emerald-500/20">
+                            <span class="text-[9px] uppercase font-bold text-emerald-400 block">Arrival (Gate IN)</span>
+                            <span id="modal-in-time" class="font-mono font-bold text-emerald-400 block text-xs mt-0.5">---</span>
+                        </div>
+                        <div class="bg-slate-900/80 rounded-xl p-2.5 border border-blue-500/20">
+                            <span class="text-[9px] uppercase font-bold text-blue-400 block">Cleared By (Officer)</span>
+                            <span id="modal-scanned-by" class="font-bold text-blue-300 block text-xs mt-0.5 truncate">👮 Guard</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASSENGERS & REQUISITION BREAKDOWN -->
+                <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-300">Authorized Passengers</span>
+                            <span id="modal-total-pax-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                0 Persons
+                            </span>
+                        </div>
+                        <span id="modal-carpool-badge" class="hidden text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                            👥 Multi-Dept Carpool
+                        </span>
+                    </div>
+
+                    <!-- Dynamic container for request / passenger cards -->
+                    <div id="modal-requests-container" class="space-y-3">
+                        <!-- Injected via JavaScript -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex items-center justify-between px-5 py-3.5 border-t border-slate-800 bg-slate-950/90 gap-2">
+                <a id="modal-print-btn" href="#" target="_blank" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 transition cursor-pointer">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                    <span>Print Trip Ticket</span>
+                </a>
+
+                <button type="button" onclick="closeTripDetails()" class="px-5 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-lg shadow-emerald-950/30 cursor-pointer">
+                    Close
+                </button>
+            </div>
+
+        </div>
     </div>
 
     <!-- Html5Qrcode Library -->
@@ -963,6 +1095,173 @@
                     }
                 }
             };
+
+            // ========================================================
+            // TRIP DETAILS & PASSENGER INSPECTION MODAL LOGIC
+            // ========================================================
+            window.openTripDetails = function(trip) {
+                if (!trip) return;
+
+                const modal = document.getElementById('trip-details-modal');
+                if (!modal) return;
+
+                // Basic Info
+                document.getElementById('modal-ticket-no').innerText = trip.ticket_number || ('Trip #' + trip.id);
+                document.getElementById('modal-vehicle-name').innerText = trip.vehicle_name || 'Vehicle';
+                document.getElementById('modal-vehicle-plate').innerText = 'Plate: ' + (trip.vehicle_plate || 'N/A');
+                document.getElementById('modal-driver-name').innerText = trip.driver_name || 'N/A';
+                
+                let driverMeta = [];
+                if (trip.driver_license) driverMeta.push('License: ' + trip.driver_license);
+                if (trip.driver_contact) driverMeta.push('Contact: ' + trip.driver_contact);
+                document.getElementById('modal-driver-meta').innerText = driverMeta.length > 0 ? driverMeta.join(' • ') : 'Official Campus Driver';
+
+                // Gate Movement & Duty Officer
+                document.getElementById('modal-out-time').innerText = trip.out_time || '---';
+                document.getElementById('modal-in-time').innerText = trip.in_time || '---';
+                document.getElementById('modal-scanned-by').innerText = '👮 ' + (trip.scanned_by || 'Duty Guard');
+
+                // Carpool & Total Pax Badges
+                const totalPaxBadge = document.getElementById('modal-total-pax-badge');
+                if (totalPaxBadge) {
+                    totalPaxBadge.innerText = (trip.total_passengers || 1) + ((trip.total_passengers || 1) > 1 ? ' Persons' : ' Person');
+                }
+
+                const carpoolBadge = document.getElementById('modal-carpool-badge');
+                if (carpoolBadge) {
+                    if (trip.is_carpool) {
+                        carpoolBadge.classList.remove('hidden');
+                    } else {
+                        carpoolBadge.classList.add('hidden');
+                    }
+                }
+
+                // Print Link
+                const printBtn = document.getElementById('modal-print-btn');
+                if (printBtn) {
+                    printBtn.href = trip.print_url || '#';
+                }
+
+                // Render Requisitions and Passenger Breakdown
+                const container = document.getElementById('modal-requests-container');
+                if (container) {
+                    container.innerHTML = '';
+                    const requests = trip.requests || [];
+                    if (requests.length === 0) {
+                        container.innerHTML = '<div class="text-center text-slate-500 py-3 text-xs">No passenger records found for this trip.</div>';
+                    } else {
+                        requests.forEach(req => {
+                            const card = document.createElement('div');
+                            card.className = 'bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 space-y-2.5';
+
+                            // Header with Department & Pax Count
+                            let headerHtml = `
+                                <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                            ${escapeHtml(req.department || 'Department')}
+                                        </span>
+                                        <span class="text-[10px] text-slate-400 font-mono">(${escapeHtml(req.request_number || '')})</span>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                        ${req.passenger_count || 1} ${(req.passenger_count || 1) > 1 ? 'passengers' : 'passenger'}
+                                    </span>
+                                </div>
+                            `;
+
+                            // Requester, Destination, Purpose
+                            let detailsHtml = `
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
+                                    <div><span class="text-slate-500">Requester:</span> <strong class="text-white">${escapeHtml(req.requester || 'N/A')}</strong></div>
+                                    <div><span class="text-slate-500">Destination:</span> <strong class="text-emerald-300">${escapeHtml(req.destination || 'N/A')}</strong></div>
+                                    <div class="sm:col-span-2"><span class="text-slate-500">Purpose:</span> <span class="text-slate-200 italic">${escapeHtml(req.purpose || 'Official Campus Business')}</span></div>
+                                </div>
+                            `;
+
+                            // Passenger List
+                            let paxChipsHtml = '';
+                            const names = req.passenger_names || [];
+                            if (names.length > 0) {
+                                paxChipsHtml = `
+                                    <div class="pt-2 border-t border-slate-800/60">
+                                        <span class="text-[9px] uppercase font-bold text-slate-400 block mb-1.5">Authorized Passengers:</span>
+                                        <div class="flex flex-wrap gap-1.5">
+                                            ${names.map(name => `
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-slate-950 border border-slate-800 text-slate-200 shadow-sm">
+                                                    <span class="text-[10px] text-emerald-400">👤</span> ${escapeHtml(name)}
+                                                </span>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                paxChipsHtml = `
+                                    <div class="pt-2 border-t border-slate-800/60">
+                                        <span class="text-[9px] uppercase font-bold text-slate-400 block mb-1">Primary Passenger:</span>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-slate-950 border border-slate-800 text-slate-200 shadow-sm">
+                                            <span class="text-[10px] text-emerald-400">👤</span> ${escapeHtml(req.requester || 'Requester')}
+                                        </span>
+                                    </div>
+                                `;
+                            }
+
+                            // Others / Students
+                            let othersHtml = '';
+                            if (req.has_other_passengers && req.other_passengers) {
+                                othersHtml = `
+                                    <div class="mt-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300">
+                                        <strong class="uppercase text-[9px] text-amber-400 block font-bold mb-0.5">Others / Students / Co-Passengers:</strong>
+                                        <span>${escapeHtml(req.other_passengers)}</span>
+                                    </div>
+                                `;
+                            }
+
+                            card.innerHTML = headerHtml + detailsHtml + paxChipsHtml + othersHtml;
+                            container.appendChild(card);
+                        });
+                    }
+                }
+
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            };
+
+            window.closeTripDetails = function() {
+                const modal = document.getElementById('trip-details-modal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                }
+                document.body.classList.remove('overflow-hidden');
+            };
+
+            // Close on backdrop click
+            const modalEl = document.getElementById('trip-details-modal');
+            if (modalEl) {
+                modalEl.addEventListener('click', function(e) {
+                    if (e.target === modalEl) {
+                        closeTripDetails();
+                    }
+                });
+            }
+
+            // Close on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeTripDetails();
+                }
+            });
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+            }
 
             window.changeFilter = function(month) {
                 const url = new URL(window.location.href);

@@ -130,6 +130,12 @@ class PrintController extends Controller
 
     public function printTravelOrder(Request $request, $id)
     {
+        // Enforce role authorization: Only administrators can view, edit, and print Travel Orders
+        $currentUser = auth('admin')->user() ?? auth('web')->user() ?? auth()->user();
+        if (!$currentUser || (method_exists($currentUser, 'isAdmin') ? !$currentUser->isAdmin() : strtolower($currentUser->role ?? '') !== 'admin')) {
+            abort(403, 'Unauthorized access. Only administrators are authorized to edit and print Travel Orders.');
+        }
+
         $ticket = TripTicket::with(['driver', 'vehicleRequest', 'vehicleRequests'])->findOrFail($id);
         $type = $request->query('type', 'employee'); // employee or driver
 

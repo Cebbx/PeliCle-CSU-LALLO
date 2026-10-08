@@ -379,13 +379,13 @@
                         <span class="role-tag-pill tag-employee">Requester</span>
                     </div>
                     <div class="role-desc">
-                        Authorized university staff and faculty who submit official vehicle reservation requests, monitor trip approvals, and view travel orders.
+                        Authorized university staff and faculty who submit official vehicle reservation requests, monitor trip approvals, and view trip ticket QR codes.
                     </div>
                     <div class="role-capabilities-wrap">
                         <span class="capability-pill">Submit Requests</span>
                         <span class="capability-pill">Track Approvals</span>
                         <span class="capability-pill">Passenger List</span>
-                        <span class="capability-pill">Print Travel Order</span>
+                        <span class="capability-pill">Trip Ticket QR</span>
                     </div>
                 </div>
                 <a href="/admin/users" class="role-bottom-btn">
@@ -492,8 +492,8 @@
                         </tr>
                         <tr>
                             <td>Trip Tickets & Travel Orders</td>
-                            <td><span class="perm-badge perm-full">✔ Create / Issue / Print</span></td>
-                            <td><span class="perm-badge perm-view">👁️ View & Print Own</span></td>
+                            <td><span class="perm-badge perm-full">✔ Full / Edit / Print (Admin Only)</span></td>
+                            <td><span class="perm-badge perm-view">👁️ View Trip Ticket QR Only</span></td>
                             <td><span class="perm-badge perm-view">👁️ View Assigned Tickets</span></td>
                             <td><span class="perm-badge perm-guard">👁️ Verify Gate Pass</span></td>
                         </tr>

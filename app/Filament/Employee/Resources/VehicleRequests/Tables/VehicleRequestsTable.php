@@ -19,7 +19,7 @@ class VehicleRequestsTable
         return $table
             ->columns([
                 TextColumn::make('request_number')
-                    ->label('Vehicle Request')
+                    ->label('Control No.')
                     ->width('110px')
                     ->formatStateUsing(fn ($state) => preg_replace('/^VR-(?=\d{4}-)/', '', $state))
                     ->searchable(query: function (\Illuminate\Database\Eloquent\Builder $query, string $search): \Illuminate\Database\Eloquent\Builder {
@@ -266,10 +266,10 @@ class VehicleRequestsTable
                             $now = \Illuminate\Support\Carbon::now('Asia/Manila');
                             $depDateTime = $record->getScheduledDepartureDateTime();
 
-                            // 1. Check if late upload (departure time has already passed)
-                            if ($depDateTime && $now->greaterThan($depDateTime)) {
+                            // 1. Check if late upload (departure was more than 24 hours in past)
+                            if ($depDateTime && $now->diffInHours($depDateTime, false) < -24) {
                                 $formattedSchedule = $depDateTime->format('M d, Y h:i A');
-                                $reason = "Auto-declined: CEO signed document was uploaded late after the scheduled departure date/time ({$formattedSchedule}).";
+                                $reason = "Auto-declined: CEO signed document was uploaded late after scheduled departure date/time ({$formattedSchedule}).";
 
                                 $record->update([
                                     'document' => $finalPath,

@@ -54,43 +54,55 @@
         }
     }
 @endphp
-<body class="bg-gray-100 py-6 px-4 min-h-screen flex flex-col">
+<body class="bg-gray-100 py-4 sm:py-6 px-2 sm:px-4 min-h-screen flex flex-col">
+
+    <!-- In-App Browser (Messenger / IG) Notification Banner -->
+    <div id="inAppNotice" class="no-print hidden max-w-[8.5in] w-full mx-auto mb-3 bg-amber-50 border border-amber-300 rounded-xl p-3 sm:p-3.5 shadow-sm text-xs text-amber-900 flex items-start justify-between gap-3">
+        <div class="flex items-start gap-2.5">
+            <span class="text-base leading-none">📱</span>
+            <div class="leading-relaxed">
+                <strong class="font-bold">Nasa loob ka ng Messenger / In-App browser:</strong>
+                Maaaring hindi gumana ang Print o Download dito dahil hinarang ito ng app. Pindutin ang <strong>3 dots (⋮ o •••)</strong> sa kanang itaas ng screen at piliin ang <strong>"Open in Chrome" / "Open in Browser"</strong>.
+            </div>
+        </div>
+        <button type="button" onclick="document.getElementById('inAppNotice').classList.add('hidden')" class="text-amber-700 hover:text-amber-900 font-bold p-1 cursor-pointer">✕</button>
+    </div>
 
     <!-- Floating Top Bar (hidden on print) -->
-    <div class="no-print max-w-[8.5in] w-full mx-auto mb-4 flex flex-wrap items-center justify-between bg-white p-4 rounded-xl shadow-md border border-gray-200 gap-4">
+    <div class="no-print max-w-[8.5in] w-full mx-auto mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-white p-3 sm:p-4 rounded-xl shadow-md border border-gray-200 gap-3">
         <div class="flex items-center gap-3">
-            <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-2 px-3.5 rounded-lg transition-colors flex items-center gap-1.5 text-sm border border-gray-300 shadow-sm cursor-pointer mr-1" title="Go Back">
+            <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-2 px-3 sm:px-3.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs sm:text-sm border border-gray-300 shadow-sm cursor-pointer shrink-0" title="Go Back">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                 </svg>
                 <span>Back</span>
             </a>
-            <div class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
             </div>
-            <div>
-                <h1 class="text-gray-900 font-bold text-base leading-tight">{{ $title }}</h1>
-                <p class="text-xs text-gray-500 mt-0.5">{{ $subtitle }}</p>
+            <div class="min-w-0">
+                <h1 class="text-gray-900 font-bold text-sm sm:text-base leading-tight truncate">{{ $title }}</h1>
+                <p class="text-[11px] sm:text-xs text-gray-500 mt-0.5 truncate">{{ $subtitle }}</p>
             </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 w-full sm:w-auto">
             <!-- Download Button -->
-            <a href="{{ $fileUrl }}" download="{{ $downloadFilename }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <a href="{{ $fileUrl }}" download="{{ $downloadFilename }}" class="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm text-center">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Download {{ strtoupper($extension) }} File
+                <span>Download {{ strtoupper($extension) }}</span>
             </a>
 
             <!-- Print Button -->
-            <button onclick="triggerPrint()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <button type="button" onclick="triggerPrint()" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm cursor-pointer">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
-                Print Document
+                <span>Print Document</span>
             </button>
         </div>
     </div>
@@ -143,7 +155,21 @@
             } catch (e) {}
         }
 
+        function isInAppBrowser() {
+            return /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|MicroMessenger/i.test(navigator.userAgent);
+        }
+
+        if (isInAppBrowser()) {
+            const notice = document.getElementById('inAppNotice');
+            if (notice) notice.classList.remove('hidden');
+        }
+
         function triggerPrint() {
+            if (isInAppBrowser()) {
+                alert('Hindi sinusuportahan ang direct printing sa loob ng Messenger.\n\nPindutin ang "Download" button o i-tap ang 3 dots (...) sa itaas at buksan sa Chrome para makapag-print.');
+                return;
+            }
+
             @if($extension === 'pdf')
                 const frame = document.getElementById('pdfFrame');
                 if (frame && frame.contentWindow) {
@@ -156,9 +182,12 @@
                     }
                 }
             @endif
-            window.print();
+            try {
+                window.print();
+            } catch (e) {
+                console.warn('window.print error:', e);
+            }
         }
     </script>
-
 </body>
 </html>

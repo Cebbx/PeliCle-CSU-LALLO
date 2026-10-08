@@ -515,4 +515,74 @@ class TripTicket extends Model
     {
         return $this->hasMany(WithdrawalSlip::class);
     }
+
+    /**
+     * Get a comprehensive summary payload for the Guard Portal transaction modal.
+     */
+    public function toGuardSummaryArray(): array
+    {
+        $allRequests = $this->all_vehicle_requests;
+        $requestsData = [];
+        $totalPax = 0;
+
+        foreach ($allRequests as $req) {
+            $rawPassengers = $req->passenger_names ?? [];
+            if (is_string($rawPassengers)) {
+                $rawPassengers = json_decode($rawPassengers, true) ?? [];
+            }
+
+            $pNames = [];
+            if (is_array($rawPassengers)) {
+                foreach ($rawPassengers as $p) {
+                    if (is_array($p) && !empty($p['name'])) {
+                        $pNames[] = trim($p['name']);
+                    } elseif (is_string($p) && !empty(trim($p))) {
+                        $pNames[] = trim($p);
+                    }
+                }
+            }
+
+            $count = (int) ($req->number_of_passengers ?: max(count($pNames), 1));
+            $totalPax += $count;
+
+            $requestsData[] = [
+                'request_number' => $req->formatted_request_number ?? $req->request_number,
+                'requester' => $req->employee_name ?? 'N/A',
+                'department' => $req->department ?? 'N/A',
+                'destination' => $req->destination ?? 'N/A',
+                'purpose' => $req->purpose ?? 'N/A',
+                'passenger_count' => $count,
+                'passenger_names' => $pNames,
+                'has_other_passengers' => (bool) $req->has_other_passengers,
+                'other_passengers' => $req->other_passengers ?? '',
+                'date' => $req->date ? \Carbon\Carbon::parse($req->date)->format('M d, Y') : null,
+                'time' => $req->time ? \Carbon\Carbon::parse($req->time)->format('g:i A') : null,
+            ];
+        }
+
+        $vehName = \App\Models\Vehicle::getVehicleName($this->vehicle);
+        $outStamp = $this->display_gate_out ? \Carbon\Carbon::parse($this->display_gate_out)->timezone('Asia/Manila')->format('M d, Y - g:i A') : '---';
+        $inStamp = $this->display_gate_in ? \Carbon\Carbon::parse($this->display_gate_in)->timezone('Asia/Manila')->format('M d, Y - g:i A') : '---';
+
+        return [
+            'id' => $this->id,
+            'ticket_number' => $this->formatted_ticket_number,
+            'raw_ticket_number' => $this->ticket_number,
+            'vehicle_name' => $vehName,
+            'vehicle_plate' => $this->vehicle,
+            'driver_name' => $this->driver?->name ?? 'N/A',
+            'driver_license' => $this->driver?->license_number ?? null,
+            'driver_contact' => $this->driver?->contact_number ?? null,
+            'out_time' => $outStamp,
+            'in_time' => $inStamp,
+            'scanned_by' => $this->display_scanned_by,
+            'status' => ucfirst($this->status),
+            'is_carpool' => count($requestsData) > 1,
+            'total_passengers' => $totalPax,
+            'primary_destination' => $this->vehicleRequest?->destination ?? ($requestsData[0]['destination'] ?? 'N/A'),
+            'primary_purpose' => $this->vehicleRequest?->purpose ?? ($requestsData[0]['purpose'] ?? 'N/A'),
+            'requests' => $requestsData,
+            'print_url' => route('trip-tickets.print', $this->id),
+        ];
+    }
 }

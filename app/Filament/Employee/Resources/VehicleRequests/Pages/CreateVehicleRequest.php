@@ -14,6 +14,22 @@ class CreateVehicleRequest extends CreateRecord
         return false;
     }
 
+    public function getHeading(): string
+    {
+        return 'Create Trip Ticket Request';
+    }
+
+    public function getSubheading(): ?string
+    {
+        return 'Fill out the vehicle reservation form below to request an official trip ticket.';
+    }
+
+    protected function getCreateFormAction(): \Filament\Actions\Action
+    {
+        return parent::getCreateFormAction()
+            ->label('Submit Request');
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
@@ -88,6 +104,22 @@ class CreateVehicleRequest extends CreateRecord
             $data['request_number'] = \App\Models\VehicleRequest::generateNextRequestNumber();
         }
 
+        // Clean and guarantee passenger names
+        $validPassengers = [];
+        if (!empty($data['passenger_names']) && is_array($data['passenger_names'])) {
+            foreach ($data['passenger_names'] as $p) {
+                $pName = trim($p['name'] ?? '');
+                if ($pName !== '') {
+                    $validPassengers[] = ['name' => $pName];
+                }
+            }
+        }
+        if (empty($validPassengers)) {
+            $validPassengers = [['name' => $data['employee_name'] ?: 'Requester']];
+        }
+        $data['passenger_names'] = $validPassengers;
+        $data['number_of_passengers'] = count($validPassengers);
+
         if (!empty($data['requester_signature']) && $user && empty($user->signature)) {
             try {
                 $user->updateQuietly(['signature' => $data['requester_signature']]);
@@ -96,8 +128,6 @@ class CreateVehicleRequest extends CreateRecord
 
         return $data;
     }
-
-
 
     protected function getRedirectUrl(): string
     {

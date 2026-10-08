@@ -19,13 +19,14 @@ class ListVehicleRequests extends ListRecords
 
     public function getTitle(): string | Htmlable
     {
-        return 'Vehicle Requests';
+        return 'Trip Ticket Requests';
     }
 
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('New Request'),
             Action::make('refresh')
                 ->label('Refresh Table')
                 ->icon('heroicon-o-arrow-path')

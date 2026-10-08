@@ -114,10 +114,10 @@ class AppServiceProvider extends ServiceProvider
                     $depTime = $primaryReq->time ?? '00:00:00';
                     $tripDateTime = \Illuminate\Support\Carbon::parse("{$depDate} {$depTime}", 'Asia/Manila');
 
-                    // If current time is 30 minutes past scheduled departure time without document
-                    if ($now->diffInMinutes($tripDateTime, false) < -30) {
+                    // If current time is over 24 hours past scheduled departure time without document
+                    if ($now->diffInHours($tripDateTime, false) < -24) {
                         $formattedSchedule = $tripDateTime->format('M d, Y h:i A');
-                        $autoReason = "Auto-declined: Scheduled departure time ({$formattedSchedule}) passed without uploaded CEO signed approval document.";
+                        $autoReason = "Auto-declined: Scheduled departure time ({$formattedSchedule}) passed by over 24 hours without uploaded CEO signed approval document.";
 
                         // Cancel Trip Ticket quietly to prevent unintended recursive events
                         $trip->status = 'cancelled';

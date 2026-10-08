@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Travel Order - {{ $ticket->ticket_number }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -41,17 +42,25 @@
 @php
     $backUrl = url()->previous();
     if ($backUrl === url()->current() || empty($backUrl)) {
-        if (auth('driver')->check()) {
-            $backUrl = url('/driver/trip-tickets');
-        } else {
-            $backUrl = route('trip-tickets.print', $ticket->id);
-        }
+        $backUrl = url('/admin/trip-tickets');
     }
 @endphp
-<body class="bg-gray-100 py-6 px-4">
+<body class="bg-gray-100 py-4 sm:py-6 px-2 sm:px-4">
+
+    <!-- In-App Browser (Messenger / IG) Notification Banner -->
+    <div id="inAppNotice" class="no-print hidden max-w-[7.5in] mx-auto mb-3 bg-amber-50 border border-amber-300 rounded-xl p-3 sm:p-3.5 shadow-sm text-xs text-amber-900 flex items-start justify-between gap-3">
+        <div class="flex items-start gap-2.5">
+            <span class="text-base leading-none">📱</span>
+            <div class="leading-relaxed">
+                <strong class="font-bold">Nasa loob ka ng Messenger / In-App browser:</strong>
+                Maaaring hindi gumana ang Print o Download dito dahil hinarang ito ng app. Pindutin ang <strong>3 dots (⋮ o •••)</strong> sa kanang itaas ng screen at piliin ang <strong>"Open in Chrome" / "Open in Browser"</strong>.
+            </div>
+        </div>
+        <button type="button" onclick="document.getElementById('inAppNotice').classList.add('hidden')" class="text-amber-700 hover:text-amber-900 font-bold p-1 cursor-pointer">✕</button>
+    </div>
 
     <!-- Floating Top Bar (hidden on print) -->
-    <div class="no-print max-w-[7.5in] mx-auto mb-4 flex flex-wrap items-center justify-between bg-white p-4 rounded-xl shadow-md border border-gray-200 gap-3">
+    <div class="no-print max-w-[7.5in] mx-auto mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-white p-3 sm:p-4 rounded-xl shadow-md border border-gray-200 gap-3">
         <div class="flex flex-wrap items-center gap-2">
             <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-1.5 px-3 rounded-lg transition-colors flex items-center gap-1.5 text-xs border border-gray-300 shadow-sm cursor-pointer mr-1" title="Go Back">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -59,47 +68,49 @@
                 </svg>
                 <span>Back</span>
             </a>
-            <span class="text-gray-800 font-bold text-sm mr-1">Travel Order</span>
+            <span class="text-gray-800 font-bold text-xs sm:text-sm mr-1">Travel Order</span>
             <!-- Interactive Purpose Selection Pills -->
             <div class="flex items-center gap-1.5 bg-gray-100 p-1 rounded-lg border border-gray-300">
                 <span class="text-xs font-semibold text-gray-500 pl-1.5 mr-1">Purpose:</span>
-                <button type="button" id="btnOB" onclick="togglePurposeType('business')" class="{{ $isOB ? 'bg-blue-600 text-white font-bold shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-200' }} py-1 px-2.5 rounded text-xs transition-colors flex items-center gap-1">
+                <button type="button" id="btnOB" onclick="togglePurposeType('business')" class="{{ $isOB ? 'bg-blue-600 text-white font-bold shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-200' }} py-1 px-2 rounded text-xs transition-colors flex items-center gap-1">
                     <span>✓</span> Official Business
                 </button>
-                <button type="button" id="btnOT" onclick="togglePurposeType('time')" class="{{ !$isOB ? 'bg-blue-600 text-white font-bold shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-200' }} py-1 px-2.5 rounded text-xs transition-colors flex items-center gap-1">
+                <button type="button" id="btnOT" onclick="togglePurposeType('time')" class="{{ !$isOB ? 'bg-blue-600 text-white font-bold shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-200' }} py-1 px-2 rounded text-xs transition-colors flex items-center gap-1">
                     <span>✓</span> Official Time
                 </button>
             </div>
             <!-- Transportation Allowed toggle pill -->
-            <button type="button" id="btnTA" onclick="toggleTransAllowed()" class="bg-emerald-600 text-white font-bold shadow-sm py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center gap-1.5 ml-1 border border-emerald-700">
+            <button type="button" id="btnTA" onclick="toggleTransAllowed()" class="bg-emerald-600 text-white font-bold shadow-sm py-1.5 px-2.5 rounded-lg text-xs transition-colors flex items-center gap-1 border border-emerald-700">
                 <span id="btnTAIcon">✓</span> Transportation Allowed
             </button>
         </div>
 
-        <div class="flex items-center gap-2">
-            <a href="{{ route('trip-tickets.print', $ticket->id) }}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-lg transition-colors flex items-center gap-1.5 text-xs shadow-sm">
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+            <a href="{{ route('trip-tickets.print', $ticket->id) }}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 text-xs shadow-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Trip Ticket
             </a>
-            <button onclick="downloadPDF()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg transition-colors flex items-center gap-1.5 text-xs shadow-sm">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <button id="downloadPdfBtn" type="button" onclick="downloadPDF()" class="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 text-xs shadow-sm cursor-pointer disabled:opacity-50">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Download PDF
+                <span id="downloadBtnText">Download PDF</span>
             </button>
-            <button onclick="window.print()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-3 rounded-lg transition-colors flex items-center gap-1.5 text-xs shadow-sm">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <button id="printDocBtn" type="button" onclick="triggerPrint()" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 text-xs shadow-sm cursor-pointer">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
-                Print Document
+                <span>Print Document</span>
             </button>
         </div>
     </div>
 
-    <!-- Main Travel Order Sheet (Matches Official CSU Photo Exactly) -->
-    <div class="bg-white w-full max-w-[7.5in] mx-auto p-8 sm:p-10 flex flex-col justify-between print-container relative shadow-lg border border-gray-200 text-black text-[13px] leading-relaxed" style="min-height: 10.2in;">
+    <!-- Wrapper for smooth mobile horizontal scroll if needed -->
+    <div class="overflow-x-auto w-full max-w-[7.5in] mx-auto pb-4">
+        <!-- Main Travel Order Sheet (Matches Official CSU Photo Exactly) -->
+        <div class="bg-white w-full max-w-[7.5in] mx-auto p-8 sm:p-10 flex flex-col justify-between print-container relative shadow-lg border border-gray-200 text-black text-[13px] leading-relaxed" style="min-height: 10.2in; min-width: 680px;">
         
         <div>
             <!-- Header (matching official CSU layout) -->
@@ -257,7 +268,6 @@
             </div>
             <span>Rev. 01, 01-03-2024</span>
         </div>
-
     </div>
 
     <!-- Interactive Scripts & PDF Download -->
@@ -334,16 +344,138 @@
             } catch (e) {}
         }
 
+        function isInAppBrowser() {
+            return /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|MicroMessenger/i.test(navigator.userAgent);
+        }
+
+        if (isInAppBrowser()) {
+            const notice = document.getElementById('inAppNotice');
+            if (notice) notice.classList.remove('hidden');
+        }
+
+        function triggerPrint() {
+            if (isInAppBrowser()) {
+                if (confirm('Hindi sinusuportahan ang direct printing sa loob ng Messenger.\n\nGusto mo bang i-download na lamang ito bilang PDF?')) {
+                    downloadPDF();
+                }
+                return;
+            }
+
+            try {
+                window.print();
+            } catch (e) {
+                console.warn('window.print error:', e);
+                downloadPDF();
+            }
+        }
+
+        let isGeneratingPdf = false;
         function downloadPDF() {
+            if (isGeneratingPdf) return;
+            isGeneratingPdf = true;
+
+            const btn = document.getElementById('downloadPdfBtn');
+            const btnText = document.getElementById('downloadBtnText');
+            const originalText = btnText ? btnText.textContent : 'Download PDF';
+
+            if (btn) btn.disabled = true;
+            if (btnText) btnText.innerHTML = '<span class="inline-block animate-spin mr-1">⏳</span> Generating...';
+
             const element = document.querySelector('.print-container');
+            const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
             const opt = {
-                margin:       0.4,
+                margin:       0.3,
                 filename:     'Travel-Order-{{ $ticket->ticket_number }}.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                image:        { type: 'jpeg', quality: 0.95 },
+                html2canvas:  { 
+                    scale: isMobile ? 1.4 : 2.0, 
+                    useCORS: true, 
+                    allowTaint: true,
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: 816
+                },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait', compress: true }
             };
-            html2pdf().set(opt).from(element).save();
+
+            html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
+                const blob = pdf.output('blob');
+                const blobUrl = URL.createObjectURL(blob);
+                const fileName = opt.filename;
+
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    if (document.body.contains(a)) document.body.removeChild(a);
+                }, 1000);
+
+                if (isMobile) {
+                    showMobilePdfModal(blobUrl, fileName);
+                }
+
+                if (btnText) btnText.textContent = '✅ Downloaded!';
+                setTimeout(() => {
+                    if (btnText) btnText.textContent = originalText;
+                    if (btn) btn.disabled = false;
+                    isGeneratingPdf = false;
+                }, 2000);
+            }).catch(function(err) {
+                console.error('PDF generation error:', err);
+                alert('Nagkaroon ng problema sa paggawa ng PDF gamit ang browser na ito.\n\nTip: I-tap ang 3 dots (...) sa itaas at buksan sa Google Chrome para makapag-download o print.');
+                if (btnText) btnText.textContent = originalText;
+                if (btn) btn.disabled = false;
+                isGeneratingPdf = false;
+            });
+        }
+
+        function showMobilePdfModal(blobUrl, fileName) {
+            let modal = document.getElementById('mobilePdfSuccessModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'mobilePdfSuccessModal';
+                modal.className = 'no-print fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl border border-gray-200 flex flex-col gap-3.5">
+                        <div class="flex items-center justify-between border-b pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">📄</span>
+                                <h3 class="font-extrabold text-sm text-gray-900">PDF Document Ready!</h3>
+                            </div>
+                            <button type="button" onclick="closeMobilePdfModal()" class="text-gray-400 hover:text-gray-600 font-bold p-1 cursor-pointer">✕</button>
+                        </div>
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Nagawa na ang iyong PDF! Kung hindi kusang nag-download sa iyong cellphone, pindutin ang button sa ibaba:
+                        </p>
+                        <div class="flex flex-col gap-2 pt-1">
+                            <a id="mobileViewPdfLink" href="${blobUrl}" target="_blank" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2.5 px-4 rounded-xl text-center text-xs flex items-center justify-center gap-2 shadow-sm">
+                                <span>👁️</span> <span>Buksan / I-view ang PDF</span>
+                            </a>
+                            <button type="button" onclick="closeMobilePdfModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-xl text-xs text-center cursor-pointer">
+                                Isara (Close)
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } else {
+                const link = document.getElementById('mobileViewPdfLink');
+                if (link) link.href = blobUrl;
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
+        }
+
+        function closeMobilePdfModal() {
+            const modal = document.getElementById('mobilePdfSuccessModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
         }
     </script>
 

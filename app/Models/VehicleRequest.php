@@ -124,8 +124,8 @@ class VehicleRequest extends Model
                 $now = \Illuminate\Support\Carbon::now('Asia/Manila');
                 $depDateTime = $vehicleRequest->getScheduledDepartureDateTime();
 
-                // 1. If late upload (scheduled departure time has already passed): Auto-Decline!
-                if ($depDateTime && $now->greaterThan($depDateTime)) {
+                // 1. If upload is more than 24 hours late (trip schedule lapsed by over 1 day): Auto-Decline!
+                if ($depDateTime && $now->diffInHours($depDateTime, false) < -24) {
                     $formattedSchedule = $depDateTime->format('M d, Y h:i A');
                     $autoReason = "Auto-declined: CEO signed document was uploaded late after the scheduled departure date/time ({$formattedSchedule}).";
 
@@ -245,9 +245,9 @@ class VehicleRequest extends Model
 
             foreach ($unsubmittedRequests as $req) {
                 $depDateTime = $req->getScheduledDepartureDateTime();
-                if ($depDateTime && $now->diffInMinutes($depDateTime, false) < -30) {
+                if ($depDateTime && $now->diffInHours($depDateTime, false) < -24) {
                     $formattedSchedule = $depDateTime->format('M d, Y h:i A');
-                    $reason = "Auto-declined: Scheduled departure time ({$formattedSchedule}) passed without uploaded CEO signed approval document.";
+                    $reason = "Auto-declined: Scheduled departure time ({$formattedSchedule}) passed by over 24 hours without uploaded CEO signed approval document.";
 
                     $req->updateQuietly([
                         'status' => 'rejected',

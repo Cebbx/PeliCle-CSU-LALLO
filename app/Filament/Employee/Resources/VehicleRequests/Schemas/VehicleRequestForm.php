@@ -5,9 +5,7 @@ namespace App\Filament\Employee\Resources\VehicleRequests\Schemas;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -18,7 +16,6 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 
 class VehicleRequestForm
 {
@@ -26,11 +23,11 @@ class VehicleRequestForm
     {
         return $schema
             ->components([
-                Grid::make(3)
+                Grid::make(['default' => 1, 'sm' => 3])
                     ->columnSpanFull()
                     ->schema([
                         TextInput::make('request_number')
-                            ->label('Vehicle Request')
+                            ->label('Request Control No.')
                             ->default(fn () => \App\Models\VehicleRequest::generateNextRequestNumber())
                             ->helperText('Auto-generated tracking number')
                             ->disabled()
@@ -79,17 +76,26 @@ class VehicleRequestForm
                                 }
                                 return 'Campus Student Council';
                             })
-                            ->helperText('Auto-filled from your department')
+                            ->helperText('Auto-filled from your profile/department')
                             ->disabled()
                             ->dehydrated()
                             ->required(),
 
                         TextInput::make('employee_name')
-                            ->label('Requester Name')
+                            ->label('Requester Full Name')
                             ->placeholder('e.g. Dr. Juan Dela Cruz / Full Name')
-                            ->helperText('Please enter the full name of requester')
+                            ->helperText('Please enter your full name as the primary requester')
                             ->default(function () {
                                 $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
+                                if ($user) {
+                                    $prevName = \App\Models\VehicleRequest::where('user_id', $user->id)
+                                        ->whereNotNull('employee_name')
+                                        ->latest('id')
+                                        ->value('employee_name');
+                                    if ($prevName) {
+                                        return $prevName;
+                                    }
+                                }
                                 $name = $user?->name ?? '';
                                 $deptIndicators = ['College of', 'Office of', 'Department', 'Administration Office', 'Campus', 'Café Valena', 'CICS', 'CTE', 'CHM', 'COA', 'HRMO', 'MIS', 'Employee User'];
                                 foreach ($deptIndicators as $ind) {
@@ -105,8 +111,8 @@ class VehicleRequestForm
                 Hidden::make('user_id')
                     ->default(fn () => \Filament\Facades\Filament::auth()->id() ?? auth('employee')->id() ?? auth()->id()),
 
-                Fieldset::make('Destination Address')
-                    ->columnSpan(1)
+                Fieldset::make('Destination Details')
+                    ->columnSpan(['default' => 2, 'lg' => 1])
                     ->schema([
                         Select::make('region_code')
                             ->label('Region')
@@ -119,6 +125,7 @@ class VehicleRequestForm
                                 $set('destination', null);
                             })
                             ->required(),
+
                         Select::make('province_code')
                             ->label('Province')
                             ->options(fn (Get $get) => \App\Services\PhilippineAddressService::getProvinces($get('region_code')))
@@ -130,6 +137,7 @@ class VehicleRequestForm
                             })
                             ->disabled(fn (Get $get) => empty($get('region_code')))
                             ->required(),
+
                         Select::make('city_code')
                             ->label('City / Municipality')
                             ->options(fn (Get $get) => \App\Services\PhilippineAddressService::getCities($get('province_code')))
@@ -143,6 +151,7 @@ class VehicleRequestForm
                             })
                             ->disabled(fn (Get $get) => empty($get('province_code')))
                             ->required(),
+
                         TextInput::make('destination')
                             ->label('Destination Preview')
                             ->placeholder('Auto-generated based on City & Province')
@@ -190,10 +199,10 @@ class VehicleRequestForm
                                 $set('city_code', $cityCode);
                             }),
                     ])
-                    ->columns(2),
+                    ->columns(['default' => 1, 'sm' => 2]),
 
                 Fieldset::make('Travel Schedule')
-                    ->columnSpan(1)
+                    ->columnSpan(['default' => 2, 'lg' => 1])
                     ->schema([
                         DatePicker::make('date')
                             ->label('Travel Departure Date')
@@ -205,7 +214,7 @@ class VehicleRequestForm
 
                         TimePicker::make('time')
                             ->label('Travel Departure Time')
-                            ->default(fn () => now('Asia/Manila')->format('H:i'))
+                            ->default(fn () => now('Asia/Manila')->addMinutes(30)->format('H:i'))
                             ->seconds(false)
                             ->live()
                             ->rules([
@@ -214,7 +223,7 @@ class VehicleRequestForm
                                         $date = $get('date');
                                         if ($date && \Carbon\Carbon::parse($date, 'Asia/Manila')->isToday()) {
                                             $selectedDateTime = \Carbon\Carbon::parse($date . ' ' . $value, 'Asia/Manila');
-                                            if ($selectedDateTime->lessThan(\Carbon\Carbon::now('Asia/Manila')->subMinutes(5))) {
+                                            if ($selectedDateTime->lessThan(\Carbon\Carbon::now('Asia/Manila')->subMinutes(30))) {
                                                 $fail('Travel departure time cannot be in the past for today’s date.');
                                             }
                                         }
@@ -252,14 +261,14 @@ class VehicleRequestForm
                             ])
                             ->required(),
                     ])
-                    ->columns(2),
+                    ->columns(['default' => 1, 'sm' => 2]),
 
                 Fieldset::make('Trip Purpose')
                     ->columnSpanFull()
                     ->schema([
                         Textarea::make('purpose')
                             ->label('Purpose of Trip')
-                            ->placeholder('Enter the reason or purpose of the trip...')
+                            ->placeholder('Enter the reason or purpose of the trip (official business, seminar, academic activity)...')
                             ->rows(3)
                             ->helperText('Please describe the official business, event, or academic purpose of the trip.')
                             ->required()
@@ -270,13 +279,11 @@ class VehicleRequestForm
                     ->columnSpanFull()
                     ->schema([
                         Repeater::make('passenger_names')
-                            ->hiddenLabel()
-                            ->table([
-                                TableColumn::make('Passenger Full Name'),
-                            ])
+                            ->label('Passenger List / Companions')
                             ->schema([
                                 TextInput::make('name')
-                                    ->placeholder('e.g. Dr. Juan Dela Cruz')
+                                    ->label('Passenger Full Name')
+                                    ->placeholder('e.g. Prof. Juan Dela Cruz / Companion Name')
                                     ->required()
                                     ->live(onBlur: true)
                                     ->rules([
@@ -298,19 +305,36 @@ class VehicleRequestForm
                                         },
                                     ]),
                             ])
-                            ->addActionLabel('+ Add Passenger')
-                            ->default([['name' => '']])
+                            ->addActionLabel('+ Add Passenger / Companion')
+                            ->default(function () {
+                                $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
+                                if ($user) {
+                                    $prevName = \App\Models\VehicleRequest::where('user_id', $user->id)
+                                        ->whereNotNull('employee_name')
+                                        ->latest('id')
+                                        ->value('employee_name');
+                                    if ($prevName) {
+                                        return [['name' => $prevName]];
+                                    }
+                                }
+                                $name = $user?->name ?? '';
+                                $deptIndicators = ['College of', 'Office of', 'Department', 'Administration Office', 'Campus', 'Café Valena', 'CICS', 'CTE', 'CHM', 'COA', 'HRMO', 'MIS', 'Employee User'];
+                                foreach ($deptIndicators as $ind) {
+                                    if (stripos($name, $ind) !== false) {
+                                        return [];
+                                    }
+                                }
+                                return !empty($name) ? [['name' => $name]] : [];
+                            })
                             ->reorderable()
-                            ->reorderAction(fn (\Filament\Actions\Action $action) => $action->icon('heroicon-m-arrow-down'))
                             ->live()
                             ->afterStateUpdated(function (callable $set, $state) {
                                 $names = array_filter(array_map(fn ($item) => trim($item['name'] ?? ''), $state ?? []));
                                 $set('number_of_passengers', count($names) ?: 1);
                             })
-                            ->columnSpanFull()
-                            ->required(),
+                            ->columnSpanFull(),
 
-                        Grid::make(2)->schema([
+                        Grid::make(['default' => 1, 'sm' => 2])->schema([
                             TextInput::make('number_of_passengers')
                                 ->label('Total Passengers')
                                 ->numeric()
@@ -341,11 +365,11 @@ class VehicleRequestForm
                             ->rows(3),
                     ]),
 
-                Fieldset::make('Requester E-Signature')
+                Fieldset::make('Requester Electronic Signature')
                     ->columnSpanFull()
                     ->schema([
                         ViewField::make('requester_signature')
-                            ->label('Client Electronic Signature')
+                            ->hiddenLabel()
                             ->view('filament.components.signature-pad')
                             ->default(function () {
                                 $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();

@@ -32,6 +32,13 @@ class ViewTripTicket extends ViewRecord
                 ->color('info')
                 ->url(fn ($record) => route('trip-tickets.print', $record->id))
                 ->openUrlInNewTab(),
+            Action::make('view_signed_document')
+                ->label('View Signed Document')
+                ->icon('heroicon-o-document-check')
+                ->color('success')
+                ->visible(fn ($record) => !empty($record->document))
+                ->url(fn ($record) => route('trip-tickets.view-signed-document', $record->id))
+                ->openUrlInNewTab(),
         ];
     }
 }

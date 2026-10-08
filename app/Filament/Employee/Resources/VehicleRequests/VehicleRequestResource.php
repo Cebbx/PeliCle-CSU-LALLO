@@ -21,6 +21,12 @@ class VehicleRequestResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
+    protected static ?string $navigationLabel = 'Trip Ticket Requests';
+
+    protected static ?string $modelLabel = 'Trip Ticket Request';
+
+    protected static ?string $pluralModelLabel = 'Trip Ticket Requests';
+
     protected static ?string $recordTitleAttribute = 'request_number';
 
     public static function getEloquentQuery(): Builder
