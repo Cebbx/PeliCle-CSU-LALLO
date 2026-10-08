@@ -40,6 +40,7 @@ class DepartmentUserSeeder extends Seeder
                 'name' => $name,
                 'email' => $email,
                 'password' => Hash::make($code),
+                'plain_password' => $code,
                 'role' => 'employee',
             ]);
         }

@@ -75,11 +75,20 @@ class UserForm
                     ->maxLength(50),
                 TextInput::make('password')
                     ->password()
-                    ->dehydrateStateUsing(fn ($state) => \Hash::make($state))
+                    ->revealable()
+                    ->dehydrateStateUsing(fn ($state) => filled($state) ? \Illuminate\Support\Facades\Hash::make($state) : null)
                     ->dehydrated(fn ($state) => filled($state))
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if (filled($state)) {
+                            $set('plain_password', $state);
+                        }
+                    })
                     ->required(fn (string $context): bool => $context === 'create')
                     ->placeholder(fn (string $context): string => $context === 'edit' ? 'Leave blank to keep current password' : '')
+                    ->helperText(fn (?\App\Models\User $record) => $record && $record->plain_password ? "Current saved password: {$record->plain_password}" : 'Default for employee accounts is their department code (e.g. cics, hrmo) or "password"')
                     ->maxLength(255),
+                \Filament\Forms\Components\Hidden::make('plain_password'),
             ]);
     }
 }

@@ -58,6 +58,7 @@ class DriverSeeder extends Seeder
                 'name' => $driverData['name'],
                 'email' => $driverData['license_number'],
                 'password' => Hash::make($driverData['license_number']),
+                'plain_password' => $driverData['license_number'],
                 'role' => 'driver',
             ]);
         }
