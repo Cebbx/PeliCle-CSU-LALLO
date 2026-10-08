@@ -627,21 +627,87 @@
             background: #f3e8ff !important;
             color: #7e22ce !important;
             border-color: #d8b4fe !important;
+        @keyframes pulseAlert {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); border-color: #ef4444; }
+            50% { box-shadow: 0 0 16px 4px rgba(239, 68, 68, 0.35); border-color: #f87171; }
         }
     </style>
 
-    <div class="dashboard-wrapper" wire:poll.3s x-data="{ showTravelersModal: false }">
+    <div class="dashboard-wrapper" wire:poll.3s x-data="{ showTravelersModal: false, showTransactionsModal: false }">
 
-        <!-- Top Greeting Header -->
-        <div class="dash-header">
-            <h1 class="dash-title">Dashboard</h1>
-            <div class="dash-welcome">
-                Welcome back, {{ auth()->user()->name ?? 'Admin User' }}! 👋
+        <!-- Top Greeting Header with Quick Actions -->
+        <div class="dash-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h1 class="dash-title">Dashboard</h1>
+                <div class="dash-welcome">
+                    Welcome back, {{ auth()->user()->name ?? 'Admin User' }}! 👋
+                </div>
+                <div class="dash-desc">
+                    Here is the current operational status of the CSU Lal-lo Campus Vehicle & Trip Management System.
+                </div>
             </div>
-            <div class="dash-desc">
-                Here is the current operational status of the CSU Lal-lo Campus Vehicle & Trip Management System.
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" @click="showTransactionsModal = true" style="background: #1e293b; color: #f8fafc; border: 1px solid #334155; padding: 7px 14px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='#334155'" onmouseout="this.style.background='#1e293b'">
+                    <span>📋 Live Transactions Feed</span>
+                    <span style="background: #0284c7; color: #ffffff; padding: 1px 6px; border-radius: 9999px; font-size: 10px;">{{ count($latestTransactions ?? []) }}</span>
+                </button>
             </div>
         </div>
+
+        <!-- EMERGENCY INCIDENTS & BREAKDOWN ALERTS BANNER -->
+        @if(!empty($emergencyIncidents) && count($emergencyIncidents) > 0)
+            <div style="margin-top: 10px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;">
+                @foreach($emergencyIncidents as $incident)
+                    <div style="background: linear-gradient(135deg, rgba(220, 38, 38, 0.16) 0%, rgba(185, 28, 28, 0.25) 100%); border: 1.5px solid #ef4444; border-radius: 12px; padding: 14px 18px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); animation: pulseAlert 2.5s infinite;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 260px;">
+                                <div style="background: #ef4444; color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);">
+                                    🚨
+                                </div>
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                        <span style="font-size: 13.5px; font-weight: 800; color: #fca5a5; letter-spacing: 0.02em;">
+                                            EMERGENCY: VEHICLE BREAKDOWN REPORTED!
+                                        </span>
+                                        <span style="background: rgba(239, 68, 68, 0.3); color: #fecaca; border: 1px solid rgba(239, 68, 68, 0.5); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">
+                                            Driver: {{ $incident->user_name }}
+                                        </span>
+                                        <span style="font-size: 11px; color: #cbd5e1;">
+                                            &bull; {{ $incident->created_at ? $incident->created_at->diffForHumans() : 'Just now' }}
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 12.5px; color: #ffffff; font-weight: 600; margin-top: 4px; line-height: 1.4;">
+                                        {{ $incident->details }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                @if($incident->model_id)
+                                    <a href="{{ \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $incident->model_id]) }}" 
+                                       style="background: #1e293b; color: #f8fafc; border: 1px solid #475569; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                        📄 View Trip Ticket
+                                    </a>
+                                @endif
+                                <a href="/admin/vehicles?tab=maintenance" 
+                                   style="background: #dc2626; color: #ffffff; border: none; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    🔧 View Maintenance
+                                </a>
+                                <a href="/admin/activity-logs?tableSearch={{ urlencode($incident->user_name) }}" 
+                                   style="background: #0284c7; color: #ffffff; border: none; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    📋 Audit Log
+                                </a>
+                                <button type="button" 
+                                        wire:click="dismissIncident({{ $incident->id }})" 
+                                        style="background: transparent; color: #94a3b8; border: 1px solid #334155; font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 6px; cursor: pointer;"
+                                        title="Dismiss this alert">
+                                    ✕ Dismiss
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
 
         <!-- ROW 1: Four Main Fleet Status Cards (Clickable Links) -->
         <div class="row-grid-4">
@@ -1052,7 +1118,7 @@
                                 default => ucfirst($req->status),
                             };
                         @endphp
-                        <a href="/admin/vehicle-requests" class="feed-item-row feed-item-link">
+                        <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tableSearch' => $req->request_number]) }}" class="feed-item-row feed-item-link" title="Open transaction {{ $req->request_number }}">
                             <div class="feed-item-left">
                                 <span class="feed-dot-indicator" style="background: {{ $dotColor }};"></span>
                                 <div class="feed-text-group">
@@ -1115,7 +1181,7 @@
                                 default => '#' . $rank
                             };
                         @endphp
-                        <div class="traveler-row-item">
+                        <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tableSearch' => $traveler['name']]) }}" class="traveler-row-item" style="text-decoration: none; cursor: pointer; transition: background 0.15s;" title="Filter requests for {{ $traveler['name'] }}">
                             <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
                                 <div class="traveler-rank-badge" style="{{ $badgeBg }}">
                                     {{ $medal }}
@@ -1128,7 +1194,7 @@
                             <span class="traveler-trip-badge">
                                 {{ $traveler['trips'] }} {{ Str::plural('trip', $traveler['trips']) }}
                             </span>
-                        </div>
+                        </a>
                     @empty
                         <div style="padding: 32px 16px; text-align: center; color: #64748b; font-size: 13px;">
                             No traveler history recorded yet.
@@ -1141,6 +1207,87 @@
                         View All Vehicle Requests &rarr;
                     </a>
                     <button type="button" @click="showTravelersModal = false" class="travelers-close-btn">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Live Transactions Modal -->
+        <div x-show="showTransactionsModal" 
+             x-cloak 
+             class="travelers-modal-backdrop" 
+             style="display: none;"
+             @click.self="showTransactionsModal = false"
+             @keydown.escape.window="showTransactionsModal = false">
+            <div class="travelers-modal-card" style="max-width: 680px;" @click.stop>
+                <div class="travelers-modal-header" style="background: #0f172a; border-bottom: 1px solid #1e293b;">
+                    <div>
+                        <h3 class="travelers-modal-title" style="display: flex; align-items: center; gap: 8px;">
+                            <span>📋</span>
+                            <span>Live System Transactions & Incident Feed</span>
+                        </h3>
+                        <p class="travelers-modal-desc">Real-time audit log ng lahat ng biyahe, emergency reports, requests, at approvals</p>
+                    </div>
+                    <button type="button" @click="showTransactionsModal = false" class="travelers-modal-close" title="Close">
+                        <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div style="max-height: 480px; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
+                    @forelse($latestTransactions ?? [] as $tx)
+                        @php
+                            $isEmergency = str_contains(strtolower($tx->action), 'breakdown') || str_contains(strtolower($tx->details), 'breakdown') || str_contains(strtolower($tx->details), 'emergency');
+                            $txBg = $isEmergency ? 'rgba(239, 68, 68, 0.12)' : '#101726';
+                            $txBorder = $isEmergency ? '#ef4444' : '#1e293b';
+                            $badgeColor = $isEmergency ? '#ef4444' : '#0284c7';
+                        @endphp
+                        <div style="background: {{ $txBg }}; border: 1px solid {{ $txBorder }}; border-radius: 10px; padding: 12px 14px; transition: transform 0.15s;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="background: {{ $badgeColor }}; color: #ffffff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;">
+                                        {{ $tx->action }}
+                                    </span>
+                                    <span style="font-size: 12.5px; font-weight: 700; color: #ffffff;">
+                                        {{ $tx->user_name }}
+                                    </span>
+                                </div>
+                                <span style="font-size: 11px; color: #94a3b8; white-space: nowrap;">
+                                    {{ $tx->created_at ? $tx->created_at->diffForHumans() : 'Recently' }}
+                                </span>
+                            </div>
+                            <div style="font-size: 12px; color: #cbd5e1; margin-top: 6px; line-height: 1.45;">
+                                {{ $tx->details }}
+                            </div>
+                            <div style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px;">
+                                <span style="font-size: 10px; color: #64748b;">
+                                    IP: {{ $tx->ip_address ?? 'Local' }} &bull; {{ $tx->created_at ? $tx->created_at->format('M d, Y h:i A') : '' }}
+                                </span>
+                                @if($tx->model_id && str_contains($tx->model_type, 'TripTicket'))
+                                    <a href="{{ \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $tx->model_id]) }}" style="font-size: 11px; color: #38bdf8; text-decoration: underline; font-weight: 600;">
+                                        Open Trip Ticket #{{ $tx->model_id }} &rarr;
+                                    </a>
+                                @elseif($tx->model_id && str_contains($tx->model_type, 'VehicleRequest'))
+                                    <a href="/admin/vehicle-requests" style="font-size: 11px; color: #38bdf8; text-decoration: underline; font-weight: 600;">
+                                        Open Vehicle Requests &rarr;
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div style="padding: 32px 16px; text-align: center; color: #64748b; font-size: 13px;">
+                            No transactions or activity logs found.
+                        </div>
+                    @endforelse
+                </div>
+
+                <div class="travelers-modal-footer" style="background: #0f172a; border-top: 1px solid #1e293b;">
+                    <a href="/admin/activity-logs" class="travelers-view-requests-btn">
+                        View Full Audit Logs Table &rarr;
+                    </a>
+                    <button type="button" @click="showTransactionsModal = false" class="travelers-close-btn">
                         Close
                     </button>
                 </div>
@@ -1180,12 +1327,15 @@
             }
 
             const currentPending = {{ (int) $pendingRequests }};
+            const currentIncidents = {{ (int) count($emergencyIncidents ?? []) }};
+
             if (typeof window._lastPendingRequestsCount !== 'undefined') {
-                if (currentPending > window._lastPendingRequestsCount) {
+                if (currentPending > window._lastPendingRequestsCount || (typeof window._lastIncidentsCount !== 'undefined' && currentIncidents > window._lastIncidentsCount)) {
                     playChime();
                 }
             }
             window._lastPendingRequestsCount = currentPending;
+            window._lastIncidentsCount = currentIncidents;
         })();
     </script>
 </x-filament-panels::page>

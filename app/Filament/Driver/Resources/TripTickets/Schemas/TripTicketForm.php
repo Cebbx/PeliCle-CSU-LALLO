@@ -47,6 +47,10 @@ class TripTicketForm
                                 Placeholder::make('status')
                                     ->label('Status')
                                     ->content(fn ($record) => ($record && is_object($record)) ? ucfirst($record->status ?? 'pending') : 'N/A'),
+                                Placeholder::make('cancellation_reason')
+                                    ->label('Aberya / Breakdown Remarks')
+                                    ->content(fn ($record) => ($record && is_object($record)) ? ($record->cancellation_reason ?? 'None') : 'None')
+                                    ->visible(fn ($record) => $record && is_object($record) && !empty($record->cancellation_reason)),
                             ]),
                     ]),
                 Section::make('Trip Completion QR Code')

@@ -295,6 +295,7 @@ class Dashboard extends BaseDashboard
                 $query->where('action', 'Emergency Breakdown Reported')
                       ->orWhere('action', 'Breakdown Reported')
                       ->orWhere('details', 'like', '%Breakdown%')
+                      ->orWhere('details', 'like', '%Flat Tire%')
                       ->orWhere('details', 'like', '%nasiraan%');
             })
             ->where('created_at', '>=', Carbon::now('Asia/Manila')->subDays(3))

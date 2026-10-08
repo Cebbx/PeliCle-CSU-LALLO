@@ -85,25 +85,12 @@ class Dashboard extends BaseDashboard
             ->send();
     }
 
-    public function completeActiveTrip()
+    public function completeActiveTrip(): void
     {
-        $activeTrip = $this->getActiveTrip();
-        if (!$activeTrip) {
-            return;
-        }
-
-        $activeTrip->update(['status' => 'completed']);
-        if ($activeTrip->vehicleRequest) {
-            $activeTrip->vehicleRequest->update(['status' => 'completed']);
-        }
-        if ($activeTrip->driver) {
-            $activeTrip->driver->update(['status' => 'available']);
-        }
-
         \Filament\Notifications\Notification::make()
-            ->title('Trip Completed Successfully')
-            ->body("Trip {$activeTrip->ticket_number} marked as completed! Driver and vehicle are now available.")
-            ->success()
+            ->title('Action Restricted')
+            ->body('Tanging Security Guard (gamit ang QR scanner sa gate) o GSO Admin lamang ang may pahintulot na mag-complete ng biyahe.')
+            ->warning()
             ->send();
     }
 

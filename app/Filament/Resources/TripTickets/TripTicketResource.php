@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\TripTickets;
 
 use App\Filament\Resources\TripTickets\Pages\CreateTripTicket;
+use App\Filament\Resources\TripTickets\Pages\EditTripTicket;
 use App\Filament\Resources\TripTickets\Pages\ListTripTickets;
+use App\Filament\Resources\TripTickets\Pages\ViewTripTicket;
 use App\Filament\Resources\TripTickets\Schemas\TripTicketForm;
 use App\Filament\Resources\TripTickets\Tables\TripTicketsTable;
 use App\Models\TripTicket;
@@ -45,6 +47,8 @@ class TripTicketResource extends Resource
         return [
             'index' => ListTripTickets::route('/'),
             'create' => CreateTripTicket::route('/create'),
+            'view' => ViewTripTicket::route('/{record}'),
+            'edit' => EditTripTicket::route('/{record}/edit'),
         ];
     }
 }
