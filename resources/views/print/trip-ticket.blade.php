@@ -13,24 +13,40 @@
             color: black;
         }
         @media print {
-            body {
-                background: white;
-                color: black;
+            html, body {
+                display: block !important;
+                background: white !important;
+                color: black !important;
                 font-size: 11px;
                 padding: 0 !important;
                 margin: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
             }
             .no-print {
                 display: none !important;
             }
+            .overflow-x-auto {
+                overflow: visible !important;
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
             .print-container {
                 min-height: 0 !important;
+                min-width: 0 !important;
                 height: auto !important;
                 border: none !important;
                 box-shadow: none !important;
                 padding: 0 !important;
                 margin: 0 !important;
                 max-width: 100% !important;
+                width: 100% !important;
+                overflow: visible !important;
             }
             @page {
                 size: letter; /* Force US Letter paper size */
@@ -76,19 +92,7 @@
             </a>
             <span class="text-gray-700 font-bold text-xs sm:text-sm truncate">Vehicle Trip Ticket</span>
         </div>
-        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            @php
-                $currentUser = auth('admin')->user() ?? auth('web')->user() ?? auth()->user();
-                $isAdmin = $currentUser && strtolower($currentUser->role ?? '') === 'admin';
-            @endphp
-            @if($isAdmin)
-                <a href="{{ route('trip-tickets.print-travel-order', [$ticket->id, 'type' => 'driver']) }}" target="_blank" class="flex-1 sm:flex-initial bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 text-xs sm:text-sm shadow-sm cursor-pointer">
-                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span>Driver Travel Order</span>
-                </a>
-            @endif
+        <div class="flex items-center gap-2 w-full sm:w-auto">
             <button id="downloadPdfBtn" type="button" onclick="downloadPDF()" class="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm cursor-pointer disabled:opacity-50">
                 <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -493,7 +497,9 @@
                 }, 2000);
             }).catch(function(err) {
                 console.error('PDF generation error:', err);
-                alert('Nagkaroon ng problema sa paggawa ng PDF gamit ang browser na ito.\n\nTip: I-tap ang 3 dots (...) sa itaas at buksan sa Google Chrome para makapag-download o print.');
+                if (confirm('Nagkaroon ng problema sa automated PDF generation sa browser na ito.\n\nGusto mo bang gamitin ang Print menu para i-save bilang PDF?')) {
+                    triggerPrint();
+                }
                 if (btnText) btnText.textContent = originalText;
                 if (btn) btn.disabled = false;
                 isGeneratingPdf = false;
@@ -516,12 +522,15 @@
                             <button type="button" onclick="closeMobilePdfModal()" class="text-gray-400 hover:text-gray-600 font-bold p-1 cursor-pointer">✕</button>
                         </div>
                         <p class="text-xs text-gray-600 leading-relaxed">
-                            Nagawa na ang iyong PDF! Kung hindi kusang nag-download sa iyong cellphone, pindutin ang button sa ibaba:
+                            Nagawa na ang iyong PDF form! Pindutin ang button sa ibaba upang i-save o i-print sa iyong phone:
                         </p>
                         <div class="flex flex-col gap-2 pt-1">
-                            <a id="mobileViewPdfLink" href="${blobUrl}" target="_blank" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2.5 px-4 rounded-xl text-center text-xs flex items-center justify-center gap-2 shadow-sm">
-                                <span>👁️</span> <span>Buksan / I-view ang PDF</span>
+                            <a id="mobileDownloadPdfLink" href="${blobUrl}" download="${fileName}" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-3 px-4 rounded-xl text-center text-xs flex items-center justify-center gap-2 shadow-sm">
+                                <span>⬇️</span> <span>I-download ang PDF File</span>
                             </a>
+                            <button type="button" onclick="closeMobilePdfModal(); triggerPrint();" class="w-full bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold py-2.5 px-4 rounded-xl text-center text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+                                <span>🖨️</span> <span>I-print / Save as PDF (Native)</span>
+                            </button>
                             <button type="button" onclick="closeMobilePdfModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-xl text-xs text-center cursor-pointer">
                                 Isara (Close)
                             </button>
@@ -530,8 +539,11 @@
                 `;
                 document.body.appendChild(modal);
             } else {
-                const link = document.getElementById('mobileViewPdfLink');
-                if (link) link.href = blobUrl;
+                const link = document.getElementById('mobileDownloadPdfLink');
+                if (link) {
+                    link.href = blobUrl;
+                    link.download = fileName;
+                }
                 modal.classList.remove('hidden');
                 modal.style.display = 'flex';
             }
