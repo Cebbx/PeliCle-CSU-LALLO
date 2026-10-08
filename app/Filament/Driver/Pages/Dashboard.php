@@ -19,10 +19,10 @@ class Dashboard extends BaseDashboard
     protected string $view = 'filament.driver.pages.driver-dashboard';
 
     public bool $showBreakdownModal = false;
-    public string $breakdownCategory = 'Flat Tire / Nasiraan ng Gulong';
+    public string $breakdownCategory = 'Flat Tire';
     public string $breakdownComment = '';
     public string $breakdownLocation = '';
-    public string $passengerStatus = 'Safe with Driver';
+    public string $passengerStatus = 'Safe roadside with Driver';
 
     public function getDriverModel(): ?\App\Models\Driver
     {
@@ -97,10 +97,10 @@ class Dashboard extends BaseDashboard
     public function openBreakdownModal(): void
     {
         $this->showBreakdownModal = true;
-        $this->breakdownCategory = 'Flat Tire / Nasiraan ng Gulong';
+        $this->breakdownCategory = 'Flat Tire';
         $this->breakdownComment = '';
         $this->breakdownLocation = '';
-        $this->passengerStatus = 'Safe with Driver';
+        $this->passengerStatus = 'Safe roadside with Driver';
     }
 
     public function closeBreakdownModal(): void
@@ -116,10 +116,10 @@ class Dashboard extends BaseDashboard
             return;
         }
 
-        $category = trim($this->breakdownCategory ?: 'Flat Tire / Nasiraan ng Gulong');
-        $comment = trim($this->breakdownComment ?: 'Flat tire / vehicle breakdown reported.');
+        $category = trim($this->breakdownCategory ?: 'Flat Tire');
+        $comment = trim($this->breakdownComment ?: 'Vehicle breakdown reported by driver.');
         $location = trim($this->breakdownLocation ?: 'En route / Location not specified');
-        $passenger = trim($this->passengerStatus ?: 'Safe with Driver');
+        $passenger = trim($this->passengerStatus ?: 'Safe roadside with Driver');
         $driverUser = auth()->user();
         $driverName = $driverUser?->name ?? 'Driver';
 
