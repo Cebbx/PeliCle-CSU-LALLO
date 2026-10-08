@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\ActivityLog;
 use App\Models\Driver;
 use App\Models\TripTicket;
 use App\Models\Vehicle;
@@ -39,6 +40,8 @@ class Dashboard extends BaseDashboard
             'statusBreakdown' => $this->getVehicleRequestStatusBreakdown(),
             'recentRequests' => $this->getRecentRequests(),
             'tripActivity' => $this->getTripActivityData(),
+            'emergencyIncidents' => $this->getRecentEmergencyIncidents(),
+            'latestTransactions' => $this->getLatestTransactions(),
         ];
     }
 
@@ -282,8 +285,43 @@ class Dashboard extends BaseDashboard
             }
         }
 
-        uasort($counts, fn($a, $b) => $b['trips'] <=> $a['trips']);
-
         return array_values(array_slice($counts, 0, $limit));
+    }
+
+    public function getRecentEmergencyIncidents()
+    {
+        $dismissed = session('dismissed_incident_ids', []);
+        return ActivityLog::where(function ($query) {
+                $query->where('action', 'Emergency Breakdown Reported')
+                      ->orWhere('action', 'Breakdown Reported')
+                      ->orWhere('details', 'like', '%Breakdown%')
+                      ->orWhere('details', 'like', '%nasiraan%');
+            })
+            ->where('created_at', '>=', Carbon::now('Asia/Manila')->subDays(3))
+            ->whereNotIn('id', is_array($dismissed) ? $dismissed : [])
+            ->latest('created_at')
+            ->take(5)
+            ->get();
+    }
+
+    public function getLatestTransactions()
+    {
+        return ActivityLog::latest('created_at')->take(15)->get();
+    }
+
+    public function dismissIncident(int $logId): void
+    {
+        $dismissed = session('dismissed_incident_ids', []);
+        if (!is_array($dismissed)) {
+            $dismissed = [];
+        }
+        $dismissed[] = $logId;
+        session(['dismissed_incident_ids' => array_unique($dismissed)]);
+
+        \Filament\Notifications\Notification::make()
+            ->title('Incident Acknowledged')
+            ->body('The emergency breakdown report has been marked as acknowledged.')
+            ->success()
+            ->send();
     }
 }

@@ -2,13 +2,27 @@
 
 namespace App\Filament\Driver\Pages;
 
+use App\Models\ActivityLog;
+use App\Models\Driver;
+use App\Models\SmsLog;
 use App\Models\TripTicket;
+use App\Models\User;
+use App\Models\Vehicle;
 use App\Models\WithdrawalSlip;
+use Carbon\Carbon;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
 {
     protected string $view = 'filament.driver.pages.driver-dashboard';
+
+    public bool $showBreakdownModal = false;
+    public string $breakdownCategory = 'Flat Tire / Nasiraan ng Gulong';
+    public string $breakdownComment = '';
+    public string $breakdownLocation = '';
+    public string $passengerStatus = 'Safe with Driver';
 
     public function getDriverModel(): ?\App\Models\Driver
     {
@@ -93,53 +107,117 @@ class Dashboard extends BaseDashboard
             ->send();
     }
 
-    public function reportBreakdown($reason = 'Mechanical / Engine Breakdown')
+    public function openBreakdownModal(): void
+    {
+        $this->showBreakdownModal = true;
+        $this->breakdownCategory = 'Flat Tire / Nasiraan ng Gulong';
+        $this->breakdownComment = '';
+        $this->breakdownLocation = '';
+        $this->passengerStatus = 'Safe with Driver';
+    }
+
+    public function closeBreakdownModal(): void
+    {
+        $this->showBreakdownModal = false;
+    }
+
+    public function submitBreakdownReport(): void
     {
         $activeTrip = $this->getActiveTrip();
         if (!$activeTrip) {
+            $this->showBreakdownModal = false;
             return;
         }
 
-        // 1. Log activity
-        \App\Models\ActivityLog::log(
-            'Breakdown Reported',
+        $category = trim($this->breakdownCategory ?: 'Flat Tire / Nasiraan ng Gulong');
+        $comment = trim($this->breakdownComment ?: 'Flat tire / vehicle breakdown reported.');
+        $location = trim($this->breakdownLocation ?: 'En route / Location not specified');
+        $passenger = trim($this->passengerStatus ?: 'Safe with Driver');
+        $driverUser = auth()->user();
+        $driverName = $driverUser?->name ?? 'Driver';
+
+        $fullReason = "Breakdown [{$category}] - {$comment} (Location: {$location} | Passengers: {$passenger})";
+
+        // 1. Log in Activity Log with detailed structured text
+        ActivityLog::log(
+            'Emergency Breakdown Reported',
             $activeTrip,
-            "Driver " . auth()->user()->name . " reported a breakdown. Reason: " . $reason
+            "Driver {$driverName} reported [{$category}] for Trip {$activeTrip->ticket_number} (Vehicle: {$activeTrip->vehicle}) at '{$location}'. Passenger Status: {$passenger}. Details: {$comment}"
         );
 
-        // 2. Cancel the trip ticket
-        $activeTrip->update(['status' => 'cancelled']);
+        // 2. Cancel Trip Ticket and save the breakdown details into cancellation_reason
+        $activeTrip->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => $fullReason,
+        ]);
 
-        // 3. Put vehicle on maintenance
-        $parts = explode(' - ', $activeTrip->vehicle);
-        $plate = end($parts);
-        $vehicle = \App\Models\Vehicle::where('plate_number', trim($plate))->first();
-        if ($vehicle) {
-            $vehicle->update(['status' => 'maintenance']);
+        // 3. Also update vehicle request if associated
+        if ($activeTrip->vehicleRequest) {
+            $activeTrip->vehicleRequest->update([
+                'status' => 'cancelled',
+                'cancellation_reason' => "Trip aborted due to vehicle breakdown [{$category}]: {$comment}",
+            ]);
         }
 
-        // 4. Mark driver as off-duty/unavailable
-        $driver = auth()->user()->driver;
+        // 4. Mark vehicle under maintenance and append maintenance notes
+        $parts = explode(' - ', $activeTrip->vehicle);
+        $plate = end($parts);
+        $vehicle = Vehicle::where('plate_number', trim($plate))->first();
+        if ($vehicle) {
+            $now = Carbon::now('Asia/Manila')->format('M d, Y h:i A');
+            $note = "[{$now} EMERGENCY BREAKDOWN] Reported by Driver {$driverName}: {$category} - {$comment} (Location: {$location})";
+            $existing = $vehicle->maintenance_notes ? $vehicle->maintenance_notes . "\n---\n" : '';
+            $vehicle->update([
+                'status' => 'maintenance',
+                'maintenance_notes' => $existing . $note,
+            ]);
+        }
+
+        // 5. Mark driver as unavailable
+        $driver = $this->getDriverModel();
         if ($driver) {
             $driver->update(['status' => 'unavailable']);
         }
 
-        // 5. Send real-time database notification to all GSO Admins
-        $admins = \App\Models\User::where('role', 'admin')->get();
+        // 6. Record SMS Log for emergency dispatch tracking
+        try {
+            SmsLog::create([
+                'driver_id' => $driver?->id,
+                'phone_number' => $driver?->contact_number ?? '0917-555-8888',
+                'message' => "EMERGENCY: Driver {$driverName} reported [{$category}] at {$location}. Vehicle: {$activeTrip->vehicle}. TT: {$activeTrip->ticket_number}. Details: {$comment}",
+            ]);
+        } catch (\Throwable $e) {}
+
+        // 7. Send Filament Database Notification to all Admins
+        $admins = User::where('role', 'admin')->get();
         if ($admins->isNotEmpty()) {
-            \Filament\Notifications\Notification::make()
-                ->title('🚨 Emergency Vehicle Breakdown!')
-                ->body("Driver " . auth()->user()->name . " reported a breakdown for vehicle {$activeTrip->vehicle}. Trip {$activeTrip->ticket_number} cancelled and vehicle sent to maintenance.")
+            Notification::make()
+                ->title("🚨 EMERGENCY: {$category} Reported!")
+                ->body("Driver: {$driverName} | Vehicle: {$activeTrip->vehicle}\n📍 Location: {$location}\n💬 Details: {$comment}")
                 ->danger()
+                ->persistent()
+                ->actions([
+                    Action::make('view_trip')
+                        ->label('View Trip Ticket')
+                        ->url(\App\Filament\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $activeTrip->id])),
+                ])
                 ->sendToDatabase($admins);
         }
 
-        \Filament\Notifications\Notification::make()
-            ->title('Emergency Alert Sent')
-            ->body('Breakdown reported to GSO. Vehicle has been set to maintenance.')
+        $this->showBreakdownModal = false;
+
+        Notification::make()
+            ->title('🚨 Emergency Report Sent to Admin')
+            ->body("Na-send na po sa GSO Admin ang inyong breakdown report ({$category}). Naka-record na ito sa system at naka-maintenance na ang sasakyan.")
             ->danger()
             ->persistent()
             ->send();
+    }
+
+    public function reportBreakdown($reason = 'Mechanical / Engine Breakdown'): void
+    {
+        $this->breakdownCategory = $reason;
+        $this->submitBreakdownReport();
     }
 
     public function logDeparture()

@@ -180,12 +180,35 @@ class AppServiceProvider extends ServiceProvider
                         if ("serviceWorker" in navigator) {
                             window.addEventListener("load", function() {
                                 navigator.serviceWorker.register("/sw.js").then(function(reg) {
-                                    console.log("PWA Service Worker registered:", reg.scope);
-                                }).catch(function(err) {
-                                    console.log("PWA Service Worker registration failed:", err);
-                                });
+                                    if (reg) reg.update();
+                                }).catch(function(err) {});
                             });
                         }
+
+                        // Mobile bfcache bypass: force fresh reload when user presses Back/Forward
+                        window.addEventListener("pageshow", function(event) {
+                            if (event.persisted) {
+                                window.location.reload();
+                            }
+                        });
+
+                        // Auto-refresh when mobile phone screen turns on or user switches back to browser
+                        document.addEventListener("visibilitychange", function() {
+                            if (document.visibilityState === "visible" && window.Livewire) {
+                                try {
+                                    window.Livewire.dispatch("$refresh");
+                                } catch (e) {}
+                            }
+                        });
+
+                        // Auto-refresh on window focus (app resume)
+                        window.addEventListener("focus", function() {
+                            if (window.Livewire) {
+                                try {
+                                    window.Livewire.dispatch("$refresh");
+                                } catch (e) {}
+                            }
+                        });
                     </script>
                 '
             );

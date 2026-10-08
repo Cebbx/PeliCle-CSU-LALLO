@@ -214,9 +214,72 @@
             justify-content: space-between;
             align-items: center;
         }
+        .stat-card-link {
+            text-decoration: none !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease-in-out !important;
+        }
+        .stat-card-link:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            border-color: #cbd5e1 !important;
+        }
         .dark .stat-card {
             background: #182232;
             border-color: #2d3748;
+        }
+        .dark .stat-card-link:hover {
+            border-color: #475569 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        /* Driver Modal Styles */
+        .driver-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(6px);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .driver-modal-card {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            animation: driverModalFadeIn 0.2s ease-out;
+        }
+        .dark .driver-modal-card {
+            background: #0f172a !important;
+            border-color: #334155 !important;
+            color: #f8fafc !important;
+        }
+        .dark .driver-modal-card label {
+            color: #cbd5e1 !important;
+        }
+        .dark .driver-modal-card input,
+        .dark .driver-modal-card select,
+        .dark .driver-modal-card textarea {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+            color: #f8fafc !important;
+        }
+        .dark .driver-modal-card .driver-modal-footer {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+        }
+        @keyframes driverModalFadeIn {
+            from { opacity: 0; transform: scale(0.96) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
         .stat-label {
             font-size: 10px;

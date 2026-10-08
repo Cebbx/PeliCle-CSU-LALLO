@@ -10,6 +10,8 @@ class ViewTripTicket extends ViewRecord
 {
     protected static string $resource = TripTicketResource::class;
 
+    protected ?string $pollingInterval = '5s';
+
     protected function getHeaderActions(): array
     {
         return [
