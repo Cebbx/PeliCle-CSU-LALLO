@@ -587,6 +587,16 @@ class AdminPanelProvider extends PanelProvider
                 fn () => new \Illuminate\Support\HtmlString('
                     <script>
                         (function() {
+                            function requestDesktopPermission() {
+                                if ("Notification" in window && Notification.permission === "default") {
+                                    Notification.requestPermission();
+                                }
+                            }
+
+                            if ("Notification" in window && Notification.permission === "default") {
+                                document.addEventListener("click", requestDesktopPermission, { once: true });
+                            }
+
                             function playNotificationChime() {
                                 try {
                                     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -615,12 +625,36 @@ class AdminPanelProvider extends PanelProvider
                                 } catch (e) {}
                             }
 
+                            function showDesktopNotification(count) {
+                                if ("Notification" in window && Notification.permission === "granted") {
+                                    try {
+                                        const notif = new Notification("🚨 PeliCle: Bagong Vehicle Request / Alert", {
+                                            body: "May " + count + " bagong request o aktibidad na pumasok sa system. I-click para ma-review.",
+                                            icon: "/csu-logo-sm.png"
+                                        });
+                                        notif.onclick = function() {
+                                            window.focus();
+                                            window.location.href = "/admin/vehicle-requests";
+                                        };
+                                    } catch (e) {}
+                                }
+                            }
+
+                            const originalTitle = document.title;
                             let lastNotifCount = null;
                             setInterval(() => {
                                 const badgeEl = document.querySelector(".fi-no-database .fi-badge, .fi-topbar-database-notifications-btn .fi-badge");
                                 const count = badgeEl ? parseInt(badgeEl.textContent.trim()) || 0 : 0;
+
+                                if (count > 0) {
+                                    document.title = "(" + count + ") " + originalTitle.replace(/^\(\d+\)\s*/, "");
+                                } else {
+                                    document.title = originalTitle.replace(/^\(\d+\)\s*/, "");
+                                }
+
                                 if (lastNotifCount !== null && count > lastNotifCount) {
                                     playNotificationChime();
+                                    showDesktopNotification(count);
                                 }
                                 lastNotifCount = count;
                             }, 1500);
