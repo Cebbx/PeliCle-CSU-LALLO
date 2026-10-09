@@ -89,6 +89,12 @@ class VehicleRequest extends Model
 
     protected static function booted(): void
     {
+        static::creating(function ($vehicleRequest) {
+            if (empty($vehicleRequest->request_number) || static::withTrashed()->where('request_number', $vehicleRequest->request_number)->orWhere('request_number', 'VR-' . $vehicleRequest->request_number)->exists()) {
+                $vehicleRequest->request_number = static::generateNextRequestNumber();
+            }
+        });
+
         static::created(function ($vehicleRequest) {
             \App\Models\ActivityLog::log('Created Request', $vehicleRequest, "Requested vehicle type: {$vehicleRequest->vehicle}. Destination: {$vehicleRequest->destination}");
 

@@ -100,7 +100,7 @@ class CreateVehicleRequest extends CreateRecord
             $data['purpose'] = $data['purpose_select'] ?? 'Official University Travel';
         }
 
-        if (empty($data['request_number']) || \App\Models\VehicleRequest::where('request_number', $data['request_number'])->exists()) {
+        if (empty($data['request_number']) || \App\Models\VehicleRequest::withTrashed()->where('request_number', $data['request_number'])->orWhere('request_number', 'VR-' . $data['request_number'])->exists()) {
             $data['request_number'] = \App\Models\VehicleRequest::generateNextRequestNumber();
         }
 
