@@ -625,6 +625,14 @@ class AdminPanelProvider extends PanelProvider
                                 } catch (e) {}
                             }
 
+                            function triggerMobileHaptic() {
+                                if ("vibrate" in navigator) {
+                                    try {
+                                        navigator.vibrate([200, 100, 200]);
+                                    } catch (e) {}
+                                }
+                            }
+
                             function showDesktopNotification(count) {
                                 if ("Notification" in window && Notification.permission === "granted") {
                                     try {
@@ -654,6 +662,7 @@ class AdminPanelProvider extends PanelProvider
 
                                 if (lastNotifCount !== null && count > lastNotifCount) {
                                     playNotificationChime();
+                                    triggerMobileHaptic();
                                     showDesktopNotification(count);
                                 }
                                 lastNotifCount = count;
