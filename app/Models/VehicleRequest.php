@@ -32,6 +32,8 @@ class VehicleRequest extends Model
         'other_passengers',
         'status',
         'is_urgent',
+        'is_manual_encoding',
+        'manual_slip_number',
         'rejection_reason',
         'cancellation_reason',
         'document',
@@ -42,6 +44,7 @@ class VehicleRequest extends Model
         'passenger_names' => 'array',
         'has_other_passengers' => 'boolean',
         'is_urgent' => 'boolean',
+        'is_manual_encoding' => 'boolean',
     ];
 
     public static function generateNextRequestNumber(?\Carbon\Carbon $date = null): string
@@ -130,8 +133,8 @@ class VehicleRequest extends Model
                 $now = \Illuminate\Support\Carbon::now('Asia/Manila');
                 $depDateTime = $vehicleRequest->getScheduledDepartureDateTime();
 
-                // 1. If upload is more than 24 hours late (trip schedule lapsed by over 1 day): Auto-Decline!
-                if ($depDateTime && $now->diffInHours($depDateTime, false) < -24) {
+                // 1. If upload is more than 24 hours late (trip schedule lapsed by over 1 day): Auto-Decline! (Skip for manual brownout encoding)
+                if (! $vehicleRequest->is_manual_encoding && $depDateTime && $now->diffInHours($depDateTime, false) < -24) {
                     $formattedSchedule = $depDateTime->format('M d, Y h:i A');
                     $autoReason = "Auto-declined: CEO signed document was uploaded late after the scheduled departure date/time ({$formattedSchedule}).";
 

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\VehicleRequests\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Textarea;
@@ -23,6 +24,31 @@ class VehicleRequestForm
     {
         return $schema
             ->components([
+                Section::make('Offline Contingency / Brownout Entry')
+                    ->description('Enable if recording a travel request physically processed on paper during a power interruption or system downtime.')
+                    ->icon('heroicon-o-bolt-slash')
+                    ->collapsible()
+                    ->collapsed(fn (?string $operation = null, ?\App\Models\VehicleRequest $record = null) => ! ($record?->is_manual_encoding))
+                    ->columnSpanFull()
+                    ->schema([
+                        Toggle::make('is_manual_encoding')
+                            ->label('Encoded from Manual Paper Slip (Offline / Brownout)')
+                            ->default(false)
+                            ->live(),
+                        TextInput::make('manual_slip_number')
+                            ->label('Physical Paper Slip / Logbook Reference #')
+                            ->placeholder('e.g. GSO-MANUAL-2026-015')
+                            ->visible(fn (Get $get) => (bool) $get('is_manual_encoding'))
+                            ->helperText('Cross-referenced with the physical GSO dispatch logbook for COA audit compliance.')
+                            ->columnSpanFull(),
+                        FileUpload::make('document')
+                            ->label('Attach Scanned / Photo of Signed Paper Form')
+                            ->directory('request-documents')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                            ->visible(fn (Get $get) => (bool) $get('is_manual_encoding'))
+                            ->helperText('Upload photo of the physical form signed by the department head and CEO.')
+                            ->columnSpanFull(),
+                    ]),
                 TextInput::make('request_number')
                     ->label('Vehicle Request')
                     ->default(fn () => \App\Models\VehicleRequest::generateNextRequestNumber())
@@ -342,7 +368,7 @@ class VehicleRequestForm
                             ->label('Travel Departure Date')
                             ->extraInputAttributes(['lang' => 'en-US'])
                             ->default(fn () => now('Asia/Manila')->toDateString())
-                            ->minDate(fn (?string $operation = null) => $operation === 'create' ? now('Asia/Manila')->startOfDay() : null)
+                            ->minDate(fn (?string $operation = null, Get $get = null) => $operation === 'create' && ! ($get && $get('is_manual_encoding')) ? now('Asia/Manila')->startOfDay() : null)
                             ->live()
                             ->required(),
                         TimePicker::make('time')
@@ -352,6 +378,9 @@ class VehicleRequestForm
                             ->live()
                             ->rules([
                                 fn (Get $get, ?string $operation = null): \Closure => function (string $attribute, $value, \Closure $fail) use ($get, $operation) {
+                                    if ($get('is_manual_encoding')) {
+                                        return;
+                                    }
                                     if ($operation === 'create' || empty($operation)) {
                                         $date = $get('date');
                                         if ($date && \Carbon\Carbon::parse($date, 'Asia/Manila')->isToday()) {

@@ -30,7 +30,15 @@ class VehicleRequestsTable
                     })
                     ->sortable()
                     ->weight('bold')
-                    ->description(fn ($record) => $record->is_urgent ? '🚨 URGENT' : null),
+                    ->description(function ($record) {
+                        if ($record->is_urgent) {
+                            return '🚨 URGENT';
+                        }
+                        if ($record->is_manual_encoding) {
+                            return '📄 ' . ($record->manual_slip_number ?: 'Brownout Slip');
+                        }
+                        return null;
+                    }),
                 TextColumn::make('employee_name')
                     ->label('Requester')
                     ->width('105px')
@@ -714,6 +722,11 @@ class VehicleRequestsTable
                     ]),
                 TernaryFilter::make('is_urgent')
                     ->label('Urgent Requests Only'),
+                TernaryFilter::make('is_manual_encoding')
+                    ->label('Manual Brownout Slips')
+                    ->placeholder('All Requests')
+                    ->trueLabel('Manual / Offline Slips Only')
+                    ->falseLabel('Online Submissions Only'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
