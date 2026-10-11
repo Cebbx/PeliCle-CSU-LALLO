@@ -424,6 +424,7 @@ class EmployeePanelProvider extends PanelProvider
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
                 \App\Http\Middleware\SetPanelAuthGuard::class,
+                \App\Http\Middleware\EnsureSinglePanelSession::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,
