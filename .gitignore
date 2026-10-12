@@ -26,3 +26,4 @@ cloudflared.exe
 storage/test_print.html
 cf_tunnel.log
 TunnelHub.exe
+*.zip

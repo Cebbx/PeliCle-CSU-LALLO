@@ -65,10 +65,10 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
     Route::get('/logbook/print', [App\Http\Controllers\PrintController::class, 'printTripLogbook'])->name('logbook.print');
     Route::get('/logbook/export-csv', [App\Http\Controllers\PrintController::class, 'exportTripLogbookCsv'])->name('logbook.export-csv');
 
-    // Admin Real-Time Live Notification Check Endpoint
+    // Real-Time Live Notification Check Endpoint (Admin, Employee, Driver)
     Route::get('/api/admin/live-notifications-check', function () {
-        $user = auth('admin')->user() ?? auth()->user();
-        if (! $user || $user->role !== 'admin') {
+        $user = auth('admin')->user() ?? auth('employee')->user() ?? auth('driver')->user() ?? auth()->user();
+        if (! $user) {
             return response()->json(['count' => 0, 'unread' => []]);
         }
 
