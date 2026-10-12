@@ -40,14 +40,12 @@ class DriverLogin extends BaseLogin
 
     public function form(Schema $schema): Schema
     {
-        $driverNames = Driver::pluck('name')->toArray();
-
         return $schema
             ->components([
                 TextInput::make('license_number')
                     ->label('License ID or Contact Number')
-                    ->placeholder('e.g. N01-24-123456 or 09171234567')
-                    ->datalist($driverNames)
+                    ->placeholder('e.g. N01-27-556983 or 09275569838')
+                    ->autocomplete('off')
                     ->required()
                     ->autofocus(),
             ])
@@ -59,12 +57,13 @@ class DriverLogin extends BaseLogin
         $data = $this->form->getState();
         $input = trim($data['license_number'] ?? '');
         $cleanPhone = preg_replace('/[^0-9]/', '', $input);
+        $cleanLicense = strtoupper(str_replace(['-', ' '], '', $input));
 
         $driver = Driver::where('license_number', $input)
             ->orWhereRaw('LOWER(license_number) = ?', [strtolower($input)])
+            ->orWhereRaw("REPLACE(REPLACE(UPPER(license_number), '-', ''), ' ', '') = ?", [$cleanLicense])
             ->orWhere('contact_number', $input)
             ->when(!empty($cleanPhone), fn ($q) => $q->orWhere('contact_number', $cleanPhone))
-            ->orWhereRaw('LOWER(name) LIKE ?', ['%' . strtolower($input) . '%'])
             ->first();
 
         if (! $driver) {
