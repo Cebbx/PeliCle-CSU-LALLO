@@ -197,9 +197,28 @@ class TripTicket extends Model
                             ->actions([
                                 \Filament\Notifications\Actions\Action::make('view')
                                     ->label('View Status')
-                                    ->url(\App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('index')),
+                                    ->url('/employee/vehicle-requests'),
                             ])
                             ->sendToDatabase($req->user);
+                    }
+                }
+
+                // Also notify the assigned Driver's user account
+                if ($tripTicket->driver && $tripTicket->driver->license_number) {
+                    $driverUser = \App\Models\User::where('email', $tripTicket->driver->license_number)->first();
+                    if ($driverUser) {
+                        $dest = $tripTicket->vehicleRequest?->destination ?? 'Assigned Destination';
+                        \Filament\Notifications\Notification::make()
+                            ->title('🚐 New Trip Assigned: ' . $tripTicket->ticket_number)
+                            ->body("You have been assigned to drive {$tripTicket->vehicle} to {$dest}.")
+                            ->icon('heroicon-o-truck')
+                            ->iconColor('info')
+                            ->actions([
+                                \Filament\Notifications\Actions\Action::make('view')
+                                    ->label('View Trip Ticket')
+                                    ->url('/driver/trip-tickets'),
+                            ])
+                            ->sendToDatabase($driverUser);
                     }
                 }
             } catch (\Throwable $e) {

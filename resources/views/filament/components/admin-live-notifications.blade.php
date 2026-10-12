@@ -109,8 +109,93 @@
 
 <script>
     (function() {
-        // 1. Shared Web Audio Context & Autoplay Unlock
+        // 1. iOS Safari (iPhone 11) + Android + Desktop WAV Ringtone & WebAudio Engine
         let audioCtx = null;
+        let iosAudioUnlocked = false;
+
+        // Build real 16-bit PCM WAV data URI in memory so HTML5 <audio> plays on iPhone Media Speaker
+        function buildWavDataUri(notesList, totalDurationSec) {
+            try {
+                const sampleRate = 22050;
+                const numSamples = Math.floor(sampleRate * totalDurationSec);
+                const buffer = new ArrayBuffer(44 + numSamples * 2);
+                const view = new DataView(buffer);
+
+                function writeStr(offset, str) {
+                    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+                }
+
+                writeStr(0, 'RIFF');
+                view.setUint32(4, 36 + numSamples * 2, true);
+                writeStr(8, 'WAVE');
+                writeStr(12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true); // PCM
+                view.setUint16(22, 1, true); // Mono
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * 2, true);
+                view.setUint16(32, 2, true);
+                view.setUint16(34, 16, true);
+                writeStr(36, 'data');
+                view.setUint32(40, numSamples * 2, true);
+
+                for (let i = 0; i < numSamples; i++) {
+                    const t = i / sampleRate;
+                    let sample = 0;
+                    for (let n = 0; n < notesList.length; n++) {
+                        const note = notesList[n];
+                        if (t >= note.t && t <= note.t + note.d) {
+                            const localT = t - note.t;
+                            const env = Math.exp(-localT * (4.5 / note.d));
+                            // Fundamental + harmonic overtone for rich iPhone marimba/bell ringtone quality
+                            sample += (Math.sin(2 * Math.PI * note.f * localT) * 0.75 +
+                                       Math.sin(2 * Math.PI * (note.f * 2) * localT) * 0.25) * note.g * env;
+                        }
+                    }
+                    sample = Math.max(-1, Math.min(1, sample));
+                    view.setInt16(44 + i * 2, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                }
+
+                const bytes = new Uint8Array(buffer);
+                let binary = '';
+                const chunkSize = 8192;
+                for (let i = 0; i < bytes.length; i += chunkSize) {
+                    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+                }
+                return 'data:audio/wav;base64,' + btoa(binary);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Musical 2-bar Ringtone Chime (C5 - E5 - G5 - C6 | E5 - G5 - C6 - E6)
+        const chimeNotes = [
+            { f: 523.25, t: 0.00, d: 0.40, g: 0.55 },
+            { f: 659.25, t: 0.14, d: 0.40, g: 0.55 },
+            { f: 783.99, t: 0.28, d: 0.45, g: 0.60 },
+            { f: 1046.50, t: 0.42, d: 0.65, g: 0.70 },
+            { f: 659.25, t: 0.90, d: 0.35, g: 0.55 },
+            { f: 783.99, t: 1.04, d: 0.35, g: 0.60 },
+            { f: 1046.50, t: 1.18, d: 0.45, g: 0.65 },
+            { f: 1318.51, t: 1.32, d: 0.80, g: 0.75 }
+        ];
+
+        const alarmNotes = [
+            { f: 920, t: 0.00, d: 0.22, g: 0.75 },
+            { f: 680, t: 0.22, d: 0.22, g: 0.75 },
+            { f: 920, t: 0.44, d: 0.22, g: 0.75 },
+            { f: 680, t: 0.66, d: 0.22, g: 0.75 },
+            { f: 920, t: 0.88, d: 0.22, g: 0.75 },
+            { f: 680, t: 1.10, d: 0.30, g: 0.75 }
+        ];
+
+        const chimeWavUri = buildWavDataUri(chimeNotes, 2.15);
+        const alarmWavUri = buildWavDataUri(alarmNotes, 1.45);
+        const chimeAudioEl = chimeWavUri ? new Audio(chimeWavUri) : null;
+        const alarmAudioEl = alarmWavUri ? new Audio(alarmWavUri) : null;
+        if (chimeAudioEl) { chimeAudioEl.preload = 'auto'; chimeAudioEl.playsInline = true; }
+        if (alarmAudioEl) { alarmAudioEl.preload = 'auto'; alarmAudioEl.playsInline = true; }
+
         function getAudioContext() {
             if (!audioCtx) {
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -119,74 +204,88 @@
                 }
             }
             if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
+                audioCtx.resume().catch(() => {});
             }
             return audioCtx;
         }
 
         function unlockAudio() {
-            const ctx = getAudioContext();
-            if (ctx && ctx.state === 'suspended') {
-                ctx.resume();
-            }
+            try {
+                const ctx = getAudioContext();
+                if (ctx) {
+                    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+                    if (!iosAudioUnlocked) {
+                        const buf = ctx.createBuffer(1, 1, 22050);
+                        const src = ctx.createBufferSource();
+                        src.buffer = buf;
+                        src.connect(ctx.destination);
+                        if (src.start) src.start(0);
+                    }
+                }
+                if (!iosAudioUnlocked) {
+                    iosAudioUnlocked = true;
+                    [chimeAudioEl, alarmAudioEl].forEach(el => {
+                        if (el) {
+                            el.muted = true;
+                            const p = el.play();
+                            if (p && typeof p.then === 'function') {
+                                p.then(() => {
+                                    el.pause();
+                                    el.currentTime = 0;
+                                    el.muted = false;
+                                }).catch(() => { el.muted = false; });
+                            } else {
+                                el.pause();
+                                el.currentTime = 0;
+                                el.muted = false;
+                            }
+                        }
+                    });
+                }
+            } catch (e) {}
         }
-        window.addEventListener('click', unlockAudio, { passive: true });
-        window.addEventListener('keydown', unlockAudio, { passive: true });
-        window.addEventListener('touchstart', unlockAudio, { passive: true });
+        ['touchend', 'pointerup', 'click', 'keydown'].forEach(evt => {
+            window.addEventListener(evt, unlockAudio, { passive: true });
+        });
 
-        // 2. High Quality Bell Chime & Alarm Sound Generator
+        // 2. High Quality Ringtone Chime & Alarm Sound Generator (Plays HTML5 WAV + WebAudio)
         function playSystemNotificationSound(isEmergency) {
+            // Play HTML5 <audio> element first (works on iPhone 11 speaker even when silent switch is on)
+            try {
+                const targetAudio = isEmergency ? alarmAudioEl : chimeAudioEl;
+                if (targetAudio) {
+                    targetAudio.muted = false;
+                    targetAudio.volume = 1.0;
+                    targetAudio.currentTime = 0;
+                    targetAudio.play().catch(() => {});
+                }
+            } catch (e) {}
+
+            // Also layer Web Audio API synth
             try {
                 const ctx = getAudioContext();
                 if (!ctx) return;
                 const now = ctx.currentTime;
+                const activeNotes = isEmergency ? alarmNotes : chimeNotes;
 
-                if (isEmergency) {
-                    // Urgent dual-tone siren alarm (880Hz / 660Hz alternating)
-                    for (let i = 0; i < 4; i++) {
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.type = 'sawtooth';
-                        const startTime = now + (i * 0.16);
-                        const freq = (i % 2 === 0) ? 920 : 680;
-
-                        osc.frequency.setValueAtTime(freq, startTime);
-                        gain.gain.setValueAtTime(0.35, startTime);
-                        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.15);
-
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.start(startTime);
-                        osc.stop(startTime + 0.15);
-                    }
-                } else {
-                    // Crisp 4-tone ascending bell chime (C5 -> E5 -> G5 -> C6) with natural decay
-                    const notes = [
-                        { f: 523.25, t: 0, d: 0.35, g: 0.38 },    // C5
-                        { f: 659.25, t: 0.10, d: 0.35, g: 0.40 },  // E5
-                        { f: 783.99, t: 0.20, d: 0.45, g: 0.45 },  // G5
-                        { f: 1046.50, t: 0.32, d: 0.70, g: 0.50 }  // C6 (Resonant Bell)
-                    ];
-
-                    notes.forEach(n => {
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(n.f, now + n.t);
-                        gain.gain.setValueAtTime(n.g, now + n.t);
-                        gain.gain.exponentialRampToValueAtTime(0.0001, now + n.t + n.d);
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.start(now + n.t);
-                        osc.stop(now + n.t + n.d);
-                    });
-                }
+                activeNotes.forEach(n => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = isEmergency ? 'sawtooth' : 'sine';
+                    osc.frequency.setValueAtTime(n.f, now + n.t);
+                    gain.gain.setValueAtTime(n.g * 0.6, now + n.t);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + n.t + n.d);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + n.t);
+                    osc.stop(now + n.t + n.d);
+                });
             } catch (e) {
                 console.warn('PeliCle audio alert error:', e);
             }
         }
 
-        // Global manual testers for instant verification in browser console
+        // Global manual testers
         window.testBellSound = function() {
             unlockAudio();
             playSystemNotificationSound(false);
@@ -318,6 +417,7 @@
         let lastKnownCount = sessionStorage.getItem('pelicle_last_notif_count') !== null 
             ? parseInt(sessionStorage.getItem('pelicle_last_notif_count'), 10) 
             : null;
+        let lastKnownId = sessionStorage.getItem('pelicle_last_notif_id') || null;
         let isChecking = false;
 
         async function checkLiveNotifications() {
@@ -332,6 +432,8 @@
                 if (!res.ok) return;
                 const data = await res.json();
                 const currentCount = parseInt(data.count, 10) || 0;
+                const latest = data.latest || null;
+                const latestId = latest ? String(latest.id) : null;
 
                 // Update tab title
                 if (currentCount > 0) {
@@ -343,9 +445,11 @@
                 // Update bell icon badge
                 updateTopbarBellBadge(currentCount);
 
-                // If new notifications arrived (count increased)
-                if (lastKnownCount !== null && currentCount > lastKnownCount) {
-                    const latest = data.latest || {};
+                // Trigger ringtone & toast if count increased OR a new notification ID arrived
+                const hasNewNotification = (lastKnownCount !== null && currentCount > lastKnownCount) ||
+                                           (lastKnownId !== null && latestId && latestId !== lastKnownId);
+
+                if (hasNewNotification && latest) {
                     const isEmerg = latest.is_emergency || false;
                     
                     playSystemNotificationSound(isEmerg);
@@ -367,6 +471,10 @@
 
                 lastKnownCount = currentCount;
                 sessionStorage.setItem('pelicle_last_notif_count', currentCount);
+                if (latestId) {
+                    lastKnownId = latestId;
+                    sessionStorage.setItem('pelicle_last_notif_id', latestId);
+                }
             } catch (err) {
                 // Ignore transient network errors
             } finally {

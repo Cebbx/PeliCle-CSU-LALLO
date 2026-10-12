@@ -112,7 +112,7 @@ class VehicleRequest extends Model
                         ->actions([
                             \Filament\Notifications\Actions\Action::make('view')
                                 ->label('Review Request')
-                                ->url(\App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index')),
+                                ->url('/admin/vehicle-requests'),
                         ])
                         ->sendToDatabase($admin);
                 }

@@ -188,7 +188,7 @@ class Dashboard extends BaseDashboard
                 ->actions([
                     Action::make('view_trip')
                         ->label('View Trip Ticket')
-                        ->url(\App\Filament\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $activeTrip->id])),
+                        ->url("/admin/trip-tickets/{$activeTrip->id}"),
                 ])
                 ->sendToDatabase($admins);
         }
