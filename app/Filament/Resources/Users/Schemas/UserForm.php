@@ -57,6 +57,10 @@ class UserForm
                     ->placeholder('Select an office')
                     ->label('Offices')
                     ->searchable(),
+                TextInput::make('position')
+                    ->label('Official Position / Designation')
+                    ->placeholder('e.g. Campus Executive Officer / General Services Officer')
+                    ->maxLength(255),
                 TextInput::make('password')
                     ->password()
                     ->dehydrateStateUsing(fn ($state) => \Hash::make($state))

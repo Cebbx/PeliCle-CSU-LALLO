@@ -2,7 +2,6 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\ActivityLog;
 use App\Models\Driver;
 use App\Models\TripTicket;
 use App\Models\Vehicle;
@@ -36,12 +35,9 @@ class Dashboard extends BaseDashboard
             'approvedRequests' => $this->getApprovedRequestsCount(),
             'activeTrips' => $this->getActiveTripsCount(),
             'pendingSlips' => $this->getPendingWithdrawalSlipsCount(),
-            'mostTravelers' => $this->getMostTravelers(),
             'statusBreakdown' => $this->getVehicleRequestStatusBreakdown(),
             'recentRequests' => $this->getRecentRequests(),
             'tripActivity' => $this->getTripActivityData(),
-            'emergencyIncidents' => $this->getRecentEmergencyIncidents(),
-            'latestTransactions' => $this->getLatestTransactions(),
         ];
     }
 
@@ -126,29 +122,7 @@ class Dashboard extends BaseDashboard
         return WithdrawalSlip::where('status', 'pending')->count();
     }
 
-    public function getGasExpenses(): array
-    {
-        $now = Carbon::now('Asia/Manila');
 
-        $monthTotal = WithdrawalSlip::where('status', 'approved')
-            ->whereMonth('created_at', $now->month)
-            ->whereYear('created_at', $now->year)
-            ->sum('amount');
-
-        $todayTotal = WithdrawalSlip::where('status', 'approved')
-            ->whereDate('created_at', $now->toDateString())
-            ->sum('amount');
-
-        $weekTotal = WithdrawalSlip::where('status', 'approved')
-            ->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])
-            ->sum('amount');
-
-        return [
-            'month' => (float) $monthTotal,
-            'today' => (float) $todayTotal,
-            'week' => (float) $weekTotal,
-        ];
-    }
 
     public function getTripActivityData(): array
     {
@@ -220,109 +194,5 @@ class Dashboard extends BaseDashboard
     {
         VehicleRequest::expirePastPendingRequests();
         return VehicleRequest::latest('id')->take(7)->get();
-    }
-
-    public function getMostTravelers(int $limit = 5): array
-    {
-        $requests = VehicleRequest::whereNotIn('status', ['rejected', 'cancelled', 'expired'])
-            ->get();
-
-        if ($requests->isEmpty()) {
-            $requests = VehicleRequest::whereNotIn('status', ['rejected', 'cancelled'])->get();
-        }
-
-        $counts = [];
-
-        foreach ($requests as $req) {
-            $seenInThisTrip = [];
-
-            // 1. Lead Requester
-            $emp = trim($req->employee_name ?? '');
-            if ($emp !== '') {
-                $key = mb_strtolower($emp);
-                $seenInThisTrip[$key] = [
-                    'name' => $emp,
-                    'department' => $req->department ?: 'General',
-                ];
-            }
-
-            // 2. Passengers
-            $passengers = $req->passenger_names;
-            if (is_string($passengers)) {
-                $decoded = json_decode($passengers, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    $passengers = $decoded;
-                }
-            }
-
-            if (is_array($passengers)) {
-                foreach ($passengers as $p) {
-                    $pName = trim(is_string($p) ? $p : ($p['name'] ?? ''));
-                    if ($pName !== '') {
-                        $key = mb_strtolower($pName);
-                        if (!isset($seenInThisTrip[$key])) {
-                            $seenInThisTrip[$key] = [
-                                'name' => $pName,
-                                'department' => $req->department ?: 'General',
-                            ];
-                        }
-                    }
-                }
-            }
-
-            foreach ($seenInThisTrip as $key => $data) {
-                if (!isset($counts[$key])) {
-                    $counts[$key] = [
-                        'name' => $data['name'],
-                        'department' => $data['department'],
-                        'trips' => 0,
-                    ];
-                }
-                $counts[$key]['trips']++;
-                if ($counts[$key]['department'] === 'General' && $data['department'] !== 'General') {
-                    $counts[$key]['department'] = $data['department'];
-                }
-            }
-        }
-
-        return array_values(array_slice($counts, 0, $limit));
-    }
-
-    public function getRecentEmergencyIncidents()
-    {
-        $dismissed = session('dismissed_incident_ids', []);
-        return ActivityLog::where(function ($query) {
-                $query->where('action', 'Emergency Breakdown Reported')
-                      ->orWhere('action', 'Breakdown Reported')
-                      ->orWhere('details', 'like', '%Breakdown%')
-                      ->orWhere('details', 'like', '%Flat Tire%')
-                      ->orWhere('details', 'like', '%nasiraan%');
-            })
-            ->where('created_at', '>=', Carbon::now('Asia/Manila')->subDays(3))
-            ->whereNotIn('id', is_array($dismissed) ? $dismissed : [])
-            ->latest('created_at')
-            ->take(5)
-            ->get();
-    }
-
-    public function getLatestTransactions()
-    {
-        return ActivityLog::latest('created_at')->take(15)->get();
-    }
-
-    public function dismissIncident(int $logId): void
-    {
-        $dismissed = session('dismissed_incident_ids', []);
-        if (!is_array($dismissed)) {
-            $dismissed = [];
-        }
-        $dismissed[] = $logId;
-        session(['dismissed_incident_ids' => array_unique($dismissed)]);
-
-        \Filament\Notifications\Notification::make()
-            ->title('Incident Acknowledged')
-            ->body('The emergency breakdown report has been marked as acknowledged.')
-            ->success()
-            ->send();
     }
 }

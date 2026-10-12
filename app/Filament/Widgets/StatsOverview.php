@@ -17,7 +17,7 @@ class StatsOverview extends StatsOverviewWidget
 
     protected static ?int $sort = 1;
 
-    protected ?string $pollingInterval = '5s';
+    protected ?string $pollingInterval = '15s';
 
     protected function getStats(): array
     {
@@ -122,14 +122,14 @@ class StatsOverview extends StatsOverviewWidget
         $pendingSlips = $pendingSlipsQuery->count();
 
         return [
-            Stat::make('Available Driver', "{$availDrivers} / {$totalDrivers} Available")
+            Stat::make('Driver Availability', "{$availDrivers} / {$totalDrivers} Available")
                 ->description('Drivers ready for dispatch')
                 ->descriptionIcon('heroicon-m-users')
                 ->chart([$totalDrivers - $availDrivers, $totalDrivers, $availDrivers, $totalDrivers, $availDrivers])
                 ->color('success')
                 ->url(\App\Filament\Resources\Drivers\DriverResource::getUrl('index', ['tab' => 'available'])),
 
-            Stat::make('Available Vehicle', "{$availVehicles} / {$totalVehicles} Available")
+            Stat::make('Vehicle Availability', "{$availVehicles} / {$totalVehicles} Available")
                 ->description('Vehicles ready for dispatch')
                 ->descriptionIcon('heroicon-m-truck')
                 ->chart([$totalVehicles - $availVehicles, $totalVehicles, $availVehicles, $totalVehicles, $availVehicles])
@@ -157,11 +157,12 @@ class StatsOverview extends StatsOverviewWidget
                 ->color('info')
                 ->url(\App\Filament\Resources\TripTickets\TripTicketResource::getUrl('index', ['tab' => 'active'])),
                 
-            Stat::make('Withdrawal Slips Issued', WithdrawalSlip::count())
-                ->description('Official fuel slips issued')
+            Stat::make('Pending Slips', $pendingSlips)
+                ->description('Fuel slips awaiting approval')
                 ->descriptionIcon('heroicon-m-banknotes')
-                ->color('success')
-                ->url(\App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index')),
+                ->chart([2, $pendingSlips + 1, $pendingSlips])
+                ->color($pendingSlips > 0 ? 'warning' : 'gray')
+                ->url(\App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index', ['tab' => 'pending'])),
         ];
     }
 }

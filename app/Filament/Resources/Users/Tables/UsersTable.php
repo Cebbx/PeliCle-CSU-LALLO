@@ -19,6 +19,7 @@ class UsersTable
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->description(fn ($record) => $record->position)
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('email')

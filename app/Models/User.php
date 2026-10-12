@@ -111,4 +111,45 @@ class User extends Authenticatable implements FilamentUser
     {
         return \App\Models\TripTicket::where('scanned_by', $this->name)->count();
     }
+
+    public static function getCeo(): ?self
+    {
+        return static::where('department', 'Office of the CEO')
+            ->orWhere('email', 'ceo@csu.edu.ph')
+            ->orWhere('position', 'like', '%CEO%')
+            ->orWhere('position', 'like', '%Campus Executive Officer%')
+            ->first();
+    }
+
+    public static function getCeoName(): string
+    {
+        $ceo = static::getCeo();
+        return $ceo?->name ?? 'ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.';
+    }
+
+    public static function getCeoTitle(): string
+    {
+        $ceo = static::getCeo();
+        return $ceo?->position ?? 'Campus Executive Officer';
+    }
+
+    public static function getGso(): ?self
+    {
+        return static::where('position', 'like', '%General Services%')
+            ->orWhere('position', 'like', '%GSO%')
+            ->orWhere('role', 'admin')
+            ->first();
+    }
+
+    public static function getGsoName(): string
+    {
+        $gso = static::getGso();
+        return $gso?->name ?? 'JOEL A. TUMAMAO';
+    }
+
+    public static function getGsoTitle(): string
+    {
+        $gso = static::getGso();
+        return $gso?->position ?? 'General Services Officer';
+    }
 }

@@ -56,13 +56,15 @@
     </style>
 </head>
 @php
+    $isEmbed = request()->has('embed');
     $backUrl = url()->previous();
     if ($backUrl === url()->current() || empty($backUrl)) {
         $backUrl = url('/admin/withdrawal-slips');
     }
 @endphp
-<body class="bg-gray-100 py-4 sm:py-6 px-2 sm:px-4">
+<body class="bg-gray-100 {{ $isEmbed ? 'p-2 sm:p-4' : 'py-4 sm:py-6 px-2 sm:px-4' }}">
 
+    @if(!$isEmbed)
     <!-- In-App Browser (Messenger / IG) Notification Banner -->
     <div id="inAppNotice" class="no-print hidden max-w-[7.5in] mx-auto mb-3 bg-amber-50 border border-amber-300 rounded-xl p-3 sm:p-3.5 shadow-sm text-xs text-amber-900 flex items-start justify-between gap-3">
         <div class="flex items-start gap-2.5">
@@ -74,17 +76,20 @@
         </div>
         <button type="button" onclick="document.getElementById('inAppNotice').classList.add('hidden')" class="text-amber-700 hover:text-amber-900 font-bold p-1 cursor-pointer">✕</button>
     </div>
+    @endif
 
     <!-- Floating Top Bar (hidden on print) -->
     <div class="no-print max-w-[7.5in] mx-auto mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-white p-3 sm:p-4 rounded-xl shadow-md border border-gray-200 gap-3">
         <div class="flex items-center justify-between sm:justify-start gap-3">
+            @if(!$isEmbed)
             <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-2 px-3 sm:px-3.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs sm:text-sm border border-gray-300 shadow-sm cursor-pointer shrink-0" title="Go Back">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                 </svg>
                 <span>Back</span>
             </a>
-            <span class="text-gray-700 font-bold text-xs sm:text-sm truncate">Gasoline Withdrawal Slip</span>
+            @endif
+            <span class="text-gray-700 font-bold text-xs sm:text-sm truncate">Gasoline Withdrawal Slip <span class="text-gray-500 font-normal">({{ $slip->slip_number }})</span></span>
         </div>
         <div class="flex items-center gap-2 w-full sm:w-auto">
             <button id="downloadPdfBtn" type="button" onclick="downloadPDF()" class="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm cursor-pointer disabled:opacity-50">
@@ -104,8 +109,6 @@
 
     <!-- Wrapper for smooth mobile horizontal scroll if needed -->
     <div class="overflow-x-auto w-full max-w-[7.5in] mx-auto pb-4">
-        <!-- Main Form Paper Sheet (8.5in x 11in standard proportions) -->
-        <div class="bg-white w-full max-w-[7.5in] mx-auto p-4 sm:p-8 border border-black shadow-lg flex flex-col justify-between print-container" style="min-height: 9.5in; min-width: 680px;">
 
     @php
         $items = $slip->requested_items ?? [];
@@ -235,8 +238,8 @@
                 <div class="text-left w-full pl-4">
                     <p>Prepared by:</p>
                     <div class="pl-12 mt-4">
-                        <p class="font-bold uppercase tracking-wide">{{ \App\Models\CampusSetting::get('gso_name', 'JOEL A. TUMAMAO') }}</p>
-                        <p class="text-[13px] text-gray-800">{{ \App\Models\CampusSetting::get('gso_title', 'General Services Officer') }}</p>
+                        <p class="font-bold uppercase tracking-wide">{{ \App\Models\User::getGsoName() }}</p>
+                        <p class="text-[13px] text-gray-800">{{ \App\Models\User::getGsoTitle() }}</p>
                     </div>
                 </div>
 
@@ -244,8 +247,8 @@
                 <div class="text-left w-full pl-4">
                     <p>Approved by:</p>
                     <div class="pl-12 mt-4">
-                        <p class="font-bold uppercase tracking-wide">{{ \App\Models\CampusSetting::get('ceo_name', 'ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.') }}</p>
-                        <p class="text-[13px] text-gray-800">{{ \App\Models\CampusSetting::get('ceo_title', 'Campus Executive Officer') }}</p>
+                        <p class="font-bold uppercase tracking-wide">{{ \App\Models\User::getCeoName() }}</p>
+                        <p class="text-[13px] text-gray-800">{{ \App\Models\User::getCeoTitle() }}</p>
                     </div>
                 </div>
             </div>

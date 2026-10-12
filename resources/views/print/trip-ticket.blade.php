@@ -263,15 +263,15 @@
                 <!-- Left: Prepared by Joel A. Tumamao -->
                 <div class="flex flex-col text-left">
                     <span class="text-xs text-black font-semibold mb-6">Prepared by:</span>
-                    <span class="text-xs font-extrabold text-black uppercase">{{ \App\Models\CampusSetting::get('gso_name', 'JOEL A. TUMAMAO') }}</span>
-                    <span class="text-[10px] text-black font-semibold">{{ \App\Models\CampusSetting::get('gso_title', 'General Services Officer') }}</span>
+                    <span class="text-xs font-extrabold text-black uppercase">{{ \App\Models\User::getGsoName() }}</span>
+                    <span class="text-[10px] text-black font-semibold">{{ \App\Models\User::getGsoTitle() }}</span>
                 </div>
                 
                 <!-- Right: Approved by Engr. James B. Cabildo -->
                 <div class="flex flex-col text-center">
                     <span class="text-xs text-black font-semibold mb-6 text-left pl-4">Approved by:</span>
-                    <span class="text-xs font-extrabold text-black uppercase">{{ \App\Models\CampusSetting::get('ceo_name', 'ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.') }}</span>
-                    <span class="text-[10px] text-black font-semibold">{{ \App\Models\CampusSetting::get('ceo_title', 'Campus Executive Officer') }}</span>
+                    <span class="text-xs font-extrabold text-black uppercase">{{ \App\Models\User::getCeoName() }}</span>
+                    <span class="text-[10px] text-black font-semibold">{{ \App\Models\User::getCeoTitle() }}</span>
                 </div>
             </div>
         </div>
