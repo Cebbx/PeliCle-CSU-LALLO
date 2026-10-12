@@ -29,11 +29,6 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->authGuard('admin')
-            ->multiFactorAuthentication([
-                \App\Filament\Auth\MultiFactor\CustomEmailAuthentication::make()
-                    ->codeExpiryMinutes(10)
-                    ->codeNotification(\App\Notifications\AdminLoginOtpNotification::class),
-            ])
             ->colors([
                 'primary' => Color::Amber,
             ])

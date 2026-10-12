@@ -20,7 +20,7 @@ return [
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
-    'admin_otp_enabled' => env('ADMIN_OTP_ENABLED', true),
+    'admin_otp_enabled' => false,
 
     /*
     |--------------------------------------------------------------------------

@@ -11,23 +11,12 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Filament\Models\Contracts\FilamentUser;
-use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
 use Filament\Panel;
 
-class User extends Authenticatable implements FilamentUser, HasEmailAuthentication
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
-
-    public function hasEmailAuthentication(): bool
-    {
-        return strtolower($this->role ?? '') === 'admin';
-    }
-
-    public function toggleEmailAuthentication(bool $condition): void
-    {
-        // Enforced for admin role
-    }
 
     public function canAccessPanel(Panel $panel): bool
     {
