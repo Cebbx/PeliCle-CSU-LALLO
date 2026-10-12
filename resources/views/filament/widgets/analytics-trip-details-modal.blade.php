@@ -267,13 +267,21 @@
                 <span style="font-size: 13px;">{{ $record->rejection_reason }}</span>
             </div>
         </div>
-    @elseif(in_array($record->status, ['cancelled', 'expired']) && $record->cancellation_reason)
+    @elseif($record->status === 'cancelled' && $record->cancellation_reason)
+        <div class="trip-reason trip-reason-danger">
+            <span style="font-size: 18px; line-height: 1;">🚨</span>
+            <div>
+                <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #b91c1c;">
+                    {{ str_contains(strtolower($record->cancellation_reason), 'breakdown') ? 'Trip Aborted / Emergency Aberya Notice:' : 'Cancellation Reason:' }}
+                </strong>
+                <span style="font-size: 13px; font-weight: 600;">{{ $record->cancellation_reason }}</span>
+            </div>
+        </div>
+    @elseif($record->status === 'expired' && $record->cancellation_reason)
         <div class="trip-reason trip-reason-warn">
             <span style="font-size: 16px; line-height: 1;">ℹ️</span>
             <div>
-                <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">
-                    {{ $record->status === 'expired' ? 'Lapse Notice:' : 'Cancellation Reason:' }}
-                </strong>
+                <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">Lapse Notice:</strong>
                 <span style="font-size: 13px;">{{ $record->cancellation_reason }}</span>
             </div>
         </div>

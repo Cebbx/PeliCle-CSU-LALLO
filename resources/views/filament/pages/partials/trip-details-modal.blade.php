@@ -288,10 +288,12 @@
     <!-- Cancellation Reason (If Cancelled) -->
     @if($record->status === 'cancelled' && $record->cancellation_reason)
         <div class="trip-reason trip-reason-danger">
-            <span style="font-size: 16px; line-height: 1;">⚠️</span>
+            <span style="font-size: 18px; line-height: 1;">{{ str_contains(strtolower($record->cancellation_reason), 'breakdown') ? '🚨' : '⚠️' }}</span>
             <div>
-                <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">Trip Cancellation Notice:</strong>
-                <span style="font-size: 13px;">{{ $record->cancellation_reason }}</span>
+                <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #b91c1c;">
+                    {{ str_contains(strtolower($record->cancellation_reason), 'breakdown') ? 'Trip Aborted / Emergency Aberya Notice:' : 'Trip Cancellation Notice:' }}
+                </strong>
+                <span style="font-size: 13px; font-weight: 600;">{{ $record->cancellation_reason }}</span>
             </div>
         </div>
     @endif

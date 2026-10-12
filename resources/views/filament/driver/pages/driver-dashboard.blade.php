@@ -695,8 +695,13 @@
                                     </td>
                                     <td>
                                         <span class="badge-status {{ $trip->status === 'active' ? 'badge-active' : ($trip->status === 'completed' ? 'badge-completed' : ($trip->status === 'cancelled' ? 'badge-cancelled' : 'badge-pending')) }}">
-                                            {{ $trip->status === 'active' ? 'On Trip' : ucfirst($trip->status) }}
+                                            {{ $trip->status === 'active' ? 'On Trip' : ($trip->status === 'cancelled' ? 'Cancelled / Aborted' : ucfirst($trip->status)) }}
                                         </span>
+                                        @if($trip->status === 'cancelled' && str_contains(strtolower($trip->cancellation_reason ?? ''), 'breakdown'))
+                                            <div style="font-size: 10px; color: #ef4444; font-weight: 700; margin-top: 3px; display: flex; align-items: center; gap: 3px;">
+                                                <span>🚨</span> Aberya Reported
+                                            </div>
+                                        @endif
                                     </td>
                                     <td style="text-align: center;">
                                         <a href="{{ \App\Filament\Driver\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $trip->id]) }}" class="btn-view">
