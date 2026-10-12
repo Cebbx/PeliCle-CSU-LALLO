@@ -1,18 +1,5 @@
 # ==========================================
-# Stage 1: Build Frontend Assets (Vite)
-# ==========================================
-FROM node:20-alpine AS node-builder
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci || npm install
-
-COPY . .
-RUN npm run build
-
-# ==========================================
-# Stage 2: Production PHP + Nginx Environment
+# Production PHP + Nginx Environment
 # ==========================================
 FROM php:8.2-fpm-alpine
 
@@ -52,11 +39,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy application source code
+# Copy application source code (including pre-compiled public/build assets)
 COPY . .
-
-# Copy compiled frontend assets from Stage 1
-COPY --from=node-builder /app/public/build ./public/build
 
 # Install PHP dependencies without dev packages
 RUN composer install --no-dev --optimize-autoloader --no-interaction
