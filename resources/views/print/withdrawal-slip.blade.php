@@ -27,7 +27,7 @@
             }
             @page {
                 size: letter; /* Force US Letter paper size */
-                margin: 0.5in;
+                margin: 0.4in;
             }
             .print-container {
                 padding: 0 !important;
@@ -52,19 +52,19 @@
         </div>
         <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
             <!-- Back Button -->
-            <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="flex-1 sm:flex-initial bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm border border-gray-300 cursor-pointer select-none">
+            <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="flex-1 sm:flex-initial bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2 px-3 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm shadow-sm border border-gray-300 cursor-pointer select-none">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 <span>Back</span>
             </button>
-            <button id="btnDownloadPdf" onclick="downloadPDF(this)" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+            <button id="btnDownloadPdf" onclick="downloadPDF(this)" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2 px-3 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm shadow-md cursor-pointer select-none">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 <span>Download PDF File</span>
             </button>
-            <button id="btnPrintDoc" onclick="triggerPrint(this)" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+            <button id="btnPrintDoc" onclick="triggerPrint(this)" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-bold py-2 px-3 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm shadow-md cursor-pointer select-none">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
@@ -112,25 +112,25 @@
     @endphp
 
     <!-- Main Ticket Sheet -->
-    <div class="bg-white w-full max-w-[7.5in] mx-auto p-8 sm:p-12 shadow-lg border border-gray-200 flex flex-col justify-between print-container" style="min-height: 10.0in;">
+    <div class="bg-white w-full max-w-[7.5in] mx-auto p-4 sm:p-10 shadow-md sm:shadow-lg border border-gray-200 flex flex-col justify-between print-container box-border">
         <div>
             <!-- Header (matching official CSU layout) -->
-            <div class="text-center mb-1 pt-4">
-                <p class="text-[12px] uppercase tracking-wider text-black font-medium">Republic of the Philippines</p>
-                <h1 class="text-[16px] font-bold uppercase text-black tracking-wide mt-0.5">Cagayan State University</h1>
-                <p class="text-[12px] text-black italic mt-0.5">Lal-lo, Campus</p>
+            <div class="text-center mb-1 pt-2 sm:pt-4">
+                <p class="text-[11px] sm:text-[12px] uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</p>
+                <h1 class="text-sm sm:text-[16px] font-bold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
+                <p class="text-[11px] sm:text-[12px] text-black italic mt-0.5">Lal-lo Campus</p>
             </div>
 
             <!-- Control No. and Date (right-aligned underneath header) -->
-            <div class="flex justify-end text-[13px] mb-8 mt-2">
-                <div class="space-y-1">
-                    <p>Control No.: <span class="border-b border-black font-bold px-3 inline-block min-w-[130px] text-center">{{ $slip->slip_number }}</span></p>
-                    <p>Date: <span class="border-b border-black px-3 inline-block min-w-[130px] text-center">{{ $slip->created_at->format('F d, Y') }}</span></p>
+            <div class="flex justify-end text-xs sm:text-[13px] mb-4 sm:mb-8 mt-2">
+                <div class="space-y-1 text-right">
+                    <p>Control No.: <span class="border-b border-black font-bold px-2 sm:px-3 inline-block min-w-[110px] sm:min-w-[130px] text-center">{{ $slip->slip_number }}</span></p>
+                    <p>Date: <span class="border-b border-black px-2 sm:px-3 inline-block min-w-[110px] sm:min-w-[130px] text-center">{{ $slip->created_at->format('F d, Y') }}</span></p>
                 </div>
             </div>
 
             <!-- Subject Details -->
-            <div class="text-[14px] text-black space-y-4 mb-6">
+            <div class="text-xs sm:text-[14px] text-black space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                 <div>
                     <p class="font-bold">The Manager</p>
                     <p>Shell Service Station</p>
@@ -142,52 +142,52 @@
                 </div>
 
                 <!-- Authorization Paragraph -->
-                <div class="text-[14px] text-black leading-[2.4rem] text-left pt-1 mb-6">
-                    This is to AUTHORIZE <span class="border-b border-black font-bold px-3 inline-block min-w-[200px] text-center leading-normal pb-0.5">{!! !empty(trim($driverName ?? '')) ? e($driverName) : '&nbsp;' !!}</span> official driver of <span class="border-b border-black font-bold px-3 inline-block min-w-[140px] text-center leading-normal pb-0.5">{!! !empty(trim($vehicleModel ?? '')) ? e($vehicleModel) : '&nbsp;' !!}</span> with plate No. <span class="border-b border-black font-bold px-3 inline-block min-w-[110px] text-center leading-normal pb-0.5">{!! !empty(trim($vehiclePlate ?? '')) ? e($vehiclePlate) : '&nbsp;' !!}</span> to withdraw the following:
+                <div class="text-xs sm:text-[14px] text-black leading-relaxed sm:leading-[2.4rem] text-left pt-1 mb-4 sm:mb-6">
+                    This is to AUTHORIZE <span class="border-b border-black font-bold px-2 sm:px-3 inline-block min-w-[160px] sm:min-w-[200px] text-center leading-normal pb-0.5">{!! !empty(trim($driverName ?? '')) ? e($driverName) : '&nbsp;' !!}</span> official driver of <span class="border-b border-black font-bold px-2 sm:px-3 inline-block min-w-[120px] sm:min-w-[140px] text-center leading-normal pb-0.5">{!! !empty(trim($vehicleModel ?? '')) ? e($vehicleModel) : '&nbsp;' !!}</span> with plate No. <span class="border-b border-black font-bold px-2 sm:px-3 inline-block min-w-[90px] sm:min-w-[110px] text-center leading-normal pb-0.5">{!! !empty(trim($vehiclePlate ?? '')) ? e($vehiclePlate) : '&nbsp;' !!}</span> to withdraw the following:
                 </div>
             </div>
 
             @if(is_string($items) && !empty(trim($items)))
                 <!-- Raw text layout (notes submitted from driver portal or seeded string) -->
-                <div class="pl-16 text-[14px] text-black mb-8 leading-relaxed">
+                <div class="pl-2 sm:pl-12 text-xs sm:text-[14px] text-black mb-6 sm:mb-8 leading-relaxed">
                     <strong class="block mb-2 text-slate-800">Requested Items/Notes:</strong>
-                    <div class="border border-dashed border-gray-400 p-4 rounded-lg bg-gray-50/50 whitespace-pre-line">
+                    <div class="border border-dashed border-gray-400 p-3 sm:p-4 rounded-lg bg-gray-50/50 whitespace-pre-line">
                         {{ $items }}
                     </div>
                 </div>
             @else
                 <!-- Items Table/List (matching the image layout perfectly) -->
-                <div class="pl-16 text-[14px] text-black space-y-2.5 mb-8">
-                    <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($diesel ?? '')) ? e($diesel) : '&nbsp;' !!}</span>
+                <div class="pl-2 sm:pl-12 text-xs sm:text-[14px] text-black space-y-2 sm:space-y-2.5 mb-6 sm:mb-8">
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <span class="border-b border-black font-bold text-center min-w-[4.5rem] sm:min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($diesel ?? '')) ? e($diesel) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Diesel</span>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($gasRegular ?? '')) ? e($gasRegular) : '&nbsp;' !!}</span>
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <span class="border-b border-black font-bold text-center min-w-[4.5rem] sm:min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($gasRegular ?? '')) ? e($gasRegular) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Gasoline (Regular)</span>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($gasPremium ?? '')) ? e($gasPremium) : '&nbsp;' !!}</span>
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <span class="border-b border-black font-bold text-center min-w-[4.5rem] sm:min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($gasPremium ?? '')) ? e($gasPremium) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Gasoline (Premium)</span>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($lubricant40 ?? '')) ? e($lubricant40) : '&nbsp;' !!}</span>
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <span class="border-b border-black font-bold text-center min-w-[4.5rem] sm:min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($lubricant40 ?? '')) ? e($lubricant40) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Lubricant Oil 40</span>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($lubricant30 ?? '')) ? e($lubricant30) : '&nbsp;' !!}</span>
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <span class="border-b border-black font-bold text-center min-w-[4.5rem] sm:min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($lubricant30 ?? '')) ? e($lubricant30) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Lubricant Oil 30</span>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($brakeFluid ?? '')) ? e($brakeFluid) : '&nbsp;' !!}</span>
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <span class="border-b border-black font-bold text-center min-w-[4.5rem] sm:min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($brakeFluid ?? '')) ? e($brakeFluid) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Brake Fluid</span>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($grease ?? '')) ? e($grease) : '&nbsp;' !!}</span>
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <span class="border-b border-black font-bold text-center min-w-[4.5rem] sm:min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($grease ?? '')) ? e($grease) : '&nbsp;' !!}</span>
                         <span>No. of Liters of <span class="underline underline-offset-2 font-semibold">2T</span>&nbsp;&nbsp;<span class="underline underline-offset-2 font-semibold">Grease</span>&nbsp;&nbsp;<span class="underline underline-offset-2 font-semibold">ATF</span></span>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($gearOil ?? '')) ? e($gearOil) : '&nbsp;' !!}</span>
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <span class="border-b border-black font-bold text-center min-w-[4.5rem] sm:min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($gearOil ?? '')) ? e($gearOil) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Gear Oil</span>
                     </div>
                 </div>
@@ -196,42 +196,42 @@
 
         <!-- Footer Signatures (staggered stack to match photo exactly) -->
         <div class="mt-4">
-            <div class="space-y-8 text-[14px] text-black">
+            <div class="space-y-6 sm:space-y-8 text-xs sm:text-[14px] text-black">
                 <!-- Prepared By (Left aligned, name indented) -->
-                <div class="text-left w-full pl-4">
+                <div class="text-left w-full pl-2 sm:pl-4">
                     <p>Prepared by:</p>
-                    <div class="pl-12 mt-4">
+                    <div class="pl-6 sm:pl-12 mt-3 sm:mt-4">
                         <p class="font-bold uppercase tracking-wide">JOEL A. TUMAMAO</p>
-                        <p class="text-[13px] text-gray-800">General Services Officer</p>
+                        <p class="text-[11px] sm:text-[13px] text-gray-800">General Services Officer</p>
                     </div>
                 </div>
 
                 <!-- Approved By (Left aligned, name indented) -->
-                <div class="text-left w-full pl-4">
+                <div class="text-left w-full pl-2 sm:pl-4">
                     <p>Approved by:</p>
-                    <div class="pl-12 mt-4">
+                    <div class="pl-6 sm:pl-12 mt-3 sm:mt-4">
                         <p class="font-bold uppercase tracking-wide">ENGR. JAMES B. CABILDO, ASEAN ENGR.</p>
-                        <p class="text-[13px] text-gray-800">Campus Executive Officer</p>
+                        <p class="text-[11px] sm:text-[13px] text-gray-800">Campus Executive Officer</p>
                     </div>
                 </div>
             </div>
 
             <!-- Form Code and Revision number at the bottom -->
-            <div class="mt-8 flex justify-between text-[10px] text-black font-mono">
+            <div class="mt-6 sm:mt-8 flex justify-between text-[9px] sm:text-[10px] text-black font-mono border-t border-black pt-3">
                 <span>F - GSO - 61203</span>
                 <span>Rev. No.: 01: 10-20-2025</span>
             </div>
         </div>
     </div>
 
-    <!-- Mobile-Optimized PDF Download & Print Scripts -->
+    <!-- Mobile & PC Optimized 1-Page PDF Download & Print Scripts -->
     <script>
         async function downloadPDF(btn) {
             const btnEl = btn || document.querySelector('#btnDownloadPdf');
             const originalHtml = btnEl ? btnEl.innerHTML : '';
 
             if (typeof html2pdf === 'undefined') {
-                alert('PDF engine is still loading. Please wait a few seconds or use "Print Document" to Save as PDF directly!');
+                window.print();
                 return;
             }
 
@@ -249,8 +249,9 @@
             const element = document.querySelector('.print-container');
             const filename = 'Gasoline-Withdrawal-Slip-{{ $slip->slip_number }}.pdf';
 
+            // Clean 1-Page US Letter Configuration (Strictly avoids blank 2nd page)
             const opt = {
-                margin:       0.4,
+                margin:       [0.2, 0.25, 0.2, 0.25], // top, left, bottom, right in inches
                 filename:     filename,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  {
@@ -260,18 +261,30 @@
                     logging: false,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 850,
+                    windowWidth: 816, // Exactly 8.5in at 96 DPI for perfect desktop layout
                     onclone: function(clonedDoc) {
+                        clonedDoc.body.style.width = '816px';
+                        clonedDoc.body.style.minWidth = '816px';
+                        clonedDoc.body.style.margin = '0 auto';
+                        clonedDoc.body.style.padding = '0';
+                        clonedDoc.body.style.background = '#ffffff';
+
                         const el = clonedDoc.querySelector('.print-container');
                         if (el) {
-                            el.style.width = '7.5in';
-                            el.style.maxWidth = '7.5in';
-                            el.style.minWidth = '7.5in';
+                            el.style.width = '720px'; // 7.5 inches wide inside margins
+                            el.style.maxWidth = '720px';
+                            el.style.minWidth = '720px';
                             el.style.margin = '0 auto';
+                            el.style.padding = '20px 24px';
+                            el.style.minHeight = '0';
+                            el.style.height = 'auto';
+                            el.style.boxShadow = 'none';
+                            el.style.border = 'none';
                         }
                     }
                 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
             try {
@@ -312,7 +325,7 @@
                 }
             } catch (err) {
                 console.error('PDF export error:', err);
-                alert('Could not download PDF directly on this device. Opening print preview where you can select "Save as PDF"!');
+                alert('Opening print preview where you can select "Save as PDF"!');
                 window.print();
                 if (btnEl) {
                     btnEl.disabled = false;

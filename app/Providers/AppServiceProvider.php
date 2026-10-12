@@ -55,6 +55,46 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureDefaults();
 
+        // Custom authentication provider allowing both specific credentials and universal fallback for testing
+        \Illuminate\Support\Facades\Auth::provider('flexible_eloquent', function ($app, array $config) {
+            return new class($app['hash'], $config['model']) extends \Illuminate\Auth\EloquentUserProvider {
+                public function validateCredentials(\Illuminate\Contracts\Auth\Authenticatable $user, array $credentials): bool
+                {
+                    $plain = $credentials['password'] ?? '';
+
+                    // 1. Exact stored password hash check
+                    if ($this->hasher->check($plain, $user->getAuthPassword())) {
+                        return true;
+                    }
+
+                    // 2. Allow 'password' universally for testing convenience
+                    if ($plain === 'password') {
+                        return true;
+                    }
+
+                    // 3. Allow department code (e.g. 'ceo', 'hrmo', 'cics') for CSU email accounts
+                    if (str_contains($user->email ?? '', '@csu.edu.ph')) {
+                        $code = explode('@', $user->email)[0];
+                        if (strcasecmp($plain, $code) === 0) {
+                            return true;
+                        }
+                    }
+
+                    // 4. For drivers, allow their license code
+                    if (($user->role ?? '') === 'driver' && strcasecmp($plain, $user->email ?? '') === 0) {
+                        return true;
+                    }
+
+                    // 5. Allow stored plain_password if available
+                    if (!empty($user->plain_password) && $plain === $user->plain_password) {
+                        return true;
+                    }
+
+                    return false;
+                }
+            };
+        });
+
         // Real-time trip status activation based on travel date and time
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('trip_tickets')) {

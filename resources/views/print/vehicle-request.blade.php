@@ -37,7 +37,7 @@
             }
             @page {
                 size: letter; /* Force US Letter paper size */
-                margin: 0.4in;
+                margin: 0.35in;
             }
         }
     </style>
@@ -52,19 +52,19 @@
         </div>
         <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
             <!-- Back Button -->
-            <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="flex-1 sm:flex-initial bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm border border-gray-300 cursor-pointer select-none">
+            <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="flex-1 sm:flex-initial bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2 px-3 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm shadow-sm border border-gray-300 cursor-pointer select-none">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 <span>Back</span>
             </button>
-            <button id="btnDownloadPdf" onclick="downloadPDF(this)" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+            <button id="btnDownloadPdf" onclick="downloadPDF(this)" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2 px-3 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm shadow-md cursor-pointer select-none">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 <span>Download PDF File</span>
             </button>
-            <button id="btnPrintDoc" onclick="triggerPrint(this)" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+            <button id="btnPrintDoc" onclick="triggerPrint(this)" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-bold py-2 px-3 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm shadow-md cursor-pointer select-none">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
@@ -74,73 +74,73 @@
     </div>
 
     <!-- Main Form Page Sheet -->
-    <div class="bg-white w-full max-w-[8.5in] mx-auto p-4 sm:p-8 shadow-lg border border-gray-200 flex flex-col print-container" style="min-height: 10.5in;">
-        <!-- Header -->
-        <div class="w-full border-b-2 border-black pb-4 mb-6 flex justify-center">
-            <div class="relative flex flex-col items-center">
-                <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="absolute right-[100%] mr-6 top-1/2 -translate-y-1/2 w-16 h-16 object-contain" />
-                <h2 class="text-xs uppercase tracking-wider text-black">Republic of the Philippines</h2>
-                <h1 class="text-sm font-extrabold uppercase text-black tracking-wide mt-0.5">Cagayan State University</h1>
-                <h3 class="text-xs text-black mt-0.5">Lal-lo Campus</h3>
-                <h2 class="text-[11px] font-bold uppercase tracking-wider text-black mt-1">General Service Office</h2>
+    <div class="bg-white w-full max-w-[8.5in] mx-auto p-3.5 sm:p-8 shadow-md sm:shadow-lg border border-gray-200 flex flex-col print-container box-border">
+        <!-- Header (Flexbox layout - Centered on Mobile, Desktop & Print) -->
+        <div class="w-full border-b-2 border-black pb-3 sm:pb-4 mb-4 sm:mb-6 flex items-center justify-center gap-3 sm:gap-6">
+            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-12 h-12 sm:w-16 sm:h-16 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
+            <div class="text-center">
+                <h2 class="text-[10px] sm:text-xs uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</h2>
+                <h1 class="text-xs sm:text-base font-extrabold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
+                <h3 class="text-[10px] sm:text-xs text-black mt-0.5 font-medium leading-tight">Lal-lo Campus</h3>
+                <h2 class="text-[9px] sm:text-[11px] font-bold uppercase tracking-wider text-black mt-0.5 sm:mt-1 leading-tight">General Service Office</h2>
             </div>
         </div>
 
         <!-- Title -->
-        <div class="text-center mb-4">
-            <h1 class="text-base font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Request Form</h1>
+        <div class="text-center mb-3 sm:mb-4">
+            <h1 class="text-sm sm:text-base font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Request Form</h1>
         </div>
 
         <!-- Request Details Table Grid -->
-        <div class="border border-black mb-6">
+        <div class="border border-black mb-4 sm:mb-6 text-xs sm:text-sm">
             <!-- Row 1 -->
             <div class="grid grid-cols-12 border-b border-black">
-                <div class="col-span-8 p-3 border-r border-black flex flex-col justify-between" style="min-height: 70px;">
-                    <span class="text-[10px] uppercase font-bold text-black">Client:</span>
-                    <span class="text-sm font-bold text-black text-center mt-1 border-b border-gray-300 w-11/12 mx-auto">{{ $request->employee_name }}</span>
-                    <span class="text-[9px] text-black text-center mt-0.5">Name</span>
+                <div class="col-span-8 p-2 sm:p-3 border-r border-black flex flex-col justify-between" style="min-height: 58px;">
+                    <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Client:</span>
+                    <span class="text-xs sm:text-sm font-bold text-black text-center mt-0.5 border-b border-gray-300 w-11/12 mx-auto">{{ $request->employee_name }}</span>
+                    <span class="text-[8px] sm:text-[9px] text-black text-center mt-0.5">Name</span>
                 </div>
-                <div class="col-span-4 p-3 flex flex-col justify-between" style="min-height: 70px;">
-                    <span class="text-[10px] uppercase font-bold text-black">Date:</span>
-                    <span class="text-sm font-bold text-black text-center mt-1 border-b border-gray-300 w-11/12 mx-auto">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</span>
-                    <span class="text-[9px] text-black text-center mt-0.5">Office: <span class="font-bold text-black">{{ $request->department }}</span></span>
+                <div class="col-span-4 p-2 sm:p-3 flex flex-col justify-between" style="min-height: 58px;">
+                    <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Date:</span>
+                    <span class="text-xs sm:text-sm font-bold text-black text-center mt-0.5 border-b border-gray-300 w-11/12 mx-auto">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</span>
+                    <span class="text-[8px] sm:text-[9px] text-black text-center mt-0.5 truncate">Office: <span class="font-bold text-black">{{ $request->department }}</span></span>
                 </div>
             </div>
 
             <!-- Row 2 -->
             <div class="grid grid-cols-12 border-b border-black">
-                <div class="col-span-6 p-3 border-r border-black flex flex-col" style="min-height: 50px;">
-                    <span class="text-[10px] uppercase font-bold text-black">Date of Travel:</span>
-                    <span class="text-sm font-bold text-black mt-1">{{ \Carbon\Carbon::parse($request->date)->format('F d, Y') }}</span>
+                <div class="col-span-6 p-2 sm:p-3 border-r border-black flex flex-col" style="min-height: 46px;">
+                    <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Date of Travel:</span>
+                    <span class="text-xs sm:text-sm font-bold text-black mt-0.5">{{ \Carbon\Carbon::parse($request->date)->format('F d, Y') }}</span>
                 </div>
-                <div class="col-span-6 p-3 flex flex-col" style="min-height: 50px;">
-                    <span class="text-[10px] uppercase font-bold text-black">Departure Time:</span>
-                    <span class="text-sm font-bold text-black mt-1">{{ \Carbon\Carbon::parse($request->time)->format('g:i A') }}</span>
+                <div class="col-span-6 p-2 sm:p-3 flex flex-col" style="min-height: 46px;">
+                    <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Departure Time:</span>
+                    <span class="text-xs sm:text-sm font-bold text-black mt-0.5">{{ \Carbon\Carbon::parse($request->time)->format('g:i A') }}</span>
                 </div>
             </div>
 
             <!-- Row 3 -->
             <div class="grid grid-cols-12 border-b border-black">
-                <div class="col-span-12 p-3 flex flex-col" style="min-height: 50px;">
-                    <span class="text-[10px] uppercase font-bold text-black">Destination:</span>
-                    <span class="text-sm font-bold text-black mt-1">{{ $request->destination }}</span>
+                <div class="col-span-12 p-2 sm:p-3 flex flex-col" style="min-height: 46px;">
+                    <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Destination:</span>
+                    <span class="text-xs sm:text-sm font-bold text-black mt-0.5">{{ $request->destination }}</span>
                 </div>
             </div>
 
             <!-- Row 4 -->
             <div class="grid grid-cols-12 border-b border-black">
-                <div class="col-span-12 p-3 flex flex-col" style="min-height: 70px;">
-                    <span class="text-[10px] uppercase font-bold text-black">Purpose of Travel:</span>
-                    <span class="text-sm font-medium text-black mt-1 leading-relaxed">{{ $request->purpose }}</span>
+                <div class="col-span-12 p-2 sm:p-3 flex flex-col" style="min-height: 58px;">
+                    <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Purpose of Travel:</span>
+                    <span class="text-xs sm:text-sm font-medium text-black mt-0.5 leading-relaxed">{{ $request->purpose }}</span>
                 </div>
             </div>
 
             <!-- Row 5 (Passengers) -->
             <div class="grid grid-cols-12">
-                <div class="col-span-3 p-3 border-r border-black flex items-center justify-center">
-                    <span class="text-[10px] uppercase font-bold text-black text-center">Name of Passengers</span>
+                <div class="col-span-4 sm:col-span-3 p-2 sm:p-3 border-r border-black flex items-center justify-center">
+                    <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black text-center leading-tight">Name of Passengers</span>
                 </div>
-                <div class="col-span-9 p-3 flex flex-col gap-1.5">
+                <div class="col-span-8 sm:col-span-9 p-2 sm:p-3 flex flex-col gap-1.5">
                     @php
                         $passengers = $request->passenger_names ?? [];
                         if (is_string($passengers)) {
@@ -148,7 +148,7 @@
                         }
                     @endphp
                     @if(count($passengers) > 0)
-                        <div class="grid grid-cols-2 gap-2 text-xs font-semibold text-black">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs font-semibold text-black">
                             @foreach($passengers as $idx => $p)
                                 <div class="border-b border-gray-300 pb-0.5">{{ $idx + 1 }}. {{ $p['name'] ?? $p }}</div>
                             @endforeach
@@ -158,8 +158,8 @@
                     @endif
 
                     @if($request->has_other_passengers && $request->other_passengers)
-                        <div class="mt-2 pt-1 border-t border-gray-300 text-xs text-black">
-                            <span class="font-bold uppercase text-[10px] text-gray-700">Others / Students:</span>
+                        <div class="mt-1.5 pt-1 border-t border-gray-300 text-xs text-black">
+                            <span class="font-bold uppercase text-[9px] sm:text-[10px] text-gray-700">Others / Students:</span>
                             <span class="font-semibold text-black ml-1">{{ $request->other_passengers }}</span>
                         </div>
                     @endif
@@ -167,41 +167,41 @@
             </div>
         </div>
 
-        <!-- Footer approvals section -->
-        <div class="grid grid-cols-12 gap-8 mt-6 mb-auto">
+        <!-- Footer approvals section (2 Columns - Mobile Responsive) -->
+        <div class="grid grid-cols-2 gap-3 sm:gap-8 mt-4 sm:mt-6 mb-4">
             <!-- Left: Client's Signature and Received by -->
-            <div class="col-span-6 flex flex-col justify-between pr-4">
+            <div class="flex flex-col justify-between pr-1.5 sm:pr-4">
                 <!-- Client's Signature -->
                 <div class="flex flex-col items-center">
                     @if(!empty($request->signature_url))
-                        <img src="{{ $request->signature_url }}" alt="Client Signature" class="h-10 max-h-10 object-contain mb-1" />
+                        <img src="{{ $request->signature_url }}" alt="Client Signature" class="h-8 sm:h-11 max-h-11 object-contain mb-1" />
                     @else
-                        <div class="h-10"></div>
+                        <div class="h-8 sm:h-11"></div>
                     @endif
                     <div class="w-full border-t border-black text-center pt-1">
-                        <span class="text-xs font-bold text-black uppercase">Client's Signature</span>
+                        <span class="text-[10px] sm:text-xs font-bold text-black uppercase">Client's Signature</span>
                     </div>
                 </div>
 
                 <!-- Received by -->
-                <div class="flex flex-col mt-8">
-                    <span class="text-[10px] font-bold text-black uppercase">Received by:</span>
-                    <div class="w-full border-b border-black mt-6"></div>
+                <div class="flex flex-col mt-6 sm:mt-8">
+                    <span class="text-[9px] sm:text-[10px] font-bold text-black uppercase">Received by:</span>
+                    <div class="w-full border-b border-black mt-5 sm:mt-6"></div>
                 </div>
             </div>
 
             <!-- Right: Approved / Disapproved checkboxes and Joel Tumamao signature -->
-            <div class="col-span-6 flex flex-col justify-between pl-6">
-                <!-- Checkboxes (Read-only / Solid Black) -->
+            <div class="flex flex-col justify-between pl-1.5 sm:pl-6">
+                <!-- Checkboxes (Compact & flexible on mobile) -->
                 @php
                     $isApproved = in_array($request->status, ['approved', 'completed', 'on_trip']);
                     $isDisapproved = $request->status === 'rejected';
                 @endphp
-                <div class="flex items-center gap-6 text-xs font-bold text-black select-none pointer-events-none h-14">
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 rounded flex items-center justify-center border border-black {{ $isApproved ? 'bg-black text-white' : 'bg-white' }}" style="border-width: 1.5px;">
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-5 text-[10px] sm:text-xs font-bold text-black select-none pointer-events-none min-h-[38px] sm:min-h-[44px]">
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded flex items-center justify-center border border-black {{ $isApproved ? 'bg-black text-white' : 'bg-white' }}" style="border-width: 1.5px;">
                             @if($isApproved)
-                                <svg class="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="20 6 9 17 4 12"></polyline>
                                 </svg>
                             @endif
@@ -209,10 +209,10 @@
                         <span>Approved</span>
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 rounded flex items-center justify-center border border-black {{ $isDisapproved ? 'bg-black text-white' : 'bg-white' }}" style="border-width: 1.5px;">
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded flex items-center justify-center border border-black {{ $isDisapproved ? 'bg-black text-white' : 'bg-white' }}" style="border-width: 1.5px;">
                             @if($isDisapproved)
-                                <svg class="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="20 6 9 17 4 12"></polyline>
                                 </svg>
                             @endif
@@ -222,31 +222,31 @@
                 </div>
 
                 <!-- GSO signature (Line is on top of JOEL A. TUMAMAO) -->
-                <div class="flex flex-col items-center mt-8">
-                    <div class="h-6"></div>
+                <div class="flex flex-col items-center mt-6 sm:mt-8">
+                    <div class="h-4 sm:h-6"></div>
                     <div class="w-full border-t border-black text-center pt-1">
-                        <span class="text-sm font-extrabold text-black uppercase tracking-wide">JOEL A. TUMAMAO</span>
+                        <span class="text-xs sm:text-sm font-extrabold text-black uppercase tracking-wide">JOEL A. TUMAMAO</span>
                     </div>
-                    <span class="text-[10px] text-black uppercase font-semibold">GSO</span>
+                    <span class="text-[9px] sm:text-[10px] text-black uppercase font-semibold">GSO</span>
                 </div>
             </div>
         </div>
 
         <!-- Document Metadata footer details -->
-        <div class="pt-4 flex justify-between items-center text-[10px] text-black font-mono border-t border-black mt-6">
+        <div class="pt-3 sm:pt-4 flex justify-between items-center text-[9px] sm:text-[10px] text-black font-mono border-t border-black mt-4 sm:mt-6">
             <span>F - GSO - 61207</span>
             <span>Rev. No. 00, October 23, 2025</span>
         </div>
     </div>
 
-    <!-- Mobile-Optimized PDF Download & Print Scripts -->
+    <!-- Mobile & PC Optimized 1-Page PDF Download & Print Scripts -->
     <script>
         async function downloadPDF(btn) {
             const btnEl = btn || document.querySelector('#btnDownloadPdf');
             const originalHtml = btnEl ? btnEl.innerHTML : '';
 
             if (typeof html2pdf === 'undefined') {
-                alert('PDF engine is still loading. Please wait a few seconds or use "Print Document" to Save as PDF directly!');
+                window.print();
                 return;
             }
 
@@ -264,8 +264,9 @@
             const element = document.querySelector('.print-container');
             const filename = 'Vehicle-Request-Form-{{ $request->request_number }}.pdf';
 
+            // Clean 1-Page US Letter Configuration (Strictly avoids blank 2nd page)
             const opt = {
-                margin:       0.35,
+                margin:       [0.2, 0.25, 0.2, 0.25], // top, left, bottom, right in inches
                 filename:     filename,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  {
@@ -275,18 +276,30 @@
                     logging: false,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 850,
+                    windowWidth: 816, // Exactly 8.5in at 96 DPI for perfect desktop layout
                     onclone: function(clonedDoc) {
+                        clonedDoc.body.style.width = '816px';
+                        clonedDoc.body.style.minWidth = '816px';
+                        clonedDoc.body.style.margin = '0 auto';
+                        clonedDoc.body.style.padding = '0';
+                        clonedDoc.body.style.background = '#ffffff';
+
                         const el = clonedDoc.querySelector('.print-container');
                         if (el) {
-                            el.style.width = '8.5in';
-                            el.style.maxWidth = '8.5in';
-                            el.style.minWidth = '8.5in';
+                            el.style.width = '768px'; // 8.0 inches wide inside margins
+                            el.style.maxWidth = '768px';
+                            el.style.minWidth = '768px';
                             el.style.margin = '0 auto';
+                            el.style.padding = '18px 24px';
+                            el.style.minHeight = '0';
+                            el.style.height = 'auto';
+                            el.style.boxShadow = 'none';
+                            el.style.border = 'none';
                         }
                     }
                 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
             try {
@@ -327,7 +340,7 @@
                 }
             } catch (err) {
                 console.error('PDF export error:', err);
-                alert('Could not download PDF directly on this device. Opening print preview where you can select "Save as PDF"!');
+                alert('Opening print preview where you can select "Save as PDF"!');
                 window.print();
                 if (btnEl) {
                     btnEl.disabled = false;

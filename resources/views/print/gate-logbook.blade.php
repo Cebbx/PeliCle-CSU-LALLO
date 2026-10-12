@@ -233,16 +233,21 @@
                     scrollY: 0,
                     windowWidth: 1300,
                     onclone: function(clonedDoc) {
+                        clonedDoc.body.style.width = '13.5in';
+                        clonedDoc.body.style.minWidth = '13.5in';
                         const el = clonedDoc.querySelector('.print-container');
                         if (el) {
                             el.style.width = '13in';
                             el.style.maxWidth = '13in';
                             el.style.minWidth = '13in';
                             el.style.margin = '0 auto';
+                            el.style.minHeight = '0';
+                            el.style.height = 'auto';
                         }
                     }
                 },
-                jsPDF: { unit: 'in', format: 'legal', orientation: 'landscape' }
+                jsPDF: { unit: 'in', format: 'legal', orientation: 'landscape' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
             try {

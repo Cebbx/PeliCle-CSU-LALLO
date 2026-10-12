@@ -281,7 +281,7 @@
             const filename = 'Fleet-Analytics-Report-{{ date('Y-m-d') }}.pdf';
 
             const opt = {
-                margin:       0.35,
+                margin:       [0.25, 0.25, 0.25, 0.25],
                 filename:     filename,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  {
@@ -291,18 +291,30 @@
                     logging: false,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 850,
+                    windowWidth: 816,
                     onclone: function(clonedDoc) {
+                        clonedDoc.body.style.width = '816px';
+                        clonedDoc.body.style.minWidth = '816px';
+                        clonedDoc.body.style.margin = '0 auto';
+                        clonedDoc.body.style.padding = '0';
+                        clonedDoc.body.style.background = '#ffffff';
+
                         const el = clonedDoc.querySelector('.print-container');
                         if (el) {
-                            el.style.width = '8.5in';
-                            el.style.maxWidth = '8.5in';
-                            el.style.minWidth = '8.5in';
+                            el.style.width = '768px';
+                            el.style.maxWidth = '768px';
+                            el.style.minWidth = '768px';
                             el.style.margin = '0 auto';
+                            el.style.padding = '20px 24px';
+                            el.style.minHeight = '0';
+                            el.style.height = 'auto';
+                            el.style.boxShadow = 'none';
+                            el.style.border = 'none';
                         }
                     }
                 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
             try {
