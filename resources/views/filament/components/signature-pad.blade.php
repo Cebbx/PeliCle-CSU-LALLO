@@ -4,7 +4,6 @@
         isDrawing: false,
         hasSignature: false,
         mode: 'draw', // 'draw' or 'upload'
-        orientation: 'horizontal', // 'horizontal' or 'vertical'
         history: [],
         canvas: null,
         ctx: null,
@@ -13,7 +12,6 @@
 
         // Fullscreen state & canvas
         isFullscreen: false,
-        fsOrientation: 'horizontal', // 'horizontal' or 'vertical'
         fsHistory: [],
         fsCanvas: null,
         fsCtx: null,
@@ -207,18 +205,6 @@
             img.src = src;
         },
 
-        setOrientation(val) {
-            if (this.orientation === val) return;
-            const currentImg = this.state;
-            this.orientation = val;
-            this.$nextTick(() => {
-                this.resizeCanvas();
-                if (currentImg) {
-                    this.loadExistingSignature(currentImg);
-                }
-            });
-        },
-
         handleFileUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -301,18 +287,6 @@
             this.fsCtx.lineCap = 'round';
             this.fsCtx.lineJoin = 'round';
             this.fsCtx.strokeStyle = '#0f172a';
-        },
-
-        setFsOrientation(val) {
-            if (this.fsOrientation === val) return;
-            const currentImg = this.fsCanvas && this.hasSignature ? this.fsCanvas.toDataURL('image/png') : this.state;
-            this.fsOrientation = val;
-            this.$nextTick(() => {
-                this.resizeFsCanvas();
-                if (currentImg && this.hasSignature) {
-                    this.loadExistingSignatureToCanvas(currentImg, this.fsCanvas, this.fsCtx);
-                }
-            });
         },
 
         getFsPointerPos(e) {
@@ -616,12 +590,6 @@
             box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
             touch-action: none;
         }
-        .sigpad-canvas-box.is-vertical {
-            height: 350px !important;
-            max-width: 440px !important;
-            margin: 0 auto !important;
-            border-color: #60a5fa !important;
-        }
         .sigpad-canvas-box:hover {
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -851,11 +819,6 @@
             touch-action: none;
             transition: all 0.25s ease;
         }
-        .sigpad-fs-canvas-box.is-vertical {
-            max-width: 500px !important;
-            height: 86vh !important;
-            margin: 0 auto !important;
-        }
         .sigpad-fs-canvas-element {
             position: relative;
             z-index: 10;
@@ -899,35 +862,13 @@
                     </template>
                 </div>
                 <p class="sigpad-subtitle">
-                    Pumirma gamit ang daliri, stylus pen, o mouse. Pwede ring pumili ng Pahiga (Horizontal) o Patayo (Vertical).
+                    Pumirma gamit ang daliri, stylus pen, o mouse.
                 </p>
             </div>
 
-            <!-- Controls: Orientation + Fullscreen + Mode -->
+            <!-- Controls: Fullscreen + Mode -->
             <div class="sigpad-header-actions">
-                <!-- 1. Horizontal / Vertical Orientation Toggle -->
-                <div class="sigpad-switch-group">
-                    <button
-                        type="button"
-                        @click="setOrientation('horizontal')"
-                        :class="orientation === 'horizontal' ? 'active' : ''"
-                        class="sigpad-switch-btn"
-                        title="Pahiga / Landscape Pad"
-                    >
-                        <span>↔️ Pahiga</span>
-                    </button>
-                    <button
-                        type="button"
-                        @click="setOrientation('vertical')"
-                        :class="orientation === 'vertical' ? 'active' : ''"
-                        class="sigpad-switch-btn"
-                        title="Patayo / Portrait Pad"
-                    >
-                        <span>↕️ Patayo</span>
-                    </button>
-                </div>
-
-                <!-- 2. Full Screen Trigger Button -->
+                <!-- 1. Full Screen Trigger Button -->
                 <button
                     type="button"
                     @click="openFullscreen()"
@@ -940,7 +881,7 @@
                     <span>Full Screen</span>
                 </button>
 
-                <!-- 3. Draw vs Upload Switcher -->
+                <!-- 2. Draw vs Upload Switcher -->
                 <div class="sigpad-switch-group">
                     <button
                         type="button"
@@ -964,14 +905,11 @@
 
         <!-- 1. Interactive Drawing Canvas Pad -->
         <div x-show="mode === 'draw'" style="position: relative;">
-            <div 
-                class="sigpad-canvas-box"
-                :class="{ 'is-vertical': orientation === 'vertical' }"
-            >
+            <div class="sigpad-canvas-box">
                 <!-- Dotted Baseline Guide -->
                 <div class="sigpad-waterline">
                     <span>Signature Line</span>
-                    <span x-text="orientation === 'vertical' ? '↕️ Patayo' : '↔️ Pahiga'"></span>
+                    <span>✍️ E-Sign</span>
                 </div>
 
                 <!-- Floating Controls (Undo & Clear) -->
@@ -1036,7 +974,7 @@
                 >
                     <span style="font-size: 26px; margin-bottom: 4px; opacity: 0.75;">✍️</span>
                     <span style="font-size: 13px; font-weight: 600; color: #64748b;">Iguhit ang inyong pirma dito sa kahon</span>
-                    <span style="font-size: 11px; color: #94a3b8; margin-top: 3px;">Maaaring lumipat sa Pahiga o Patayo gamit ang switch sa itaas</span>
+                    <span style="font-size: 11px; color: #94a3b8; margin-top: 3px;">Pindutin ang Full Screen para sa mas malawak na pirma</span>
                 </div>
             </div>
         </div>
@@ -1114,35 +1052,13 @@
                         Electronic Signature &mdash; Full Screen Mode
                     </h3>
                     <p style="font-size: 11px; color: #94a3b8; margin: 2px 0 0 0;">
-                        Pumirma nang malinaw sa buong screen. May Undo at pagpipilian na Pahiga / Patayo.
+                        Pumirma nang malinaw sa buong screen. May Undo at Clear controls.
                     </p>
                 </div>
             </div>
 
             <!-- Modal Action Buttons -->
             <div class="sigpad-fs-actions">
-                <!-- Orientation Switcher in Fullscreen -->
-                <div class="sigpad-switch-group">
-                    <button
-                        type="button"
-                        @click="setFsOrientation('horizontal')"
-                        :class="fsOrientation === 'horizontal' ? 'active' : ''"
-                        class="sigpad-switch-btn"
-                        title="Pahiga / Landscape"
-                    >
-                        <span>↔️ Pahiga</span>
-                    </button>
-                    <button
-                        type="button"
-                        @click="setFsOrientation('vertical')"
-                        :class="fsOrientation === 'vertical' ? 'active' : ''"
-                        class="sigpad-switch-btn"
-                        title="Patayo / Portrait"
-                    >
-                        <span>↕️ Patayo</span>
-                    </button>
-                </div>
-
                 <!-- Fullscreen Undo Button -->
                 <button
                     type="button"
@@ -1197,13 +1113,10 @@
         </div>
 
         <!-- Fullscreen Canvas Box -->
-        <div 
-            class="sigpad-fs-canvas-box"
-            :class="{ 'is-vertical': fsOrientation === 'vertical' }"
-        >
+        <div class="sigpad-fs-canvas-box">
             <div class="sigpad-fs-waterline">
                 <span>Signature Baseline</span>
-                <span x-text="fsOrientation === 'vertical' ? '↕️ Patayo' : '↔️ Pahiga'"></span>
+                <span>✍️ Fullscreen Mode</span>
             </div>
 
             <canvas
@@ -1230,7 +1143,7 @@
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding-top: 6px; font-size: 11px; color: #94a3b8; flex-shrink: 0;">
             <div style="display: flex; align-items: center; gap: 6px;">
                 <span>💡</span>
-                <span>Maaaring mag-switch sa <b>Pahiga (Horizontal)</b> o <b>Patayo (Vertical)</b> sa itaas ayon sa inyong kagustuhan.</span>
+                <span>Gamitin ang daliri o stylus pen para pumirma sa buong screen. May <b>Undo</b> button kung nais burahin ang huling stroke.</span>
             </div>
             <div>
                 <span>Pindutin ang <b>Done / Save E-Sign</b> kapag tapos na.</span>
