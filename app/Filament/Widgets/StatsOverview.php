@@ -122,14 +122,14 @@ class StatsOverview extends StatsOverviewWidget
         $pendingSlips = $pendingSlipsQuery->count();
 
         return [
-            Stat::make('Driver Availability', "{$availDrivers} / {$totalDrivers} Available")
+            Stat::make('Available Driver', "{$availDrivers} / {$totalDrivers} Available")
                 ->description('Drivers ready for dispatch')
                 ->descriptionIcon('heroicon-m-users')
                 ->chart([$totalDrivers - $availDrivers, $totalDrivers, $availDrivers, $totalDrivers, $availDrivers])
                 ->color('success')
                 ->url(\App\Filament\Resources\Drivers\DriverResource::getUrl('index', ['tab' => 'available'])),
 
-            Stat::make('Vehicle Availability', "{$availVehicles} / {$totalVehicles} Available")
+            Stat::make('Available Vehicle', "{$availVehicles} / {$totalVehicles} Available")
                 ->description('Vehicles ready for dispatch')
                 ->descriptionIcon('heroicon-m-truck')
                 ->chart([$totalVehicles - $availVehicles, $totalVehicles, $availVehicles, $totalVehicles, $availVehicles])
