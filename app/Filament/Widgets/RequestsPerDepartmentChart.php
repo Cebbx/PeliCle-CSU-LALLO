@@ -18,7 +18,7 @@ class RequestsPerDepartmentChart extends ChartWidget
 
     protected int | string | array $columnSpan = 1;
 
-    protected ?string $maxHeight = '240px';
+    protected ?string $maxHeight = '260px';
 
     protected function getType(): string
     {
@@ -47,13 +47,24 @@ class RequestsPerDepartmentChart extends ChartWidget
             $query->where('department', $filterDept);
         }
 
-        $data = $query->whereNotNull('department')
+        // Kunin ang lahat ng requests na may department mula sa system
+        $records = $query->whereNotNull('department')
             ->where('department', '!=', '')
-            ->groupBy('department')
-            ->select('department', DB::raw('count(*) as count'))
-            ->orderByDesc('count')
-            ->pluck('count', 'department')
-            ->toArray();
+            ->select('department')
+            ->get();
+
+        $data = [];
+        foreach ($records as $record) {
+            $dept = trim($record->department);
+            if ($dept === '') continue;
+            // I-normalize ang CTED sa CTE para tugma ang Teacher Education
+            if ($dept === 'CTED') {
+                $dept = 'CTE';
+            }
+            $data[$dept] = ($data[$dept] ?? 0) + 1;
+        }
+
+        arsort($data);
 
         if (empty($data)) {
             return [
@@ -68,24 +79,8 @@ class RequestsPerDepartmentChart extends ChartWidget
             ];
         }
 
-        // Option 1: Top 6 Departments + "Other Offices" (Clean UI/UX standard)
-        $limit = 6;
-        if (count($data) > $limit && empty($filterDept)) {
-            $topData = array_slice($data, 0, $limit, true);
-            $others = array_slice($data, $limit, null, true);
-            $otherSum = array_sum($others);
-
-            $finalData = $topData;
-            if ($otherSum > 0) {
-                $otherCount = count($others);
-                $finalData["Other Offices ({$otherCount})"] = $otherSum;
-            }
-        } else {
-            $finalData = $data;
-        }
-
-        $labels = array_keys($finalData);
-        $chartData = array_values($finalData);
+        $labels = array_keys($data);
+        $chartData = array_values($data);
 
         $colors = [
             '#3b82f6', // Electric Blue
@@ -94,9 +89,14 @@ class RequestsPerDepartmentChart extends ChartWidget
             '#8b5cf6', // Violet
             '#06b6d4', // Cyan
             '#ec4899', // Pink
-            '#94a3b8', // Slate Gray for Others
             '#f97316', // Orange
             '#14b8a6', // Teal
+            '#6366f1', // Indigo
+            '#f43f5e', // Rose
+            '#84cc16', // Lime
+            '#64748b', // Slate
+            '#eab308', // Yellow
+            '#a855f7', // Purple
         ];
 
         return [
@@ -115,95 +115,83 @@ class RequestsPerDepartmentChart extends ChartWidget
 
     protected function getOptions(): RawJs
     {
-        $officeFullNames = json_encode([
-            'CICS' => 'College of Information and Computing Sciences',
-            'CHM' => 'College of Hospitality Management',
-            'COT' => 'College of Technology',
-            'CBA' => 'College of Business Administration',
-            'CAS' => 'College of Arts and Sciences',
-            'CCJE' => 'College of Criminal Justice Education',
-            'CTE' => 'College of Teacher Education',
-            'CTED' => 'College of Teacher Education',
-            'COA' => 'College of Agriculture',
-            'University Library' => 'University Library',
-            'Office of the CEO' => 'Office of the Campus Executive Officer',
-            'HRMO' => 'Human Resource Management Office',
-            'Accounting Office' => 'Accounting Office',
-            'Budget Office' => 'Budget Office',
-            'Property and Supply Office' => 'Property and Supply Office',
-            'Records Office' => 'Records Office',
-            'Planning Office' => 'Planning Office',
-            'MIS Office' => 'Management Information System Office',
-            'Office of the Campus Registrar' => 'Office of the Campus Registrar',
-            'Campus Admission Office' => 'Campus Admission Office',
-            'Campus Publication Office' => 'Campus Publication Office',
-            'Café Valena' => 'Café Valena (CoffeeHub Café)',
-            'Campus Student Council' => 'Campus Student Council (CSC)',
-            'Administration Office' => 'Administration Office',
-        ]);
+        $officeMapJs = "{
+            'CICS': 'College of Information and Computing Sciences',
+            'CHM': 'College of Hospitality Management',
+            'COT': 'College of Technology',
+            'CBA': 'College of Business Administration',
+            'CAS': 'College of Arts and Sciences',
+            'CCJE': 'College of Criminal Justice Education',
+            'CTE': 'College of Teacher Education',
+            'CTED': 'College of Teacher Education',
+            'COA': 'College of Agriculture',
+            'University Library': 'University Library',
+            'Office of the CEO': 'Office of the Campus Executive Officer',
+            'HRMO': 'Human Resource Management Office',
+            'Accounting Office': 'Accounting Office',
+            'Budget Office': 'Budget Office',
+            'Property and Supply Office': 'Property and Supply Office',
+            'Records Office': 'Records Office',
+            'Planning Office': 'Planning Office',
+            'MIS Office': 'Management Information System Office',
+            'Office of the Campus Registrar': 'Office of the Campus Registrar',
+            'Campus Admission Office': 'Campus Admission Office',
+            'Campus Publication Office': 'Campus Publication Office',
+            'Café Valena': 'Café Valena (CoffeeHub Café)',
+            'Campus Student Council': 'Campus Student Council (CSC)',
+            'Administration Office': 'Administration Office'
+        }";
 
-        return RawJs::make(<<<JS
-            {
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 10,
-                            padding: 8,
-                            font: {
-                                size: 11
-                            }
-                        },
-                        onHover: function(event, legendItem, legend) {
-                            if (event.native && event.native.target) {
-                                event.native.target.style.cursor = 'pointer';
-                            }
-                            const chart = legend.chart;
-                            if (chart && chart.tooltip) {
-                                chart.tooltip.setActiveElements([{
-                                    datasetIndex: 0,
-                                    index: legendItem.index
-                                }], {
-                                    x: event.x,
-                                    y: event.y
-                                });
-                                chart.update();
-                            }
-                        },
-                        onLeave: function(event, legendItem, legend) {
-                            if (event.native && event.native.target) {
-                                event.native.target.style.cursor = 'default';
-                            }
-                            const chart = legend.chart;
-                            if (chart && chart.tooltip) {
-                                chart.tooltip.setActiveElements([], { x: 0, y: 0 });
-                                chart.update();
-                            }
+        return RawJs::make("{
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 10,
+                        padding: 8,
+                        font: { size: 11 }
+                    },
+                    onHover: function(e, item, leg) {
+                        if (e.native && e.native.target) {
+                            e.native.target.style.cursor = 'pointer';
+                        }
+                        var c = leg.chart;
+                        if (c && c.tooltip) {
+                            c.tooltip.setActiveElements([{ datasetIndex: 0, index: item.index }], { x: e.x, y: e.y });
+                            c.update();
                         }
                     },
-                    tooltip: {
-                        callbacks: {
-                            title: function(tooltipItems) {
-                                if (!tooltipItems || !tooltipItems.length) return '';
-                                const label = tooltipItems[0].label || '';
-                                const fullNames = {$officeFullNames};
-                                const fullName = fullNames[label];
-                                if (fullName && fullName !== label) {
-                                    return label + ' - ' + fullName;
-                                }
-                                return fullName || label;
-                            },
-                            label: function(context) {
-                                const val = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                                return ' Total Requests: ' + val + ' (' + pct + '%)';
-                            }
+                    onLeave: function(e, item, leg) {
+                        if (e.native && e.native.target) {
+                            e.native.target.style.cursor = 'default';
+                        }
+                        var c = leg.chart;
+                        if (c && c.tooltip) {
+                            c.tooltip.setActiveElements([], { x: 0, y: 0 });
+                            c.update();
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) {
+                            if (!items || !items.length) return '';
+                            var lbl = items[0].label || '';
+                            var map = {$officeMapJs};
+                            return map[lbl] ? (lbl + ' - ' + map[lbl]) : lbl;
+                        },
+                        label: function(ctx) {
+                            var v = ctx.raw || 0;
+                            var ds = ctx.dataset && ctx.dataset.data ? ctx.dataset.data : [];
+                            var sum = 0;
+                            for (var i = 0; i !== ds.length; i++) { sum += (ds[i] || 0); }
+                            var p = sum !== 0 ? ((v / sum) * 100).toFixed(1) : '0';
+                            return ' Total Requests: ' + v + ' (' + p + '%)';
                         }
                     }
                 }
             }
-        JS);
+        }");
     }
 }

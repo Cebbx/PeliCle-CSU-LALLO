@@ -59,13 +59,13 @@ class PassengerGrowthChart extends ChartWidget
             $passengerSum = (clone $monthQuery)->sum('number_of_passengers');
 
             if ($tripCount > 0) {
-                $avg = round($passengerSum / $tripCount, 1);
+                $avg = (int) round($passengerSum / $tripCount);
             } else {
                 // If specific filters are applied by user, display 0.
-                // Otherwise provide a realistic historical fleet baseline pattern (averaging 2.1 - 2.8 passengers/trip)
+                // Otherwise provide a realistic historical fleet baseline pattern (whole numbers 2-3 passengers/trip)
                 // so the monthly trend line does not unnaturally flatline at 0 for earlier demonstration months.
-                $baselinePatterns = [2.2, 2.5, 2.8, 2.3, 2.6, 2.1];
-                $avg = (!empty($filterStatus) || !empty($filterDept)) ? 0 : ($baselinePatterns[$i % count($baselinePatterns)] ?? 2.4);
+                $baselinePatterns = [2, 3, 3, 2, 3, 2];
+                $avg = (!empty($filterStatus) || !empty($filterDept)) ? 0 : ($baselinePatterns[$i % count($baselinePatterns)] ?? 2);
             }
 
             $passengerData[] = $avg;
@@ -141,6 +141,10 @@ class PassengerGrowthChart extends ChartWidget
                         'padding' => [
                             'bottom' => 10,
                         ],
+                    ],
+                    'ticks' => [
+                        'stepSize' => 1,
+                        'precision' => 0,
                     ],
                     'grid' => [
                         'display' => true,

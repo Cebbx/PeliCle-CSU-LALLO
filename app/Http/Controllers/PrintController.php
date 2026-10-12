@@ -298,7 +298,9 @@ class PrintController extends Controller
         $approvedCount = $requests->whereIn('status', ['approved', 'on_trip', 'completed'])->count();
         $rejectedCount = $requests->where('status', 'rejected')->count();
         $approvalRate = $totalRequests > 0 ? round(($approvedCount / $totalRequests) * 100, 1) : 0;
-        $totalPassengers = $requests->sum('number_of_passengers');
+        
+        // Count actual passengers from valid approved / on-trip / completed trips
+        $totalPassengers = $requests->whereIn('status', ['approved', 'on_trip', 'completed'])->sum('number_of_passengers');
 
         // Fuel expenses
         $slipQuery = \App\Models\WithdrawalSlip::where('status', 'approved');
@@ -307,11 +309,24 @@ class PrintController extends Controller
         $totalFuel = $slipQuery->sum('amount');
         $avgFuelPerTrip = $approvedCount > 0 ? round($totalFuel / $approvedCount, 2) : 0;
 
-        // Breakdown by department
-        $deptBreakdown = $requests->groupBy('department')->map->count();
+        // Breakdown by department (sorted by highest volume)
+        $deptBreakdown = $requests->whereNotNull('department')
+            ->where('department', '!=', '')
+            ->groupBy('department')
+            ->map->count()
+            ->sortDesc();
 
-        // Breakdown by vehicle
-        $vehicleBreakdown = $requests->groupBy('vehicle')->map->count();
+        // Normalized breakdown by official fleet vehicles
+        $allVehicles = \App\Models\Vehicle::all();
+        $vehicleBreakdown = [];
+        foreach ($allVehicles as $v) {
+            $count = $requests->filter(function ($r) use ($v) {
+                return !empty($r->vehicle) && str_contains(strtoupper($r->vehicle), strtoupper($v->plate_number));
+            })->count();
+            $vehicleBreakdown["{$v->brand} ({$v->plate_number})"] = $count;
+        }
+
+        $activeVehiclesCount = $allVehicles->count();
 
         return view('print.analytics-report', compact(
             'requests',
@@ -324,6 +339,7 @@ class PrintController extends Controller
             'avgFuelPerTrip',
             'deptBreakdown',
             'vehicleBreakdown',
+            'activeVehiclesCount',
             'startDate',
             'endDate',
             'status',
