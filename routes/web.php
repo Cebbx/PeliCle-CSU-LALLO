@@ -21,6 +21,33 @@ Route::post('/guard/resend-otp', [App\Http\Controllers\QrCodeController::class, 
 Route::match(['get', 'post'], '/guard/logout', [App\Http\Controllers\QrCodeController::class, 'logout'])->name('guard.logout');
 Route::get('/guard/logbook/print', [App\Http\Controllers\QrCodeController::class, 'printGateLogbook'])->name('guard.logbook.print');
 
+// Hostinger One-Click Setup (Runs storage:link, migrate, and optimize:clear via browser)
+Route::get('/hostinger-setup', function () {
+    $results = [];
+    try {
+        \Illuminate\Support\Facades\Artisan::call('storage:link', ['--force' => true]);
+        $results[] = '✓ Storage link: SUCCESS';
+    } catch (\Throwable $e) {
+        $results[] = 'Storage link note: ' . $e->getMessage();
+    }
+
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $results[] = '✓ Database Migrations: SUCCESS';
+    } catch (\Throwable $e) {
+        $results[] = 'Database Migrations: ' . $e->getMessage();
+    }
+
+    try {
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        $results[] = '✓ Cache Cleared: SUCCESS';
+    } catch (\Throwable $e) {
+        $results[] = 'Optimize note: ' . $e->getMessage();
+    }
+
+    return response('<div style="font-family:sans-serif;padding:30px;line-height:1.8;"><h2>Hostinger Setup Status</h2><pre style="background:#f1f5f9;padding:15px;border-radius:8px;">' . implode("\n", $results) . '</pre><p><a href="/" style="display:inline-block;padding:10px 20px;background:#0284c7;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;">Go to Application &rarr;</a></p></div>');
+});
+
 
 Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
@@ -33,7 +60,6 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
     Route::get('/trip-tickets/{id}/print', [App\Http\Controllers\PrintController::class, 'printTicket'])->name('trip-tickets.print');
     Route::get('/trip-tickets/{id}/view-signed-document', [App\Http\Controllers\PrintController::class, 'viewTripTicketSignedDocument'])->name('trip-tickets.view-signed-document');
     Route::get('/trip-tickets/{id}/download-signed-document', [App\Http\Controllers\PrintController::class, 'downloadTripTicketSignedDocument'])->name('trip-tickets.download-signed-document');
-    Route::get('/trip-tickets/{id}/print-travel-order', [App\Http\Controllers\PrintController::class, 'printTravelOrder'])->name('trip-tickets.print-travel-order');
     Route::get('/withdrawal-slips/{id}/print', [App\Http\Controllers\PrintController::class, 'printSlip'])->name('withdrawal-slips.print');
     Route::get('/analytics/print', [App\Http\Controllers\PrintController::class, 'printAnalyticsReport'])->name('analytics.print');
     Route::get('/logbook/print', [App\Http\Controllers\PrintController::class, 'printTripLogbook'])->name('logbook.print');

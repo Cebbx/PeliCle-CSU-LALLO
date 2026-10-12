@@ -6,161 +6,79 @@
     <title>CSU Lal-lo - Monthly Vehicle Travel Logbook ({{ $monthName }})</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style id="dynamicPageStyle">
-        @page {
-            size: legal landscape;
-            margin: 0.3in;
-        }
-    </style>
     <style>
         body {
             font-family: 'Arial', 'Calibri', sans-serif;
             background-color: #f3f4f6;
             color: black;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
-
-        /* Paper size variations for on-screen preview & compact printing */
-        .paper-size-a4 table {
-            font-size: 9.5px !important;
-        }
-        .paper-size-a4 th, .paper-size-a4 td {
-            padding: 3px 5px !important;
-        }
-        .paper-size-letter table {
-            font-size: 8.5px !important;
-        }
-        .paper-size-letter th, .paper-size-letter td {
-            padding: 2.5px 4px !important;
-        }
-
         @media print {
-            html, body {
-                display: block !important;
+            body {
                 background: white !important;
                 color: black !important;
                 font-size: 11px;
                 padding: 0 !important;
                 margin: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                min-height: 0 !important;
-                overflow: visible !important;
             }
             .no-print {
                 display: none !important;
             }
-            .overflow-x-auto {
-                overflow: visible !important;
-                display: block !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
+            @page {
+                size: legal landscape;
+                margin: 0.3in;
             }
             .print-container {
                 padding: 0 !important;
                 margin: 0 !important;
                 min-height: auto !important;
-                min-width: 0 !important;
-                height: auto !important;
                 box-shadow: none !important;
                 border: none !important;
                 max-width: 100% !important;
                 width: 100% !important;
-                overflow: visible !important;
-            }
-
-            /* Multi-page Logbook Support */
-            thead {
-                display: table-header-group !important;
-            }
-            tfoot {
-                display: table-footer-group !important;
-            }
-            tr {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-            .signature-block {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
             }
         }
     </style>
-@php
-    $backUrl = url()->previous();
-    if ($backUrl === url()->current() || empty($backUrl)) {
-        $backUrl = url('/admin/trip-logbook');
-    }
-@endphp
-<body class="bg-gray-100 py-4 sm:py-6 px-2 sm:px-4">
+</head>
+<body class="bg-gray-100 py-3 sm:py-6 px-2 sm:px-4">
 
-    <!-- In-App Browser (Messenger / IG) Notification Banner -->
-    <div id="inAppNotice" class="no-print hidden max-w-[13in] mx-auto mb-3 bg-amber-50 border border-amber-300 rounded-xl p-3 sm:p-3.5 shadow-sm text-xs text-amber-900 flex items-start justify-between gap-3">
-        <div class="flex items-start gap-2.5">
-            <span class="text-base leading-none">📱</span>
-            <div class="leading-relaxed">
-                <strong class="font-bold">Nasa loob ka ng Messenger / In-App browser:</strong>
-                Maaaring hindi gumana ang Print o Download dito dahil hinarang ito ng app. Pindutin ang <strong>3 dots (⋮ o •••)</strong> sa kanang itaas ng screen at piliin ang <strong>"Open in Chrome" / "Open in Browser"</strong>.
-            </div>
+    <!-- Top Action Bar (Sticky, Mobile Responsive, hidden on print) -->
+    <div class="no-print sticky top-2 z-50 max-w-[13in] mx-auto mb-4 bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-gray-800 font-extrabold text-xs sm:text-base">Monthly Vehicle Travel Logbook &mdash; {{ $monthName }}</h1>
+            <p class="text-[10px] sm:text-xs text-gray-500 font-mono">Official GSO Record &bull; Generated: {{ \Carbon\Carbon::now('Asia/Manila')->format('F d, Y h:i A') }}</p>
         </div>
-        <button type="button" onclick="document.getElementById('inAppNotice').classList.add('hidden')" class="text-amber-700 hover:text-amber-900 font-bold p-1 cursor-pointer">✕</button>
-    </div>
-
-    <!-- Top Action Bar -->
-    <div class="no-print max-w-[13in] mx-auto mb-4 flex flex-col md:flex-row items-stretch md:items-center justify-between bg-white p-3 sm:p-4 rounded-xl shadow-md border border-gray-200 gap-3">
-        <div class="flex items-center gap-3">
-            <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-2 px-3 sm:px-3.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs border border-gray-300 shadow-sm cursor-pointer shrink-0" title="Go Back">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <!-- Back Button -->
+            <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="flex-1 sm:flex-initial bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm border border-gray-300 cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 <span>Back</span>
-            </a>
-            <div class="min-w-0">
-                <h1 class="text-gray-800 font-bold text-sm sm:text-base truncate">Monthly Vehicle Travel Logbook &mdash; {{ $monthName }}</h1>
-                <p class="text-[11px] text-gray-500 font-mono truncate">Official GSO Record &bull; Generated: {{ \Carbon\Carbon::now('Asia/Manila')->format('F d, Y h:i A') }}</p>
-            </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            <!-- Paper Size Selector -->
-            <div class="flex items-center gap-1.5 bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1.5 shadow-sm">
-                <label for="paperSizeSelect" class="text-xs font-bold text-gray-700 whitespace-nowrap flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span>Paper:</span>
-                </label>
-                <select id="paperSizeSelect" onchange="changePaperSize(this.value)" class="text-xs font-semibold bg-white border border-gray-300 rounded px-2 py-1 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
-                    <option value="legal" selected>Long Bond (8.5" &times; 13" / Legal Landscape) &mdash; Best Fit</option>
-                    <option value="a4">A4 (8.27" &times; 11.69" Landscape)</option>
-                    <option value="letter">Short Bond (8.5" &times; 11" / Letter Landscape)</option>
-                </select>
-            </div>
-
-            <button id="downloadPdfBtn" type="button" onclick="downloadPDF()" class="flex-1 md:flex-initial bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs shadow-sm cursor-pointer disabled:opacity-50">
-                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            </button>
+            <button id="btnDownloadPdf" onclick="downloadPDF(this)" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                <span id="downloadBtnText">Download PDF</span>
+                <span>Download PDF</span>
             </button>
-            <button id="printDocBtn" type="button" onclick="triggerPrint()" class="flex-1 md:flex-initial bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs shadow-sm cursor-pointer">
-                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <button id="btnPrintDoc" onclick="triggerPrint(this)" class="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
-                <span>Print Logbook</span>
+                <span>Print Logbook Sheet</span>
             </button>
         </div>
     </div>
 
-    <!-- Wrapper for smooth mobile horizontal scroll -->
-    <div id="tableScrollWrapper" class="overflow-x-auto w-full max-w-[13in] mx-auto pb-4 transition-all duration-200">
-        <!-- Official Printable Sheet Container -->
-        <div id="printableSheet" class="print-container paper-size-legal max-w-[13in] mx-auto bg-white p-6 rounded-xl shadow-lg border border-black min-h-[8in] text-black">
+    <!-- Official Printable Sheet Container -->
+    <div class="print-container max-w-[13in] mx-auto bg-white p-6 rounded-xl shadow-lg border border-black min-h-[8in] text-black">
         
         <!-- CSU Lal-lo Letterhead -->
         <div class="flex items-center justify-between border-b-2 border-black pb-3 mb-4">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('images/csu-logo.png') }}" alt="CSU Logo" class="w-14 h-14 object-contain" onerror="this.style.display='none'" />
+                <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-14 h-14 object-contain" onerror="this.style.display='none'" />
                 <div>
                     <div class="text-[10px] font-bold uppercase tracking-widest text-black">Republic of the Philippines</div>
                     <div class="text-sm font-black uppercase text-black leading-tight">Cagayan State University</div>
@@ -203,7 +121,7 @@
                     <th class="border border-black p-1.5">TT CONTROL NO.</th>
                     <th class="border border-black p-1.5">DEPARTURE DATE</th>
                     <th class="border border-black p-1.5">TIME</th>
-                    <th class="border border-black p-1.5">OFFICE & PASSENGERS</th>
+                    <th class="border border-black p-1.5">REQUESTING DEPT / PASSENGERS</th>
                     <th class="border border-black p-1.5">DESTINATION</th>
                     <th class="border border-black p-1.5">VEHICLE & PLATE</th>
                     <th class="border border-black p-1.5">DRIVER</th>
@@ -273,21 +191,21 @@
         </table>
 
         <!-- Signatures & Verification -->
-        <div class="signature-block mt-8 grid grid-cols-2 gap-12 text-xs">
+        <div class="mt-8 grid grid-cols-2 gap-12 text-xs">
             <div>
                 <div class="font-bold uppercase mb-8">Prepared by:</div>
                 <div class="border-b border-black w-64 pb-0.5 text-center font-bold uppercase">
-                    {{ \App\Models\User::getGsoName() }}
+                    JOEL A. TUMAMAO
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase">{{ \App\Models\User::getGsoTitle() }}</div>
+                <div class="text-[10px] text-gray-700 uppercase">Head, General Services Office (GSO)</div>
             </div>
 
             <div class="text-right flex flex-col items-end">
                 <div class="font-bold uppercase mb-8 self-end">Noted by:</div>
                 <div class="border-b border-black w-64 pb-0.5 text-center font-bold uppercase self-end">
-                    {{ \App\Models\User::getCeoName() }}
+                    CAMPUS EXECUTIVE OFFICER
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase self-end">{{ \App\Models\User::getCeoTitle() }}</div>
+                <div class="text-[10px] text-gray-700 uppercase self-end">CSU Lal-lo Campus</div>
             </div>
         </div>
 
@@ -297,212 +215,110 @@
             <span>Cagayan State University Lal-lo Campus &bull; GSO Motorpool Section</span>
         </div>
     </div>
-    </div>
 
-    <!-- PDF Download and Mobile Script -->
+    <!-- Mobile-Optimized PDF Download & Print Scripts -->
     <script>
-        function handleBack(event) {
-            if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
-                event.preventDefault();
-                window.history.back();
-                return;
-            }
-            if (window.opener) {
-                event.preventDefault();
-                window.close();
-                return;
-            }
-            try {
-                window.close();
-            } catch (e) {}
-        }
+        async function downloadPDF(btn) {
+            const btnEl = btn || document.querySelector('#btnDownloadPdf');
+            const originalHtml = btnEl ? btnEl.innerHTML : '';
 
-        let currentPaperSize = 'legal';
-        function changePaperSize(size) {
-            currentPaperSize = size;
-            const sheet = document.getElementById('printableSheet');
-            const wrapper = document.getElementById('tableScrollWrapper');
-            const styleTag = document.getElementById('dynamicPageStyle');
-            
-            if (sheet) {
-                sheet.classList.remove('paper-size-legal', 'paper-size-a4', 'paper-size-letter');
-            }
-            if (wrapper) {
-                wrapper.classList.remove('max-w-[13in]', 'max-w-[11.69in]', 'max-w-[11in]');
-            }
-            
-            let pageSize = 'legal landscape';
-            let maxWidth = 'max-w-[13in]';
-            let margin = '0.3in';
-            
-            if (size === 'letter') {
-                pageSize = 'letter landscape';
-                maxWidth = 'max-w-[11in]';
-                margin = '0.25in';
-                if (sheet) sheet.classList.add('paper-size-letter');
-            } else if (size === 'a4') {
-                pageSize = 'a4 landscape';
-                maxWidth = 'max-w-[11.69in]';
-                margin = '0.25in';
-                if (sheet) sheet.classList.add('paper-size-a4');
-            } else {
-                pageSize = 'legal landscape';
-                maxWidth = 'max-w-[13in]';
-                margin = '0.3in';
-                if (sheet) sheet.classList.add('paper-size-legal');
-            }
-            
-            if (wrapper) wrapper.classList.add(maxWidth);
-            if (styleTag) {
-                styleTag.innerHTML = `@page { size: ${pageSize}; margin: ${margin}; }`;
-            }
-        }
-
-        function isInAppBrowser() {
-            return /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|MicroMessenger/i.test(navigator.userAgent);
-        }
-
-        if (isInAppBrowser()) {
-            const notice = document.getElementById('inAppNotice');
-            if (notice) notice.classList.remove('hidden');
-        }
-
-        function triggerPrint() {
-            if (isInAppBrowser()) {
-                if (confirm('Hindi sinusuportahan ang direct printing sa loob ng Messenger.\n\nGusto mo bang i-download na lamang ito bilang PDF?')) {
-                    downloadPDF();
-                }
+            if (typeof html2pdf === 'undefined') {
+                alert('PDF engine is still loading. Please wait a few seconds or use "Print Logbook Sheet" to Save as PDF directly!');
                 return;
             }
 
-            try {
-                window.print();
-            } catch (e) {
-                console.warn('window.print error:', e);
-                downloadPDF();
+            if (btnEl) {
+                btnEl.disabled = true;
+                btnEl.innerHTML = `
+                    <svg class="animate-spin h-4 w-4 text-white inline-block flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Generating PDF...</span>
+                `;
             }
-        }
-
-        let isGeneratingPdf = false;
-        function downloadPDF() {
-            if (isGeneratingPdf) return;
-            isGeneratingPdf = true;
-
-            const btn = document.getElementById('downloadPdfBtn');
-            const btnText = document.getElementById('downloadBtnText');
-            const originalText = btnText ? btnText.textContent : 'Download PDF';
-
-            if (btn) btn.disabled = true;
-            if (btnText) btnText.innerHTML = '<span class="inline-block animate-spin mr-1">⏳</span> Generating...';
 
             const element = document.querySelector('.print-container');
-            const isMobile = /Android|iPhone|iPad|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-            let canvasWidth = 1344;
-            if (currentPaperSize === 'letter') canvasWidth = 1056;
-            else if (currentPaperSize === 'a4') canvasWidth = 1150;
+            const filename = 'Monthly-Vehicle-Logbook-{{ $year }}-{{ $month }}.pdf';
 
             const opt = {
-                margin:       currentPaperSize === 'legal' ? 0.3 : 0.25,
-                filename:     'Monthly-Vehicle-Logbook-{{ $year }}-{{ $month }}.pdf',
-                image:        { type: 'jpeg', quality: 0.95 },
-                html2canvas:  { 
-                    scale: isMobile ? 1.2 : 1.8, 
-                    useCORS: true, 
+                margin:       0.3,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  {
+                    scale: 2,
+                    useCORS: true,
                     allowTaint: true,
                     logging: false,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: canvasWidth
+                    windowWidth: 1300,
+                    onclone: function(clonedDoc) {
+                        const el = clonedDoc.querySelector('.print-container');
+                        if (el) {
+                            el.style.width = '13in';
+                            el.style.maxWidth = '13in';
+                            el.style.minWidth = '13in';
+                            el.style.margin = '0 auto';
+                        }
+                    }
                 },
-                jsPDF:        { unit: 'in', format: currentPaperSize, orientation: 'landscape', compress: true },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                jsPDF: { unit: 'in', format: 'legal', orientation: 'landscape' }
             };
 
-            html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
-                const blob = pdf.output('blob');
+            try {
+                const pdfWorker = html2pdf().set(opt).from(element);
+                const blob = await pdfWorker.output('blob');
                 const blobUrl = URL.createObjectURL(blob);
-                const fileName = opt.filename;
 
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    if (document.body.contains(a)) document.body.removeChild(a);
-                }, 1000);
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-                if (isMobile) {
-                    showMobilePdfModal(blobUrl, fileName);
-                }
-
-                if (btnText) btnText.textContent = '✅ Downloaded!';
-                setTimeout(() => {
-                    if (btnText) btnText.textContent = originalText;
-                    if (btn) btn.disabled = false;
-                    isGeneratingPdf = false;
-                }, 2000);
-            }).catch(function(err) {
-                console.error('PDF generation error:', err);
-                if (confirm('Nagkaroon ng problema sa automated PDF generation sa browser na ito.\n\nGusto mo bang gamitin ang Print menu para i-save bilang PDF?')) {
-                    triggerPrint();
-                }
-                if (btnText) btnText.textContent = originalText;
-                if (btn) btn.disabled = false;
-                isGeneratingPdf = false;
-            });
-        }
-
-        function showMobilePdfModal(blobUrl, fileName) {
-            let modal = document.getElementById('mobilePdfSuccessModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'mobilePdfSuccessModal';
-                modal.className = 'no-print fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4';
-                modal.innerHTML = `
-                    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl border border-gray-200 flex flex-col gap-3.5">
-                        <div class="flex items-center justify-between border-b pb-2.5">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xl">📄</span>
-                                <h3 class="font-extrabold text-sm text-gray-900">PDF Document Ready!</h3>
-                            </div>
-                            <button type="button" onclick="closeMobilePdfModal()" class="text-gray-400 hover:text-gray-600 font-bold p-1 cursor-pointer">✕</button>
-                        </div>
-                        <p class="text-xs text-gray-600 leading-relaxed">
-                            Nagawa na ang iyong PDF form! Pindutin ang button sa ibaba upang i-save o i-print sa iyong phone:
-                        </p>
-                        <div class="flex flex-col gap-2 pt-1">
-                            <a id="mobileDownloadPdfLink" href="${blobUrl}" download="${fileName}" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-3 px-4 rounded-xl text-center text-xs flex items-center justify-center gap-2 shadow-sm">
-                                <span>⬇️</span> <span>I-download ang PDF File</span>
-                            </a>
-                            <button type="button" onclick="closeMobilePdfModal(); triggerPrint();" class="w-full bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold py-2.5 px-4 rounded-xl text-center text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer">
-                                <span>🖨️</span> <span>I-print / Save as PDF (Native)</span>
-                            </button>
-                            <button type="button" onclick="closeMobilePdfModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-xl text-xs text-center cursor-pointer">
-                                Isara (Close)
-                            </button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-            } else {
-                const link = document.getElementById('mobileDownloadPdfLink');
-                if (link) {
+                if (isIOS) {
+                    const newWindow = window.open(blobUrl, '_blank');
+                    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                        const link = document.createElement('a');
+                        link.href = blobUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        setTimeout(() => document.body.removeChild(link), 1500);
+                    }
+                } else {
+                    const link = document.createElement('a');
                     link.href = blobUrl;
-                    link.download = fileName;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(blobUrl);
+                    }, 3000);
                 }
-                modal.classList.remove('hidden');
-                modal.style.display = 'flex';
+
+                if (btnEl) {
+                    btnEl.innerHTML = `<span>✓ PDF Downloaded!</span>`;
+                    setTimeout(() => {
+                        btnEl.disabled = false;
+                        btnEl.innerHTML = originalHtml;
+                    }, 2500);
+                }
+            } catch (err) {
+                console.error('PDF export error:', err);
+                alert('Could not download PDF directly on this device. Opening print preview where you can select "Save as PDF"!');
+                window.print();
+                if (btnEl) {
+                    btnEl.disabled = false;
+                    btnEl.innerHTML = originalHtml;
+                }
             }
         }
 
-        function closeMobilePdfModal() {
-            const modal = document.getElementById('mobilePdfSuccessModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.style.display = 'none';
+        function triggerPrint(btn) {
+            if (btn) {
+                btn.classList.add('opacity-75');
+                setTimeout(() => btn.classList.remove('opacity-75'), 1200);
             }
+            window.print();
         }
     </script>
 </body>

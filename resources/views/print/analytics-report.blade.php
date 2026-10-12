@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fleet Analytics Summary Report - {{ date('F Y') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -10,12 +11,16 @@
             font-family: 'Arial', 'Calibri', sans-serif;
             background-color: #f3f4f6;
             color: black;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         @media print {
             body {
-                background: white;
-                color: black;
+                background: white !important;
+                color: black !important;
                 font-size: 12px;
+                padding: 0 !important;
+                margin: 0 !important;
             }
             .no-print {
                 display: none !important;
@@ -36,26 +41,33 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 py-6 px-4">
+<body class="bg-gray-100 py-3 sm:py-6 px-2 sm:px-4">
 
-    <!-- Top Action Bar (hidden on print) -->
-    <div class="no-print max-w-[8.5in] mx-auto mb-4 flex items-center justify-between bg-white p-4 rounded-xl shadow-md border border-gray-200 gap-4">
+    <!-- Top Action Bar (Sticky, Mobile Responsive, hidden on print) -->
+    <div class="no-print sticky top-2 z-50 max-w-[8.5in] mx-auto mb-4 bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h1 class="text-gray-800 font-bold text-base">Fleet Analytics & Dispatch Summary Report</h1>
-            <p class="text-xs text-gray-500 font-mono">Generated on: {{ \Carbon\Carbon::now('Asia/Manila')->format('F d, Y - h:i A') }}</p>
+            <h1 class="text-gray-800 font-extrabold text-xs sm:text-base">Fleet Analytics & Dispatch Summary Report</h1>
+            <p class="text-[10px] sm:text-xs text-gray-500 font-mono">Generated: {{ \Carbon\Carbon::now('Asia/Manila')->format('F d, Y - h:i A') }}</p>
         </div>
-        <div class="flex gap-2">
-            <button onclick="downloadPDF()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-xs shadow-sm cursor-pointer">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <!-- Back Button -->
+            <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="flex-1 sm:flex-initial bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm border border-gray-300 cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Back</span>
+            </button>
+            <button id="btnDownloadPdf" onclick="downloadPDF(this)" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Download PDF
+                <span>Download PDF</span>
             </button>
-            <button onclick="window.print()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-xs shadow-sm cursor-pointer">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <button id="btnPrintDoc" onclick="triggerPrint(this)" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
-                Print Report
+                <span>Print Report</span>
             </button>
         </div>
     </div>
@@ -66,7 +78,7 @@
         <!-- Header -->
         <div class="border-b-2 border-black pb-4 mb-4">
             <div class="flex items-center justify-between gap-4">
-                <img src="{{ asset('csu-logo.png') }}" class="w-20 h-20 object-contain" alt="CSU Logo" />
+                <img src="{{ asset('csu-logo.png') }}" class="w-20 h-20 object-contain" alt="CSU Logo" crossorigin="anonymous" />
                 <div class="text-center flex-1">
                     <p class="text-[10px] tracking-widest uppercase font-semibold text-gray-700">Republic of the Philippines</p>
                     <h2 class="text-base font-extrabold text-black uppercase tracking-wide">Cagayan State University</h2>
@@ -243,18 +255,109 @@
 
     </div>
 
-    <!-- PDF Download Script -->
+    <!-- Mobile-Optimized PDF Download & Print Scripts -->
     <script>
-        function downloadPDF() {
+        async function downloadPDF(btn) {
+            const btnEl = btn || document.querySelector('#btnDownloadPdf');
+            const originalHtml = btnEl ? btnEl.innerHTML : '';
+
+            if (typeof html2pdf === 'undefined') {
+                alert('PDF engine is still loading. Please wait a few seconds or use "Print Report" to Save as PDF directly!');
+                return;
+            }
+
+            if (btnEl) {
+                btnEl.disabled = true;
+                btnEl.innerHTML = `
+                    <svg class="animate-spin h-4 w-4 text-white inline-block flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Generating PDF...</span>
+                `;
+            }
+
             const element = document.querySelector('.print-container');
+            const filename = 'Fleet-Analytics-Report-{{ date('Y-m-d') }}.pdf';
+
             const opt = {
-                margin:       0.3,
-                filename:     'Fleet-Analytics-Report-{{ date('Y-m-d') }}.pdf',
+                margin:       0.35,
+                filename:     filename,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                html2canvas:  {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: 850,
+                    onclone: function(clonedDoc) {
+                        const el = clonedDoc.querySelector('.print-container');
+                        if (el) {
+                            el.style.width = '8.5in';
+                            el.style.maxWidth = '8.5in';
+                            el.style.minWidth = '8.5in';
+                            el.style.margin = '0 auto';
+                        }
+                    }
+                },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(element).save();
+
+            try {
+                const pdfWorker = html2pdf().set(opt).from(element);
+                const blob = await pdfWorker.output('blob');
+                const blobUrl = URL.createObjectURL(blob);
+
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+                if (isIOS) {
+                    const newWindow = window.open(blobUrl, '_blank');
+                    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                        const link = document.createElement('a');
+                        link.href = blobUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        setTimeout(() => document.body.removeChild(link), 1500);
+                    }
+                } else {
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(blobUrl);
+                    }, 3000);
+                }
+
+                if (btnEl) {
+                    btnEl.innerHTML = `<span>✓ PDF Downloaded!</span>`;
+                    setTimeout(() => {
+                        btnEl.disabled = false;
+                        btnEl.innerHTML = originalHtml;
+                    }, 2500);
+                }
+            } catch (err) {
+                console.error('PDF export error:', err);
+                alert('Could not download PDF directly on this device. Opening print preview where you can select "Save as PDF"!');
+                window.print();
+                if (btnEl) {
+                    btnEl.disabled = false;
+                    btnEl.innerHTML = originalHtml;
+                }
+            }
+        }
+
+        function triggerPrint(btn) {
+            if (btn) {
+                btn.classList.add('opacity-75');
+                setTimeout(() => btn.classList.remove('opacity-75'), 1200);
+            }
+            window.print();
         }
     </script>
 </body>

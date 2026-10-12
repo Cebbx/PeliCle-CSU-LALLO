@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources\VehicleRequests\Pages;
 
+use App\Filament\Concerns\HasBackButton;
 use App\Filament\Resources\VehicleRequests\VehicleRequestResource;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateVehicleRequest extends CreateRecord
 {
+    use HasBackButton;
+
     protected static string $resource = VehicleRequestResource::class;
 
     public function canCreateAnother(): bool

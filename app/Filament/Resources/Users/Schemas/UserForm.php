@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Users\Schemas;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Schema;
 
 class UserForm
@@ -61,6 +62,10 @@ class UserForm
                     ->label('Official Position / Designation')
                     ->placeholder('e.g. Campus Executive Officer / General Services Officer')
                     ->maxLength(255),
+                ViewField::make('signature')
+                    ->label('Official Signature (E-Sign)')
+                    ->view('filament.components.signature-pad')
+                    ->columnSpanFull(),
                 TextInput::make('password')
                     ->password()
                     ->dehydrateStateUsing(fn ($state) => \Hash::make($state))

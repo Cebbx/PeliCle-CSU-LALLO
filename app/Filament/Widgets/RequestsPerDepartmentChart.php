@@ -18,7 +18,7 @@ class RequestsPerDepartmentChart extends ChartWidget
 
     protected int | string | array $columnSpan = 1;
 
-    protected ?string $maxHeight = '260px';
+    protected ?string $maxHeight = '280px';
 
     protected function getType(): string
     {

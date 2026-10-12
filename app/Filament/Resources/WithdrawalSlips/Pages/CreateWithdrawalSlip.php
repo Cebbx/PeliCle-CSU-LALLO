@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\WithdrawalSlips\Pages;
 
+use App\Filament\Concerns\HasBackButton;
 use App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
@@ -9,6 +10,8 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreateWithdrawalSlip extends CreateRecord
 {
+    use HasBackButton;
+
     protected static string $resource = WithdrawalSlipResource::class;
 
     public function canCreateAnother(): bool

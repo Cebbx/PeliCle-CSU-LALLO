@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: pelicle-fleet-system
+    runtime: docker
+    plan: free
+    region: singapore
+    envVars:
+      - key: APP_NAME
+        value: PeliCle
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://pelicle-fleet-system.onrender.com
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: DB_DATABASE
+        value: /var/www/html/database/database.sqlite
+      - key: SESSION_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync

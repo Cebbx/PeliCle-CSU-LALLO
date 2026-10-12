@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\VehicleRequests\Pages;
 
+use App\Filament\Concerns\HasBackButton;
 use App\Filament\Resources\VehicleRequests\VehicleRequestResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\RestoreAction;
@@ -9,11 +10,14 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditVehicleRequest extends EditRecord
 {
+    use HasBackButton;
+
     protected static string $resource = VehicleRequestResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
+            $this->getBackButtonAction(),
             DeleteAction::make()
                 ->label('Archive Request')
                 ->icon('heroicon-o-archive-box')

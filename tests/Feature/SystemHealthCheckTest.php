@@ -128,23 +128,7 @@ test('system functional test: all print views and reports render without errors'
         ->assertSuccessful()
         ->assertSee('Vehicle Trip Ticket');
 
-    // 3. Driver Travel Order Print
-    $this->actingAs($admin)
-        ->get("/trip-tickets/{$ticket->id}/print-travel-order?type=driver")
-        ->assertSuccessful()
-        ->assertSee('TRAVEL ORDER')
-        ->assertSee('F-OCEO-60105')
-        ->assertSee('Juan Dela Cruz');
-
-    // 4. Employee Travel Order Print
-    $this->actingAs($admin)
-        ->get("/trip-tickets/{$ticket->id}/print-travel-order?type=employee")
-        ->assertSuccessful()
-        ->assertSee('TRAVEL ORDER')
-        ->assertSee('F-OCEO-60105')
-        ->assertSee('Maria Santos');
-
-    // 5. Withdrawal Slip Print
+    // 3. Withdrawal Slip Print
     $this->actingAs($admin)
         ->get("/withdrawal-slips/{$slip->id}/print")
         ->assertSuccessful()

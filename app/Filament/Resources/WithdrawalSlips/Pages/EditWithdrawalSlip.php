@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\WithdrawalSlips\Pages;
 
+use App\Filament\Concerns\HasBackButton;
 use App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -10,11 +11,14 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditWithdrawalSlip extends EditRecord
 {
+    use HasBackButton;
+
     protected static string $resource = WithdrawalSlipResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
+            $this->getBackButtonAction(),
             Action::make('print')
                 ->label('Print Slip')
                 ->icon('heroicon-o-printer')

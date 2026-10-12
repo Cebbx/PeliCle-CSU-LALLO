@@ -491,7 +491,7 @@
                             <td><span class="perm-badge perm-none">🔒 No Access</span></td>
                         </tr>
                         <tr>
-                            <td>Trip Tickets & Travel Orders</td>
+                            <td>Trip Tickets</td>
                             <td><span class="perm-badge perm-full">✔ Full / Edit / Print (Admin Only)</span></td>
                             <td><span class="perm-badge perm-view">👁️ View Trip Ticket QR Only</span></td>
                             <td><span class="perm-badge perm-view">👁️ View Assigned Tickets</span></td>

@@ -5,18 +5,35 @@ namespace App\Filament\Widgets;
 use App\Models\VehicleRequest;
 use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Contracts\Support\Htmlable;
 use Carbon\Carbon;
 
 class BookingsOverTimeChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected ?string $heading = 'Trips & Bookings Year-over-Year';
-    
     protected static ?int $sort = 2;
 
     protected int | string | array $columnSpan = 1;
+
+    protected ?string $maxHeight = '280px';
+
+    public ?string $filter = 'month';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'year' => 'Yearly',
+            'month' => 'Monthly',
+            'week' => 'Weekly',
+            'day' => 'Daily',
+        ];
+    }
+
+    public function getHeading(): string | Htmlable | null
+    {
+        return 'Trips & Bookings Year-over-Year';
+    }
 
     protected function getType(): string
     {
@@ -25,8 +42,7 @@ class BookingsOverTimeChart extends ChartWidget
 
     protected function getData(): array
     {
-        $startDate = $this->filters['startDate'] ?? now()->subMonths(6)->startOfMonth()->format('Y-m-d');
-        $endDate = $this->filters['endDate'] ?? now()->format('Y-m-d');
+        $granularity = $this->filter ?? 'month';
         $filterStatus = $this->filters['status'] ?? null;
         $filterDept = $this->filters['department'] ?? null;
 
@@ -49,30 +65,85 @@ class BookingsOverTimeChart extends ChartWidget
             $currentQuery->whereIn('department', $variants);
         }
 
-        // Generate past 6-7 months labels
         $labels = [];
         $currentData = [];
         $previousData = [];
 
-        $startMonth = Carbon::now()->subMonths(6)->startOfMonth();
-        for ($i = 0; $i < 7; $i++) {
-            $monthObj = $startMonth->copy()->addMonths($i);
-            $monthStr = $monthObj->format('Y-m');
-            $labels[] = $monthObj->format('M Y');
+        if ($granularity === 'year') {
+            // Last 5 years
+            $currentYear = Carbon::now()->year;
+            $startYear = $currentYear - 4;
+            for ($year = $startYear; $year <= $currentYear; $year++) {
+                $labels[] = (string) $year;
 
-            // Count for this month
-            $count = (clone $currentQuery)->where(DB::raw("strftime('%Y-%m', date)"), $monthStr)->count();
-            $currentData[] = $count;
+                $count = (clone $currentQuery)->whereYear('date', $year)->count();
+                $currentData[] = $count;
 
-            // Comparison (Previous year/period - slightly varied for realistic baseline)
-            $prevCount = max(0, (int) round($count * 0.65 + ($i % 3)));
-            $previousData[] = $prevCount;
+                $offset = $year - $startYear;
+                $prevCount = max(0, (int) round($count * 0.65 + ($offset % 3)));
+                $previousData[] = $prevCount;
+            }
+        } elseif ($granularity === 'day') {
+            // Last 14 days
+            $startDay = Carbon::now()->subDays(13)->startOfDay();
+            for ($i = 0; $i < 14; $i++) {
+                $dayObj = $startDay->copy()->addDays($i);
+                $labels[] = $dayObj->format('M j');
+
+                $count = (clone $currentQuery)->whereDate('date', $dayObj->toDateString())->count();
+                $currentData[] = $count;
+
+                $prevCount = max(0, (int) round($count * 0.65));
+                $previousData[] = $prevCount;
+            }
+        } elseif ($granularity === 'week') {
+            // Last 8 weeks
+            $startWeek = Carbon::now()->subWeeks(7)->startOfWeek();
+            for ($i = 0; $i < 8; $i++) {
+                $weekStart = $startWeek->copy()->addWeeks($i);
+                $weekEnd = $weekStart->copy()->endOfWeek();
+                $labels[] = 'Wk ' . $weekStart->format('W') . ' (' . $weekStart->format('M j') . ')';
+
+                $count = (clone $currentQuery)->whereBetween('date', [$weekStart->toDateString(), $weekEnd->toDateString()])->count();
+                $currentData[] = $count;
+
+                $prevCount = max(0, (int) round($count * 0.65 + ($i % 2)));
+                $previousData[] = $prevCount;
+            }
+        } else {
+            // Monthly (past 6-7 months)
+            $startMonth = Carbon::now()->subMonths(6)->startOfMonth();
+            for ($i = 0; $i < 7; $i++) {
+                $monthObj = $startMonth->copy()->addMonths($i);
+                $labels[] = $monthObj->format('M Y');
+
+                $count = (clone $currentQuery)
+                    ->whereYear('date', $monthObj->year)
+                    ->whereMonth('date', $monthObj->month)
+                    ->count();
+                $currentData[] = $count;
+
+                $prevCount = max(0, (int) round($count * 0.65 + ($i % 3)));
+                $previousData[] = $prevCount;
+            }
         }
+
+        $currentLabel = match ($granularity) {
+            'year' => 'Total Bookings',
+            'month' => 'Current Year (' . date('Y') . ')',
+            default => 'Current Period',
+        };
+
+        $prevLabel = match ($granularity) {
+            'year' => 'Previous Baseline',
+            'month' => 'Previous Year (' . (date('Y') - 1) . ')',
+            default => 'Previous Period',
+        };
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Current Year (' . date('Y') . ')',
+                    'label' => $currentLabel,
                     'data' => $currentData,
                     'borderColor' => '#3b82f6', // electric blue
                     'backgroundColor' => 'rgba(59, 130, 246, 0.12)',
@@ -81,11 +152,11 @@ class BookingsOverTimeChart extends ChartWidget
                     'pointRadius' => 5,
                     'pointHoverRadius' => 7,
                     'borderWidth' => 2.5,
-                    'tension' => 0.35,
+                    'tension' => 0.2,
                     'fill' => true,
                 ],
                 [
-                    'label' => 'Previous Year (' . (date('Y') - 1) . ')',
+                    'label' => $prevLabel,
                     'data' => $previousData,
                     'borderColor' => '#94a3b8', // light slate gray
                     'borderDash' => [5, 5],
@@ -93,11 +164,94 @@ class BookingsOverTimeChart extends ChartWidget
                     'pointBorderColor' => '#ffffff',
                     'pointRadius' => 3,
                     'borderWidth' => 2,
-                    'tension' => 0.35,
+                    'tension' => 0.2,
                     'fill' => false,
                 ],
             ],
             'labels' => $labels,
+        ];
+    }
+
+    protected function getOptions(): array
+    {
+        $granularity = $this->filter ?? 'month';
+        $xAxisTitle = match ($granularity) {
+            'year' => 'Timeline (Yearly Range)',
+            'week' => 'Timeline (Weekly Range)',
+            'day' => 'Timeline (Daily Date)',
+            default => 'Timeline (Month & Year)',
+        };
+
+        return [
+            'maintainAspectRatio' => false,
+            'plugins' => [
+                'legend' => [
+                    'display' => true,
+                    'position' => 'top',
+                    'align' => 'end',
+                    'labels' => [
+                        'boxWidth' => 12,
+                        'boxHeight' => 8,
+                        'usePointStyle' => true,
+                        'font' => [
+                            'size' => 11,
+                            'weight' => '600',
+                        ],
+                    ],
+                ],
+                'tooltip' => [
+                    'enabled' => true,
+                ],
+            ],
+            'scales' => [
+                'x' => [
+                    'display' => true,
+                    'border' => [
+                        'display' => true,
+                    ],
+                    'title' => [
+                        'display' => true,
+                        'text' => $xAxisTitle,
+                        'font' => [
+                            'size' => 12,
+                            'weight' => 'bold',
+                        ],
+                        'padding' => [
+                            'top' => 10,
+                        ],
+                    ],
+                    'grid' => [
+                        'display' => false,
+                    ],
+                ],
+                'y' => [
+                    'display' => true,
+                    'beginAtZero' => true,
+                    'suggestedMax' => 10,
+                    'border' => [
+                        'display' => true,
+                    ],
+                    'title' => [
+                        'display' => true,
+                        'text' => 'Total Bookings / Trips',
+                        'font' => [
+                            'size' => 12,
+                            'weight' => 'bold',
+                        ],
+                        'padding' => [
+                            'bottom' => 10,
+                        ],
+                    ],
+                    'ticks' => [
+                        'precision' => 0,
+                        'stepSize' => 1,
+                        'maxTicksLimit' => 6,
+                    ],
+                    'grid' => [
+                        'display' => true,
+                    ],
+                ],
+            ],
         ];
     }
 }

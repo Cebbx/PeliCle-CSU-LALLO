@@ -12,6 +12,7 @@ use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -468,6 +469,22 @@ class VehicleRequestForm
                     ->required(fn (Get $get) => (bool) $get('has_other_passengers'))
                     ->columnSpanFull()
                     ->rows(2),
+                Fieldset::make('Requester Electronic Signature')
+                    ->columnSpanFull()
+                    ->schema([
+                        ViewField::make('requester_signature')
+                            ->hiddenLabel()
+                            ->view('filament.components.signature-pad')
+                            ->default(function (callable $get) {
+                                $userId = $get('user_id');
+                                if ($userId) {
+                                    return \App\Models\User::find($userId)?->signature;
+                                }
+                                $user = \Filament\Facades\Filament::auth()->user() ?? auth()->user();
+                                return $user?->signature;
+                            })
+                            ->columnSpanFull(),
+                    ]),
                 Select::make('status')
                     ->options([
                         'pending' => 'Pending',

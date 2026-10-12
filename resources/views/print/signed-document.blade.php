@@ -12,20 +12,15 @@
             color: black;
         }
         @media print {
-            html, body {
-                display: block !important;
+            body {
                 background: white !important;
                 padding: 0 !important;
                 margin: 0 !important;
-                height: auto !important;
-                min-height: 0 !important;
-                width: 100% !important;
             }
             .no-print {
                 display: none !important;
             }
             .print-container {
-                display: block !important;
                 min-height: 0 !important;
                 height: auto !important;
                 border: none !important;
@@ -41,7 +36,6 @@
                 object-fit: contain !important;
                 display: block !important;
                 margin: 0 auto !important;
-                page-break-inside: avoid !important;
             }
             @page {
                 size: letter portrait;
@@ -50,62 +44,42 @@
         }
     </style>
 </head>
-@php
-    $backUrl = url()->previous();
-    if ($backUrl === url()->current() || empty($backUrl)) {
-        if ($type === 'vehicle-request') {
-            $backUrl = auth('employee')->check() ? url('/employee/vehicle-requests') : url('/admin/vehicle-requests');
-        } else {
-            $backUrl = auth('driver')->check() ? url('/driver/trip-tickets') : url('/admin/trip-tickets');
-        }
-    }
-@endphp
-<body class="bg-gray-100 py-4 sm:py-6 px-2 sm:px-4 min-h-screen flex flex-col">
+<body class="bg-gray-100 py-3 sm:py-6 px-2 sm:px-4 min-h-screen flex flex-col">
 
-    <!-- In-App Browser (Messenger / IG) Notification Banner -->
-    <div id="inAppNotice" class="no-print hidden max-w-[8.5in] w-full mx-auto mb-3 bg-amber-50 border border-amber-300 rounded-xl p-3 sm:p-3.5 shadow-sm text-xs text-amber-900 flex items-start justify-between gap-3">
-        <div class="flex items-start gap-2.5">
-            <span class="text-base leading-none">📱</span>
-            <div class="leading-relaxed">
-                <strong class="font-bold">Nasa loob ka ng Messenger / In-App browser:</strong>
-                Maaaring hindi gumana ang Print o Download dito dahil hinarang ito ng app. Pindutin ang <strong>3 dots (⋮ o •••)</strong> sa kanang itaas ng screen at piliin ang <strong>"Open in Chrome" / "Open in Browser"</strong>.
-            </div>
-        </div>
-        <button type="button" onclick="document.getElementById('inAppNotice').classList.add('hidden')" class="text-amber-700 hover:text-amber-900 font-bold p-1 cursor-pointer">✕</button>
-    </div>
-
-    <!-- Floating Top Bar (hidden on print) -->
-    <div class="no-print max-w-[8.5in] w-full mx-auto mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-white p-3 sm:p-4 rounded-xl shadow-md border border-gray-200 gap-3">
-        <div class="flex items-center gap-3">
-            <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-2 px-3 sm:px-3.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs sm:text-sm border border-gray-300 shadow-sm cursor-pointer shrink-0" title="Go Back">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                </svg>
-                <span>Back</span>
-            </a>
-            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
+    <!-- Floating Top Bar (Sticky, Mobile Responsive, hidden on print) -->
+    <div class="no-print sticky top-2 z-50 max-w-[8.5in] w-full mx-auto mb-4 bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 flex-shrink-0">
                 <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
             </div>
-            <div class="min-w-0">
-                <h1 class="text-gray-900 font-bold text-sm sm:text-base leading-tight truncate">{{ $title }}</h1>
-                <p class="text-[11px] sm:text-xs text-gray-500 mt-0.5 truncate">{{ $subtitle }}</p>
+            <div>
+                <h1 class="text-gray-900 font-extrabold text-xs sm:text-base leading-tight">{{ $title }}</h1>
+                <p class="text-[10px] sm:text-xs text-gray-500 mt-0.5">{{ $subtitle }}</p>
             </div>
         </div>
 
-        <div class="flex items-center gap-2 w-full sm:w-auto">
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <!-- Back Button -->
+            <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); setTimeout(() => { window.location.href = '{{ url()->previous() ?: route('dashboard') }}'; }, 200); }" class="flex-1 sm:flex-initial bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm border border-slate-300 cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Back</span>
+            </button>
+
             <!-- Download Button -->
-            <a href="{{ $downloadUrl ?? $fileUrl }}" download="{{ $downloadFilename }}" class="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm text-center">
-                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <button onclick="downloadSignedDoc(this, '{{ $fileUrl }}', '{{ $downloadFilename }}')" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                <span>Download {{ strtoupper($extension) }}</span>
-            </a>
+                <span>Download {{ strtoupper($extension) }} File</span>
+            </button>
 
             <!-- Print Button -->
-            <button type="button" onclick="triggerPrint()" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm cursor-pointer">
-                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <button onclick="triggerPrint(this)" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
                 <span>Print Document</span>
@@ -116,26 +90,7 @@
     <!-- Document Viewer Container -->
     <div class="max-w-[8.5in] w-full mx-auto flex-1 flex flex-col print-container">
         @if($extension === 'pdf')
-            <!-- Mobile Friendly Notice for Phone Browsers -->
-            <div class="sm:hidden no-print bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 text-xs text-blue-900 flex flex-col gap-2 shadow-sm">
-                <div class="flex items-center gap-2 font-bold text-xs">
-                    <span>📱</span>
-                    <span>Para sa Cellphone Users:</span>
-                </div>
-                <p class="text-[11px] text-blue-800 leading-relaxed">
-                    Kung hindi lumalabas ang PDF preview sa ibaba, gamitin ang button upang i-download o buksan direkta sa iyong PDF viewer / Google Drive:
-                </p>
-                <div class="flex gap-2 pt-1">
-                    <a href="{{ $downloadUrl ?? $fileUrl }}" class="flex-1 bg-green-600 active:bg-green-700 text-white text-center font-bold py-2.5 px-3 rounded-lg text-xs shadow-sm flex items-center justify-center gap-1.5">
-                        <span>⬇️</span> Download PDF
-                    </a>
-                    <a href="{{ $fileUrl }}" target="_blank" class="flex-1 bg-blue-600 active:bg-blue-700 text-white text-center font-bold py-2.5 px-3 rounded-lg text-xs shadow-sm flex items-center justify-center gap-1.5">
-                        <span>👁️</span> Buksan sa Viewer
-                    </a>
-                </div>
-            </div>
-
-            <!-- PDF Viewer Frame -->
+            <!-- PDF Viewer -->
             <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden flex-1 min-h-[85vh]">
                 <iframe id="pdfFrame" src="{{ $fileUrl }}#toolbar=1&navpanes=0" class="w-full h-[85vh] border-0" title="PDF Document"></iframe>
             </div>
@@ -152,7 +107,7 @@
                 </svg>
                 <h2 class="text-lg font-bold text-gray-800 mb-1">{{ $fileName }}</h2>
                 <p class="text-sm text-gray-500 mb-6">This document format ({{ strtoupper($extension) }}) cannot be directly previewed inline.</p>
-                <a href="{{ $downloadUrl ?? $fileUrl }}" download="{{ $downloadFilename }}" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition-colors">
+                <a href="{{ $fileUrl }}" download="{{ $downloadFilename }}" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition-colors">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -162,47 +117,82 @@
         @endif
     </div>
 
-    <!-- Print Script -->
+    <!-- Mobile-Optimized Download & Print Scripts -->
     <script>
-        function handleBack(event) {
-            if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
-                event.preventDefault();
-                window.history.back();
-                return;
+        async function downloadSignedDoc(btn, url, filename) {
+            const originalHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `
+                    <svg class="animate-spin h-4 w-4 text-white inline-block flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Downloading...</span>
+                `;
             }
-            if (window.opener) {
-                event.preventDefault();
-                window.close();
-                return;
-            }
+
             try {
-                window.close();
-            } catch (e) {}
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network error');
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+                if (isIOS) {
+                    const newWindow = window.open(blobUrl, '_blank');
+                    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                        const link = document.createElement('a');
+                        link.href = blobUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        setTimeout(() => document.body.removeChild(link), 1500);
+                    }
+                } else {
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(blobUrl);
+                    }, 3000);
+                }
+
+                if (btn) {
+                    btn.innerHTML = `<span>✓ Downloaded!</span>`;
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }, 2500);
+                }
+            } catch (err) {
+                console.error('Download error:', err);
+                // Fallback: direct navigation download
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => document.body.removeChild(link), 1000);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            }
         }
 
-        function isInAppBrowser() {
-            return /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|MicroMessenger/i.test(navigator.userAgent);
-        }
-
-        if (isInAppBrowser()) {
-            const notice = document.getElementById('inAppNotice');
-            if (notice) notice.classList.remove('hidden');
-        }
-
-        function triggerPrint() {
-            if (isInAppBrowser()) {
-                alert('Hindi sinusuportahan ang direct printing sa loob ng Messenger.\n\nPindutin ang "Download" button o i-tap ang 3 dots (...) sa itaas at buksan sa Chrome para makapag-print.');
-                return;
+        function triggerPrint(btn) {
+            if (btn) {
+                btn.classList.add('opacity-75');
+                setTimeout(() => btn.classList.remove('opacity-75'), 1200);
             }
 
             @if($extension === 'pdf')
-                const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                if (isMobile) {
-                    if (confirm('Nasa cellphone ka. Upang ma-print ang PDF na ito, i-download muna ito sa iyong phone at buksan sa PDF viewer o Print service.\n\nGusto mo bang i-download ngayon?')) {
-                        window.location.href = "{{ $downloadUrl ?? $fileUrl }}";
-                    }
-                    return;
-                }
                 const frame = document.getElementById('pdfFrame');
                 if (frame && frame.contentWindow) {
                     try {
@@ -214,12 +204,9 @@
                     }
                 }
             @endif
-            try {
-                window.print();
-            } catch (e) {
-                console.warn('window.print error:', e);
-            }
+            window.print();
         }
     </script>
+
 </body>
 </html>

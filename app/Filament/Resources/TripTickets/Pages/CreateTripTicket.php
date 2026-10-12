@@ -2,12 +2,15 @@
 
 namespace App\Filament\Resources\TripTickets\Pages;
 
+use App\Filament\Concerns\HasBackButton;
 use App\Filament\Resources\TripTickets\TripTicketResource;
 use App\Models\VehicleRequest;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateTripTicket extends CreateRecord
 {
+    use HasBackButton;
+
     protected static string $resource = TripTicketResource::class;
 
     public function canCreateAnother(): bool

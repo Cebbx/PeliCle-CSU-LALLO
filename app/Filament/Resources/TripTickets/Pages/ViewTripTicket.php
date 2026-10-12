@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TripTickets\Pages;
 
+use App\Filament\Concerns\HasBackButton;
 use App\Filament\Resources\TripTickets\TripTicketResource;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -9,6 +10,8 @@ use Filament\Resources\Pages\ViewRecord;
 
 class ViewTripTicket extends ViewRecord
 {
+    use HasBackButton;
+
     protected static string $resource = TripTicketResource::class;
 
     protected ?string $pollingInterval = '5s';
@@ -16,6 +19,7 @@ class ViewTripTicket extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            $this->getBackButtonAction(),
             EditAction::make(),
             Action::make('print')
                 ->label('Print Trip Ticket')

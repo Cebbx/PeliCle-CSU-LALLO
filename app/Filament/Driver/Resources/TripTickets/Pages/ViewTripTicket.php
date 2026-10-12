@@ -2,12 +2,15 @@
 
 namespace App\Filament\Driver\Resources\TripTickets\Pages;
 
+use App\Filament\Concerns\HasBackButton;
 use App\Filament\Driver\Resources\TripTickets\TripTicketResource;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewTripTicket extends ViewRecord
 {
+    use HasBackButton;
+
     protected static string $resource = TripTicketResource::class;
 
     protected ?string $pollingInterval = '5s';
@@ -15,6 +18,7 @@ class ViewTripTicket extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            $this->getBackButtonAction(),
             Action::make('acknowledge')
                 ->label('Acknowledge Trip')
                 ->icon('heroicon-o-check-circle')

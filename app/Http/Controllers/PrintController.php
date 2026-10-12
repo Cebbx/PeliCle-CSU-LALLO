@@ -100,136 +100,44 @@ class PrintController extends Controller
         $slip = \App\Models\WithdrawalSlip::with(['tripTicket.driver'])->findOrFail($id);
         
         $ticket = $slip->tripTicket;
-        $driverName = $slip->driver_name ?: ($ticket?->driver?->name ?? '_______________');
+        $driverName = trim($slip->driver_name ?: ($ticket?->driver?->name ?? ''));
+        if (str_replace('_', '', $driverName) === '') {
+            $driverName = '';
+        }
+
         $vehicleModel = '';
         $vehiclePlate = '';
 
-        $vehicleStr = $slip->vehicle_name ?: ($ticket ? $ticket->vehicle : '');
+        $vehicleStr = trim($slip->vehicle_name ?: ($ticket ? $ticket->vehicle : ''));
         if ($vehicleStr) {
-            $dbVehicle = \App\Models\Vehicle::where('plate_number', $vehicleStr)->first();
-            if ($dbVehicle) {
+            if (preg_match('/^(.*?)\s*\((.*?)\)$/', $vehicleStr, $matches)) {
+                $rawModel = trim($matches[1]);
+                $vehiclePlate = trim($matches[2]);
+                $dbVehicle = \App\Models\Vehicle::where('plate_number', $vehiclePlate)->first();
+                $vehicleModel = $dbVehicle ? $dbVehicle->brand : $rawModel;
+            } elseif ($dbVehicle = \App\Models\Vehicle::where('plate_number', $vehicleStr)->first()) {
                 $vehicleModel = $dbVehicle->brand;
                 $vehiclePlate = $dbVehicle->plate_number;
+            } elseif (str_contains($vehicleStr, ' - ')) {
+                $parts = explode(' - ', $vehicleStr);
+                $vehicleModel = trim($parts[0] ?? '');
+                $vehiclePlate = trim($parts[1] ?? '');
             } else {
-                if (preg_match('/^(.*?)\s*\((.*?)\)$/', $vehicleStr, $matches)) {
-                    $vehicleModel = trim($matches[1]);
-                    $vehiclePlate = trim($matches[2]);
-                } elseif (str_contains($vehicleStr, ' - ')) {
-                    $parts = explode(' - ', $vehicleStr);
-                    $vehicleModel = $parts[0] ?? '';
-                    $vehiclePlate = $parts[1] ?? '';
-                } else {
-                    $vehicleModel = $vehicleStr;
-                    $vehiclePlate = $vehicleStr;
-                }
+                $vehicleModel = $vehicleStr;
+                $vehiclePlate = $vehicleStr;
+            }
+        }
+
+        if ($vehicleModel) {
+            $parts = explode(' ', $vehicleModel);
+            if (count($parts) >= 2 && strcasecmp($parts[0], $parts[1]) === 0) {
+                $vehicleModel = $parts[0];
             }
         }
 
         return view('print.withdrawal-slip', compact('slip', 'driverName', 'vehicleModel', 'vehiclePlate'));
     }
 
-    public function printTravelOrder(Request $request, $id)
-    {
-        $ticket = TripTicket::with(['driver', 'vehicleRequest', 'vehicleRequests'])->findOrFail($id);
-        $type = $request->query('type', 'employee'); // employee or driver
-
-        $vr = $ticket->vehicleRequest ?: $ticket->vehicleRequests->first();
-
-        $name = '';
-        $position = '';
-        
-        if ($type === 'driver') {
-            $name = $ticket->driver?->name ?? '';
-            $position = 'Administrative Assistant I / Driver';
-        } else {
-            $name = $vr?->employee_name ?? '';
-            $position = $vr?->department ?? '';
-        }
-
-        $departure = '__________________';
-        if ($vr && !empty($vr->date)) {
-            $timeStr = !empty($vr->time) ? $vr->time : '00:00';
-            try {
-                $departure = \Carbon\Carbon::parse($vr->date . ' ' . $timeStr)->format('F d, Y h:i A');
-            } catch (\Throwable $e) {
-                $departure = $vr->date;
-            }
-        } elseif (!empty($ticket->departure_time)) {
-            try {
-                $departure = \Carbon\Carbon::parse($ticket->departure_time)->format('F d, Y h:i A');
-            } catch (\Throwable $e) {}
-        }
-
-        $arrival = '__________________';
-        if ($vr && !empty($vr->return_date)) {
-            $returnTimeStr = !empty($vr->return_time) ? $vr->return_time : '00:00';
-            try {
-                $arrival = \Carbon\Carbon::parse($vr->return_date . ' ' . $returnTimeStr)->format('F d, Y h:i A');
-            } catch (\Throwable $e) {
-                $arrival = $vr->return_date;
-            }
-        } elseif (!empty($ticket->arrival_time)) {
-            try {
-                $arrival = \Carbon\Carbon::parse($ticket->arrival_time)->format('F d, Y h:i A');
-            } catch (\Throwable $e) {}
-        }
-        
-        $destination = $vr?->destination ?? '';
-        $purpose = $vr?->purpose ?? '';
-
-        $vehicleName = '';
-        if ($ticket->vehicle) {
-            $dbVehicle = \App\Models\Vehicle::where('plate_number', $ticket->vehicle)->first();
-            $vehicleName = $dbVehicle ? "{$dbVehicle->brand} ({$dbVehicle->plate_number})" : $ticket->vehicle;
-        }
-
-        $seriesYear = date('Y');
-        $seriesMonth = date('m');
-        $seriesDay = date('d');
-
-        if ($vr) {
-            $reqDate = null;
-            if (!empty($vr->created_at)) {
-                $reqDate = $vr->created_at;
-            } elseif (!empty($vr->date)) {
-                try {
-                    $reqDate = \Carbon\Carbon::parse($vr->date);
-                } catch (\Throwable $e) {}
-            }
-            if ($reqDate) {
-                $seriesYear = $reqDate->format('Y');
-                $seriesMonth = $reqDate->format('m');
-                $seriesDay = $reqDate->format('d');
-            }
-            if (!empty($vr->request_number)) {
-                $cleanNum = preg_replace('/^VR-/', '', $vr->request_number);
-                $parts = explode('-', $cleanNum);
-                if (count($parts) >= 3) {
-                    $seriesYear = $parts[0];
-                    $seriesMonth = $parts[1];
-                    $seriesDay = $parts[2];
-                }
-            }
-        }
-
-        $isOB = !str_contains(strtolower($purpose), 'official time');
-
-        return view('print.travel-order', compact(
-            'ticket',
-            'type',
-            'name',
-            'position',
-            'departure',
-            'arrival',
-            'destination',
-            'purpose',
-            'vehicleName',
-            'seriesYear',
-            'seriesMonth',
-            'seriesDay',
-            'isOB'
-        ));
-    }
 
     public function printAnalyticsReport(Request $request)
     {

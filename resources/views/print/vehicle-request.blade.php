@@ -11,34 +11,22 @@
             font-family: 'Arial', 'Calibri', sans-serif;
             background-color: #f3f4f6; /* Gray background on screen */
             color: black;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         @media print {
-            html, body {
-                display: block !important;
+            body {
                 background: white !important;
                 color: black !important;
                 font-size: 11px;
                 padding: 0 !important;
                 margin: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                min-height: 0 !important;
-                overflow: visible !important;
             }
             .no-print {
                 display: none !important;
             }
-            .overflow-x-auto {
-                overflow: visible !important;
-                display: block !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
             .print-container {
                 min-height: 0 !important;
-                min-width: 0 !important;
                 height: auto !important;
                 border: none !important;
                 box-shadow: none !important;
@@ -46,7 +34,6 @@
                 margin: 0 !important;
                 max-width: 100% !important;
                 width: 100% !important;
-                overflow: visible !important;
             }
             @page {
                 size: letter; /* Force US Letter paper size */
@@ -55,52 +42,30 @@
         }
     </style>
 </head>
-@php
-    $backUrl = url()->previous();
-    if ($backUrl === url()->current() || empty($backUrl)) {
-        if (auth('employee')->check()) {
-            $backUrl = url('/employee/vehicle-requests');
-        } elseif (auth('driver')->check()) {
-            $backUrl = url('/driver');
-        } else {
-            $backUrl = url('/admin/vehicle-requests');
-        }
-    }
-@endphp
-<body class="bg-gray-100 py-4 sm:py-6 px-2 sm:px-4">
+<body class="bg-gray-100 py-3 sm:py-6 px-2 sm:px-4">
 
-    <!-- In-App Browser (Messenger / IG) Notification Banner -->
-    <div id="inAppNotice" class="no-print hidden max-w-[8.5in] mx-auto mb-3 bg-amber-50 border border-amber-300 rounded-xl p-3 sm:p-3.5 shadow-sm text-xs text-amber-900 flex items-start justify-between gap-3">
-        <div class="flex items-start gap-2.5">
-            <span class="text-base leading-none">📱</span>
-            <div class="leading-relaxed">
-                <strong class="font-bold">Nasa loob ka ng Messenger / In-App browser:</strong>
-                Maaaring hindi gumana ang Print o Download dito dahil hinarang ito ng app. Pindutin ang <strong>3 dots (⋮ o •••)</strong> sa kanang itaas ng screen at piliin ang <strong>"Open in Chrome" / "Open in Browser"</strong>.
-            </div>
+    <!-- Floating Top Bar (Sticky, Mobile Responsive, hidden on print) -->
+    <div class="no-print sticky top-2 z-50 max-w-[8.5in] mx-auto mb-4 bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+            <span class="text-gray-800 font-extrabold text-xs sm:text-sm tracking-tight">Vehicle Request Form</span>
+            <span class="text-[10px] sm:text-xs text-gray-500 font-mono hidden sm:inline">({{ $request->request_number }})</span>
         </div>
-        <button type="button" onclick="document.getElementById('inAppNotice').classList.add('hidden')" class="text-amber-700 hover:text-amber-900 font-bold p-1 cursor-pointer">✕</button>
-    </div>
-
-    <!-- Floating Top Bar (hidden on print) -->
-    <div class="no-print max-w-[8.5in] mx-auto mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-white p-3 sm:p-4 rounded-xl shadow-md border border-gray-200 gap-3">
-        <div class="flex items-center justify-between sm:justify-start gap-3">
-            <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-2 px-3 sm:px-3.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs sm:text-sm border border-gray-300 shadow-sm cursor-pointer shrink-0" title="Go Back">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <!-- Back Button -->
+            <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="flex-1 sm:flex-initial bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm border border-gray-300 cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 <span>Back</span>
-            </a>
-            <span class="text-gray-700 font-bold text-xs sm:text-sm truncate">Vehicle Request Form</span>
-        </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button id="downloadPdfBtn" type="button" onclick="downloadPDF()" class="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm cursor-pointer disabled:opacity-50">
-                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            </button>
+            <button id="btnDownloadPdf" onclick="downloadPDF(this)" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                <span id="downloadBtnText">Download PDF File</span>
+                <span>Download PDF File</span>
             </button>
-            <button id="printDocBtn" type="button" onclick="triggerPrint()" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm cursor-pointer">
-                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <button id="btnPrintDoc" onclick="triggerPrint(this)" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
                 <span>Print Document</span>
@@ -108,14 +73,12 @@
         </div>
     </div>
 
-    <!-- Wrapper for smooth mobile horizontal scroll if needed -->
-    <div class="overflow-x-auto w-full max-w-[8.5in] mx-auto pb-4">
-        <!-- Main Form Page Sheet -->
-        <div class="bg-white w-full max-w-[8.5in] mx-auto p-4 sm:p-8 shadow-lg border border-gray-200 flex flex-col print-container" style="min-height: 10.5in; min-width: 720px;">
+    <!-- Main Form Page Sheet -->
+    <div class="bg-white w-full max-w-[8.5in] mx-auto p-4 sm:p-8 shadow-lg border border-gray-200 flex flex-col print-container" style="min-height: 10.5in;">
         <!-- Header -->
         <div class="w-full border-b-2 border-black pb-4 mb-6 flex justify-center">
             <div class="relative flex flex-col items-center">
-                <img src="/csu-logo.png" alt="CSU Logo" class="absolute right-[100%] mr-6 top-1/2 -translate-y-1/2 w-16 h-16 object-contain" />
+                <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="absolute right-[100%] mr-6 top-1/2 -translate-y-1/2 w-16 h-16 object-contain" />
                 <h2 class="text-xs uppercase tracking-wider text-black">Republic of the Philippines</h2>
                 <h1 class="text-sm font-extrabold uppercase text-black tracking-wide mt-0.5">Cagayan State University</h1>
                 <h3 class="text-xs text-black mt-0.5">Lal-lo Campus</h3>
@@ -132,30 +95,15 @@
         <div class="border border-black mb-6">
             <!-- Row 1 -->
             <div class="grid grid-cols-12 border-b border-black">
-                <div class="col-span-7 p-2.5 border-r border-black flex flex-col justify-between" style="min-height: 85px;">
+                <div class="col-span-8 p-3 border-r border-black flex flex-col justify-between" style="min-height: 70px;">
                     <span class="text-[10px] uppercase font-bold text-black">Client:</span>
-                    <div class="flex flex-col items-center justify-end w-full">
-                        <span class="text-xs sm:text-sm font-bold text-black text-center truncate max-w-full px-1">{{ $request->employee_name }}</span>
-                        <div class="border-b border-black w-11/12 mx-auto my-0.5"></div>
-                        <span class="text-[9px] text-black text-center">Name</span>
-                    </div>
+                    <span class="text-sm font-bold text-black text-center mt-1 border-b border-gray-300 w-11/12 mx-auto">{{ $request->employee_name }}</span>
+                    <span class="text-[9px] text-black text-center mt-0.5">Name</span>
                 </div>
-                <div class="col-span-5 flex flex-col justify-between" style="min-height: 85px;">
-                    <!-- Top: Date Box (matches official format) -->
-                    <div class="flex border-b border-black h-7">
-                        <div class="w-16 border-r border-black px-2 flex items-center justify-center">
-                            <span class="text-[10px] font-bold text-black">Date</span>
-                        </div>
-                        <div class="flex-1 px-3 flex items-center justify-center">
-                            <span class="text-xs font-bold text-black">{{ \Carbon\Carbon::parse($request->created_at ?? now())->format('M d, Y') }}</span>
-                        </div>
-                    </div>
-                    <!-- Bottom: Office Box (matches official format) -->
-                    <div class="p-2 flex flex-col justify-end items-center flex-1">
-                        <span class="text-xs sm:text-sm font-bold text-black text-center uppercase truncate max-w-full px-1">{{ $request->department }}</span>
-                        <div class="border-b border-black w-11/12 mx-auto my-0.5"></div>
-                        <span class="text-[9px] text-black text-center">Office</span>
-                    </div>
+                <div class="col-span-4 p-3 flex flex-col justify-between" style="min-height: 70px;">
+                    <span class="text-[10px] uppercase font-bold text-black">Date:</span>
+                    <span class="text-sm font-bold text-black text-center mt-1 border-b border-gray-300 w-11/12 mx-auto">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</span>
+                    <span class="text-[9px] text-black text-center mt-0.5">Office: <span class="font-bold text-black">{{ $request->department }}</span></span>
                 </div>
             </div>
 
@@ -225,16 +173,13 @@
             <div class="col-span-6 flex flex-col justify-between pr-4">
                 <!-- Client's Signature -->
                 <div class="flex flex-col items-center">
-                    <div class="h-14 relative flex items-end justify-center w-full">
-                        @if(!empty($request->signature_url))
-                            <img src="{{ $request->signature_url }}" alt="Client Signature" class="max-h-14 max-w-[200px] object-contain mb-1" />
-                        @endif
-                    </div>
-                    <div class="w-full text-center pb-1">
-                        <span class="text-sm font-extrabold text-black uppercase tracking-wide">{{ $request->employee_name }}</span>
-                    </div>
+                    @if(!empty($request->signature_url))
+                        <img src="{{ $request->signature_url }}" alt="Client Signature" class="h-10 max-h-10 object-contain mb-1" />
+                    @else
+                        <div class="h-10"></div>
+                    @endif
                     <div class="w-full border-t border-black text-center pt-1">
-                        <span class="text-[10px] text-black uppercase font-semibold">Client Signature</span>
+                        <span class="text-xs font-bold text-black uppercase">Client's Signature</span>
                     </div>
                 </div>
 
@@ -292,170 +237,111 @@
             <span>F - GSO - 61207</span>
             <span>Rev. No. 00, October 23, 2025</span>
         </div>
-        </div>
     </div>
 
-    <!-- PDF Download & Print Script -->
+    <!-- Mobile-Optimized PDF Download & Print Scripts -->
     <script>
-        function handleBack(event) {
-            if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
-                event.preventDefault();
-                window.history.back();
-                return;
-            }
-            if (window.opener) {
-                event.preventDefault();
-                window.close();
-                return;
-            }
-            try {
-                window.close();
-            } catch (e) {}
-        }
+        async function downloadPDF(btn) {
+            const btnEl = btn || document.querySelector('#btnDownloadPdf');
+            const originalHtml = btnEl ? btnEl.innerHTML : '';
 
-        function isInAppBrowser() {
-            return /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|MicroMessenger/i.test(navigator.userAgent);
-        }
-
-        // Show banner if running inside In-App browser
-        if (isInAppBrowser()) {
-            const notice = document.getElementById('inAppNotice');
-            if (notice) notice.classList.remove('hidden');
-        }
-
-        function triggerPrint() {
-            if (isInAppBrowser()) {
-                if (confirm('Hindi sinusuportahan ang direct printing sa loob ng Messenger.\n\nGusto mo bang i-download na lamang ito bilang PDF?')) {
-                    downloadPDF();
-                }
+            if (typeof html2pdf === 'undefined') {
+                alert('PDF engine is still loading. Please wait a few seconds or use "Print Document" to Save as PDF directly!');
                 return;
             }
 
-            try {
-                window.print();
-            } catch (e) {
-                console.warn('window.print error:', e);
-                downloadPDF();
+            if (btnEl) {
+                btnEl.disabled = true;
+                btnEl.innerHTML = `
+                    <svg class="animate-spin h-4 w-4 text-white inline-block flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Generating PDF...</span>
+                `;
             }
-        }
-
-        let isGeneratingPdf = false;
-        function downloadPDF() {
-            if (isGeneratingPdf) return;
-            isGeneratingPdf = true;
-
-            const btn = document.getElementById('downloadPdfBtn');
-            const btnText = document.getElementById('downloadBtnText');
-            const originalText = btnText ? btnText.textContent : 'Download PDF File';
-
-            if (btn) btn.disabled = true;
-            if (btnText) btnText.innerHTML = '<span class="inline-block animate-spin mr-1">⏳</span> Generating...';
 
             const element = document.querySelector('.print-container');
-            const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const filename = 'Vehicle-Request-Form-{{ $request->request_number }}.pdf';
 
             const opt = {
-                margin:       0.3,
-                filename:     'Vehicle-Request-Form-{{ $request->request_number }}.pdf',
-                image:        { type: 'jpeg', quality: 0.95 },
-                html2canvas:  { 
-                    scale: isMobile ? 1.4 : 2.0, 
-                    useCORS: true, 
+                margin:       0.35,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  {
+                    scale: 2,
+                    useCORS: true,
                     allowTaint: true,
                     logging: false,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 816
+                    windowWidth: 850,
+                    onclone: function(clonedDoc) {
+                        const el = clonedDoc.querySelector('.print-container');
+                        if (el) {
+                            el.style.width = '8.5in';
+                            el.style.maxWidth = '8.5in';
+                            el.style.minWidth = '8.5in';
+                            el.style.margin = '0 auto';
+                        }
+                    }
                 },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait', compress: true }
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
-                const blob = pdf.output('blob');
+            try {
+                const pdfWorker = html2pdf().set(opt).from(element);
+                const blob = await pdfWorker.output('blob');
                 const blobUrl = URL.createObjectURL(blob);
-                const fileName = opt.filename;
 
-                // 1. Try standard a.download anchor
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    if (document.body.contains(a)) document.body.removeChild(a);
-                }, 1000);
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-                // 2. On mobile / WebViews where a.download is ignored or blocked:
-                if (isMobile) {
-                    showMobilePdfModal(blobUrl, fileName);
-                }
-
-                if (btnText) btnText.textContent = '✅ Downloaded!';
-                setTimeout(() => {
-                    if (btnText) btnText.textContent = originalText;
-                    if (btn) btn.disabled = false;
-                    isGeneratingPdf = false;
-                }, 2000);
-            }).catch(function(err) {
-                console.error('PDF generation error:', err);
-                if (confirm('Nagkaroon ng problema sa automated PDF generation sa browser na ito.\n\nGusto mo bang gamitin ang Print menu para i-save bilang PDF?')) {
-                    triggerPrint();
-                }
-                if (btnText) btnText.textContent = originalText;
-                if (btn) btn.disabled = false;
-                isGeneratingPdf = false;
-            });
-        }
-
-        function showMobilePdfModal(blobUrl, fileName) {
-            let modal = document.getElementById('mobilePdfSuccessModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'mobilePdfSuccessModal';
-                modal.className = 'no-print fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4';
-                modal.innerHTML = `
-                    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl border border-gray-200 flex flex-col gap-3.5">
-                        <div class="flex items-center justify-between border-b pb-2.5">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xl">📄</span>
-                                <h3 class="font-extrabold text-sm text-gray-900">PDF Document Ready!</h3>
-                            </div>
-                            <button type="button" onclick="closeMobilePdfModal()" class="text-gray-400 hover:text-gray-600 font-bold p-1 cursor-pointer">✕</button>
-                        </div>
-                        <p class="text-xs text-gray-600 leading-relaxed">
-                            Nagawa na ang iyong PDF form! Pindutin ang button sa ibaba upang i-save o i-print sa iyong phone:
-                        </p>
-                        <div class="flex flex-col gap-2 pt-1">
-                            <a id="mobileDownloadPdfLink" href="${blobUrl}" download="${fileName}" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-3 px-4 rounded-xl text-center text-xs flex items-center justify-center gap-2 shadow-sm">
-                                <span>⬇️</span> <span>I-download ang PDF File</span>
-                            </a>
-                            <button type="button" onclick="closeMobilePdfModal(); triggerPrint();" class="w-full bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold py-2.5 px-4 rounded-xl text-center text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer">
-                                <span>🖨️</span> <span>I-print / Save as PDF (Native)</span>
-                            </button>
-                            <button type="button" onclick="closeMobilePdfModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-xl text-xs text-center cursor-pointer">
-                                Isara (Close)
-                            </button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-            } else {
-                const link = document.getElementById('mobileDownloadPdfLink');
-                if (link) {
+                if (isIOS) {
+                    const newWindow = window.open(blobUrl, '_blank');
+                    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                        const link = document.createElement('a');
+                        link.href = blobUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        setTimeout(() => document.body.removeChild(link), 1500);
+                    }
+                } else {
+                    const link = document.createElement('a');
                     link.href = blobUrl;
-                    link.download = fileName;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(blobUrl);
+                    }, 3000);
                 }
-                modal.classList.remove('hidden');
-                modal.style.display = 'flex';
+
+                if (btnEl) {
+                    btnEl.innerHTML = `<span>✓ PDF Downloaded!</span>`;
+                    setTimeout(() => {
+                        btnEl.disabled = false;
+                        btnEl.innerHTML = originalHtml;
+                    }, 2500);
+                }
+            } catch (err) {
+                console.error('PDF export error:', err);
+                alert('Could not download PDF directly on this device. Opening print preview where you can select "Save as PDF"!');
+                window.print();
+                if (btnEl) {
+                    btnEl.disabled = false;
+                    btnEl.innerHTML = originalHtml;
+                }
             }
         }
 
-        function closeMobilePdfModal() {
-            const modal = document.getElementById('mobilePdfSuccessModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.style.display = 'none';
+        function triggerPrint(btn) {
+            if (btn) {
+                btn.classList.add('opacity-75');
+                setTimeout(() => btn.classList.remove('opacity-75'), 1200);
             }
+            window.print();
         }
     </script>
 

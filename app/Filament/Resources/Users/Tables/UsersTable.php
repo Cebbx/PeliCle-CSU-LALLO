@@ -38,6 +38,7 @@ class UsersTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('department')
+                    ->label('Office')
                     ->searchable()
                     ->sortable()
                     ->placeholder('N/A'),
@@ -57,6 +58,7 @@ class UsersTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('name', 'asc')
             ->filters([
                 TrashedFilter::make()
                     ->label('Archive Status'),

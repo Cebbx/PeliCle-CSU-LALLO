@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TripTickets\Pages;
 
+use App\Filament\Concerns\HasBackButton;
 use App\Filament\Resources\TripTickets\TripTicketResource;
 use App\Models\VehicleRequest;
 use Filament\Actions\DeleteAction;
@@ -10,11 +11,14 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditTripTicket extends EditRecord
 {
+    use HasBackButton;
+
     protected static string $resource = TripTicketResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
+            $this->getBackButtonAction(),
             DeleteAction::make()
                 ->label('Archive Trip Ticket')
                 ->icon('heroicon-o-archive-box')

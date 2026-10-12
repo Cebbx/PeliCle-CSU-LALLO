@@ -11,30 +11,19 @@
             font-family: 'Arial', 'Calibri', sans-serif;
             background-color: #f3f4f6; /* Gray background on screen */
             color: black;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         @media print {
-            html, body {
-                display: block !important;
+            body {
                 background: white !important;
                 color: black !important;
                 font-size: 13px;
                 padding: 0 !important;
                 margin: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                min-height: 0 !important;
-                overflow: visible !important;
             }
             .no-print {
                 display: none !important;
-            }
-            .overflow-x-auto {
-                overflow: visible !important;
-                display: block !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
             }
             @page {
                 size: letter; /* Force US Letter paper size */
@@ -44,71 +33,45 @@
                 padding: 0 !important;
                 margin: 0 !important;
                 min-height: auto !important;
-                min-width: 0 !important;
                 height: auto !important;
                 box-shadow: none !important;
                 border: none !important;
                 max-width: 100% !important;
                 width: 100% !important;
-                overflow: visible !important;
             }
         }
     </style>
 </head>
-@php
-    $isEmbed = request()->has('embed');
-    $backUrl = url()->previous();
-    if ($backUrl === url()->current() || empty($backUrl)) {
-        $backUrl = url('/admin/withdrawal-slips');
-    }
-@endphp
-<body class="bg-gray-100 {{ $isEmbed ? 'p-2 sm:p-4' : 'py-4 sm:py-6 px-2 sm:px-4' }}">
+<body class="bg-gray-100 py-3 sm:py-6 px-2 sm:px-4">
 
-    @if(!$isEmbed)
-    <!-- In-App Browser (Messenger / IG) Notification Banner -->
-    <div id="inAppNotice" class="no-print hidden max-w-[7.5in] mx-auto mb-3 bg-amber-50 border border-amber-300 rounded-xl p-3 sm:p-3.5 shadow-sm text-xs text-amber-900 flex items-start justify-between gap-3">
-        <div class="flex items-start gap-2.5">
-            <span class="text-base leading-none">📱</span>
-            <div class="leading-relaxed">
-                <strong class="font-bold">Nasa loob ka ng Messenger / In-App browser:</strong>
-                Maaaring hindi gumana ang Print o Download dito dahil hinarang ito ng app. Pindutin ang <strong>3 dots (⋮ o •••)</strong> sa kanang itaas ng screen at piliin ang <strong>"Open in Chrome" / "Open in Browser"</strong>.
-            </div>
+    <!-- Floating Top Bar (Sticky, Mobile Responsive, hidden on print) -->
+    <div class="no-print sticky top-2 z-50 max-w-[7.5in] mx-auto mb-4 bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+            <span class="text-gray-800 font-extrabold text-xs sm:text-sm tracking-tight">Gasoline Withdrawal Slip</span>
+            <span class="text-[10px] sm:text-xs text-gray-500 font-mono hidden sm:inline">({{ $slip->slip_number }})</span>
         </div>
-        <button type="button" onclick="document.getElementById('inAppNotice').classList.add('hidden')" class="text-amber-700 hover:text-amber-900 font-bold p-1 cursor-pointer">✕</button>
-    </div>
-    @endif
-
-    <!-- Floating Top Bar (hidden on print) -->
-    <div class="no-print max-w-[7.5in] mx-auto mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-white p-3 sm:p-4 rounded-xl shadow-md border border-gray-200 gap-3">
-        <div class="flex items-center justify-between sm:justify-start gap-3">
-            @if(!$isEmbed)
-            <a href="{{ $backUrl }}" onclick="handleBack(event)" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold py-2 px-3 sm:px-3.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs sm:text-sm border border-gray-300 shadow-sm cursor-pointer shrink-0" title="Go Back">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <!-- Back Button -->
+            <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="flex-1 sm:flex-initial bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm border border-gray-300 cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 <span>Back</span>
-            </a>
-            @endif
-            <span class="text-gray-700 font-bold text-xs sm:text-sm truncate">Gasoline Withdrawal Slip <span class="text-gray-500 font-normal">({{ $slip->slip_number }})</span></span>
-        </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button id="downloadPdfBtn" type="button" onclick="downloadPDF()" class="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm cursor-pointer disabled:opacity-50">
-                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            </button>
+            <button id="btnDownloadPdf" onclick="downloadPDF(this)" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                <span id="downloadBtnText">Download PDF File</span>
+                <span>Download PDF File</span>
             </button>
-            <button id="printDocBtn" type="button" onclick="triggerPrint()" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold py-2.5 px-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm cursor-pointer">
-                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <button id="btnPrintDoc" onclick="triggerPrint(this)" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
                 <span>Print Document</span>
             </button>
         </div>
     </div>
-
-    <!-- Wrapper for smooth mobile horizontal scroll if needed -->
-    <div class="overflow-x-auto w-full max-w-[7.5in] mx-auto pb-4">
 
     @php
         $items = $slip->requested_items ?? [];
@@ -179,8 +142,8 @@
                 </div>
 
                 <!-- Authorization Paragraph -->
-                <div class="text-[14px] text-black leading-[2.6rem] text-left pt-1 mb-6">
-                    This is to AUTHORIZE <span class="border-b border-black font-bold px-3 inline-block min-w-[220px] text-center leading-normal pb-0.5">{!! !empty(trim($driverName ?? '')) ? e($driverName) : '&nbsp;' !!}</span> official driver of <span class="border-b border-black font-bold px-3 inline-block min-w-[140px] text-center leading-normal pb-0.5">{!! !empty(trim($vehicleModel ?? '')) ? e($vehicleModel) : '&nbsp;' !!}</span> with plate No. <span class="border-b border-black font-bold px-3 inline-block min-w-[120px] text-center leading-normal pb-0.5">{!! !empty(trim($vehiclePlate ?? '')) ? e($vehiclePlate) : '&nbsp;' !!}</span> to withdraw the following:
+                <div class="text-[14px] text-black leading-[2.4rem] text-left pt-1 mb-6">
+                    This is to AUTHORIZE <span class="border-b border-black font-bold px-3 inline-block min-w-[200px] text-center leading-normal pb-0.5">{!! !empty(trim($driverName ?? '')) ? e($driverName) : '&nbsp;' !!}</span> official driver of <span class="border-b border-black font-bold px-3 inline-block min-w-[140px] text-center leading-normal pb-0.5">{!! !empty(trim($vehicleModel ?? '')) ? e($vehicleModel) : '&nbsp;' !!}</span> with plate No. <span class="border-b border-black font-bold px-3 inline-block min-w-[110px] text-center leading-normal pb-0.5">{!! !empty(trim($vehiclePlate ?? '')) ? e($vehiclePlate) : '&nbsp;' !!}</span> to withdraw the following:
                 </div>
             </div>
 
@@ -196,35 +159,35 @@
                 <!-- Items Table/List (matching the image layout perfectly) -->
                 <div class="pl-16 text-[14px] text-black space-y-2.5 mb-8">
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $diesel }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($diesel ?? '')) ? e($diesel) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Diesel</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $gasRegular }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($gasRegular ?? '')) ? e($gasRegular) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Gasoline (Regular)</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $gasPremium }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($gasPremium ?? '')) ? e($gasPremium) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Gasoline (Premium)</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $lubricant40 }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($lubricant40 ?? '')) ? e($lubricant40) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Lubricant Oil 40</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $lubricant30 }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($lubricant30 ?? '')) ? e($lubricant30) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Lubricant Oil 30</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $brakeFluid }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($brakeFluid ?? '')) ? e($brakeFluid) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Brake Fluid</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $grease }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($grease ?? '')) ? e($grease) : '&nbsp;' !!}</span>
                         <span>No. of Liters of <span class="underline underline-offset-2 font-semibold">2T</span>&nbsp;&nbsp;<span class="underline underline-offset-2 font-semibold">Grease</span>&nbsp;&nbsp;<span class="underline underline-offset-2 font-semibold">ATF</span></span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $gearOil }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{!! !empty(trim($gearOil ?? '')) ? e($gearOil) : '&nbsp;' !!}</span>
                         <span>No. of Liters of Gear Oil</span>
                     </div>
                 </div>
@@ -238,8 +201,8 @@
                 <div class="text-left w-full pl-4">
                     <p>Prepared by:</p>
                     <div class="pl-12 mt-4">
-                        <p class="font-bold uppercase tracking-wide">{{ \App\Models\User::getGsoName() }}</p>
-                        <p class="text-[13px] text-gray-800">{{ \App\Models\User::getGsoTitle() }}</p>
+                        <p class="font-bold uppercase tracking-wide">JOEL A. TUMAMAO</p>
+                        <p class="text-[13px] text-gray-800">General Services Officer</p>
                     </div>
                 </div>
 
@@ -247,8 +210,8 @@
                 <div class="text-left w-full pl-4">
                     <p>Approved by:</p>
                     <div class="pl-12 mt-4">
-                        <p class="font-bold uppercase tracking-wide">{{ \App\Models\User::getCeoName() }}</p>
-                        <p class="text-[13px] text-gray-800">{{ \App\Models\User::getCeoTitle() }}</p>
+                        <p class="font-bold uppercase tracking-wide">ENGR. JAMES B. CABILDO, ASEAN ENGR.</p>
+                        <p class="text-[13px] text-gray-800">Campus Executive Officer</p>
                     </div>
                 </div>
             </div>
@@ -259,167 +222,111 @@
                 <span>Rev. No.: 01: 10-20-2025</span>
             </div>
         </div>
-        </div>
     </div>
 
-    <!-- PDF Download & Print Script -->
+    <!-- Mobile-Optimized PDF Download & Print Scripts -->
     <script>
-        function handleBack(event) {
-            if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
-                event.preventDefault();
-                window.history.back();
-                return;
-            }
-            if (window.opener) {
-                event.preventDefault();
-                window.close();
-                return;
-            }
-            try {
-                window.close();
-            } catch (e) {}
-        }
+        async function downloadPDF(btn) {
+            const btnEl = btn || document.querySelector('#btnDownloadPdf');
+            const originalHtml = btnEl ? btnEl.innerHTML : '';
 
-        function isInAppBrowser() {
-            return /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|MicroMessenger/i.test(navigator.userAgent);
-        }
-
-        if (isInAppBrowser()) {
-            const notice = document.getElementById('inAppNotice');
-            if (notice) notice.classList.remove('hidden');
-        }
-
-        function triggerPrint() {
-            if (isInAppBrowser()) {
-                if (confirm('Hindi sinusuportahan ang direct printing sa loob ng Messenger.\n\nGusto mo bang i-download na lamang ito bilang PDF?')) {
-                    downloadPDF();
-                }
+            if (typeof html2pdf === 'undefined') {
+                alert('PDF engine is still loading. Please wait a few seconds or use "Print Document" to Save as PDF directly!');
                 return;
             }
 
-            try {
-                window.print();
-            } catch (e) {
-                console.warn('window.print error:', e);
-                downloadPDF();
+            if (btnEl) {
+                btnEl.disabled = true;
+                btnEl.innerHTML = `
+                    <svg class="animate-spin h-4 w-4 text-white inline-block flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Generating PDF...</span>
+                `;
             }
-        }
-
-        let isGeneratingPdf = false;
-        function downloadPDF() {
-            if (isGeneratingPdf) return;
-            isGeneratingPdf = true;
-
-            const btn = document.getElementById('downloadPdfBtn');
-            const btnText = document.getElementById('downloadBtnText');
-            const originalText = btnText ? btnText.textContent : 'Download PDF File';
-
-            if (btn) btn.disabled = true;
-            if (btnText) btnText.innerHTML = '<span class="inline-block animate-spin mr-1">⏳</span> Generating...';
 
             const element = document.querySelector('.print-container');
-            const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const filename = 'Gasoline-Withdrawal-Slip-{{ $slip->slip_number }}.pdf';
 
             const opt = {
-                margin:       0.3,
-                filename:     'Gasoline-Withdrawal-Slip-{{ $slip->slip_number }}.pdf',
-                image:        { type: 'jpeg', quality: 0.95 },
-                html2canvas:  { 
-                    scale: isMobile ? 1.4 : 2.0, 
-                    useCORS: true, 
+                margin:       0.4,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  {
+                    scale: 2,
+                    useCORS: true,
                     allowTaint: true,
                     logging: false,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 816
+                    windowWidth: 850,
+                    onclone: function(clonedDoc) {
+                        const el = clonedDoc.querySelector('.print-container');
+                        if (el) {
+                            el.style.width = '7.5in';
+                            el.style.maxWidth = '7.5in';
+                            el.style.minWidth = '7.5in';
+                            el.style.margin = '0 auto';
+                        }
+                    }
                 },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait', compress: true }
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
-                const blob = pdf.output('blob');
+            try {
+                const pdfWorker = html2pdf().set(opt).from(element);
+                const blob = await pdfWorker.output('blob');
                 const blobUrl = URL.createObjectURL(blob);
-                const fileName = opt.filename;
 
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    if (document.body.contains(a)) document.body.removeChild(a);
-                }, 1000);
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-                if (isMobile) {
-                    showMobilePdfModal(blobUrl, fileName);
-                }
-
-                if (btnText) btnText.textContent = '✅ Downloaded!';
-                setTimeout(() => {
-                    if (btnText) btnText.textContent = originalText;
-                    if (btn) btn.disabled = false;
-                    isGeneratingPdf = false;
-                }, 2000);
-            }).catch(function(err) {
-                console.error('PDF generation error:', err);
-                if (confirm('Nagkaroon ng problema sa automated PDF generation sa browser na ito.\n\nGusto mo bang gamitin ang Print menu para i-save bilang PDF?')) {
-                    triggerPrint();
-                }
-                if (btnText) btnText.textContent = originalText;
-                if (btn) btn.disabled = false;
-                isGeneratingPdf = false;
-            });
-        }
-
-        function showMobilePdfModal(blobUrl, fileName) {
-            let modal = document.getElementById('mobilePdfSuccessModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'mobilePdfSuccessModal';
-                modal.className = 'no-print fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4';
-                modal.innerHTML = `
-                    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl border border-gray-200 flex flex-col gap-3.5">
-                        <div class="flex items-center justify-between border-b pb-2.5">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xl">📄</span>
-                                <h3 class="font-extrabold text-sm text-gray-900">PDF Document Ready!</h3>
-                            </div>
-                            <button type="button" onclick="closeMobilePdfModal()" class="text-gray-400 hover:text-gray-600 font-bold p-1 cursor-pointer">✕</button>
-                        </div>
-                        <p class="text-xs text-gray-600 leading-relaxed">
-                            Nagawa na ang iyong PDF form! Pindutin ang button sa ibaba upang i-save o i-print sa iyong phone:
-                        </p>
-                        <div class="flex flex-col gap-2 pt-1">
-                            <a id="mobileDownloadPdfLink" href="${blobUrl}" download="${fileName}" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-3 px-4 rounded-xl text-center text-xs flex items-center justify-center gap-2 shadow-sm">
-                                <span>⬇️</span> <span>I-download ang PDF File</span>
-                            </a>
-                            <button type="button" onclick="closeMobilePdfModal(); triggerPrint();" class="w-full bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold py-2.5 px-4 rounded-xl text-center text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer">
-                                <span>🖨️</span> <span>I-print / Save as PDF (Native)</span>
-                            </button>
-                            <button type="button" onclick="closeMobilePdfModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-xl text-xs text-center cursor-pointer">
-                                Isara (Close)
-                            </button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-            } else {
-                const link = document.getElementById('mobileDownloadPdfLink');
-                if (link) {
+                if (isIOS) {
+                    const newWindow = window.open(blobUrl, '_blank');
+                    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                        const link = document.createElement('a');
+                        link.href = blobUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        setTimeout(() => document.body.removeChild(link), 1500);
+                    }
+                } else {
+                    const link = document.createElement('a');
                     link.href = blobUrl;
-                    link.download = fileName;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(blobUrl);
+                    }, 3000);
                 }
-                modal.classList.remove('hidden');
-                modal.style.display = 'flex';
+
+                if (btnEl) {
+                    btnEl.innerHTML = `<span>✓ PDF Downloaded!</span>`;
+                    setTimeout(() => {
+                        btnEl.disabled = false;
+                        btnEl.innerHTML = originalHtml;
+                    }, 2500);
+                }
+            } catch (err) {
+                console.error('PDF export error:', err);
+                alert('Could not download PDF directly on this device. Opening print preview where you can select "Save as PDF"!');
+                window.print();
+                if (btnEl) {
+                    btnEl.disabled = false;
+                    btnEl.innerHTML = originalHtml;
+                }
             }
         }
 
-        function closeMobilePdfModal() {
-            const modal = document.getElementById('mobilePdfSuccessModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.style.display = 'none';
+        function triggerPrint(btn) {
+            if (btn) {
+                btn.classList.add('opacity-75');
+                setTimeout(() => btn.classList.remove('opacity-75'), 1200);
             }
+            window.print();
         }
     </script>
 

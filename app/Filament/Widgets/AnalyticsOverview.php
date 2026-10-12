@@ -17,7 +17,7 @@ class AnalyticsOverview extends StatsOverviewWidget
 
     protected function getColumns(): int
     {
-        return 3;
+        return 4;
     }
 
     protected function getStats(): array
@@ -53,6 +53,7 @@ class AnalyticsOverview extends StatsOverviewWidget
         $approvedRequests = $allRequests->whereIn('status', ['approved', 'on_trip', 'completed']);
         $approvedCount = $approvedRequests->count();
         $rejectedCount = $allRequests->where('status', 'rejected')->count();
+        $completedCount = $allRequests->where('status', 'completed')->count();
 
         // 1. Approval Rate (Green)
         $approvalRate = $totalRequests > 0 ? round(($approvedCount / $totalRequests) * 100, 1) : 0;
@@ -75,6 +76,7 @@ class AnalyticsOverview extends StatsOverviewWidget
         $approvalSparkline = [65, 70, 78, 75, 82, 85, max($approvalRate, 80)];
         $passengerSparkline = [2.0, 2.5, 2.2, 2.8, 2.3, 2.6, max($avgPassengers, 2.4)];
         $disapprovalSparkline = [15, 12, 10, 8, 7, 5, max($disapprovalRate, 4)];
+        $completedSparkline = [2, 3, 5, 4, 6, 8, max($completedCount, 5)];
 
         return [
             Stat::make('Request Approval Rate', "{$approvalRate}%")
@@ -94,6 +96,12 @@ class AnalyticsOverview extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-x-circle')
                 ->chart($disapprovalSparkline)
                 ->color('danger'),
+
+            Stat::make('Total Completed Trips', "{$completedCount}")
+                ->description("{$completedCount} of {$approvedCount} approved trips finished")
+                ->descriptionIcon('heroicon-m-check-badge')
+                ->chart($completedSparkline)
+                ->color('primary'),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\SecurityGuards\Pages;
 
+use App\Filament\Concerns\HasBackButton;
 use App\Filament\Resources\SecurityGuards\SecurityGuardResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\RestoreAction;
@@ -9,11 +10,14 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditSecurityGuard extends EditRecord
 {
+    use HasBackButton;
+
     protected static string $resource = SecurityGuardResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
+            $this->getBackButtonAction(),
             DeleteAction::make()
                 ->label('Archive Guard')
                 ->icon('heroicon-o-archive-box')

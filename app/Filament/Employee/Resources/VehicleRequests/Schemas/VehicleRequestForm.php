@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
@@ -335,6 +336,19 @@ class VehicleRequestForm
                             ->required(fn (Get $get) => (bool) $get('has_other_passengers'))
                             ->columnSpanFull()
                             ->rows(3),
+                    ]),
+
+                Fieldset::make('Requester Electronic Signature')
+                    ->columnSpanFull()
+                    ->schema([
+                        ViewField::make('requester_signature')
+                            ->hiddenLabel()
+                            ->view('filament.components.signature-pad')
+                            ->default(function () {
+                                $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
+                                return $user?->signature;
+                            })
+                            ->columnSpanFull(),
                     ]),
 
                 Hidden::make('status')

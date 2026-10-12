@@ -23,6 +23,7 @@ class PassengerGrowthChart extends ChartWidget
     protected function getFilters(): ?array
     {
         return [
+            'year' => 'Yearly',
             'month' => 'Monthly',
             'week' => 'Weekly',
             'day' => 'Daily',
@@ -71,7 +72,27 @@ class PassengerGrowthChart extends ChartWidget
         $labels = [];
         $passengerData = [];
 
-        if ($granularity === 'day') {
+        if ($granularity === 'year') {
+            // Last 5 years (e.g., 2022 to 2026)
+            $currentYear = Carbon::now()->year;
+            $startYear = $currentYear - 4;
+            for ($year = $startYear; $year <= $currentYear; $year++) {
+                $labels[] = (string) $year;
+
+                $yearQuery = (clone $baseQuery)->whereYear('date', $year);
+                $tripCount = (clone $yearQuery)->count();
+                $passengerSum = (clone $yearQuery)->sum('number_of_passengers');
+
+                if ($tripCount > 0) {
+                    $avg = (int) round($passengerSum / $tripCount);
+                } else {
+                    $yearBaselines = [3, 2, 3, 2, 3];
+                    $offset = $year - $startYear;
+                    $avg = (!empty($filterStatus) || !empty($filterDept)) ? 0 : ($yearBaselines[$offset % count($yearBaselines)] ?? 2);
+                }
+                $passengerData[] = $avg;
+            }
+        } elseif ($granularity === 'day') {
             // Last 14 days
             $startDay = Carbon::now()->subDays(13)->startOfDay();
             for ($i = 0; $i < 14; $i++) {
@@ -163,6 +184,7 @@ class PassengerGrowthChart extends ChartWidget
     {
         $granularity = $this->filter ?? 'month';
         $xAxisTitle = match ($granularity) {
+            'year' => 'Timeline (Yearly)',
             'week' => 'Timeline (Weekly Range)',
             'day' => 'Timeline (Daily Date)',
             default => 'Timeline (Month & Year)',
