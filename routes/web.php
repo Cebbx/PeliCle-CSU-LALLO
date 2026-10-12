@@ -12,36 +12,6 @@ if (config('database.default') === 'sqlite') {
 }
 
 Route::get('/', function (\Illuminate\Http\Request $request) {
-    // Allow explicit viewing of the 4-portal landing page via /?home=1
-    if ($request->has('home') || $request->has('portal')) {
-        return view('welcome');
-    }
-
-    $lastPortal = session('last_active_portal');
-    if ($lastPortal === 'employee' && auth('employee')->check()) {
-        return redirect('/employee');
-    }
-    if ($lastPortal === 'admin' && auth('admin')->check()) {
-        return redirect('/admin');
-    }
-    if ($lastPortal === 'driver' && auth('driver')->check()) {
-        return redirect('/driver');
-    }
-
-    // Fallback: check any active logged-in guard
-    if (auth('employee')->check()) {
-        return redirect('/employee');
-    }
-    if (auth('admin')->check()) {
-        return redirect('/admin');
-    }
-    if (auth('driver')->check()) {
-        return redirect('/driver');
-    }
-    if (session('guard_authenticated')) {
-        return redirect('/guard/scanner');
-    }
-
     return view('welcome');
 })->name('home');
 

@@ -28,10 +28,13 @@ class TripTicketForm
                     ->default(fn () => request()->query('vehicle_request_id'))
                     ->relationship('vehicleRequest', 'request_number', function (Builder $query, ?TripTicket $record) {
                         $reqId = request()->query('vehicle_request_id');
-                        return $query->where(function ($q) use ($reqId) {
+                        return $query->where(function ($q) use ($reqId, $record) {
                                 $q->whereIn('status', ['pending', 'approved']);
                                 if ($reqId) {
                                     $q->orWhere('id', $reqId);
+                                }
+                                if ($record && $record->vehicle_request_id) {
+                                    $q->orWhere('id', $record->vehicle_request_id);
                                 }
                             })
                             ->where(function ($q) use ($record, $reqId) {
