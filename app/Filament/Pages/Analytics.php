@@ -24,18 +24,9 @@ class Analytics extends BaseDashboard
 
     protected static ?int $navigationSort = 5;
 
-    public function getMaxContentWidth(): \Filament\Support\Enums\Width | string | null
-    {
-        return \Filament\Support\Enums\Width::Full;
-    }
-
     public function getColumns(): int | array
     {
-        return [
-            'default' => 1,
-            'md' => 2,
-            'lg' => 2,
-        ];
+        return 2;
     }
 
     protected function getHeaderActions(): array
@@ -126,6 +117,10 @@ class Analytics extends BaseDashboard
                             'CICS' => 'CICS (Computing Sciences)',
                             'CTE' => 'CTE / CTED (Teacher Education)',
                             'CHM' => 'CHM (Hospitality Management)',
+                            'COT' => 'COT (Technology)',
+                            'CBA' => 'CBA (Business Administration)',
+                            'CAS' => 'CAS (Arts and Sciences)',
+                            'CCJE' => 'CCJE (Criminal Justice Education)',
                             'COA' => 'COA (Agriculture)',
                             'Café Valena' => 'Café Valena',
                             'Campus Student Council' => 'Campus Student Council (CSC)',
@@ -154,6 +149,7 @@ class Analytics extends BaseDashboard
             \App\Filament\Widgets\RequestsPerDepartmentChart::class,
             \App\Filament\Widgets\DriverTripsChart::class,
             \App\Filament\Widgets\VehicleUsageChart::class,
+            \App\Filament\Widgets\FuelExpensesChart::class,
             \App\Filament\Widgets\AnalyticsTripLogsWidget::class,
         ];
     }

@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\VehicleRequest;
+use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Support\Facades\DB;
@@ -112,22 +113,97 @@ class RequestsPerDepartmentChart extends ChartWidget
         ];
     }
 
-    protected function getOptions(): array
+    protected function getOptions(): RawJs
     {
-        return [
-            'maintainAspectRatio' => false,
-            'plugins' => [
-                'legend' => [
-                    'position' => 'bottom',
-                    'labels' => [
-                        'boxWidth' => 10,
-                        'padding' => 8,
-                        'font' => [
-                            'size' => 11,
-                        ],
-                    ],
-                ],
-            ],
-        ];
+        $officeFullNames = json_encode([
+            'CICS' => 'College of Information and Computing Sciences',
+            'CHM' => 'College of Hospitality Management',
+            'COT' => 'College of Technology',
+            'CBA' => 'College of Business Administration',
+            'CAS' => 'College of Arts and Sciences',
+            'CCJE' => 'College of Criminal Justice Education',
+            'CTE' => 'College of Teacher Education',
+            'CTED' => 'College of Teacher Education',
+            'COA' => 'College of Agriculture',
+            'University Library' => 'University Library',
+            'Office of the CEO' => 'Office of the Campus Executive Officer',
+            'HRMO' => 'Human Resource Management Office',
+            'Accounting Office' => 'Accounting Office',
+            'Budget Office' => 'Budget Office',
+            'Property and Supply Office' => 'Property and Supply Office',
+            'Records Office' => 'Records Office',
+            'Planning Office' => 'Planning Office',
+            'MIS Office' => 'Management Information System Office',
+            'Office of the Campus Registrar' => 'Office of the Campus Registrar',
+            'Campus Admission Office' => 'Campus Admission Office',
+            'Campus Publication Office' => 'Campus Publication Office',
+            'Café Valena' => 'Café Valena (CoffeeHub Café)',
+            'Campus Student Council' => 'Campus Student Council (CSC)',
+            'Administration Office' => 'Administration Office',
+        ]);
+
+        return RawJs::make(<<<JS
+            {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 10,
+                            padding: 8,
+                            font: {
+                                size: 11
+                            }
+                        },
+                        onHover: function(event, legendItem, legend) {
+                            if (event.native && event.native.target) {
+                                event.native.target.style.cursor = 'pointer';
+                            }
+                            const chart = legend.chart;
+                            if (chart && chart.tooltip) {
+                                chart.tooltip.setActiveElements([{
+                                    datasetIndex: 0,
+                                    index: legendItem.index
+                                }], {
+                                    x: event.x,
+                                    y: event.y
+                                });
+                                chart.update();
+                            }
+                        },
+                        onLeave: function(event, legendItem, legend) {
+                            if (event.native && event.native.target) {
+                                event.native.target.style.cursor = 'default';
+                            }
+                            const chart = legend.chart;
+                            if (chart && chart.tooltip) {
+                                chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+                                chart.update();
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                if (!tooltipItems || !tooltipItems.length) return '';
+                                const label = tooltipItems[0].label || '';
+                                const fullNames = {$officeFullNames};
+                                const fullName = fullNames[label];
+                                if (fullName && fullName !== label) {
+                                    return label + ' - ' + fullName;
+                                }
+                                return fullName || label;
+                            },
+                            label: function(context) {
+                                const val = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                return ' Total Requests: ' + val + ' (' + pct + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        JS);
     }
 }
