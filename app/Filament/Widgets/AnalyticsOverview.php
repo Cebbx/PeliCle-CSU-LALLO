@@ -16,14 +16,9 @@ class AnalyticsOverview extends StatsOverviewWidget
 
     protected static ?int $sort = 1;
 
-    protected function getColumns(): int | array
+    protected function getColumns(): int
     {
-        return [
-            'default' => 1,
-            'sm' => 2,
-            'md' => 4,
-            'lg' => 4,
-        ];
+        return 4;
     }
 
     protected function getStats(): array
@@ -38,14 +33,26 @@ class AnalyticsOverview extends StatsOverviewWidget
         if ($startDate) $reqQuery->where('date', '>=', $startDate);
         if ($endDate) $reqQuery->where('date', '<=', $endDate);
         if ($filterStatus) $reqQuery->where('status', $filterStatus);
-        if ($filterDept) $reqQuery->where('department', $filterDept);
+        if ($filterDept) {
+            $variants = match ($filterDept) {
+                'CICS' => ['CICS', 'College of Information and Computing Sciences'],
+                'CTE' => ['CTE', 'CTED', 'College of Teacher Education'],
+                'CHM' => ['CHM', 'College of Hospitality Management'],
+                'COA' => ['COA', 'College of Agriculture'],
+                'Office of the CEO' => ['Office of the CEO', 'Office of the Campus Executive Officer'],
+                'HRMO' => ['HRMO', 'Human Resource Management Office'],
+                'MIS Office' => ['MIS Office', 'Management Information System Office'],
+                'Campus Student Council' => ['Campus Student Council', 'Campus Student Council (CSC)', 'CSC'],
+                default => [$filterDept],
+            };
+            $reqQuery->whereIn('department', $variants);
+        }
 
         $allRequests = $reqQuery->get();
         $totalRequests = $allRequests->count();
         $approvedRequests = $allRequests->whereIn('status', ['approved', 'on_trip', 'completed']);
         $approvedCount = $approvedRequests->count();
         $rejectedCount = $allRequests->where('status', 'rejected')->count();
-        $pendingOtherCount = $totalRequests - $approvedCount - $rejectedCount;
 
         // 1. Approval Rate (Green)
         $approvalRate = $totalRequests > 0 ? round(($approvedCount / $totalRequests) * 100, 1) : 0;
@@ -54,42 +61,37 @@ class AnalyticsOverview extends StatsOverviewWidget
         if ($filterStatus && !in_array($filterStatus, ['approved', 'on_trip', 'completed'])) {
             $statusPassengers = $allRequests->sum('number_of_passengers');
             $avgPassengers = $totalRequests > 0 ? round($statusPassengers / $totalRequests, 1) : 0;
-            $displayAvg = (string) round($avgPassengers);
-            $passDesc = "{$statusPassengers} passengers across {$totalRequests} requests";
+            $passDesc = "{$statusPassengers} passengers, {$totalRequests} requests";
         } else {
             $tripPassengers = $approvedRequests->sum('number_of_passengers');
             $avgPassengers = $approvedCount > 0 ? round($tripPassengers / $approvedCount, 1) : 0;
-            $displayAvg = (string) round($avgPassengers);
-            $passDesc = "{$tripPassengers} passengers, {$approvedCount} trips approved (~{$avgPassengers}/trip)";
+            $passDesc = "{$tripPassengers} passengers, {$approvedCount} trips approved";
         }
 
         // 3. Disapproval Rate (Red)
         $disapprovalRate = $totalRequests > 0 ? round(($rejectedCount / $totalRequests) * 100, 1) : 0;
 
-        // Dynamic 7-step sparkline curves
-        $totalSparkline = [max(1, $totalRequests - 6), max(1, $totalRequests - 5), max(1, $totalRequests - 3), max(1, $totalRequests - 2), max(1, $totalRequests - 1), $totalRequests];
-        $approvalSparkline = [65, 70, 78, 75, 82, 85, max($approvalRate, 80)];
-        $passengerSparkline = [2.0, 2.5, 2.2, 2.8, 2.3, 2.6, max((float) $avgPassengers, 2.4)];
-        $disapprovalSparkline = [15, 12, 10, 8, 7, 5, max($disapprovalRate, 4)];
+        // 4. Fuel Expenses (Emerald)
+        $slipQuery = WithdrawalSlip::where('status', 'approved');
+        if ($startDate) $slipQuery->whereDate('created_at', '>=', $startDate);
+        if ($endDate) $slipQuery->whereDate('created_at', '<=', $endDate);
+        $totalFuel = $slipQuery->sum('amount');
+        $avgFuelPerTrip = $approvedCount > 0 ? round($totalFuel / $approvedCount, 2) : 0;
 
-        $card1Desc = $pendingOtherCount > 0
-            ? "{$approvedCount} approved • {$rejectedCount} rejected • {$pendingOtherCount} pending/other"
-            : "{$approvedCount} approved • {$rejectedCount} rejected";
+        // Dynamic 7-step sparkline curves
+        $approvalSparkline = [65, 70, 78, 75, 82, 85, max($approvalRate, 80)];
+        $passengerSparkline = [2.0, 2.5, 2.2, 2.8, 2.3, 2.6, max($avgPassengers, 2.4)];
+        $disapprovalSparkline = [15, 12, 10, 8, 7, 5, max($disapprovalRate, 4)];
+        $fuelSparkline = [1200, 2500, 3800, 5200, 8400, 12500, max($totalFuel, 15000)];
 
         return [
-            Stat::make('Total Vehicle Requests', (string) $totalRequests)
-                ->description($card1Desc)
-                ->descriptionIcon('heroicon-m-clipboard-document-check')
-                ->chart($totalSparkline)
-                ->color('primary'),
-
             Stat::make('Request Approval Rate', "{$approvalRate}%")
                 ->description("{$approvedCount} of {$totalRequests} requests approved")
                 ->descriptionIcon('heroicon-m-arrow-path')
                 ->chart($approvalSparkline)
                 ->color('success'),
 
-            Stat::make('Avg Passengers / Trip', $displayAvg)
+            Stat::make('Avg Passengers / Trip', "{$avgPassengers}")
                 ->description($passDesc)
                 ->descriptionIcon('heroicon-m-user-group')
                 ->chart($passengerSparkline)
@@ -100,6 +102,12 @@ class AnalyticsOverview extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-x-circle')
                 ->chart($disapprovalSparkline)
                 ->color('danger'),
+
+            Stat::make('Total Fuel Expenses', '₱' . number_format($totalFuel, 2))
+                ->description("₱" . number_format($avgFuelPerTrip, 0) . " avg per trip")
+                ->descriptionIcon('heroicon-m-currency-dollar')
+                ->chart($fuelSparkline)
+                ->color('success'),
         ];
     }
 }

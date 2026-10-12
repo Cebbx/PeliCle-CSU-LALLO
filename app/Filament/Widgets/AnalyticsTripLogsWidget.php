@@ -42,7 +42,18 @@ class AnalyticsTripLogsWidget extends TableWidget
             $query->where('status', $filterStatus);
         }
         if ($filterDept) {
-            $query->where('department', $filterDept);
+            $variants = match ($filterDept) {
+                'CICS' => ['CICS', 'College of Information and Computing Sciences'],
+                'CTE' => ['CTE', 'CTED', 'College of Teacher Education'],
+                'CHM' => ['CHM', 'College of Hospitality Management'],
+                'COA' => ['COA', 'College of Agriculture'],
+                'Office of the CEO' => ['Office of the CEO', 'Office of the Campus Executive Officer'],
+                'HRMO' => ['HRMO', 'Human Resource Management Office'],
+                'MIS Office' => ['MIS Office', 'Management Information System Office'],
+                'Campus Student Council' => ['Campus Student Council', 'Campus Student Council (CSC)', 'CSC'],
+                default => [$filterDept],
+            };
+            $query->whereIn('department', $variants);
         }
 
         return $table

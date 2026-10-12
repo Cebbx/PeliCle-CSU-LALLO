@@ -132,28 +132,27 @@ class PrintController extends Controller
         $slip = \App\Models\WithdrawalSlip::with(['tripTicket.driver'])->findOrFail($id);
         
         $ticket = $slip->tripTicket;
-        $driverName = $slip->driver_name ?: ($ticket?->driver?->name ?? '_______________');
+        $driverName = $slip->driver_name ?: ($ticket?->driver?->name ?? '');
         $vehicleModel = '';
         $vehiclePlate = '';
 
         $vehicleStr = $slip->vehicle_name ?: ($ticket ? $ticket->vehicle : '');
         if ($vehicleStr) {
-            $dbVehicle = \App\Models\Vehicle::where('plate_number', $vehicleStr)->first();
-            if ($dbVehicle) {
+            if (preg_match('/^(.*?)\s*\((.*?)\)$/', $vehicleStr, $matches)) {
+                $rawModel = trim($matches[1]);
+                $vehiclePlate = trim($matches[2]);
+                $dbVehicle = \App\Models\Vehicle::where('plate_number', $vehiclePlate)->first();
+                $vehicleModel = $dbVehicle ? $dbVehicle->brand : $rawModel;
+            } elseif ($dbVehicle = \App\Models\Vehicle::where('plate_number', $vehicleStr)->first()) {
                 $vehicleModel = $dbVehicle->brand;
                 $vehiclePlate = $dbVehicle->plate_number;
+            } elseif (str_contains($vehicleStr, ' - ')) {
+                $parts = explode(' - ', $vehicleStr);
+                $vehicleModel = trim($parts[0] ?? '');
+                $vehiclePlate = trim($parts[1] ?? '');
             } else {
-                if (preg_match('/^(.*?)\s*\((.*?)\)$/', $vehicleStr, $matches)) {
-                    $vehicleModel = trim($matches[1]);
-                    $vehiclePlate = trim($matches[2]);
-                } elseif (str_contains($vehicleStr, ' - ')) {
-                    $parts = explode(' - ', $vehicleStr);
-                    $vehicleModel = $parts[0] ?? '';
-                    $vehiclePlate = $parts[1] ?? '';
-                } else {
-                    $vehicleModel = $vehicleStr;
-                    $vehiclePlate = $vehicleStr;
-                }
+                $vehicleModel = $vehicleStr;
+                $vehiclePlate = $vehicleStr;
             }
         }
 

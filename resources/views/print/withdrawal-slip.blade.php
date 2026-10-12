@@ -176,9 +176,8 @@
                 </div>
 
                 <!-- Authorization Paragraph -->
-                <div class="leading-relaxed text-justify pt-1">
-                    This is to AUTHORIZE <span class="border-b border-black font-bold px-3 inline-block min-w-[280px] text-center">{{ $driverName ?? ($slip->driver_name ?: ($slip->tripTicket?->driver?->name ?? '_______________')) }}</span> official driver 
-                    of <span class="border-b border-black font-bold px-3 inline-block min-w-[160px] text-center">{{ $vehicleModel ?: '_______________' }}</span> with plate No. <span class="border-b border-black font-bold px-3 inline-block min-w-[150px] text-center">{{ $vehiclePlate ?: '_______________' }}</span> to withdraw the following:
+                <div class="text-[14px] text-black leading-[2.6rem] text-left pt-1 mb-6">
+                    This is to AUTHORIZE <span class="border-b border-black font-bold px-3 inline-block min-w-[220px] text-center leading-normal pb-0.5">{!! !empty(trim($driverName ?? '')) ? e($driverName) : '&nbsp;' !!}</span> official driver of <span class="border-b border-black font-bold px-3 inline-block min-w-[140px] text-center leading-normal pb-0.5">{!! !empty(trim($vehicleModel ?? '')) ? e($vehicleModel) : '&nbsp;' !!}</span> with plate No. <span class="border-b border-black font-bold px-3 inline-block min-w-[120px] text-center leading-normal pb-0.5">{!! !empty(trim($vehiclePlate ?? '')) ? e($vehiclePlate) : '&nbsp;' !!}</span> to withdraw the following:
                 </div>
             </div>
 

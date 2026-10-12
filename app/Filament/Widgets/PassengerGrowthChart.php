@@ -55,8 +55,20 @@ class PassengerGrowthChart extends ChartWidget
         } else {
             $baseQuery->whereIn('status', ['approved', 'on_trip', 'completed']);
         }
+
         if ($filterDept) {
-            $baseQuery->where('department', $filterDept);
+            $variants = match ($filterDept) {
+                'CICS' => ['CICS', 'College of Information and Computing Sciences'],
+                'CTE' => ['CTE', 'CTED', 'College of Teacher Education'],
+                'CHM' => ['CHM', 'College of Hospitality Management'],
+                'COA' => ['COA', 'College of Agriculture'],
+                'Office of the CEO' => ['Office of the CEO', 'Office of the Campus Executive Officer'],
+                'HRMO' => ['HRMO', 'Human Resource Management Office'],
+                'MIS Office' => ['MIS Office', 'Management Information System Office'],
+                'Campus Student Council' => ['Campus Student Council', 'Campus Student Council (CSC)', 'CSC'],
+                default => [$filterDept],
+            };
+            $baseQuery->whereIn('department', $variants);
         }
 
         $labels = [];
@@ -162,7 +174,7 @@ class PassengerGrowthChart extends ChartWidget
             'maintainAspectRatio' => false,
             'plugins' => [
                 'legend' => [
-                    'display' => false,
+                    'display' => false, // REMOVED: No awkward floating box above line chart
                 ],
                 'tooltip' => [
                     'enabled' => true,
@@ -192,6 +204,7 @@ class PassengerGrowthChart extends ChartWidget
                 'y' => [
                     'display' => true,
                     'beginAtZero' => true,
+                    'suggestedMax' => 4,
                     'border' => [
                         'display' => true,
                     ],
@@ -208,7 +221,7 @@ class PassengerGrowthChart extends ChartWidget
                     ],
                     'ticks' => [
                         'precision' => 0,
-                        'maxTicksLimit' => 8,
+                        'maxTicksLimit' => 6,
                     ],
                     'grid' => [
                         'display' => true,

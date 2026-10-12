@@ -99,37 +99,27 @@ class Analytics extends BaseDashboard
                     ->placeholder('All Statuses')
                     ->label('Trip status'),
                 Select::make('department')
-                    ->options(function () {
-                        $official = [
-                            'Office of the CEO' => 'Office of the CEO',
-                            'Administration Office' => 'Administration Office',
-                            'HRMO' => 'HRMO',
-                            'Accounting Office' => 'Accounting Office',
-                            'Budget Office' => 'Budget Office',
-                            'Property and Supply Office' => 'Property and Supply Office',
-                            'Records Office' => 'Records Office',
-                            'Planning Office' => 'Planning Office',
-                            'MIS Office' => 'MIS Office',
-                            'Office of the Campus Registrar' => 'Office of the Campus Registrar',
-                            'Campus Admission Office' => 'Campus Admission Office',
-                            'Campus Publication Office' => 'Campus Publication Office',
-                            'University Library' => 'University Library',
-                            'CICS' => 'CICS (Computing Sciences)',
-                            'CTE' => 'CTE / CTED (Teacher Education)',
-                            'CHM' => 'CHM (Hospitality Management)',
-                            'COA' => 'COA (Agriculture)',
-                            'Café Valena' => 'Café Valena',
-                            'Campus Student Council' => 'Campus Student Council (CSC)',
-                        ];
-
-                        $fromDb = \App\Models\VehicleRequest::whereNotNull('department')
-                            ->where('department', '!=', '')
-                            ->distinct()
-                            ->pluck('department', 'department')
-                            ->toArray();
-
-                        return array_merge($official, $fromDb);
-                    })
+                    ->options([
+                        'Accounting Office' => 'Accounting Office',
+                        'Administration Office' => 'Administration Office',
+                        'Budget Office' => 'Budget Office',
+                        'Café Valena' => 'Café Valena',
+                        'Campus Admission Office' => 'Campus Admission Office',
+                        'Campus Publication Office' => 'Campus Publication Office',
+                        'Campus Student Council' => 'Campus Student Council',
+                        'COA' => 'College of Agriculture',
+                        'CHM' => 'College of Hospitality Management',
+                        'CICS' => 'College of Information and Computing Sciences',
+                        'CTE' => 'College of Teacher Education',
+                        'HRMO' => 'Human Resource Management Office',
+                        'MIS Office' => 'Management Information System Office',
+                        'Office of the CEO' => 'Office of the Campus Executive Officer',
+                        'Office of the Campus Registrar' => 'Office of the Campus Registrar',
+                        'Planning Office' => 'Planning Office',
+                        'Property and Supply Office' => 'Property and Supply Office',
+                        'Records Office' => 'Records Office',
+                        'University Library' => 'University Library',
+                    ])
                     ->searchable()
                     ->placeholder('All Offices')
                     ->label('Offices'),
@@ -145,6 +135,7 @@ class Analytics extends BaseDashboard
             \App\Filament\Widgets\RequestsPerDepartmentChart::class,
             \App\Filament\Widgets\DriverTripsChart::class,
             \App\Filament\Widgets\VehicleUsageChart::class,
+            \App\Filament\Widgets\FuelExpensesChart::class,
             \App\Filament\Widgets\AnalyticsTripLogsWidget::class,
         ];
     }
