@@ -232,6 +232,15 @@ class Dashboard extends BaseDashboard
                 ->sendToDatabase($admins);
         }
 
+        if ($activeTrip->vehicleRequest && $activeTrip->vehicleRequest->user) {
+            \Filament\Notifications\Notification::make()
+                ->title('🚗 Your Trip Has Departed (' . $activeTrip->ticket_number . ')')
+                ->body("Driver " . auth()->user()->name . " has departed for {$activeTrip->vehicleRequest->destination} using {$activeTrip->vehicle}.")
+                ->icon('heroicon-o-paper-airplane')
+                ->iconColor('info')
+                ->sendToDatabase($activeTrip->vehicleRequest->user);
+        }
+
         \Filament\Notifications\Notification::make()
             ->title('Departure Logged')
             ->body('Departure milestone has been digitally recorded.')
@@ -260,6 +269,15 @@ class Dashboard extends BaseDashboard
                 ->icon('heroicon-o-map-pin')
                 ->iconColor('success')
                 ->sendToDatabase($admins);
+        }
+
+        if ($activeTrip->vehicleRequest && $activeTrip->vehicleRequest->user) {
+            \Filament\Notifications\Notification::make()
+                ->title('📍 Arrived at Destination (' . $activeTrip->ticket_number . ')')
+                ->body("Driver " . auth()->user()->name . " has safely arrived at {$activeTrip->vehicleRequest->destination}.")
+                ->icon('heroicon-o-map-pin')
+                ->iconColor('success')
+                ->sendToDatabase($activeTrip->vehicleRequest->user);
         }
 
         \Filament\Notifications\Notification::make()

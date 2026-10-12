@@ -354,7 +354,7 @@ class VehicleRequestsTable
                             $formattedTime = $record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time';
                             $formattedDate = $record->date ? \Carbon\Carbon::parse($record->date)->format('M d, Y') : 'scheduled date';
 
-                            // Notify Admins in real-time
+                            // Notify Admins and Assigned Driver in real-time
                             try {
                                 $admins = \App\Models\User::where('role', 'admin')->get();
                                 foreach ($admins as $admin) {
@@ -364,6 +364,18 @@ class VehicleRequestsTable
                                         ->icon('heroicon-o-document-check')
                                         ->iconColor('success')
                                         ->sendToDatabase($admin);
+                                }
+
+                                if ($record->tripTicket && $record->tripTicket->driver && $record->tripTicket->driver->license_number) {
+                                    $driverUser = \App\Models\User::where('email', $record->tripTicket->driver->license_number)->first();
+                                    if ($driverUser) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('📄 CEO Document Ready (' . $record->tripTicket->ticket_number . ')')
+                                            ->body("CEO signed document for trip to {$record->destination} has been uploaded. Your trip is cleared for scheduled departure.")
+                                            ->icon('heroicon-o-document-check')
+                                            ->iconColor('success')
+                                            ->sendToDatabase($driverUser);
+                                    }
                                 }
                             } catch (\Throwable $e) {}
 

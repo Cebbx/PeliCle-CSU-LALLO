@@ -147,7 +147,7 @@ class QrCodeController extends Controller
             $ticket->driver->update(['status' => 'available']);
         }
 
-        // Notify Admins in real-time
+        // Notify Admins, Employee, and Driver in real-time
         try {
             $admins = \App\Models\User::where('role', 'admin')->get();
             foreach ($admins as $admin) {
@@ -159,9 +159,40 @@ class QrCodeController extends Controller
                     ->actions([
                         \Filament\Notifications\Actions\Action::make('view')
                             ->label('View Trip')
-                            ->url(\App\Filament\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $ticket->id])),
+                            ->url('/admin/trip-tickets'),
                     ])
                     ->sendToDatabase($admin);
+            }
+
+            if ($ticket->vehicleRequest && $ticket->vehicleRequest->user) {
+                \Filament\Notifications\Notification::make()
+                    ->title('🏁 Trip Safely Completed (' . $ticket->ticket_number . ')')
+                    ->body("Your trip to {$ticket->vehicleRequest->destination} has arrived back at CSU Gate and was cleared by {$guardName}.")
+                    ->icon('heroicon-o-check-badge')
+                    ->iconColor('success')
+                    ->actions([
+                        \Filament\Notifications\Actions\Action::make('view')
+                            ->label('View History')
+                            ->url('/employee/vehicle-requests'),
+                    ])
+                    ->sendToDatabase($ticket->vehicleRequest->user);
+            }
+
+            if ($ticket->driver && $ticket->driver->license_number) {
+                $driverUser = \App\Models\User::where('email', $ticket->driver->license_number)->first();
+                if ($driverUser) {
+                    \Filament\Notifications\Notification::make()
+                        ->title('🏁 Gate Clearance Verified (' . $ticket->ticket_number . ')')
+                        ->body("Your trip {$ticket->ticket_number} was cleared at the gate by {$guardName}. Status is now Completed.")
+                        ->icon('heroicon-o-check-badge')
+                        ->iconColor('success')
+                        ->actions([
+                            \Filament\Notifications\Actions\Action::make('view')
+                                ->label('View Trips')
+                                ->url('/driver/trip-tickets'),
+                        ])
+                        ->sendToDatabase($driverUser);
+                }
             }
         } catch (\Throwable $e) {}
 

@@ -112,6 +112,23 @@ class WithdrawalSlip extends Model
                 ]);
             }
         });
+
+        static::created(function ($withdrawalSlip) {
+            try {
+                $driver = $withdrawalSlip->tripTicket?->driver ?? \App\Models\Driver::where('name', $withdrawalSlip->driver_name)->first();
+                if ($driver && $driver->license_number) {
+                    $driverUser = \App\Models\User::where('email', $driver->license_number)->first();
+                    if ($driverUser) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('⛽ Fuel Withdrawal Slip Issued: ' . $withdrawalSlip->slip_number)
+                            ->body("A gasoline/fuel withdrawal slip ({$withdrawalSlip->slip_number}) has been issued for {$withdrawalSlip->vehicle_name}.")
+                            ->icon('heroicon-o-beaker')
+                            ->iconColor('warning')
+                            ->sendToDatabase($driverUser);
+                    }
+                }
+            } catch (\Throwable $e) {}
+        });
     }
 
     public function tripTicket(): BelongsTo
