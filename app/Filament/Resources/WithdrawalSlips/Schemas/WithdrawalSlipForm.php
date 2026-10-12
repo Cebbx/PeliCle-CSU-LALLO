@@ -36,7 +36,7 @@ class WithdrawalSlipForm
                             $label = "{$v->brand}" . ($v->model ? " {$v->model}" : "") . " ({$v->plate_number})";
                             $options[$label] = $label;
                         }
-                        if (!empty($state) && !isset($options[$state])) {
+                        if (!empty($state) && !is_array($state) && !isset($options[$state])) {
                             $options[$state] = $state;
                         }
                         return $options;
@@ -118,6 +118,12 @@ class WithdrawalSlipForm
                     ->collapsible()
                     ->defaultItems(1)
                     ->formatStateUsing(function ($state) {
+                        if (empty($state)) {
+                            return [
+                                ['item' => 'diesel', 'quantity' => 'Full Tank']
+                            ];
+                        }
+
                         if (is_string($state)) {
                             $decoded = json_decode($state, true);
                             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
@@ -130,27 +136,25 @@ class WithdrawalSlipForm
                         }
 
                         if (is_array($state)) {
-                            $isAssoc = false;
-                            foreach ($state as $k => $v) {
-                                if (is_string($k) && !is_numeric($k)) {
-                                    $isAssoc = true;
-                                    break;
-                                }
-                            }
-                            if ($isAssoc) {
-                                $converted = [];
-                                foreach ($state as $k => $v) {
-                                    if (!empty($v)) {
-                                        $converted[] = [
-                                            'item' => $k,
-                                            'quantity' => is_numeric($v) ? (float)$v : (string)$v,
-                                        ];
-                                    }
-                                }
-                                return !empty($converted) ? $converted : [['item' => 'diesel', 'quantity' => 'Full Tank']];
+                            // If it's already a list of repeater rows: [['item' => ..., 'quantity' => ...], ...]
+                            $firstVal = reset($state);
+                            if (is_array($firstVal) && isset($firstVal['item'])) {
+                                return array_values($state);
                             }
 
-                            return $state;
+                            // If it's a legacy associative array like ['diesel' => 20]
+                            $converted = [];
+                            foreach ($state as $k => $v) {
+                                if (is_array($v) && isset($v['item'])) {
+                                    $converted[] = $v;
+                                } elseif (!empty($v) && !is_array($v)) {
+                                    $converted[] = [
+                                        'item' => (string) $k,
+                                        'quantity' => is_numeric($v) ? (float) $v : (string) $v,
+                                    ];
+                                }
+                            }
+                            return !empty($converted) ? $converted : [['item' => 'diesel', 'quantity' => 'Full Tank']];
                         }
 
                         return [
@@ -200,7 +204,7 @@ class WithdrawalSlipForm
                                     '300' => '300 Liters',
                                 ];
 
-                                if (!empty($state) && !isset($options[(string)$state])) {
+                                if (!empty($state) && !is_array($state) && !isset($options[(string)$state])) {
                                     $options[(string)$state] = is_numeric($state) ? "{$state} Liters" : (string)$state;
                                 }
 
@@ -217,7 +221,10 @@ class WithdrawalSlipForm
                     ->itemLabel(function (array $state): ?string {
                         $item = $state['item'] ?? null;
                         $qty = $state['quantity'] ?? null;
-                        $qtyText = $qty === 'Full Tank' ? 'Full Tank' : ($qty ? (is_numeric($qty) ? "{$qty} Liters" : $qty) : '');
+                        $qtyText = '';
+                        if (!empty($qty) && !is_array($qty)) {
+                            $qtyText = $qty === 'Full Tank' ? 'Full Tank' : (is_numeric($qty) ? "{$qty} Liters" : (string)$qty);
+                        }
 
                         $itemNames = [
                             'diesel' => '⛽ Diesel',

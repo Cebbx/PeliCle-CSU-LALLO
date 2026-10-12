@@ -145,7 +145,6 @@ class Analytics extends BaseDashboard
             \App\Filament\Widgets\RequestsPerDepartmentChart::class,
             \App\Filament\Widgets\DriverTripsChart::class,
             \App\Filament\Widgets\VehicleUsageChart::class,
-            \App\Filament\Widgets\FuelExpensesChart::class,
             \App\Filament\Widgets\AnalyticsTripLogsWidget::class,
         ];
     }

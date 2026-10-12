@@ -85,29 +85,49 @@ class RequestsPerDepartmentChart extends ChartWidget
         $labels = array_keys($data);
         $chartData = array_values($data);
 
-        $colors = [
-            '#3b82f6', // Electric Blue
-            '#10b981', // Emerald Green
-            '#f59e0b', // Amber / Gold
-            '#8b5cf6', // Violet
-            '#06b6d4', // Cyan
-            '#ec4899', // Pink
-            '#f97316', // Orange
-            '#14b8a6', // Teal
-            '#6366f1', // Indigo
-            '#f43f5e', // Rose
-            '#84cc16', // Lime
-            '#64748b', // Slate
-            '#eab308', // Yellow
-            '#a855f7', // Purple
+        $colorMap = [
+            'CICS' => '#f97316', // Orange (User requested)
+            'CTE' => '#3b82f6',  // Blue (User requested)
+            'COA' => '#10b981',  // Green (User requested)
+            'CHM' => '#ec4899',  // Pink (User requested)
+            'University Library' => '#8b5cf6', // Violet
+            'Records Office' => '#f59e0b',     // Amber / Gold
+            'Campus Student Council' => '#06b6d4', // Cyan
+            'Office of the CEO' => '#6366f1',  // Indigo
+            'HRMO' => '#14b8a6',              // Teal
+            'Accounting Office' => '#84cc16',  // Lime
+            'Budget Office' => '#64748b',      // Slate
+            'Property and Supply Office' => '#f43f5e', // Rose
+            'Planning Office' => '#d946ef',    // Fuchsia
+            'MIS Office' => '#0ea5e9',         // Sky Blue
+            'Office of the Campus Registrar' => '#a855f7', // Purple
+            'Campus Admission Office' => '#eab308', // Yellow
+            'Campus Publication Office' => '#78716c', // Stone
+            'Café Valena' => '#b45309',        // Warm Bronze
+            'Administration Office' => '#71717a', // Neutral Gray
         ];
+
+        $fallbackPalette = [
+            '#0284c7', '#059669', '#d97706', '#7c3aed', '#db2777', '#4b5563', '#e11d48'
+        ];
+
+        $backgroundColors = [];
+        $fallbackIdx = 0;
+        foreach ($labels as $label) {
+            if (isset($colorMap[$label])) {
+                $backgroundColors[] = $colorMap[$label];
+            } else {
+                $backgroundColors[] = $fallbackPalette[$fallbackIdx % count($fallbackPalette)];
+                $fallbackIdx++;
+            }
+        }
 
         return [
             'datasets' => [
                 [
                     'label' => 'Total Requests',
                     'data' => $chartData,
-                    'backgroundColor' => array_slice(array_merge($colors, $colors), 0, count($chartData)),
+                    'backgroundColor' => $backgroundColors,
                     'borderWidth' => 2,
                     'hoverOffset' => 6,
                 ],
