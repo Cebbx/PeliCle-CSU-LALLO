@@ -168,6 +168,7 @@ class VehicleRequestsTable
             ->recordActions([
                 ActionGroup::make([
                     EditAction::make()
+                        ->url(fn ($record) => \App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('edit', ['record' => $record]))
                         ->visible(fn ($record) => !$record->trashed() && $record->status === 'pending' && !$record->document),
                     Action::make('view_signed_document')
                         ->label('View Signed Document')

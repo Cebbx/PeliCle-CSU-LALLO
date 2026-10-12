@@ -46,6 +46,7 @@ class VehicleRequestResource extends Resource
         return [
             'index' => ListVehicleRequests::route('/'),
             'create' => CreateVehicleRequest::route('/create'),
+            'edit' => EditVehicleRequest::route('/{record}/edit'),
         ];
     }
 }
