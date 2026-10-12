@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\WithdrawalSlips\Pages;
 
 use App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
@@ -14,6 +15,12 @@ class EditWithdrawalSlip extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('print')
+                ->label('Print Slip')
+                ->icon('heroicon-o-printer')
+                ->color('info')
+                ->url(fn () => route('withdrawal-slips.print', $this->record->id))
+                ->openUrlInNewTab(),
             DeleteAction::make()
                 ->label('Archive Withdrawal Slip')
                 ->icon('heroicon-o-archive-box')
@@ -28,6 +35,11 @@ class EditWithdrawalSlip extends EditRecord
         ];
     }
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
         if (!empty($data['trip_ticket_id'])) {
@@ -40,9 +52,6 @@ class EditWithdrawalSlip extends EditRecord
                     $dbVehicle = \App\Models\Vehicle::where('plate_number', $ticket->vehicle)->first();
                     $data['vehicle_name'] = $dbVehicle ? "{$dbVehicle->brand} ({$dbVehicle->plate_number})" : $ticket->vehicle;
                 }
-                if (empty($data['destination_address'])) {
-                    $data['destination_address'] = $ticket->vehicleRequest?->destination ?? 'No Destination';
-                }
             }
         }
 
@@ -52,7 +61,7 @@ class EditWithdrawalSlip extends EditRecord
                 $data['requested_items'] = $decoded;
             } else {
                 $data['requested_items'] = [
-                    ['item' => 'diesel', 'quantity' => 20]
+                    ['item' => 'diesel', 'quantity' => 'Full Tank']
                 ];
             }
         }

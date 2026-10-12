@@ -4,8 +4,14 @@ namespace App\Filament\Resources\WithdrawalSlips\Tables;
 
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class WithdrawalSlipsTable
@@ -16,7 +22,8 @@ class WithdrawalSlipsTable
             ->columns([
                 TextColumn::make('slip_number')
                     ->searchable()
-                    ->label('Control No.'),
+                    ->label('Control No.')
+                    ->sortable(),
                 TextColumn::make('vehicle_name')
                     ->label('Vehicle')
                     ->searchable()
@@ -36,10 +43,16 @@ class WithdrawalSlipsTable
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'approved' => 'success',
+                        'approved', 'issued' => 'success',
                         'pending' => 'warning',
-                        'rejected' => 'danger',
+                        'rejected', 'cancelled', 'void' => 'danger',
                         default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'approved', 'issued' => 'Issued',
+                        'pending' => 'Pending',
+                        'rejected', 'cancelled', 'void' => 'Void',
+                        default => ucfirst($state),
                     })
                     ->searchable(),
                 TextColumn::make('updated_at')
@@ -49,44 +62,35 @@ class WithdrawalSlipsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                \Filament\Tables\Filters\TrashedFilter::make()
+                TrashedFilter::make()
                     ->label('Archive Status'),
             ])
             ->recordActions([
-                Action::make('approve_slip')
-                    ->label('Approve Slip')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible(fn ($record) => $record->status === 'pending')
-                    ->requiresConfirmation()
-                    ->modalHeading('Approve Fuel Withdrawal Slip')
-                    ->modalDescription(fn ($record) => "Are you sure you want to approve fuel withdrawal slip {$record->slip_number}?")
-                    ->modalSubmitActionLabel('Yes, Approve Slip')
-                    ->action(function ($record) {
-                        $record->update([
-                            'status' => 'approved',
-                        ]);
-
-                        \Filament\Notifications\Notification::make()
-                            ->title('Withdrawal Slip Approved')
-                            ->body("Slip {$record->slip_number} has been approved.")
-                            ->success()
-                            ->send();
-                    }),
-                Action::make('print')
-                    ->label('Print Slip')
-                    ->icon('heroicon-o-printer')
+                ViewAction::make()
+                    ->label('View Slip')
+                    ->icon('heroicon-o-eye')
                     ->color('info')
-                    ->url(fn ($record) => route('withdrawal-slips.print', $record->id))
-                    ->openUrlInNewTab(),
-                \Filament\Actions\DeleteAction::make()
+                    ->modalHeading(fn ($record) => "Fuel Withdrawal Slip — Control No. {$record->slip_number}")
+                    ->extraModalFooterActions([
+                        Action::make('printFromModal')
+                            ->label('Print Slip')
+                            ->icon('heroicon-o-printer')
+                            ->color('primary')
+                            ->url(fn ($record) => route('withdrawal-slips.print', $record->id))
+                            ->openUrlInNewTab(),
+                    ]),
+                EditAction::make()
+                    ->label('Edit')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('primary'),
+                DeleteAction::make()
                     ->label('Archive')
                     ->icon('heroicon-o-archive-box')
                     ->color('warning')
                     ->modalHeading('Archive Withdrawal Slip')
                     ->modalDescription('Are you sure you want to archive this withdrawal slip? It can be restored at any time.')
                     ->modalSubmitActionLabel('Yes, Archive'),
-                \Filament\Actions\RestoreAction::make()
+                RestoreAction::make()
                     ->label('Restore')
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->color('success'),
@@ -97,7 +101,7 @@ class WithdrawalSlipsTable
                         ->label('Archive Selected')
                         ->icon('heroicon-o-archive-box')
                         ->color('warning'),
-                    \Filament\Actions\RestoreBulkAction::make()
+                    RestoreBulkAction::make()
                         ->label('Restore Selected')
                         ->icon('heroicon-o-arrow-uturn-left')
                         ->color('success'),

@@ -28,7 +28,8 @@ class DepartmentUserSeeder extends Seeder
             'chm' => 'CHM (College of Hospitality Management)',
             'coa' => 'COA (College of Agriculture)',
             'cafevalena' => 'Café Valena (CoffeeHub Café)',
-            'csc' => 'Campus Student Council (CSC)'
+            'csc' => 'Campus Student Council (CSC)',
+            'dmst' => 'Department of Military Science and Tactics Office (DMST Office)'
         ];
 
         // Clean up previous wrong seeded employee accounts
@@ -40,7 +41,6 @@ class DepartmentUserSeeder extends Seeder
                 'name' => $name,
                 'email' => $email,
                 'password' => Hash::make($code),
-                'plain_password' => $code,
                 'role' => 'employee',
             ]);
         }

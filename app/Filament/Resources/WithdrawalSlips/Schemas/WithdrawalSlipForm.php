@@ -31,7 +31,7 @@ class WithdrawalSlipForm
                         $vehicles = \App\Models\Vehicle::all();
                         $options = [];
                         foreach ($vehicles as $v) {
-                            $label = "{$v->brand}" . ($v->model ? " {$v->model}" : "") . " ({$v->plate_number})";
+                            $label = "{$v->brand} ({$v->plate_number})";
                             $options[$label] = $label;
                         }
                         if (!empty($state) && !is_array($state) && !isset($options[$state])) {
@@ -59,11 +59,20 @@ class WithdrawalSlipForm
                     ->helperText('Piliin ang nakatalagang sasakyan o i-type ang sariling detalye.')
                     ->dehydrated()
                     ->required(),
-                TextInput::make('driver_name')
+                Select::make('driver_name')
                     ->label('Driver Assigned')
-                    ->placeholder('Enter or edit driver name')
-                    ->datalist(fn () => class_exists('App\Models\Driver') ? \App\Models\Driver::pluck('name')->filter()->toArray() : [])
-                    ->helperText('Driver authorized to withdraw the fuel.')
+                    ->placeholder('Select assigned driver')
+                    ->options(function ($state) {
+                        $drivers = class_exists('\App\Models\Driver') ? \App\Models\Driver::pluck('name', 'name')->toArray() : [];
+                        if (!empty($state) && !is_array($state) && !isset($drivers[$state])) {
+                            $drivers[$state] = $state;
+                        }
+                        return $drivers;
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->createOptionUsing(fn (string $custom) => trim($custom))
+                    ->helperText('Piliin ang nakatalagang driver na awtorisadong kumuha ng fuel.')
                     ->default(function (callable $get, ?\App\Models\WithdrawalSlip $record) {
                         if ($record && $record->driver_name) {
                             return $record->driver_name;
@@ -75,6 +84,7 @@ class WithdrawalSlipForm
                         }
                         return null;
                     })
+                    ->required()
                     ->dehydrated(),
                 Repeater::make('requested_items')
                     ->label('Requested Items (Drag to reorder or add items)')
@@ -206,9 +216,15 @@ class WithdrawalSlipForm
                         $label = $itemNames[$item] ?? $item;
                         return $label ? ($label . ($qtyText ? ": {$qtyText}" : '')) : null;
                     }),
-                Hidden::make('status')
+                Select::make('status')
+                    ->label('Status')
+                    ->options([
+                        'approved' => 'Approved / Issued',
+                        'pending' => 'Pending Review',
+                        'rejected' => 'Cancelled / Void',
+                    ])
                     ->default('approved')
-                    ->dehydrated(),
+                    ->required(),
             ]);
     }
 }

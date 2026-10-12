@@ -111,6 +111,7 @@ class Analytics extends BaseDashboard
                         'CHM' => 'College of Hospitality Management',
                         'CICS' => 'College of Information and Computing Sciences',
                         'CTE' => 'College of Teacher Education',
+                        'DMST Office' => 'Department of Military Science and Tactics Office',
                         'HRMO' => 'Human Resource Management Office',
                         'MIS Office' => 'Management Information System Office',
                         'Office of the CEO' => 'Office of the Campus Executive Officer',

@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\WithdrawalSlips\Pages;
 
 use App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateWithdrawalSlip extends CreateRecord
@@ -29,6 +31,7 @@ class CreateWithdrawalSlip extends CreateRecord
                     'trip_ticket_id' => $tripId,
                     'driver_name' => $ticket->driver?->name ?? 'No Driver',
                     'vehicle_name' => $vehicleName,
+                    'purpose' => $ticket->vehicleRequest?->purpose ?? 'Official Business',
                 ]));
             }
         }
@@ -36,6 +39,21 @@ class CreateWithdrawalSlip extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return route('withdrawal-slips.print', $this->record->id);
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCreatedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->title('Withdrawal Slip Created')
+            ->body("Control No. {$this->record->slip_number} has been issued successfully.")
+            ->success()
+            ->actions([
+                Action::make('print')
+                    ->label('Print Slip')
+                    ->icon('heroicon-o-printer')
+                    ->url(route('withdrawal-slips.print', $this->record->id))
+                    ->openUrlInNewTab(),
+            ]);
     }
 }

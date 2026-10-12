@@ -50,6 +50,7 @@ class AnalyticsTripLogsWidget extends TableWidget
                 'Office of the CEO' => ['Office of the CEO', 'Office of the Campus Executive Officer'],
                 'HRMO' => ['HRMO', 'Human Resource Management Office'],
                 'MIS Office' => ['MIS Office', 'Management Information System Office'],
+                'DMST Office', 'Department of Military Science and Tactics Office', 'DMST' => ['DMST Office', 'Department of Military Science and Tactics Office', 'Department of military Science and Tactics Offices', 'DMST'],
                 'Campus Student Council' => ['Campus Student Council', 'Campus Student Council (CSC)', 'CSC'],
                 default => [$filterDept],
             };

@@ -55,6 +55,7 @@ class RequestsPerDepartmentChart extends ChartWidget
                 'Office of the CEO' => ['Office of the CEO', 'Office of the Campus Executive Officer'],
                 'HRMO' => ['HRMO', 'Human Resource Management Office'],
                 'MIS Office' => ['MIS Office', 'Management Information System Office'],
+                'DMST Office', 'Department of Military Science and Tactics Office', 'DMST' => ['DMST Office', 'Department of Military Science and Tactics Office', 'Department of military Science and Tactics Offices', 'DMST'],
                 'Campus Student Council' => ['Campus Student Council', 'Campus Student Council (CSC)', 'CSC'],
                 default => [$filterDept],
             };
@@ -77,6 +78,9 @@ class RequestsPerDepartmentChart extends ChartWidget
             // I-normalize ang CTED sa CTE para tugma ang Teacher Education
             if ($dept === 'CTED') {
                 $dept = 'CTE';
+            }
+            if ($dept === 'DMST' || $dept === 'Department of military Science and Tactics Offices' || $dept === 'Department of Military Science and Tactics Office') {
+                $dept = 'DMST Office';
             }
             $data[$dept] = ($data[$dept] ?? 0) + 1;
         }
@@ -119,6 +123,8 @@ class RequestsPerDepartmentChart extends ChartWidget
             'Campus Publication Office' => '#78716c', // Stone
             'Café Valena' => '#b45309',        // Warm Bronze
             'Administration Office' => '#71717a', // Neutral Gray
+            'DMST Office' => '#4d7c0f',        // Olive Green (Military / DMST)
+            'Department of Military Science and Tactics Office' => '#4d7c0f',
         ];
 
         $fallbackPalette = [
@@ -172,7 +178,9 @@ class RequestsPerDepartmentChart extends ChartWidget
             'Campus Publication Office': 'Campus Publication Office',
             'Café Valena': 'Café Valena (CoffeeHub Café)',
             'Campus Student Council': 'Campus Student Council (CSC)',
-            'Administration Office': 'Administration Office'
+            'Administration Office': 'Administration Office',
+            'DMST Office': 'Department of Military Science and Tactics Office',
+            'Department of Military Science and Tactics Office': 'Department of Military Science and Tactics Office'
         }";
 
         return RawJs::make("{

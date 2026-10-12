@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\WithdrawalSlips;
 
 use App\Filament\Resources\WithdrawalSlips\Pages\CreateWithdrawalSlip;
+use App\Filament\Resources\WithdrawalSlips\Pages\EditWithdrawalSlip;
 use App\Filament\Resources\WithdrawalSlips\Pages\ListWithdrawalSlips;
 use App\Filament\Resources\WithdrawalSlips\Schemas\WithdrawalSlipForm;
 use App\Filament\Resources\WithdrawalSlips\Tables\WithdrawalSlipsTable;
@@ -26,7 +27,7 @@ class WithdrawalSlipResource extends Resource
 
     public static function canEdit(Model $record): bool
     {
-        return false;
+        return true;
     }
 
     public static function form(Schema $schema): Schema
@@ -51,6 +52,7 @@ class WithdrawalSlipResource extends Resource
         return [
             'index' => ListWithdrawalSlips::route('/'),
             'create' => CreateWithdrawalSlip::route('/create'),
+            'edit' => EditWithdrawalSlip::route('/{record}/edit'),
         ];
     }
 }
