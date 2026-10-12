@@ -16,7 +16,7 @@ class WithdrawalSlipsTable
             ->columns([
                 TextColumn::make('slip_number')
                     ->searchable()
-                    ->label('Slip ID'),
+                    ->label('Control No.'),
                 TextColumn::make('vehicle_name')
                     ->label('Vehicle')
                     ->searchable()

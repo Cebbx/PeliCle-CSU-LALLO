@@ -15,13 +15,11 @@ class WithdrawalSlipForm
         return $schema
             ->components([
                 TextInput::make('slip_number')
-                    ->label('Control / Slip No.')
-                    ->default(function () {
-                        $lastRecord = \App\Models\WithdrawalSlip::latest('id')->first();
-                        $nextId = $lastRecord ? ($lastRecord->id + 1) : 1;
-                        return 'WS-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-                    })
+                    ->label('Control No.')
+                    ->placeholder(fn () => 'WS-' . date('Y') . '-01')
+                    ->default(fn () => \App\Models\WithdrawalSlip::generateNextSlipNumber())
                     ->unique('withdrawal_slips', 'slip_number', ignoreRecord: true)
+                    ->helperText('Halimbawa: WS-' . date('Y') . '-01. Auto-generated at editable.')
                     ->required(),
                 Hidden::make('trip_ticket_id')
                     ->default(fn () => request()->query('trip_ticket_id'))
@@ -74,22 +72,6 @@ class WithdrawalSlipForm
                         if ($tripId) {
                             $ticket = \App\Models\TripTicket::with('driver')->find($tripId);
                             return $ticket?->driver?->name ?? null;
-                        }
-                        return null;
-                    })
-                    ->dehydrated(),
-                TextInput::make('destination_address')
-                    ->label('Destination')
-                    ->placeholder('Enter destination address (optional)')
-                    ->helperText('Destination for this trip or refueling.')
-                    ->default(function (callable $get, ?\App\Models\WithdrawalSlip $record) {
-                        if ($record && $record->destination_address) {
-                            return $record->destination_address;
-                        }
-                        $tripId = $get('trip_ticket_id') ?? request()->query('trip_ticket_id') ?? ($record?->trip_ticket_id);
-                        if ($tripId) {
-                            $ticket = \App\Models\TripTicket::with('vehicleRequest')->find($tripId);
-                            return $ticket?->vehicleRequest?->destination ?? null;
                         }
                         return null;
                     })

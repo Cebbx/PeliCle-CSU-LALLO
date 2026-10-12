@@ -29,7 +29,6 @@ class CreateWithdrawalSlip extends CreateRecord
                     'trip_ticket_id' => $tripId,
                     'driver_name' => $ticket->driver?->name ?? 'No Driver',
                     'vehicle_name' => $vehicleName,
-                    'destination_address' => $ticket->vehicleRequest?->destination ?? 'No Destination',
                     'purpose' => $ticket->vehicleRequest?->purpose ?? 'Official Business',
                 ]));
             }

@@ -62,13 +62,45 @@ class WithdrawalSlip extends Model
         );
     }
 
+    public static function generateNextSlipNumber(?\Carbon\Carbon $date = null): string
+    {
+        $date = $date ?? now();
+        $year = $date->format('Y');
+        $prefix = "WS-{$year}-";
+
+        $existing = static::withTrashed()
+            ->where('slip_number', 'like', "{$prefix}%")
+            ->pluck('slip_number');
+
+        $maxSeq = 0;
+        foreach ($existing as $slipNum) {
+            $parts = explode('-', $slipNum);
+            $seqStr = end($parts);
+            if (is_numeric($seqStr)) {
+                $seq = (int) $seqStr;
+                if ($seq > $maxSeq) {
+                    $maxSeq = $seq;
+                }
+            }
+        }
+
+        $nextSeq = str_pad($maxSeq + 1, 2, '0', STR_PAD_LEFT);
+        $candidate = "{$prefix}{$nextSeq}";
+
+        $counter = $maxSeq + 1;
+        while (static::withTrashed()->where('slip_number', $candidate)->exists()) {
+            $counter++;
+            $candidate = $prefix . str_pad($counter, 2, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
+    }
+
     protected static function booted(): void
     {
         static::creating(function ($withdrawalSlip) {
             if (empty($withdrawalSlip->slip_number)) {
-                $lastRecord = static::withTrashed()->latest('id')->first();
-                $nextId = $lastRecord ? ($lastRecord->id + 1) : 1;
-                $withdrawalSlip->slip_number = 'WS-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+                $withdrawalSlip->slip_number = static::generateNextSlipNumber();
             }
             if (empty($withdrawalSlip->purpose)) {
                 $withdrawalSlip->loadMissing('tripTicket.vehicleRequest');

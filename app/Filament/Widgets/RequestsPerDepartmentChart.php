@@ -42,6 +42,9 @@ class RequestsPerDepartmentChart extends ChartWidget
         }
         if ($filterStatus) {
             $query->where('status', $filterStatus);
+        } else {
+            // Default: Bilangin lamang ang mga balido at aprubadong biyahe (approved, on_trip, completed)
+            $query->whereIn('status', ['approved', 'on_trip', 'completed']);
         }
         if ($filterDept) {
             $query->where('department', $filterDept);
