@@ -18,8 +18,6 @@ class AnalyticsTripLogsWidget extends TableWidget
 
     protected static ?int $sort = 10;
 
-    protected ?string $pollingInterval = '5s';
-
     protected int|string|array $columnSpan = 'full';
 
     protected string $view = 'filament.widgets.analytics-trip-logs-widget';
@@ -48,7 +46,6 @@ class AnalyticsTripLogsWidget extends TableWidget
         }
 
         return $table
-            ->poll('5s')
             ->query($query)
             ->defaultSort('date', 'desc')
             ->defaultPaginationPageOption(5)
@@ -79,7 +76,7 @@ class AnalyticsTripLogsWidget extends TableWidget
                     ->sortable(),
 
                 TextColumn::make('department')
-                    ->label('Office')
+                    ->label('Offices')
                     ->placeholder('—')
                     ->weight('medium')
                     ->extraHeaderAttributes(['style' => 'white-space: nowrap;'])
@@ -149,7 +146,7 @@ class AnalyticsTripLogsWidget extends TableWidget
                         'on_trip' => 'On Trip',
                         'rejected' => 'Disapproved',
                         'completed' => 'Completed',
-                        'expired' => 'Lapsed',
+                        'expired' => 'Expired',
                         'cancelled' => 'Cancelled',
                         default => ucfirst($state),
                     }),

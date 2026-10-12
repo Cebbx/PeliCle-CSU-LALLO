@@ -121,8 +121,8 @@ class DriverTripsChart extends ChartWidget
                         ],
                     ],
                     'ticks' => [
-                        'stepSize' => 1,
                         'precision' => 0,
+                        'maxTicksLimit' => 8,
                         'font' => [
                             'size' => 12,
                             'weight' => '600',

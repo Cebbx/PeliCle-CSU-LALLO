@@ -16,7 +16,6 @@ class VehicleRequestsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('5s')
             ->columns([
                 TextColumn::make('request_number')
                     ->label('Vehicle Request')
@@ -30,15 +29,7 @@ class VehicleRequestsTable
                     })
                     ->sortable()
                     ->weight('bold')
-                    ->description(function ($record) {
-                        if ($record->is_urgent) {
-                            return '🚨 URGENT';
-                        }
-                        if ($record->is_manual_encoding) {
-                            return '📄 ' . ($record->manual_slip_number ?: 'Brownout Slip');
-                        }
-                        return null;
-                    }),
+                    ->description(fn ($record) => $record->is_urgent ? '🚨 URGENT' : null),
                 TextColumn::make('employee_name')
                     ->label('Requester')
                     ->width('105px')
@@ -47,6 +38,7 @@ class VehicleRequestsTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('department')
+                    ->label('Offices')
                     ->width('85px')
                     ->limit(8)
                     ->tooltip(fn ($record) => $record->department)
@@ -134,7 +126,7 @@ class VehicleRequestsTable
                             'rejected' => 'Disapproved',
                             'cancelled' => 'Cancelled',
                             'completed' => 'Completed',
-                            'expired' => 'Lapsed',
+                            'expired' => 'Expired',
                             default => ucfirst($state),
                         };
                     })
@@ -193,12 +185,6 @@ class VehicleRequestsTable
                         ->visible(fn ($record) => !empty($record->document))
                         ->url(fn ($record) => route('vehicle-requests.view-signed-document', $record->id))
                         ->openUrlInNewTab(),
-                    Action::make('download_signed_document')
-                        ->label('Download Signed Document')
-                        ->icon('heroicon-o-arrow-down-tray')
-                        ->color('success')
-                        ->visible(fn ($record) => !empty($record->document))
-                        ->url(fn ($record) => route('vehicle-requests.download-signed-document', $record->id)),
                     Action::make('print')
                         ->label('View Requisition Form')
                         ->icon('heroicon-o-document-text')
@@ -209,7 +195,7 @@ class VehicleRequestsTable
                         ->label('Print Trip Ticket (QR Code)')
                         ->icon('heroicon-o-ticket')
                         ->color('success')
-                        ->visible(fn ($record) => $record->tripTicket()->exists() && empty($record->document) && empty($record->tripTicket?->document))
+                        ->visible(fn ($record) => $record->tripTicket()->exists())
                         ->url(fn ($record) => route('trip-tickets.print', $record->tripTicket->id))
                         ->openUrlInNewTab(),
                     Action::make('upload_document')
@@ -219,13 +205,13 @@ class VehicleRequestsTable
                         ->modalHeading('📄 Upload or Scan CEO Signed Document')
                         ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
                         ->modalWidth('2xl')
-                        ->modalSubmitActionLabel('Save Document')
+                        ->modalSubmitActionLabel('Save & Activate Trip')
                         ->visible(fn ($record) => !$record->trashed() && $record->status === 'approved' && !$record->document)
                         ->form([
                             \Filament\Schemas\Components\Tabs::make('document_source')
                                 ->tabs([
                                     \Filament\Schemas\Components\Tabs\Tab::make('camera_scan')
-                                        ->label('Camera Scanner')
+                                        ->label('📸 Camera Scanner')
                                         ->icon('heroicon-o-camera')
                                         ->schema([
                                             \Filament\Forms\Components\ViewField::make('captured_image')
@@ -233,7 +219,7 @@ class VehicleRequestsTable
                                                 ->columnSpanFull(),
                                         ]),
                                     \Filament\Schemas\Components\Tabs\Tab::make('file_upload')
-                                        ->label('Upload Document')
+                                        ->label('📁 Upload Document')
                                         ->icon('heroicon-o-arrow-up-tray')
                                         ->schema([
                                             \Filament\Forms\Components\FileUpload::make('document')
@@ -287,92 +273,41 @@ class VehicleRequestsTable
                                 return;
                             }
 
-                            $now = \Illuminate\Support\Carbon::now('Asia/Manila');
-                            $depDateTime = $record->getScheduledDepartureDateTime();
-
-                            // 1. Check if late upload (departure time has already passed)
-                            if ($depDateTime && $now->greaterThan($depDateTime)) {
-                                $formattedSchedule = $depDateTime->format('M d, Y h:i A');
-                                $reason = "Auto-declined: CEO signed document was uploaded late after the scheduled departure date/time ({$formattedSchedule}).";
-
-                                $record->update([
-                                    'document' => $finalPath,
-                                    'status' => 'rejected',
-                                    'rejection_reason' => $reason,
-                                ]);
-
-                                if ($record->tripTicket) {
-                                    $tripTicket = $record->tripTicket;
-                                    $tripTicket->status = 'cancelled';
-                                    $tripTicket->cancellation_reason = "Auto-cancelled: CEO signed document was uploaded late after scheduled departure ({$formattedSchedule}).";
-                                    $tripTicket->document = $finalPath;
-                                    $tripTicket->saveQuietly();
-
-                                    if ($tripTicket->driver_id) {
-                                        $driver = \App\Models\Driver::find($tripTicket->driver_id);
-                                        if ($driver) {
-                                            $driver->update(['status' => 'available']);
-                                        }
-                                        if (method_exists($tripTicket, 'sendCancellationSms')) {
-                                            $tripTicket->sendCancellationSms("Trip schedule lapsed ({$formattedSchedule}). CEO signed document was uploaded late.");
-                                        }
-                                    }
-
-                                    \App\Models\TripTicket::syncVehicleStatus($tripTicket->vehicle);
-                                }
-
-                                \App\Models\ActivityLog::create([
-                                    'user_id' => auth()->id(),
-                                    'user_name' => auth()->user()?->name ?? 'System',
-                                    'action' => 'Auto-Declined Request (Late Upload)',
-                                    'model_type' => \App\Models\VehicleRequest::class,
-                                    'model_id' => $record->id,
-                                    'details' => "Request {$record->request_number} auto-declined due to late CEO signed document upload after departure time ({$formattedSchedule}).",
-                                    'ip_address' => request()->ip() ?? '127.0.0.1',
-                                ]);
-
-                                \Filament\Notifications\Notification::make()
-                                    ->title('Request Auto-Declined')
-                                    ->body("CEO signed document was uploaded late after the scheduled departure time ({$formattedSchedule}). The request has been automatically declined.")
-                                    ->danger()
-                                    ->persistent()
-                                    ->send();
-
-                                return;
-                            }
-
-                            // 2. On-time upload (future departure)
                             $record->update([
                                 'document' => $finalPath,
-                                'status' => 'approved',
                             ]);
+
+                            $now = \Illuminate\Support\Carbon::now('Asia/Manila');
+                            $depDate = $record->date ?? $now->format('Y-m-d');
+                            $depTime = $record->time ?? '00:00:00';
+                            $tripDateTime = \Illuminate\Support\Carbon::parse("{$depDate} {$depTime}", 'Asia/Manila');
+                            $timeArrived = $now->greaterThanOrEqualTo($tripDateTime);
 
                             if ($record->tripTicket) {
                                 $tripTicket = $record->tripTicket;
                                 $tripTicket->document = $finalPath;
-                                $tripTicket->status = 'pending';
-                                $tripTicket->saveQuietly();
-
-                                if ($tripTicket->driver_id) {
-                                    $driver = \App\Models\Driver::find($tripTicket->driver_id);
-                                    if ($driver) {
-                                        $hasActive = \App\Models\TripTicket::where('driver_id', $driver->id)
-                                            ->where('status', 'active')
-                                            ->where('id', '!=', $tripTicket->id)
-                                            ->exists();
-                                        if (!$hasActive) {
-                                            $driver->update(['status' => 'available']);
-                                        }
+                                if ($timeArrived) {
+                                    $tripTicket->status = 'active';
+                                    $tripTicket->save();
+                                    $record->update(['status' => 'on_trip']);
+                                } else {
+                                    if ($tripTicket->status === 'cancelled') {
+                                        $tripTicket->status = 'pending';
                                     }
+                                    $tripTicket->save();
+                                    $record->update(['status' => 'approved']);
                                 }
+                            } elseif ($timeArrived) {
+                                $record->update(['status' => 'on_trip']);
                             }
 
-                            $formattedTime = $record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time';
-                            $formattedDate = $record->date ? \Carbon\Carbon::parse($record->date)->format('M d, Y') : 'scheduled date';
+                            $msg = $timeArrived 
+                                ? 'CEO Signed Document uploaded! Scheduled travel time has arrived — Trip is now ON TRIP!'
+                                : 'CEO Signed Document uploaded! Request is now Ready (Waiting for departure at ' . ($record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time') . ').';
 
                             \Filament\Notifications\Notification::make()
-                                ->title('Document Uploaded Successfully')
-                                ->body("CEO Signed Document has been saved! The trip is scheduled for {$formattedDate} at {$formattedTime}. Status remains 'Approved' and will automatically activate to 'On Trip' when departure time arrives.")
+                                ->title('Document Uploaded')
+                                ->body($msg)
                                 ->success()
                                 ->send();
                         }),
@@ -389,7 +324,7 @@ class VehicleRequestsTable
                             \Filament\Schemas\Components\Tabs::make('document_source')
                                 ->tabs([
                                     \Filament\Schemas\Components\Tabs\Tab::make('camera_scan')
-                                        ->label('Camera Scanner')
+                                        ->label('📸 Camera Scanner')
                                         ->icon('heroicon-o-camera')
                                         ->schema([
                                             \Filament\Forms\Components\ViewField::make('captured_image')
@@ -397,7 +332,7 @@ class VehicleRequestsTable
                                                 ->columnSpanFull(),
                                         ]),
                                     \Filament\Schemas\Components\Tabs\Tab::make('file_upload')
-                                        ->label('Upload Document')
+                                        ->label('📁 Upload Document')
                                         ->icon('heroicon-o-arrow-up-tray')
                                         ->schema([
                                             \Filament\Forms\Components\FileUpload::make('document')
@@ -529,7 +464,7 @@ class VehicleRequestsTable
                         ->modalHeading(fn ($record) => match ($record->status) {
                             'rejected' => 'Disapproval Reason',
                             'cancelled' => 'Cancellation Reason',
-                            'expired' => 'Lapse Reason',
+                            'expired' => 'Expiration Reason',
                             default => 'Reason Details',
                         })
                         ->modalDescription(fn ($record) => $record->status === 'rejected' ? ($record->rejection_reason ?? 'No reason provided.') : ($record->cancellation_reason ?? 'No reason provided.'))
@@ -718,15 +653,10 @@ class VehicleRequestsTable
                         'rejected' => 'Disapproved',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
-                        'expired' => 'Lapsed',
+                        'expired' => 'Expired',
                     ]),
                 TernaryFilter::make('is_urgent')
                     ->label('Urgent Requests Only'),
-                TernaryFilter::make('is_manual_encoding')
-                    ->label('Manual Brownout Slips')
-                    ->placeholder('All Requests')
-                    ->trueLabel('Manual / Offline Slips Only')
-                    ->falseLabel('Online Submissions Only'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

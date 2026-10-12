@@ -143,8 +143,8 @@ class PassengerGrowthChart extends ChartWidget
                         ],
                     ],
                     'ticks' => [
-                        'stepSize' => 1,
                         'precision' => 0,
+                        'maxTicksLimit' => 8,
                     ],
                     'grid' => [
                         'display' => true,

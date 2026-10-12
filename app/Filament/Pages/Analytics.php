@@ -131,8 +131,8 @@ class Analytics extends BaseDashboard
                         return array_merge($official, $fromDb);
                     })
                     ->searchable()
-                    ->placeholder('All Departments')
-                    ->label('Department'),
+                    ->placeholder('All Offices')
+                    ->label('Offices'),
             ]);
     }
 

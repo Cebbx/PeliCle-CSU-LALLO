@@ -35,6 +35,7 @@ class VehicleRequestForm
                 TextInput::make('employee_name')
                     ->required(),
                 Select::make('department')
+                    ->label('Offices')
                     ->options([
                         'Office of the CEO' => 'Office of the CEO (Campus Executive Officer)',
                         'HRMO' => 'HRMO (Human Resource Management Office)',

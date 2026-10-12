@@ -17,6 +17,10 @@ class WithdrawalSlipsTable
                 TextColumn::make('slip_number')
                     ->searchable()
                     ->label('Slip ID'),
+                TextColumn::make('vehicle_name')
+                    ->label('Vehicle')
+                    ->searchable()
+                    ->default('N/A'),
                 TextColumn::make('driver_name')
                     ->label('Driver')
                     ->state(fn ($record) => $record->driver_name ?: ($record->tripTicket?->driver?->name ?? 'N/A'))
@@ -26,7 +30,9 @@ class WithdrawalSlipsTable
                     })
                     ->default('N/A'),
                 TextColumn::make('tripTicket.ticket_number')
-                    ->label('Trip ID'),
+                    ->label('Trip ID')
+                    ->placeholder('Direct (No Trip ID)')
+                    ->default('Direct'),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {

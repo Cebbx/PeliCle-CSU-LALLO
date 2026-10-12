@@ -194,35 +194,35 @@
                 <!-- Items Table/List (matching the image layout perfectly) -->
                 <div class="pl-16 text-[14px] text-black space-y-2.5 mb-8">
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center w-16 inline-block h-6 pb-0.5">{{ $diesel }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $diesel }}</span>
                         <span>No. of Liters of Diesel</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center w-16 inline-block h-6 pb-0.5">{{ $gasRegular }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $gasRegular }}</span>
                         <span>No. of Liters of Gasoline (Regular)</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center w-16 inline-block h-6 pb-0.5">{{ $gasPremium }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $gasPremium }}</span>
                         <span>No. of Liters of Gasoline (Premium)</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center w-16 inline-block h-6 pb-0.5">{{ $lubricant40 }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $lubricant40 }}</span>
                         <span>No. of Liters of Lubricant Oil 40</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center w-16 inline-block h-6 pb-0.5">{{ $lubricant30 }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $lubricant30 }}</span>
                         <span>No. of Liters of Lubricant Oil 30</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center w-16 inline-block h-6 pb-0.5">{{ $brakeFluid }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $brakeFluid }}</span>
                         <span>No. of Liters of Brake Fluid</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center w-16 inline-block h-6 pb-0.5">{{ $grease }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $grease }}</span>
                         <span>No. of Liters of <span class="underline underline-offset-2 font-semibold">2T</span>&nbsp;&nbsp;<span class="underline underline-offset-2 font-semibold">Grease</span>&nbsp;&nbsp;<span class="underline underline-offset-2 font-semibold">ATF</span></span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="border-b border-black font-bold text-center w-16 inline-block h-6 pb-0.5">{{ $gearOil }}</span>
+                        <span class="border-b border-black font-bold text-center min-w-[5.5rem] px-2 inline-block h-6 pb-0.5">{{ $gearOil }}</span>
                         <span>No. of Liters of Gear Oil</span>
                     </div>
                 </div>

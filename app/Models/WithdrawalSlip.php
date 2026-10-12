@@ -76,7 +76,7 @@ class WithdrawalSlip extends Model
             }
             if (empty($withdrawalSlip->attributes['requested_items'])) {
                 $withdrawalSlip->attributes['requested_items'] = json_encode([
-                    ['item' => 'diesel', 'quantity' => 20]
+                    ['item' => 'diesel', 'quantity' => 'Full Tank']
                 ]);
             }
         });
