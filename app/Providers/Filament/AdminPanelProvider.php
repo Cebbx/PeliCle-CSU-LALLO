@@ -575,6 +575,111 @@ class AdminPanelProvider extends PanelProvider
                             margin: 0 !important;
                             flex-shrink: 0 !important;
                         }
+
+                        /* ========================================================
+                           CRIMSON RED UNREAD NOTIFICATION BADGE & PULSE
+                           ======================================================== */
+                        .fi-topbar-database-notifications-btn {
+                            position: relative !important;
+                        }
+
+                        /* Glowing Crimson Red Unread Badge on Topbar Bell */
+                        .fi-topbar-database-notifications-btn .fi-badge,
+                        .fi-topbar-database-notifications-btn .fi-badge-color-primary,
+                        .fi-topbar-database-notifications-btn .fi-badge-color-danger,
+                        .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn .fi-badge,
+                        .fi-no-database .fi-badge,
+                        .pelicle-unread-badge {
+                            background-color: #ef4444 !important;
+                            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+                            color: #ffffff !important;
+                            font-weight: 800 !important;
+                            font-size: 10px !important;
+                            padding: 2px 6px !important;
+                            min-width: 18px !important;
+                            height: 18px !important;
+                            display: inline-flex !important;
+                            align-items: center !important;
+                            justify-content: center !important;
+                            border: 1.5px solid #ffffff !important;
+                            border-radius: 9999px !important;
+                            box-shadow: 0 0 10px rgba(239, 68, 68, 0.8), 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+                            animation: notifRedPulse 2s infinite ease-in-out !important;
+                        }
+
+                        html.dark .fi-topbar-database-notifications-btn .fi-badge,
+                        html.dark .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn .fi-badge,
+                        html.dark .pelicle-unread-badge {
+                            border-color: #0f172a !important;
+                        }
+
+                        @keyframes notifRedPulse {
+                            0%, 100% {
+                                transform: scale(1);
+                                box-shadow: 0 0 8px rgba(239, 68, 68, 0.7), 0 0 0 0 rgba(239, 68, 68, 0.5);
+                            }
+                            50% {
+                                transform: scale(1.12);
+                                box-shadow: 0 0 15px rgba(239, 68, 68, 0.95), 0 0 0 5px rgba(239, 68, 68, 0);
+                            }
+                        }
+
+                        /* Bell icon subtle animation and highlight when unread */
+                        .fi-topbar-database-notifications-btn.has-unread-alerts svg,
+                        .fi-topbar-database-notifications-btn:has(.fi-badge) svg {
+                            color: #f59e0b !important;
+                            animation: bellSwingAlert 3.5s infinite ease-in-out !important;
+                            transform-origin: top center;
+                        }
+
+                        @keyframes bellSwingAlert {
+                            0%, 65%, 100% { transform: rotate(0deg); }
+                            70% { transform: rotate(14deg); }
+                            74% { transform: rotate(-12deg); }
+                            78% { transform: rotate(8deg); }
+                            82% { transform: rotate(-6deg); }
+                            86% { transform: rotate(2deg); }
+                        }
+
+                        /* Floating Real-Time Live Alert Toast (Appears anywhere in admin) */
+                        #pelicle-live-toast-container {
+                            position: fixed;
+                            top: 24px;
+                            right: 24px;
+                            z-index: 999999;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 10px;
+                            max-width: 380px;
+                            pointer-events: none;
+                        }
+
+                        .pelicle-live-toast {
+                            pointer-events: auto;
+                            background: rgba(15, 23, 42, 0.95);
+                            backdrop-filter: blur(12px);
+                            border: 1.5px solid #ef4444;
+                            border-radius: 14px;
+                            padding: 13px 16px;
+                            color: #ffffff;
+                            box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.6), 0 0 16px rgba(239, 68, 68, 0.35);
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 12px;
+                            animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+                            transition: all 0.3s ease;
+                            cursor: pointer;
+                        }
+
+                        .pelicle-live-toast.toast-standard {
+                            border-color: #f59e0b;
+                            box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.6), 0 0 16px rgba(245, 158, 11, 0.35);
+                        }
+
+                        @keyframes toastSlideIn {
+                            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+                            to { opacity: 1; transform: translateY(0) scale(1); }
+                        }
                     </style>
                 ')
             )
@@ -584,92 +689,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::BODY_END,
-                fn () => new \Illuminate\Support\HtmlString('
-                    <script>
-                        (function() {
-                            function requestDesktopPermission() {
-                                if ("Notification" in window && Notification.permission === "default") {
-                                    Notification.requestPermission();
-                                }
-                            }
-
-                            if ("Notification" in window && Notification.permission === "default") {
-                                document.addEventListener("click", requestDesktopPermission, { once: true });
-                            }
-
-                            function playNotificationChime() {
-                                try {
-                                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                                    const now = ctx.currentTime;
-                                    const osc1 = ctx.createOscillator();
-                                    const gain1 = ctx.createGain();
-                                    osc1.type = "sine";
-                                    osc1.frequency.setValueAtTime(659.25, now);
-                                    gain1.gain.setValueAtTime(0.12, now);
-                                    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-                                    osc1.connect(gain1);
-                                    gain1.connect(ctx.destination);
-                                    osc1.start(now);
-                                    osc1.stop(now + 0.25);
-
-                                    const osc2 = ctx.createOscillator();
-                                    const gain2 = ctx.createGain();
-                                    osc2.type = "sine";
-                                    osc2.frequency.setValueAtTime(987.77, now + 0.1);
-                                    gain2.gain.setValueAtTime(0.15, now + 0.1);
-                                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-                                    osc2.connect(gain2);
-                                    gain2.connect(ctx.destination);
-                                    osc2.start(now + 0.1);
-                                    osc2.stop(now + 0.45);
-                                } catch (e) {}
-                            }
-
-                            function triggerMobileHaptic() {
-                                if ("vibrate" in navigator) {
-                                    try {
-                                        navigator.vibrate([200, 100, 200]);
-                                    } catch (e) {}
-                                }
-                            }
-
-                            function showDesktopNotification(count) {
-                                if ("Notification" in window && Notification.permission === "granted") {
-                                    try {
-                                        const notif = new Notification("🚨 PeliCle: Bagong Vehicle Request / Alert", {
-                                            body: "May " + count + " bagong request o aktibidad na pumasok sa system. I-click para ma-review.",
-                                            icon: "/csu-logo-sm.png"
-                                        });
-                                        notif.onclick = function() {
-                                            window.focus();
-                                            window.location.href = "/admin/vehicle-requests";
-                                        };
-                                    } catch (e) {}
-                                }
-                            }
-
-                            const originalTitle = document.title;
-                            let lastNotifCount = null;
-                            setInterval(() => {
-                                const badgeEl = document.querySelector(".fi-no-database .fi-badge, .fi-topbar-database-notifications-btn .fi-badge");
-                                const count = badgeEl ? parseInt(badgeEl.textContent.trim()) || 0 : 0;
-
-                                if (count > 0) {
-                                    document.title = "(" + count + ") " + originalTitle.replace(/^\(\d+\)\s*/, "");
-                                } else {
-                                    document.title = originalTitle.replace(/^\(\d+\)\s*/, "");
-                                }
-
-                                if (lastNotifCount !== null && count > lastNotifCount) {
-                                    playNotificationChime();
-                                    triggerMobileHaptic();
-                                    showDesktopNotification(count);
-                                }
-                                lastNotifCount = count;
-                            }, 1500);
-                        })();
-                    </script>
-                ')
+                fn () => view('filament.components.admin-live-notifications'),
             )
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([

@@ -220,6 +220,16 @@ class Dashboard extends BaseDashboard
             "Driver " . auth()->user()->name . " logged departure milestone for trip " . $activeTrip->ticket_number
         );
 
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        if ($admins->isNotEmpty()) {
+            \Filament\Notifications\Notification::make()
+                ->title('🚗 Driver Departed: ' . $activeTrip->ticket_number)
+                ->body("Driver " . auth()->user()->name . " has started trip {$activeTrip->ticket_number} with vehicle {$activeTrip->vehicle}.")
+                ->icon('heroicon-o-paper-airplane')
+                ->iconColor('info')
+                ->sendToDatabase($admins);
+        }
+
         \Filament\Notifications\Notification::make()
             ->title('Departure Logged')
             ->body('Departure milestone has been digitally recorded.')
@@ -239,6 +249,16 @@ class Dashboard extends BaseDashboard
             $activeTrip,
             "Driver " . auth()->user()->name . " logged arrival milestone at destination for trip " . $activeTrip->ticket_number
         );
+
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        if ($admins->isNotEmpty()) {
+            \Filament\Notifications\Notification::make()
+                ->title('📍 Driver Arrived at Destination: ' . $activeTrip->ticket_number)
+                ->body("Driver " . auth()->user()->name . " arrived at destination ({$activeTrip->vehicleRequest?->destination}) for trip {$activeTrip->ticket_number}.")
+                ->icon('heroicon-o-map-pin')
+                ->iconColor('success')
+                ->sendToDatabase($admins);
+        }
 
         \Filament\Notifications\Notification::make()
             ->title('Arrival Logged')

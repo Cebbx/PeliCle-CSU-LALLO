@@ -354,6 +354,19 @@ class VehicleRequestsTable
                             $formattedTime = $record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time';
                             $formattedDate = $record->date ? \Carbon\Carbon::parse($record->date)->format('M d, Y') : 'scheduled date';
 
+                            // Notify Admins in real-time
+                            try {
+                                $admins = \App\Models\User::where('role', 'admin')->get();
+                                foreach ($admins as $admin) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('📄 CEO Document Uploaded: ' . $record->request_number)
+                                        ->body("{$record->employee_name} uploaded CEO signed document for request {$record->request_number}.")
+                                        ->icon('heroicon-o-document-check')
+                                        ->iconColor('success')
+                                        ->sendToDatabase($admin);
+                                }
+                            } catch (\Throwable $e) {}
+
                             \Filament\Notifications\Notification::make()
                                 ->title('Document Uploaded Successfully')
                                 ->body("CEO Signed Document has been saved! The trip is scheduled for {$formattedDate} at {$formattedTime}. Status remains 'Approved' and will automatically activate to 'On Trip' when departure time arrives.")

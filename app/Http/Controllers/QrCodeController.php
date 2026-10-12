@@ -147,6 +147,24 @@ class QrCodeController extends Controller
             $ticket->driver->update(['status' => 'available']);
         }
 
+        // Notify Admins in real-time
+        try {
+            $admins = \App\Models\User::where('role', 'admin')->get();
+            foreach ($admins as $admin) {
+                \Filament\Notifications\Notification::make()
+                    ->title('🏁 Gate Clearance: Trip Completed (' . $ticket->ticket_number . ')')
+                    ->body("Trip {$ticket->ticket_number} arrived at CSU Gate and was cleared by {$guardName}. Driver & Vehicle are now available.")
+                    ->icon('heroicon-o-check-badge')
+                    ->iconColor('success')
+                    ->actions([
+                        \Filament\Notifications\Actions\Action::make('view')
+                            ->label('View Trip')
+                            ->url(\App\Filament\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $ticket->id])),
+                    ])
+                    ->sendToDatabase($admin);
+            }
+        } catch (\Throwable $e) {}
+
         return $this->renderResponse(
             'success',
             'Gate Clearance Verified! Trip Completed',

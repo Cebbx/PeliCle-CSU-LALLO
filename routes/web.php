@@ -38,6 +38,34 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
     Route::get('/analytics/print', [App\Http\Controllers\PrintController::class, 'printAnalyticsReport'])->name('analytics.print');
     Route::get('/logbook/print', [App\Http\Controllers\PrintController::class, 'printTripLogbook'])->name('logbook.print');
     Route::get('/logbook/export-csv', [App\Http\Controllers\PrintController::class, 'exportTripLogbookCsv'])->name('logbook.export-csv');
+
+    // Admin Real-Time Live Notification Check Endpoint
+    Route::get('/api/admin/live-notifications-check', function () {
+        $user = auth('admin')->user() ?? auth()->user();
+        if (! $user || $user->role !== 'admin') {
+            return response()->json(['count' => 0, 'unread' => []]);
+        }
+
+        $unread = $user->unreadNotifications()
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($n) {
+                return [
+                    'id' => $n->id,
+                    'title' => $n->data['title'] ?? 'New System Transaction',
+                    'body' => $n->data['body'] ?? '',
+                    'is_emergency' => str_contains(strtolower(($n->data['title'] ?? '') . ($n->data['body'] ?? '')), 'emergency') || str_contains(strtolower(($n->data['title'] ?? '') . ($n->data['body'] ?? '')), 'breakdown'),
+                    'created_at' => $n->created_at ? $n->created_at->diffForHumans() : 'Just now',
+                ];
+            });
+
+        return response()->json([
+            'count' => $user->unreadNotifications()->count(),
+            'latest' => $unread->first(),
+            'unread' => $unread,
+        ]);
+    })->name('admin.live-notifications-check');
 });
 
 require __DIR__.'/settings.php';
