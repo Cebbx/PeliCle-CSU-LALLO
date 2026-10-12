@@ -121,16 +121,7 @@ class VehicleUsageChart extends ChartWidget
             'maintainAspectRatio' => false,
             'plugins' => [
                 'legend' => [
-                    'display' => true,
-                    'position' => 'top',
-                    'labels' => [
-                        'boxWidth' => 12,
-                        'padding' => 10,
-                        'font' => [
-                            'size' => 12,
-                            'weight' => '600',
-                        ],
-                    ],
+                    'display' => false, // Hidden to remove the awkward single-color square clashing with multi-colored vehicle bars
                 ],
                 'tooltip' => [
                     'enabled' => true,
@@ -150,7 +141,7 @@ class VehicleUsageChart extends ChartWidget
                             'weight' => 'bold',
                         ],
                         'padding' => [
-                            'top' => 10,
+                            'top' => 12,
                         ],
                     ],
                     'grid' => [
@@ -166,6 +157,7 @@ class VehicleUsageChart extends ChartWidget
                 'y' => [
                     'display' => true,
                     'beginAtZero' => true,
+                    'suggestedMax' => 8, // Gives comfortable breathing room so the tallest bar does not hit the ceiling!
                     'border' => [
                         'display' => true,
                     ],
@@ -177,14 +169,15 @@ class VehicleUsageChart extends ChartWidget
                             'weight' => 'bold',
                         ],
                         'padding' => [
-                            'bottom' => 10,
+                            'bottom' => 12,
                         ],
                     ],
                     'ticks' => [
                         'stepSize' => 1,
                         'precision' => 0,
                         'font' => [
-                            'size' => 11,
+                            'size' => 12,
+                            'weight' => '600',
                         ],
                     ],
                     'grid' => [

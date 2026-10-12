@@ -47,7 +47,10 @@ class RequestsPerDepartmentChart extends ChartWidget
             $query->where('department', $filterDept);
         }
 
-        // Kunin ang lahat ng requests na may department mula sa system
+        // I-exclude ang mga hindi sakop na colleges (CBA, CAS, CCJE, COT)
+        $query->whereNotIn('department', ['CBA', 'CAS', 'CCJE', 'COT']);
+
+        // Kunin ang lahat ng requests na may department mula sa 18/19 official offices
         $records = $query->whereNotNull('department')
             ->where('department', '!=', '')
             ->select('department')
@@ -118,10 +121,6 @@ class RequestsPerDepartmentChart extends ChartWidget
         $officeMapJs = "{
             'CICS': 'College of Information and Computing Sciences',
             'CHM': 'College of Hospitality Management',
-            'COT': 'College of Technology',
-            'CBA': 'College of Business Administration',
-            'CAS': 'College of Arts and Sciences',
-            'CCJE': 'College of Criminal Justice Education',
             'CTE': 'College of Teacher Education',
             'CTED': 'College of Teacher Education',
             'COA': 'College of Agriculture',

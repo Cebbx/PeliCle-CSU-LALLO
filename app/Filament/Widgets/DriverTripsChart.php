@@ -105,6 +105,7 @@ class DriverTripsChart extends ChartWidget
                 'y' => [
                     'display' => true,
                     'beginAtZero' => true,
+                    'suggestedMax' => 6,
                     'border' => [
                         'display' => true,
                     ],
@@ -122,6 +123,10 @@ class DriverTripsChart extends ChartWidget
                     'ticks' => [
                         'stepSize' => 1,
                         'precision' => 0,
+                        'font' => [
+                            'size' => 12,
+                            'weight' => '600',
+                        ],
                     ],
                     'grid' => [
                         'display' => true,
