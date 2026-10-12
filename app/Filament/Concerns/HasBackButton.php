@@ -6,26 +6,11 @@ use Filament\Actions\Action;
 
 trait HasBackButton
 {
-    protected function getBackButtonAction(): Action
-    {
-        return Action::make('back')
-            ->label('Back')
-            ->icon('heroicon-m-arrow-left')
-            ->color('gray')
-            ->url(fn () => static::getResource()::getUrl('index'));
-    }
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            $this->getBackButtonAction(),
-        ];
-    }
-
     protected function getCancelFormAction(): Action
     {
         return parent::getCancelFormAction()
             ->label('Back')
-            ->icon('heroicon-m-arrow-left');
+            ->icon('heroicon-m-arrow-left')
+            ->url(fn () => static::getResource()::getUrl('index'));
     }
 }

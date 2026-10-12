@@ -17,7 +17,25 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => (function () {
+        $connection = env('DB_CONNECTION', 'sqlite');
+
+        if ($connection === 'pgsql') {
+            $host = env('DB_HOST');
+            if ($url = env('DATABASE_URL')) {
+                $parsed = parse_url($url, PHP_URL_HOST);
+                if ($parsed) {
+                    $host = $parsed;
+                }
+            }
+
+            if (empty($host) || (!filter_var($host, FILTER_VALIDATE_IP) && gethostbyname($host) === $host)) {
+                return 'sqlite';
+            }
+        }
+
+        return $connection;
+    })(),
 
     /*
     |--------------------------------------------------------------------------

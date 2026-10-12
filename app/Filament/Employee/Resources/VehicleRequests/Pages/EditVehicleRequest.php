@@ -16,7 +16,6 @@ class EditVehicleRequest extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            $this->getBackButtonAction(),
             DeleteAction::make(),
         ];
     }

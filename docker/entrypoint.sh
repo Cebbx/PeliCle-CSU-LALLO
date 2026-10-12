@@ -12,7 +12,32 @@ fi
 # Ensure basic production settings in .env
 sed -i 's/APP_ENV=local/APP_ENV=production/g' /var/www/html/.env 2>/dev/null || true
 sed -i 's/APP_DEBUG=true/APP_DEBUG=false/g' /var/www/html/.env 2>/dev/null || true
-sed -i 's/DB_CONNECTION=mysql/DB_CONNECTION=sqlite/g' /var/www/html/.env 2>/dev/null || true
+
+# Check if external DB (PostgreSQL / MySQL) is reachable. If not, safely fall back to SQLite
+php -r '
+$conn = getenv("DB_CONNECTION") ?: "sqlite";
+$host = getenv("DB_HOST");
+$url = getenv("DATABASE_URL") ?: getenv("DB_URL");
+if ($url && preg_match("@//.*?:.*?@([^:/]+)@i", $url, $m)) { $host = $m[1]; }
+if ($conn === "pgsql" || ($url && str_contains($url, "postgres"))) {
+    if (!$host || (!filter_var($host, FILTER_VALIDATE_IP) && gethostbyname($host) === $host)) {
+        fwrite(STDERR, "External PostgreSQL host ($host) is unreachable or does not resolve.\n");
+        exit(1);
+    }
+}
+exit(0);
+' 2>/dev/null || {
+    echo "NOTICE: External PostgreSQL database is unreachable. Automatically falling back to persistent local SQLite."
+    export DB_CONNECTION=sqlite
+    export DB_DATABASE=/var/www/html/database/database.sqlite
+    unset DATABASE_URL
+    unset DB_URL
+    unset DB_HOST
+    unset DB_PORT
+    unset DB_USERNAME
+    unset DB_PASSWORD
+    sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/g' /var/www/html/.env 2>/dev/null || true
+}
 
 # Prepare storage, cache, and database directories
 mkdir -p /var/www/html/storage/framework/cache/data \
@@ -30,8 +55,8 @@ fi
 PORT=${PORT:-80}
 sed -i "s/listen .*/listen $PORT;/g" /etc/nginx/http.d/default.conf 2>/dev/null || true
 
-# Generate APP_KEY if missing
-if ! grep -q "^APP_KEY=base64:" /var/www/html/.env 2>/dev/null; then
+# Generate APP_KEY if missing in both env and .env file
+if [ -z "$APP_KEY" ] && ! grep -q "^APP_KEY=base64:" /var/www/html/.env 2>/dev/null; then
     php artisan key:generate --force || true
 fi
 
