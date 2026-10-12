@@ -29,8 +29,8 @@ class EnsureSinglePanelSession
             return $next($request);
         }
 
-        // Always allow logout requests through so users can safely terminate sessions
-        if ($request->is('*/logout') || $request->routeIs('*.logout')) {
+        // Always allow login and logout requests through so users can safely authenticate or terminate sessions
+        if ($request->is('*/logout') || $request->routeIs('*.logout') || $request->is('*/login') || $request->routeIs('*.login')) {
             return $next($request);
         }
 
