@@ -354,6 +354,20 @@
                     }
                     showDesktopNotification(latest.title, latest.body);
                     showFloatingToast(latest);
+
+                    // Instant 0-delay Live Sync: trigger immediate refresh on active tables & dashboards
+                    if (window.Livewire) {
+                        try {
+                            Livewire.dispatch('$refresh');
+                            document.querySelectorAll('[wire\\:id]').forEach(el => {
+                                const compId = el.getAttribute('wire:id');
+                                const comp = Livewire.find(compId);
+                                if (comp && typeof comp.$refresh === 'function') {
+                                    comp.$refresh();
+                                }
+                            });
+                        } catch (err) {}
+                    }
                 }
 
                 lastKnownCount = currentCount;
@@ -365,9 +379,9 @@
             }
         }
 
-        // Initial check and regular polling every 2.5 seconds
-        setTimeout(checkLiveNotifications, 800);
-        setInterval(checkLiveNotifications, 2500);
+        // Fast live sync polling every 1 second
+        setTimeout(checkLiveNotifications, 400);
+        setInterval(checkLiveNotifications, 1000);
 
         // Also check whenever Livewire commits
         if (window.Livewire) {
