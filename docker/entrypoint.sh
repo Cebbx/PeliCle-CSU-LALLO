@@ -70,6 +70,15 @@ php artisan optimize:clear || true
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 
+# Background keep-alive ping every 10 minutes to prevent free tier spin-down
+(
+    while true; do
+        sleep 600
+        PING_URL="${RENDER_EXTERNAL_URL:-https://csu-vehicle-request.onrender.com}/up"
+        curl -s -L --max-time 30 "$PING_URL" >/dev/null 2>&1 || true
+    done
+) &
+
 # Start PHP-FPM in background and Nginx in foreground
 php-fpm -D
 exec nginx -g 'daemon off;'
