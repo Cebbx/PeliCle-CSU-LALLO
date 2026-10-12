@@ -140,12 +140,26 @@ class Dashboard extends BaseDashboard
             'cancellation_reason' => $fullReason,
         ]);
 
-        // 3. Also update vehicle request if associated
-        if ($activeTrip->vehicleRequest) {
-            $activeTrip->vehicleRequest->update([
+        // 3. Also update all associated vehicle requests and notify requesters
+        $allRequests = $activeTrip->vehicleRequests()->get();
+        if ($allRequests->isEmpty() && $activeTrip->vehicleRequest) {
+            $allRequests = collect([$activeTrip->vehicleRequest]);
+        }
+        foreach ($allRequests as $req) {
+            $req->updateQuietly([
                 'status' => 'cancelled',
-                'cancellation_reason' => "Trip aborted due to vehicle breakdown [{$category}]: {$comment}",
+                'cancellation_reason' => "Trip aborted due to vehicle breakdown [{$category}]: {$comment} (Location: {$location})",
             ]);
+            if ($req->user) {
+                try {
+                    Notification::make()
+                        ->title("⚠️ Trip Aborted: Vehicle Breakdown Reported")
+                        ->body("Ang inyong biyahe para sa Request #{$req->request_number} ay na-abort dahil sa aberya ({$category}) sa {$location}. Ligtas po ang mga pasahero kasama ang driver.")
+                        ->danger()
+                        ->persistent()
+                        ->sendToDatabase($req->user);
+                } catch (\Throwable $e) {}
+            }
         }
 
         // 4. Mark vehicle under maintenance and append maintenance notes

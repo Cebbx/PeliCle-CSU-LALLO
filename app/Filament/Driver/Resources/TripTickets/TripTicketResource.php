@@ -30,8 +30,17 @@ class TripTicketResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $user = \Filament\Facades\Filament::auth()->user() ?? auth('driver')->user() ?? auth()->user();
-        $driverId = $user?->driver?->id ?? 0;
-        return parent::getEloquentQuery()->where('driver_id', $driverId);
+        if ($user && in_array(strtolower($user->role ?? ''), ['admin', 'superadmin'])) {
+            return parent::getEloquentQuery();
+        }
+        $driverId = $user?->driver?->id;
+        if (!$driverId && $user) {
+            $driver = \App\Models\Driver::where('name', $user->name)
+                ->orWhere('license_number', $user->email)
+                ->first();
+            $driverId = $driver?->id;
+        }
+        return parent::getEloquentQuery()->where('driver_id', $driverId ?? 0);
     }
 
     public static function form(Schema $schema): Schema

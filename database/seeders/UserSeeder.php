@@ -14,18 +14,21 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-           User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('password'),
-            'plain_password' => 'password',
-            'role' => 'admin',
-            'two_factor_secret' => null,
-            'two_factor_recovery_codes' => null,
-            'two_factor_confirmed_at' => null,
-            'remember_token' => null,
-        ]);
+        User::updateOrCreate(
+            ['role' => 'admin'],
+            [
+                'name' => 'JOEL A. TUMAMAO',
+                'email' => 'thrishiabaletbet@gmail.com',
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'plain_password' => 'password',
+                'role' => 'admin',
+                'two_factor_secret' => null,
+                'two_factor_recovery_codes' => null,
+                'two_factor_confirmed_at' => null,
+                'remember_token' => null,
+            ]
+        );
 
         User::create([
             'name' => 'Employee User',
