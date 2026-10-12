@@ -41,7 +41,7 @@ class TripLogbook extends Page implements HasTable
     {
         return [
             Action::make('export_csv')
-                ->label('Export to Excel (.CSV)')
+                ->label('Export to Excel')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->url(fn () => route('logbook.export-csv', [
@@ -77,6 +77,8 @@ class TripLogbook extends Page implements HasTable
         $totalTrips = $trips->count();
         $completed = $trips->where('status', 'completed')->count();
         $onTrip = $trips->where('status', 'active')->count();
+        $pending = $trips->where('status', 'pending')->count();
+        $cancelled = $trips->where('status', 'cancelled')->count();
         $pax = 0;
         foreach ($trips as $t) {
             foreach ($t->all_vehicle_requests as $r) {
@@ -89,8 +91,37 @@ class TripLogbook extends Page implements HasTable
             'total' => $totalTrips,
             'completed' => $completed,
             'onTrip' => $onTrip,
+            'pending' => $pending,
+            'cancelled' => $cancelled,
             'passengers' => $pax,
         ];
+    }
+
+    public function setStatusFilter(?string $status = null): void
+    {
+        if ($status === 'passengers') {
+            $stats = $this->getSummaryStats();
+            \Filament\Notifications\Notification::make()
+                ->title('Passenger Volume Summary')
+                ->body("Total of {$stats['passengers']} passengers dispatched across {$stats['total']} trips for {$stats['period']}.")
+                ->icon('heroicon-o-users')
+                ->info()
+                ->send();
+            return;
+        }
+
+        // Toggle: if clicking the already selected filter, reset to all
+        $current = $this->tableFilters['status']['value'] ?? null;
+        if ($current === $status && $status !== null) {
+            $status = null;
+        }
+
+        if (!is_array($this->tableFilters)) {
+            $this->tableFilters = [];
+        }
+        $this->tableFilters['status']['value'] = $status;
+        $this->getTableFiltersForm()->fill($this->tableFilters);
+        $this->updatedTableFilters();
     }
 
     public function table(Table $table): Table
@@ -128,12 +159,12 @@ class TripLogbook extends Page implements HasTable
                     ->sortable(),
 
                 TextColumn::make('vehicleRequest.time')
-                    ->label('Time')
+                    ->label('Departure Time')
                     ->formatStateUsing(fn ($state) => $state ? Carbon::parse($state)->format('g:i A') : '---')
                     ->fontFamily(FontFamily::Mono),
 
                 TextColumn::make('travelers')
-                    ->label('Dept & Passengers')
+                    ->label('Office & Passengers')
                     ->wrap()
                     ->state(function ($record) {
                         $all = $record->all_vehicle_requests;
@@ -141,15 +172,17 @@ class TripLogbook extends Page implements HasTable
                             $depts = $all->pluck('department')->unique()->filter()->join(', ');
                             $totalPax = 0;
                             foreach ($all as $r) { $totalPax += ($r->number_of_passengers ?: 1); }
-                            return "Carpool ({$depts}) [{$totalPax} pax]";
+                            $unit = $totalPax == 1 ? 'person' : 'persons';
+                            return "Carpool ({$depts}) [{$totalPax} {$unit}]";
                         }
                         $primary = $record->vehicleRequest;
                         $dept = $primary?->department ?? 'General';
                         $emp = $primary?->employee_name ?? 'N/A';
                         $pax = $primary?->number_of_passengers ?: 1;
-                        return "{$dept} - {$emp} ({$pax} pax)";
+                        $unit = $pax == 1 ? 'person' : 'persons';
+                        return "{$dept} - {$emp} ({$pax} {$unit})";
                     })
-                    ->limit(32)
+                    ->limit(60)
                     ->tooltip(function ($record) {
                         $all = $record->all_vehicle_requests;
                         if ($all->count() > 1) {
@@ -189,6 +222,35 @@ class TripLogbook extends Page implements HasTable
                     ->label('Driver')
                     ->default('Unassigned')
                     ->searchable(),
+
+                TextColumn::make('arrival_time')
+                    ->label('Arrival Time')
+                    ->state(function ($record) {
+                        $time = $record->gate_in_at ?? ($record->status === 'completed' ? $record->updated_at : null);
+                        if ($time) {
+                            return Carbon::parse($time)->timezone('Asia/Manila')->format('g:i A');
+                        }
+                        if ($record->status === 'active') {
+                            return 'On Trip';
+                        }
+                        if ($record->status === 'cancelled') {
+                            return 'Cancelled';
+                        }
+                        return '---';
+                    })
+                    ->fontFamily(FontFamily::Mono)
+                    ->color(fn ($state) => match ($state) {
+                        'On Trip' => 'warning',
+                        'Cancelled' => 'danger',
+                        default => null,
+                    })
+                    ->tooltip(function ($record) {
+                        $time = $record->gate_in_at ?? ($record->status === 'completed' ? $record->updated_at : null);
+                        if ($time) {
+                            return 'Arrived: ' . Carbon::parse($time)->timezone('Asia/Manila')->format('M d, Y - g:i A');
+                        }
+                        return null;
+                    }),
 
                 TextColumn::make('status')
                     ->label('Status')
@@ -266,24 +328,21 @@ class TripLogbook extends Page implements HasTable
                         'cancelled' => 'Cancelled',
                     ]),
             ])
-            ->recordActions([
-                Action::make('print_ticket')
-                    ->label('Ticket')
-                    ->icon('heroicon-o-printer')
-                    ->color('primary')
+            ->actionsColumnLabel('Action')
+            ->recordAction('view')
+            ->actions([
+                Action::make('view')
+                    ->label('View')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
                     ->button()
                     ->size('xs')
-                    ->url(fn ($record) => route('trip-tickets.print', $record->id))
-                    ->openUrlInNewTab(),
-
-                Action::make('print_order')
-                    ->label('Order')
-                    ->icon('heroicon-o-document-text')
-                    ->color('gray')
-                    ->button()
-                    ->size('xs')
-                    ->url(fn ($record) => route('trip-tickets.print-travel-order', $record->id))
-                    ->openUrlInNewTab(),
+                    ->slideOver()
+                    ->modalHeading(fn ($record) => "Trip Ticket Details — {$record->formatted_ticket_number}")
+                    ->modalWidth('3xl')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close')
+                    ->modalContent(fn ($record) => view('filament.pages.partials.trip-details-modal', ['record' => $record])),
             ]);
     }
 }

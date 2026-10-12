@@ -18,7 +18,7 @@ class DriverTripsChart extends ChartWidget
 
     protected int | string | array $columnSpan = 1;
 
-    protected ?string $maxHeight = '240px';
+    protected ?string $maxHeight = '280px';
 
     protected function getType(): string
     {
@@ -58,12 +58,76 @@ class DriverTripsChart extends ChartWidget
                 [
                     'label' => 'Completed Trips',
                     'data' => $chartData,
-                    'backgroundColor' => '#10b981', // emerald
+                    'backgroundColor' => 'rgba(16, 185, 129, 0.85)', // emerald
                     'borderColor' => '#059669',
-                    'borderWidth' => 1,
+                    'borderWidth' => 1.5,
+                    'borderRadius' => 6,
                 ],
             ],
             'labels' => $labels,
+        ];
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            'maintainAspectRatio' => false,
+            'plugins' => [
+                'legend' => [
+                    'display' => true,
+                    'position' => 'top',
+                ],
+                'tooltip' => [
+                    'enabled' => true,
+                ],
+            ],
+            'scales' => [
+                'x' => [
+                    'display' => true,
+                    'border' => [
+                        'display' => true,
+                    ],
+                    'title' => [
+                        'display' => true,
+                        'text' => 'Driver (CSU Fleet Drivers)',
+                        'font' => [
+                            'size' => 12,
+                            'weight' => 'bold',
+                        ],
+                        'padding' => [
+                            'top' => 10,
+                        ],
+                    ],
+                    'grid' => [
+                        'display' => false,
+                    ],
+                ],
+                'y' => [
+                    'display' => true,
+                    'beginAtZero' => true,
+                    'border' => [
+                        'display' => true,
+                    ],
+                    'title' => [
+                        'display' => true,
+                        'text' => 'Completed Trips (Count)',
+                        'font' => [
+                            'size' => 12,
+                            'weight' => 'bold',
+                        ],
+                        'padding' => [
+                            'bottom' => 10,
+                        ],
+                    ],
+                    'ticks' => [
+                        'stepSize' => 1,
+                        'precision' => 0,
+                    ],
+                    'grid' => [
+                        'display' => true,
+                    ],
+                ],
+            ],
         ];
     }
 }

@@ -418,32 +418,74 @@ class PrintController extends Controller
         }
 
         $trips = $query->orderBy('ticket_number', 'asc')->get();
-        $filename = "CSU_Lallo_GSO_Trip_Logbook_{$year}_{$month}.csv";
+        $filename = "CSU_Lallo_GSO_Trip_Logbook_{$year}_{$month}.xls";
+        $periodLabel = \Carbon\Carbon::createFromDate((int) $year, (int) $month, 1)->format('F Y');
 
-        return response()->streamDownload(function () use ($trips) {
-            $handle = fopen('php://output', 'w');
-            fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
+        return response()->streamDownload(function () use ($trips, $periodLabel) {
+            echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+            echo '<head>';
+            echo '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">';
+            echo '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Dispatch Logbook</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->';
+            echo '<style>';
+            echo 'table { border-collapse: collapse; font-family: Calibri, Arial, sans-serif; font-size: 11pt; }';
+            echo 'th { background-color: #047857; color: #ffffff; font-weight: bold; text-align: center; border: 1px solid #1e293b; padding: 10px 14px; white-space: nowrap; }';
+            echo 'td { border: 1px solid #cbd5e1; padding: 8px 12px; vertical-align: middle; }';
+            echo '.title { font-size: 15pt; font-weight: bold; text-align: center; color: #047857; }';
+            echo '.subtitle { font-size: 11pt; text-align: center; color: #475569; font-weight: bold; }';
+            echo '.period { font-size: 11pt; text-align: center; color: #0f172a; font-weight: bold; }';
+            echo '.center { text-align: center; }';
+            echo '.status-completed { color: #047857; font-weight: bold; text-align: center; }';
+            echo '.status-cancelled { color: #dc2626; font-weight: bold; text-align: center; }';
+            echo '.status-ontrip { color: #0284c7; font-weight: bold; text-align: center; }';
+            echo '.status-pending { color: #d97706; font-weight: bold; text-align: center; }';
+            echo '.summary-label { font-weight: bold; background-color: #f1f5f9; text-align: right; border: 1px solid #cbd5e1; padding: 8px; }';
+            echo '.summary-val { font-weight: bold; background-color: #f1f5f9; text-align: center; border: 1px solid #cbd5e1; padding: 8px; color: #047857; }';
+            echo '</style>';
+            echo '</head>';
+            echo '<body>';
+            echo '<table>';
 
-            // Excel Column Headers
-            fputcsv($handle, [
-                'Row #',
-                'TT Control Number',
-                'Departure Date',
-                'Departure Time',
-                'Requesting Department(s)',
-                'Passenger Names',
-                'Total Passengers',
-                'Destination',
-                'Vehicle Assigned',
-                'Driver Assigned',
-                'Trip Status',
-            ]);
+            // Official Title Banner
+            echo '<tr><td colspan="11" class="title" style="border:none; padding-top: 15px;">CAGAYAN STATE UNIVERSITY - LAL-LO CAMPUS</td></tr>';
+            echo '<tr><td colspan="11" class="subtitle" style="border:none;">GENERAL SERVICES OFFICE (GSO) &bull; MOTORPOOL FLEET DISPATCH LOGBOOK</td></tr>';
+            echo '<tr><td colspan="11" class="period" style="border:none; padding-bottom: 15px;">Official Dispatch Period: ' . htmlspecialchars($periodLabel) . '</td></tr>';
+            echo '<tr><td colspan="11" style="border:none; height: 10px;"></td></tr>';
+
+            // Table Header Row
+            echo '<tr>';
+            echo '<th style="width: 50px;">#</th>';
+            echo '<th style="width: 150px;">TT Control Number</th>';
+            echo '<th style="width: 120px;">Departure Date</th>';
+            echo '<th style="width: 110px;">Departure Time</th>';
+            echo '<th style="width: 110px;">Arrival Time</th>';
+            echo '<th style="width: 280px;">Office / Department &amp; Passengers</th>';
+            echo '<th style="width: 120px;">Passengers (Pax)</th>';
+            echo '<th style="width: 250px;">Official Destination</th>';
+            echo '<th style="width: 160px;">Vehicle Assigned</th>';
+            echo '<th style="width: 160px;">Driver Assigned</th>';
+            echo '<th style="width: 110px;">Trip Status</th>';
+            echo '</tr>';
+
+            $totalPassengers = 0;
+            $completedCount = 0;
+            $onTripCount = 0;
+            $cancelledCount = 0;
+            $pendingCount = 0;
 
             foreach ($trips as $idx => $trip) {
                 $allReqs = $trip->all_vehicle_requests;
                 $primaryReq = $trip->vehicleRequest;
-                $depDate = $primaryReq?->date ? \Carbon\Carbon::parse($primaryReq->date)->format('Y-m-d') : ($trip->created_at ? $trip->created_at->format('Y-m-d') : 'N/A');
-                $depTime = $primaryReq?->time ? \Carbon\Carbon::parse($primaryReq->time)->format('g:i A') : 'N/A';
+                $depDate = $primaryReq?->date ? \Carbon\Carbon::parse($primaryReq->date)->format('M d, Y') : ($trip->created_at ? $trip->created_at->format('M d, Y') : '---');
+                $depTime = $primaryReq?->time ? \Carbon\Carbon::parse($primaryReq->time)->format('g:i A') : '---';
+
+                $arrTime = '---';
+                if ($trip->gate_in_at) {
+                    $arrTime = \Carbon\Carbon::parse($trip->gate_in_at)->timezone('Asia/Manila')->format('g:i A');
+                } elseif ($trip->status === 'completed' && $trip->updated_at) {
+                    $arrTime = \Carbon\Carbon::parse($trip->updated_at)->timezone('Asia/Manila')->format('g:i A');
+                } elseif ($trip->status === 'active') {
+                    $arrTime = 'On Trip';
+                }
 
                 $depts = $allReqs->pluck('department')->unique()->filter()->join('; ');
                 $passengers = $allReqs->pluck('employee_name')->filter()->join('; ');
@@ -451,25 +493,65 @@ class PrintController extends Controller
                 foreach ($allReqs as $r) {
                     $totalPax += ($r->number_of_passengers ?: 1);
                 }
+                $totalPassengers += $totalPax;
 
-                fputcsv($handle, [
-                    $idx + 1,
-                    $trip->formatted_ticket_number,
-                    $depDate,
-                    $depTime,
-                    $depts ?: ($primaryReq?->department ?? 'General'),
-                    $passengers ?: ($primaryReq?->employee_name ?? 'N/A'),
-                    $totalPax,
-                    $primaryReq?->destination ?? 'N/A',
-                    \App\Models\Vehicle::getVehicleName($trip->vehicle),
-                    $trip->driver?->name ?? 'Unassigned',
-                    ucfirst($trip->status === 'active' ? 'On Trip' : $trip->status),
-                ]);
+                $statusClass = match ($trip->status) {
+                    'completed' => 'status-completed',
+                    'active' => 'status-ontrip',
+                    'cancelled' => 'status-cancelled',
+                    'pending' => 'status-pending',
+                    default => '',
+                };
+
+                $statusLabel = match ($trip->status) {
+                    'active' => 'On Trip',
+                    default => ucfirst($trip->status),
+                };
+
+                if ($trip->status === 'completed') $completedCount++;
+                elseif ($trip->status === 'active') $onTripCount++;
+                elseif ($trip->status === 'cancelled') $cancelledCount++;
+                elseif ($trip->status === 'pending') $pendingCount++;
+
+                $travelersInfo = ($depts ?: ($primaryReq?->department ?? 'General'));
+                if ($passengers) {
+                    $travelersInfo .= " &bull; {$passengers}";
+                }
+
+                $vehicleName = \App\Models\Vehicle::getVehicleName($trip->vehicle);
+                $driverName = $trip->driver?->name ?? 'Unassigned';
+                $dest = $primaryReq?->destination ?? '---';
+
+                echo '<tr>';
+                echo '<td class="center">' . ($idx + 1) . '</td>';
+                echo '<td class="center" style="font-family: monospace; font-weight: bold;">' . htmlspecialchars($trip->formatted_ticket_number) . '</td>';
+                echo '<td class="center">' . htmlspecialchars($depDate) . '</td>';
+                echo '<td class="center">' . htmlspecialchars($depTime) . '</td>';
+                echo '<td class="center">' . htmlspecialchars($arrTime) . '</td>';
+                echo '<td>' . htmlspecialchars($travelersInfo) . '</td>';
+                echo '<td class="center" style="font-weight: bold;">' . $totalPax . '</td>';
+                echo '<td>' . htmlspecialchars($dest) . '</td>';
+                echo '<td>' . htmlspecialchars($vehicleName) . '</td>';
+                echo '<td>' . htmlspecialchars($driverName) . '</td>';
+                echo '<td class="' . $statusClass . '">' . htmlspecialchars($statusLabel) . '</td>';
+                echo '</tr>';
             }
 
-            fclose($handle);
+            // Summary Footer Rows
+            echo '<tr><td colspan="11" style="border:none; height: 10px;"></td></tr>';
+            echo '<tr>';
+            echo '<td colspan="6" class="summary-label">TOTAL PASSENGERS SERVED:</td>';
+            echo '<td class="summary-val">' . $totalPassengers . ' pax</td>';
+            echo '<td colspan="3" class="summary-label">DISPATCH SUMMARY:</td>';
+            echo '<td class="summary-val">' . count($trips) . ' Tickets (' . $completedCount . ' Completed, ' . $onTripCount . ' On Trip)</td>';
+            echo '</tr>';
+
+            echo '</table>';
+            echo '</body>';
+            echo '</html>';
         }, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
     }
 }

@@ -47,7 +47,7 @@
         'on_trip' => 'Currently On Trip',
         'rejected' => 'Disapproved',
         'completed' => 'Completed',
-        'expired' => 'Expired',
+        'expired' => 'Lapsed',
         'cancelled' => 'Cancelled',
         default => ucfirst($record->status),
     };
@@ -272,7 +272,7 @@
             <span style="font-size: 16px; line-height: 1;">ℹ️</span>
             <div>
                 <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">
-                    {{ $record->status === 'expired' ? 'Expiration Notice:' : 'Cancellation Reason:' }}
+                    {{ $record->status === 'expired' ? 'Lapse Notice:' : 'Cancellation Reason:' }}
                 </strong>
                 <span style="font-size: 13px;">{{ $record->cancellation_reason }}</span>
             </div>

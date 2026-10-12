@@ -13,6 +13,7 @@ class Driver extends Model
 
     protected $fillable = [
         'name',
+        'campus',
         'license_number',
         'contact_number',
         'status',
@@ -21,5 +22,28 @@ class Driver extends Model
     public function tripTickets(): HasMany
     {
         return $this->hasMany(TripTicket::class);
+    }
+
+    public function getCurrentLocationAttribute(): string
+    {
+        if ($this->status === 'on_trip') {
+            $activeTrip = $this->tripTickets()
+                ->where('status', 'active')
+                ->latest('updated_at')
+                ->with(['vehicleRequest', 'vehicleRequests'])
+                ->first();
+
+            $dest = $activeTrip?->vehicleRequest?->destination
+                ?? $activeTrip?->vehicleRequests?->first()?->destination;
+
+            return $dest ? "En Route: {$dest}" : 'On Trip';
+        }
+
+        if (in_array($this->status, ['off_duty', 'unavailable'])) {
+            return 'Off Duty';
+        }
+
+        $base = !empty($this->campus) ? $this->campus : 'CSU Lal-lo Campus';
+        return "{$base} (Standby)";
     }
 }

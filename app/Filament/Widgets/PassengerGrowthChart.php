@@ -18,7 +18,7 @@ class PassengerGrowthChart extends ChartWidget
 
     protected int | string | array $columnSpan = 1;
 
-    protected ?string $maxHeight = '240px';
+    protected ?string $maxHeight = '280px';
 
     protected function getType(): string
     {
@@ -82,12 +82,56 @@ class PassengerGrowthChart extends ChartWidget
     protected function getOptions(): array
     {
         return [
+            'maintainAspectRatio' => false,
+            'plugins' => [
+                'legend' => [
+                    'display' => true,
+                    'position' => 'top',
+                ],
+                'tooltip' => [
+                    'enabled' => true,
+                ],
+            ],
             'scales' => [
-                'y' => [
-                    'beginAtZero' => true,
+                'x' => [
+                    'display' => true,
+                    'border' => [
+                        'display' => true,
+                    ],
                     'title' => [
                         'display' => true,
-                        'text' => 'Passengers / Trip',
+                        'text' => 'Timeline (Month & Year)',
+                        'font' => [
+                            'size' => 12,
+                            'weight' => 'bold',
+                        ],
+                        'padding' => [
+                            'top' => 10,
+                        ],
+                    ],
+                    'grid' => [
+                        'display' => false,
+                    ],
+                ],
+                'y' => [
+                    'display' => true,
+                    'beginAtZero' => true,
+                    'border' => [
+                        'display' => true,
+                    ],
+                    'title' => [
+                        'display' => true,
+                        'text' => 'Average Passengers / Trip',
+                        'font' => [
+                            'size' => 12,
+                            'weight' => 'bold',
+                        ],
+                        'padding' => [
+                            'bottom' => 10,
+                        ],
+                    ],
+                    'grid' => [
+                        'display' => true,
                     ],
                 ],
             ],

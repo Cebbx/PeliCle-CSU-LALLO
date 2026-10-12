@@ -134,7 +134,7 @@ class VehicleRequestsTable
                             'rejected' => 'Disapproved',
                             'cancelled' => 'Cancelled',
                             'completed' => 'Completed',
-                            'expired' => 'Expired',
+                            'expired' => 'Lapsed',
                             default => ucfirst($state),
                         };
                     })
@@ -529,7 +529,7 @@ class VehicleRequestsTable
                         ->modalHeading(fn ($record) => match ($record->status) {
                             'rejected' => 'Disapproval Reason',
                             'cancelled' => 'Cancellation Reason',
-                            'expired' => 'Expiration Reason',
+                            'expired' => 'Lapse Reason',
                             default => 'Reason Details',
                         })
                         ->modalDescription(fn ($record) => $record->status === 'rejected' ? ($record->rejection_reason ?? 'No reason provided.') : ($record->cancellation_reason ?? 'No reason provided.'))
@@ -718,7 +718,7 @@ class VehicleRequestsTable
                         'rejected' => 'Disapproved',
                         'cancelled' => 'Cancelled',
                         'completed' => 'Completed',
-                        'expired' => 'Expired',
+                        'expired' => 'Lapsed',
                     ]),
                 TernaryFilter::make('is_urgent')
                     ->label('Urgent Requests Only'),

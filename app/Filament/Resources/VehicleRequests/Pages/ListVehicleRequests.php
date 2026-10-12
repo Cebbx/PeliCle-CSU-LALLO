@@ -71,7 +71,7 @@ class ListVehicleRequests extends ListRecords
                 ->badge(VehicleRequest::where('status', 'rejected')->count())
                 ->badgeColor('danger')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'rejected')),
-            'expired' => Tab::make('Expired')
+            'expired' => Tab::make('Lapsed')
                 ->badge(VehicleRequest::where('status', 'expired')->count())
                 ->badgeColor('gray')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'expired')),

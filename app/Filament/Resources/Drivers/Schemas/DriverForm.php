@@ -38,14 +38,22 @@ class DriverForm
                                     ->required()
                                     ->default('available'),
 
-                                TextInput::make('license_number')
-                                    ->label("Driver's License Number")
-                                    ->placeholder('e.g. N01-27-556983')
-                                    ->prefixIcon('heroicon-m-identification')
-                                    ->unique('drivers', 'license_number', ignoreRecord: true)
+                                Select::make('campus')
+                                    ->label('Home Campus / Station Assignment')
+                                    ->prefixIcon('heroicon-m-building-office-2')
+                                    ->options([
+                                        'CSU Lal-lo Campus' => 'CSU Lal-lo Campus (Home Base)',
+                                        'CSU Andrews Campus' => 'CSU Andrews Campus',
+                                        'CSU Carig Campus' => 'CSU Carig Campus',
+                                        'CSU Piat Campus' => 'CSU Piat Campus',
+                                        'CSU Aparri Campus' => 'CSU Aparri Campus',
+                                        'CSU Gonzaga Campus' => 'CSU Gonzaga Campus',
+                                        'CSU Sanchez Mira Campus' => 'CSU Sanchez Mira Campus',
+                                        'CSU Lasam Campus' => 'CSU Lasam Campus',
+                                    ])
+                                    ->default('CSU Lal-lo Campus')
                                     ->required()
-                                    ->maxLength(50)
-                                    ->helperText('Official LTO driver license ID number.'),
+                                    ->helperText('Designated home station when driver is on campus standby.'),
 
                                 TextInput::make('contact_number')
                                     ->label('Mobile Contact Number')

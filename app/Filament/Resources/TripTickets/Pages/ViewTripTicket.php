@@ -23,12 +23,6 @@ class ViewTripTicket extends ViewRecord
                 ->color('info')
                 ->url(fn ($record) => route('trip-tickets.print', $record->id))
                 ->openUrlInNewTab(),
-            Action::make('print_travel_order_driver')
-                ->label('Print Driver TO')
-                ->icon('heroicon-o-user')
-                ->color('success')
-                ->url(fn ($record) => route('trip-tickets.print-travel-order', [$record->id, 'type' => 'driver']))
-                ->openUrlInNewTab(),
         ];
     }
 }

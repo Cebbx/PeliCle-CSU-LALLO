@@ -11,7 +11,7 @@ class RequestsPerDepartmentChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected ?string $heading = 'Demand Share by Department (Top Requesters)';
+    protected ?string $heading = 'Demand Share by Offices (Top Requesters)';
     
     protected static ?int $sort = 4;
 

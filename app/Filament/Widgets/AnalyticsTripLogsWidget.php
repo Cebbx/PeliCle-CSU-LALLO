@@ -149,7 +149,7 @@ class AnalyticsTripLogsWidget extends TableWidget
                         'on_trip' => 'On Trip',
                         'rejected' => 'Disapproved',
                         'completed' => 'Completed',
-                        'expired' => 'Expired',
+                        'expired' => 'Lapsed',
                         'cancelled' => 'Cancelled',
                         default => ucfirst($state),
                     }),

@@ -20,6 +20,9 @@ class DriversTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with([
+                'tripTickets' => fn ($tq) => $tq->where('status', 'active')->with(['vehicleRequest', 'vehicleRequests']),
+            ]))
             ->columns([
                 TextColumn::make('name')
                     ->label('Driver Name')
@@ -28,11 +31,29 @@ class DriversTable
                     ->sortable()
                     ->weight('bold'),
 
-                TextColumn::make('license_number')
-                    ->label('License No.')
-                    ->icon('heroicon-m-identification')
-                    ->fontFamily('mono')
-                    ->searchable(),
+                TextColumn::make('current_location')
+                    ->label('Current Location / Destination')
+                    ->icon(fn ($record): string => match ($record->status) {
+                        'on_trip' => 'heroicon-m-map-pin',
+                        'available' => 'heroicon-m-building-office-2',
+                        default => 'heroicon-m-pause-circle',
+                    })
+                    ->badge()
+                    ->color(fn ($record): string => match ($record->status) {
+                        'on_trip' => 'warning',
+                        'available' => 'success',
+                        default => 'gray',
+                    })
+                    ->searchable(query: function ($query, string $search) {
+                        $query->where('campus', 'like', "%{$search}%")
+                            ->orWhereHas('tripTickets', function ($tq) use ($search) {
+                                $tq->where('status', 'active')
+                                    ->where(function ($sub) use ($search) {
+                                        $sub->whereHas('vehicleRequest', fn ($vr) => $vr->where('destination', 'like', "%{$search}%"))
+                                            ->orWhereHas('vehicleRequests', fn ($vr) => $vr->where('destination', 'like', "%{$search}%"));
+                                    });
+                            });
+                    }),
 
                 TextColumn::make('contact_number')
                     ->label('Contact Number')
@@ -80,6 +101,19 @@ class DriversTable
                         'available' => 'Available',
                         'on_trip' => 'On Trip',
                         'off_duty' => 'Off Duty',
+                    ]),
+
+                SelectFilter::make('campus')
+                    ->label('Campus Station')
+                    ->options([
+                        'CSU Lal-lo Campus' => 'CSU Lal-lo Campus',
+                        'CSU Andrews Campus' => 'CSU Andrews Campus',
+                        'CSU Carig Campus' => 'CSU Carig Campus',
+                        'CSU Piat Campus' => 'CSU Piat Campus',
+                        'CSU Aparri Campus' => 'CSU Aparri Campus',
+                        'CSU Gonzaga Campus' => 'CSU Gonzaga Campus',
+                        'CSU Sanchez Mira Campus' => 'CSU Sanchez Mira Campus',
+                        'CSU Lasam Campus' => 'CSU Lasam Campus',
                     ]),
 
                 TrashedFilter::make()
