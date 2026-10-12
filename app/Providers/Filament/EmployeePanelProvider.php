@@ -40,6 +40,9 @@ class EmployeePanelProvider extends PanelProvider
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn () => new \Illuminate\Support\HtmlString('
+                    <link rel="manifest" href="/manifest.json">
+                    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+                    <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));}</script>
                     <style>
                         /* -------------------------------------------------------------
                            1. ACTIVE & EDITABLE INPUTS (Fields user needs to fill up)

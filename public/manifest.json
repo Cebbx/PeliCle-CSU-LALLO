@@ -1,24 +1,38 @@
 {
-  "name": "PeliCle Vehicle Management",
-  "short_name": "PeliCle",
-  "description": "CSU Lal-lo Campus Vehicle Management & QR Gate System",
+  "id": "/",
+  "name": "PeliCle CSU Lal-lo Vehicle Management",
+  "short_name": "PeliCle CSU",
+  "description": "CSU Lal-lo Campus Vehicle Request, Trip Ticket & QR Gate Management System",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#1e3a8a",
-  "orientation": "portrait-primary",
+  "theme_color": "#0f172a",
+  "orientation": "any",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-512x512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ]
 }
