@@ -14,10 +14,10 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'JOEL A. TUMAMAO',
+                'name' => 'Admin User',
                 'email' => 'admin@example.com',
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
@@ -30,33 +30,20 @@ class UserSeeder extends Seeder
             ]
         );
 
-        User::updateOrCreate(
-            ['email' => 'thrishiabaletbet@gmail.com'],
+        User::firstOrCreate(
+            ['email' => 'employee@example.com'],
             [
-                'name' => 'Admin (Trishia)',
-                'email' => 'thrishiabaletbet@gmail.com',
+                'name' => 'Employee User',
+                'email' => 'employee@example.com',
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
                 'plain_password' => 'password',
-                'role' => 'admin',
+                'role' => 'employee',
                 'two_factor_secret' => null,
                 'two_factor_recovery_codes' => null,
                 'two_factor_confirmed_at' => null,
                 'remember_token' => null,
             ]
         );
-
-        User::create([
-            'name' => 'Employee User',
-            'email' => 'employee@example.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('password'),
-            'plain_password' => 'password',
-            'role' => 'employee',
-            'two_factor_secret' => null,
-            'two_factor_recovery_codes' => null,
-            'two_factor_confirmed_at' => null,
-            'remember_token' => null,
-        ]);
     }
 }
