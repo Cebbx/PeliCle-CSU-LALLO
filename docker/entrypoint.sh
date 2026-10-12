@@ -60,14 +60,15 @@ if [ -z "$APP_KEY" ] && ! grep -q "^APP_KEY=base64:" /var/www/html/.env 2>/dev/n
     php artisan key:generate --force || true
 fi
 
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
-
 # Run setup routines safely (never let them crash container startup)
-php artisan storage:link --force 2>/dev/null || true
-php artisan migrate --force 2>/dev/null || true
-php artisan db:seed --force 2>/dev/null || true
-php artisan optimize:clear 2>/dev/null || true
+php artisan storage:link --force || true
+php artisan migrate --force || true
+php artisan db:seed --force || true
+php artisan optimize:clear || true
+
+# Fix permissions AFTER artisan commands so www-data owns sqlite, logs, sessions, and cache
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 
 # Start PHP-FPM in background and Nginx in foreground
 php-fpm -D
