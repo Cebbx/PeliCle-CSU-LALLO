@@ -29,10 +29,10 @@ class WithdrawalSlipsTable
                             ->orWhereHas('tripTicket.driver', fn ($q) => $q->where('name', 'like', "%{$search}%"));
                     })
                     ->default('N/A'),
-                TextColumn::make('tripTicket.ticket_number')
-                    ->label('Trip ID')
-                    ->placeholder('Direct (No Trip ID)')
-                    ->default('Direct'),
+                TextColumn::make('created_at')
+                    ->label('Date Issued')
+                    ->date('M d, Y')
+                    ->sortable(),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -42,10 +42,6 @@ class WithdrawalSlipsTable
                         default => 'gray',
                     })
                     ->searchable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()

@@ -244,8 +244,8 @@
                 <div class="w-full">
                     <p class="font-medium mb-3">Approved:</p>
                     <div class="text-right pr-4 sm:pr-8">
-                        <input type="text" value="JAMES B. CABILDO, PHD, ASEAN Engr." class="font-bold text-[13px] text-right uppercase bg-transparent outline-none border-b border-transparent hover:border-gray-300 w-80" />
-                        <p class="text-[12px] text-gray-800 font-normal">Campus Executive Officer</p>
+                        <input type="text" value="{{ \App\Models\CampusSetting::get('ceo_name', 'ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.') }}" class="font-bold text-[13px] text-right uppercase bg-transparent outline-none border-b border-transparent hover:border-gray-300 w-80" />
+                        <p class="text-[12px] text-gray-800 font-normal">{{ \App\Models\CampusSetting::get('ceo_title', 'Campus Executive Officer') }}</p>
                     </div>
                 </div>
 

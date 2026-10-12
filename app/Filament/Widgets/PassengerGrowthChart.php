@@ -132,7 +132,7 @@ class PassengerGrowthChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Avg Passengers / Trip',
+                    'label' => 'Avg. Passengers per Trip',
                     'data' => $passengerData,
                     'borderColor' => '#10b981', // emerald green
                     'backgroundColor' => 'rgba(16, 185, 129, 0.12)',
@@ -162,8 +162,7 @@ class PassengerGrowthChart extends ChartWidget
             'maintainAspectRatio' => false,
             'plugins' => [
                 'legend' => [
-                    'display' => true,
-                    'position' => 'top',
+                    'display' => false,
                 ],
                 'tooltip' => [
                     'enabled' => true,

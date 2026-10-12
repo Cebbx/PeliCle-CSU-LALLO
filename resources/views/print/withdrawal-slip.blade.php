@@ -236,8 +236,8 @@
                 <div class="text-left w-full pl-4">
                     <p>Prepared by:</p>
                     <div class="pl-12 mt-4">
-                        <p class="font-bold uppercase tracking-wide">JOEL A. TUMAMAO</p>
-                        <p class="text-[13px] text-gray-800">General Services Officer</p>
+                        <p class="font-bold uppercase tracking-wide">{{ \App\Models\CampusSetting::get('gso_name', 'JOEL A. TUMAMAO') }}</p>
+                        <p class="text-[13px] text-gray-800">{{ \App\Models\CampusSetting::get('gso_title', 'General Services Officer') }}</p>
                     </div>
                 </div>
 
@@ -245,8 +245,8 @@
                 <div class="text-left w-full pl-4">
                     <p>Approved by:</p>
                     <div class="pl-12 mt-4">
-                        <p class="font-bold uppercase tracking-wide">ENGR. JAMES B. CABILDO, ASEAN ENGR.</p>
-                        <p class="text-[13px] text-gray-800">Campus Executive Officer</p>
+                        <p class="font-bold uppercase tracking-wide">{{ \App\Models\CampusSetting::get('ceo_name', 'ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.') }}</p>
+                        <p class="text-[13px] text-gray-800">{{ \App\Models\CampusSetting::get('ceo_title', 'Campus Executive Officer') }}</p>
                     </div>
                 </div>
             </div>

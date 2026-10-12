@@ -201,7 +201,7 @@ class RequestsPerDepartmentChart extends ChartWidget
                             if (!items || !items.length) return '';
                             var lbl = items[0].label || '';
                             var map = {$officeMapJs};
-                            return map[lbl] ? (lbl + ' - ' + map[lbl]) : lbl;
+                            return (map[lbl] && map[lbl] !== lbl) ? (lbl + ' - ' + map[lbl]) : lbl;
                         },
                         label: function(ctx) {
                             var v = ctx.raw || 0;

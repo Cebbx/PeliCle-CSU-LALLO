@@ -76,22 +76,6 @@ class WithdrawalSlipForm
                         return null;
                     })
                     ->dehydrated(),
-                TextInput::make('purpose')
-                    ->label('Purpose')
-                    ->placeholder('Enter purpose')
-                    ->default(function (callable $get, ?\App\Models\WithdrawalSlip $record) {
-                        if ($record && $record->purpose) {
-                            return $record->purpose;
-                        }
-                        $tripId = $get('trip_ticket_id') ?? request()->query('trip_ticket_id') ?? ($record?->trip_ticket_id);
-                        if ($tripId) {
-                            $ticket = \App\Models\TripTicket::with(['vehicleRequest'])->find($tripId);
-                            return $ticket?->vehicleRequest?->purpose ?? 'Official Business';
-                        }
-                        return 'Official Business';
-                    })
-                    ->dehydrated()
-                    ->required(),
                 Repeater::make('requested_items')
                     ->label('Requested Items (Drag to reorder or add items)')
                     ->helperText('Select fuel or oil type and amount. Pwedeng pumili ng Full Tank o dami ng litro.')

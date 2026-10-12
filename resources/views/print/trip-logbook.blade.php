@@ -277,17 +277,17 @@
             <div>
                 <div class="font-bold uppercase mb-8">Prepared by:</div>
                 <div class="border-b border-black w-64 pb-0.5 text-center font-bold uppercase">
-                    JOEL A. TUMAMAO
+                    {{ \App\Models\CampusSetting::get('gso_name', 'JOEL A. TUMAMAO') }}
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase">Head, General Services Office (GSO)</div>
+                <div class="text-[10px] text-gray-700 uppercase">{{ \App\Models\CampusSetting::get('gso_title', 'Head, General Services Office (GSO)') }}</div>
             </div>
 
             <div class="text-right flex flex-col items-end">
                 <div class="font-bold uppercase mb-8 self-end">Noted by:</div>
                 <div class="border-b border-black w-64 pb-0.5 text-center font-bold uppercase self-end">
-                    CAMPUS EXECUTIVE OFFICER
+                    {{ \App\Models\CampusSetting::get('ceo_name', 'ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.') }}
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase self-end">CSU Lal-lo Campus</div>
+                <div class="text-[10px] text-gray-700 uppercase self-end">{{ \App\Models\CampusSetting::get('ceo_title', 'Campus Executive Officer') }}</div>
             </div>
         </div>
 

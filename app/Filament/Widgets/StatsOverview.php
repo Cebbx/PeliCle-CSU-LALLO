@@ -157,12 +157,11 @@ class StatsOverview extends StatsOverviewWidget
                 ->color('info')
                 ->url(\App\Filament\Resources\TripTickets\TripTicketResource::getUrl('index', ['tab' => 'active'])),
                 
-            Stat::make('Pending Slips', $pendingSlips)
-                ->description('Fuel slips awaiting approval')
+            Stat::make('Withdrawal Slips Issued', WithdrawalSlip::count())
+                ->description('Official fuel slips issued')
                 ->descriptionIcon('heroicon-m-banknotes')
-                ->chart([2, $pendingSlips + 1, $pendingSlips])
-                ->color($pendingSlips > 0 ? 'warning' : 'gray')
-                ->url(\App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index', ['tab' => 'pending'])),
+                ->color('success')
+                ->url(\App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index')),
         ];
     }
 }

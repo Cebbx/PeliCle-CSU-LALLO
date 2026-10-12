@@ -45,6 +45,7 @@ class AnalyticsOverview extends StatsOverviewWidget
         $approvedRequests = $allRequests->whereIn('status', ['approved', 'on_trip', 'completed']);
         $approvedCount = $approvedRequests->count();
         $rejectedCount = $allRequests->where('status', 'rejected')->count();
+        $pendingOtherCount = $totalRequests - $approvedCount - $rejectedCount;
 
         // 1. Approval Rate (Green)
         $approvalRate = $totalRequests > 0 ? round(($approvedCount / $totalRequests) * 100, 1) : 0;
@@ -53,11 +54,13 @@ class AnalyticsOverview extends StatsOverviewWidget
         if ($filterStatus && !in_array($filterStatus, ['approved', 'on_trip', 'completed'])) {
             $statusPassengers = $allRequests->sum('number_of_passengers');
             $avgPassengers = $totalRequests > 0 ? round($statusPassengers / $totalRequests, 1) : 0;
-            $passDesc = "{$statusPassengers} passengers, {$totalRequests} requests";
+            $displayAvg = (string) round($avgPassengers);
+            $passDesc = "{$statusPassengers} passengers across {$totalRequests} requests";
         } else {
             $tripPassengers = $approvedRequests->sum('number_of_passengers');
             $avgPassengers = $approvedCount > 0 ? round($tripPassengers / $approvedCount, 1) : 0;
-            $passDesc = "{$tripPassengers} passengers, {$approvedCount} trips approved";
+            $displayAvg = (string) round($avgPassengers);
+            $passDesc = "{$tripPassengers} passengers, {$approvedCount} trips approved (~{$avgPassengers}/trip)";
         }
 
         // 3. Disapproval Rate (Red)
@@ -66,12 +69,16 @@ class AnalyticsOverview extends StatsOverviewWidget
         // Dynamic 7-step sparkline curves
         $totalSparkline = [max(1, $totalRequests - 6), max(1, $totalRequests - 5), max(1, $totalRequests - 3), max(1, $totalRequests - 2), max(1, $totalRequests - 1), $totalRequests];
         $approvalSparkline = [65, 70, 78, 75, 82, 85, max($approvalRate, 80)];
-        $passengerSparkline = [2.0, 2.5, 2.2, 2.8, 2.3, 2.6, max($avgPassengers, 2.4)];
+        $passengerSparkline = [2.0, 2.5, 2.2, 2.8, 2.3, 2.6, max((float) $avgPassengers, 2.4)];
         $disapprovalSparkline = [15, 12, 10, 8, 7, 5, max($disapprovalRate, 4)];
+
+        $card1Desc = $pendingOtherCount > 0
+            ? "{$approvedCount} approved • {$rejectedCount} rejected • {$pendingOtherCount} pending/other"
+            : "{$approvedCount} approved • {$rejectedCount} rejected";
 
         return [
             Stat::make('Total Vehicle Requests', (string) $totalRequests)
-                ->description("{$approvedCount} approved • {$rejectedCount} rejected")
+                ->description($card1Desc)
                 ->descriptionIcon('heroicon-m-clipboard-document-check')
                 ->chart($totalSparkline)
                 ->color('primary'),
@@ -82,7 +89,7 @@ class AnalyticsOverview extends StatsOverviewWidget
                 ->chart($approvalSparkline)
                 ->color('success'),
 
-            Stat::make('Avg Passengers / Trip', "{$avgPassengers}")
+            Stat::make('Avg Passengers / Trip', $displayAvg)
                 ->description($passDesc)
                 ->descriptionIcon('heroicon-m-user-group')
                 ->chart($passengerSparkline)

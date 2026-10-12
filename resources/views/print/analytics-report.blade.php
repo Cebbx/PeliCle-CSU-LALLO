@@ -403,22 +403,22 @@
             <div class="page-break-avoid mt-3 pt-2.5 border-t border-black text-[10px]">
                 <div class="grid grid-cols-3 gap-4 text-center">
                     <div class="flex flex-col justify-end">
-                        <span class="font-bold text-black uppercase">JOEL A. TUMAMAO</span>
-                        <span class="text-[8px] uppercase text-gray-700 font-semibold">General Services Officer</span>
+                        <span class="font-bold text-black uppercase">{{ \App\Models\CampusSetting::get('gso_name', 'JOEL A. TUMAMAO') }}</span>
+                        <span class="text-[8px] uppercase text-gray-700 font-semibold">{{ \App\Models\CampusSetting::get('gso_title', 'General Services Officer') }}</span>
                         <div class="border-t border-black pt-0.5 mt-0.5 font-bold text-[8px] uppercase">Prepared by:</div>
                         <span class="text-[7.5px] font-mono text-gray-600 mt-0.5">✓ Digital System Certified</span>
                     </div>
 
                     <div class="flex flex-col justify-end">
-                        <span class="font-bold text-black uppercase">DR. ARLENE D. TALAMAYAN</span>
-                        <span class="text-[8px] uppercase text-gray-700 font-semibold">Chief Administrative Officer</span>
+                        <span class="font-bold text-black uppercase">{{ \App\Models\CampusSetting::get('cao_name', 'DR. ARLENE D. TALAMAYAN') }}</span>
+                        <span class="text-[8px] uppercase text-gray-700 font-semibold">{{ \App\Models\CampusSetting::get('cao_title', 'Chief Administrative Officer') }}</span>
                         <div class="border-t border-black pt-0.5 mt-0.5 font-bold text-[8px] uppercase">Verified by:</div>
                         <span class="text-[7.5px] font-mono text-gray-600 mt-0.5">✓ Administrative Verification</span>
                     </div>
 
                     <div class="flex flex-col justify-end">
-                        <span class="font-bold text-black uppercase">ENGR. JAMES B. CABILDO, PHD</span>
-                        <span class="text-[8px] uppercase text-gray-700 font-semibold">Campus Executive Officer</span>
+                        <span class="font-bold text-black uppercase">{{ \App\Models\CampusSetting::get('ceo_name', 'ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.') }}</span>
+                        <span class="text-[8px] uppercase text-gray-700 font-semibold">{{ \App\Models\CampusSetting::get('ceo_title', 'Campus Executive Officer') }}</span>
                         <div class="border-t border-black pt-0.5 mt-0.5 font-bold text-[8px] uppercase">Approved by:</div>
                         <span class="text-[7.5px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-1 py-0.5 rounded mt-0.5 inline-block">
                             ✓ Official Approved Report
