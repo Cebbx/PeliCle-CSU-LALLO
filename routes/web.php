@@ -11,7 +11,39 @@ if (config('database.default') === 'sqlite') {
     }
 }
 
-Route::view('/', 'welcome')->name('home');
+Route::get('/', function (\Illuminate\Http\Request $request) {
+    // Allow explicit viewing of the 4-portal landing page via /?home=1
+    if ($request->has('home') || $request->has('portal')) {
+        return view('welcome');
+    }
+
+    $lastPortal = session('last_active_portal');
+    if ($lastPortal === 'employee' && auth('employee')->check()) {
+        return redirect('/employee');
+    }
+    if ($lastPortal === 'admin' && auth('admin')->check()) {
+        return redirect('/admin');
+    }
+    if ($lastPortal === 'driver' && auth('driver')->check()) {
+        return redirect('/driver');
+    }
+
+    // Fallback: check any active logged-in guard
+    if (auth('employee')->check()) {
+        return redirect('/employee');
+    }
+    if (auth('admin')->check()) {
+        return redirect('/admin');
+    }
+    if (auth('driver')->check()) {
+        return redirect('/driver');
+    }
+    if (session('guard_authenticated')) {
+        return redirect('/guard/scanner');
+    }
+
+    return view('welcome');
+})->name('home');
 
 Route::match(['get', 'post'], '/trip-tickets/{ticket_number}/complete-via-qr', [App\Http\Controllers\QrCodeController::class, 'completeTrip'])->name('trip-tickets.complete-via-qr');
 Route::get('/guard/scanner', [App\Http\Controllers\QrCodeController::class, 'scannerPage'])->name('guard.scanner');
@@ -66,8 +98,27 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
     Route::get('/logbook/export-csv', [App\Http\Controllers\PrintController::class, 'exportTripLogbookCsv'])->name('logbook.export-csv');
 
     // Real-Time Live Notification Check Endpoint (Admin, Employee, Driver)
-    Route::get('/api/admin/live-notifications-check', function () {
-        $user = auth('admin')->user() ?? auth('employee')->user() ?? auth('driver')->user() ?? auth()->user();
+    Route::get('/api/admin/live-notifications-check', function (\Illuminate\Http\Request $request) {
+        $refererPath = parse_url($request->headers->get('referer', ''), PHP_URL_PATH) ?? '';
+        $panel = $request->query('panel');
+
+        if (! $panel) {
+            if (str_starts_with($refererPath, '/employee')) {
+                $panel = 'employee';
+            } elseif (str_starts_with($refererPath, '/driver')) {
+                $panel = 'driver';
+            } elseif (str_starts_with($refererPath, '/admin')) {
+                $panel = 'admin';
+            }
+        }
+
+        if ($panel && in_array($panel, ['admin', 'employee', 'driver']) && auth($panel)->check()) {
+            session(['last_active_portal' => $panel]);
+            $user = auth($panel)->user();
+        } else {
+            $user = auth('admin')->user() ?? auth('employee')->user() ?? auth('driver')->user() ?? auth()->user();
+        }
+
         if (! $user) {
             return response()->json(['count' => 0, 'unread' => []]);
         }
