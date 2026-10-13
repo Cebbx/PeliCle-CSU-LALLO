@@ -41,6 +41,24 @@ Route::get('/hostinger-setup', function () {
     }
 
     try {
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'UserSeeder', '--force' => true]);
+        $results[] = '✓ User Seed: SUCCESS';
+    } catch (\Throwable $e) {
+        $results[] = 'User Seed note: ' . $e->getMessage();
+    }
+
+    try {
+        $admins = \App\Models\User::where('role', 'admin')->pluck('email')->toArray();
+        $results[] = '✓ Active Admin Accounts in DB: ' . implode(', ', $admins);
+        $empCount = \App\Models\User::whereIn('role', ['employee', 'staff'])->count();
+        $results[] = '✓ Active Employees in DB: ' . $empCount;
+        $driverCount = \App\Models\User::where('role', 'driver')->count();
+        $results[] = '✓ Active Drivers in DB: ' . $driverCount;
+    } catch (\Throwable $e) {
+        $results[] = 'User query note: ' . $e->getMessage();
+    }
+
+    try {
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         $results[] = '✓ Cache Cleared: SUCCESS';
     } catch (\Throwable $e) {
