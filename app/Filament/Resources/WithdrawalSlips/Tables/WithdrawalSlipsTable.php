@@ -66,15 +66,21 @@ class WithdrawalSlipsTable
                     ->label('Archive Status'),
             ])
             ->recordActions([
-                ViewAction::make()
+                Action::make('view_slip')
                     ->label('View Slip')
                     ->icon('heroicon-o-eye')
                     ->color('info')
-                    ->modalHeading(fn ($record) => "Fuel Withdrawal Slip — Control No. {$record->slip_number}")
+                    ->modalHeading(fn ($record) => "Gasoline Withdrawal Slip — Control No. {$record->slip_number}")
+                    ->modalWidth('5xl')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close')
+                    ->modalContent(fn ($record) => view('filament.resources.withdrawal-slips.preview-modal', [
+                        'record' => $record,
+                    ]))
                     ->extraModalFooterActions([
                         Action::make('printFromModal')
-                            ->label('Print Slip')
-                            ->icon('heroicon-o-printer')
+                            ->label('Open in New Tab / Print')
+                            ->icon('heroicon-o-arrow-top-right-on-square')
                             ->color('primary')
                             ->url(fn ($record) => route('withdrawal-slips.print', $record->id))
                             ->openUrlInNewTab(),
