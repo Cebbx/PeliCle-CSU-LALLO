@@ -270,9 +270,22 @@
             clone.style.boxShadow = 'none';
             clone.style.border = 'none';
             clone.style.backgroundColor = '#ffffff';
+            clone.style.boxSizing = 'border-box';
 
             offscreen.appendChild(clone);
             document.body.appendChild(offscreen);
+
+            // 1-Page Guarantee: Letter paper height at 816px width is 1056px.
+            if (clone.offsetHeight > 1040) {
+                clone.style.padding = '16px 36px';
+                if (clone.offsetHeight > 1040) {
+                    const ratio = 1030 / clone.offsetHeight;
+                    clone.style.transform = `scale(${ratio})`;
+                    clone.style.transformOrigin = 'top center';
+                    offscreen.style.height = '1035px';
+                    offscreen.style.overflow = 'hidden';
+                }
+            }
 
             const opt = {
                 margin:       0,
@@ -291,12 +304,21 @@
                     scrollY: 0
                 },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                pagebreak: { mode: 'legacy' }
             };
 
             try {
                 const pdfWorker = html2pdf().set(opt).from(clone);
-                const blob = await pdfWorker.output('blob');
+                const pdf = await pdfWorker.toPdf().get('pdf');
+
+                const totalPages = pdf.internal.getNumberOfPages();
+                if (totalPages > 1) {
+                    for (let p = totalPages; p > 1; p--) {
+                        pdf.deletePage(p);
+                    }
+                }
+
+                const blob = pdf.output('blob');
                 const blobUrl = URL.createObjectURL(blob);
 
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;

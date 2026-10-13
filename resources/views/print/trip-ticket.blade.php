@@ -34,6 +34,8 @@
                 margin: 0 !important;
                 max-width: 100% !important;
                 width: 100% !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             @page {
                 size: letter; /* Force US Letter paper size */
@@ -74,10 +76,10 @@
     </div>
 
     <!-- Main Ticket Sheet -->
-    <div class="bg-white w-full max-w-[8.5in] mx-auto p-3.5 sm:p-8 flex flex-col print-container shadow-md sm:shadow-lg border border-gray-200 box-border">
+    <div class="bg-white w-full max-w-[8.5in] mx-auto p-3.5 sm:p-7 flex flex-col print-container shadow-md sm:shadow-lg border border-gray-200 box-border">
         <!-- Header (Properly Centered Header with Left Logo) -->
-        <div class="relative w-full border-b-2 border-black pb-3 sm:pb-4 mb-4 sm:mb-6 flex items-center justify-center min-h-[56px] sm:min-h-[68px]">
-            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
+        <div class="relative w-full border-b-2 border-black pb-2.5 sm:pb-3 mb-3 sm:mb-4 flex items-center justify-center min-h-[54px] sm:min-h-[64px]">
+            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-15 sm:h-15 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
             <div class="text-center w-full px-14 sm:px-18">
                 <h2 class="text-[10px] sm:text-xs uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</h2>
                 <h1 class="text-xs sm:text-base font-extrabold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
@@ -91,10 +93,10 @@
             $isCarpool = count($allRequests) > 1;
             $hasAnyUrgent = $allRequests->contains('is_urgent', true);
         @endphp
-        <div class="flex justify-between items-center mb-4 sm:mb-6 gap-2">
+        <div class="flex justify-between items-center mb-3 sm:mb-4 gap-2">
             <div>
                 <h1 class="text-xs sm:text-sm font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Trip Ticket</h1>
-                <div class="text-[11px] sm:text-xs font-bold text-black mt-1.5 font-mono">{{ $ticket->formatted_ticket_number }}</div>
+                <div class="text-[11px] sm:text-xs font-bold text-black mt-1 font-mono">{{ $ticket->formatted_ticket_number }}</div>
                 @if($hasAnyUrgent)
                     <div class="mt-1 flex flex-wrap items-center gap-1.5">
                         <span class="inline-block px-1.5 py-0.5 border border-red-600 text-red-600 font-extrabold text-[8px] sm:text-[9px] tracking-widest uppercase rounded">🚨 URGENT DISPATCH</span>
@@ -106,33 +108,33 @@
             <div class="flex flex-col items-center border border-black p-1 bg-white rounded shadow-sm flex-shrink-0">
                 @php
                     $completionUrl = route('trip-tickets.complete-via-qr', ['ticket_number' => $ticket->ticket_number]);
-                    $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' . urlencode($completionUrl);
+                    $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=72x72&data=' . urlencode($completionUrl);
                 @endphp
-                <img src="{{ $qrCodeUrl }}" alt="Completion QR" class="w-[65px] h-[65px] sm:w-[80px] sm:h-[80px] object-contain" />
+                <img src="{{ $qrCodeUrl }}" alt="Completion QR" class="w-[60px] h-[60px] sm:w-[72px] sm:h-[72px] object-contain" />
                 <span class="text-[7px] sm:text-[8px] font-bold text-black mt-0.5 uppercase tracking-wider">Scan to Complete</span>
             </div>
         </div>
 
         <!-- Details Table Grid -->
-        <table class="w-full border-collapse border border-black mb-4 sm:mb-6 text-[10px] sm:text-xs">
+        <table class="w-full border-collapse border border-black mb-3 sm:mb-4 text-[10px] sm:text-xs">
             <tbody>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50 w-24 sm:w-28">Date:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5 w-1/2">{{ \Carbon\Carbon::parse($ticket->vehicleRequest?->date ?? $ticket->created_at)->format('F d, Y') }}</td>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50 w-20 sm:w-24">Vehicle:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5">{{ $vehicleModel }}</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50 w-24 sm:w-28">Date:</td>
+                    <td class="border border-black p-1.5 sm:p-2 w-1/2">{{ \Carbon\Carbon::parse($ticket->vehicleRequest?->date ?? $ticket->created_at)->format('F d, Y') }}</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50 w-20 sm:w-24">Vehicle:</td>
+                    <td class="border border-black p-1.5 sm:p-2">{{ $vehicleModel }}</td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50">Driver's Name:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold">{{ $ticket->driver?->name ?? 'N/A' }}</td>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50">PLATE No:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold">{{ $vehiclePlate }}</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50">Driver's Name:</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold">{{ $ticket->driver?->name ?? 'N/A' }}</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50">PLATE No:</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold">{{ $vehiclePlate }}</td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50">Authorized Passenger/s:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5" colspan="3">
+                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50">Authorized Passenger/s:</td>
+                    <td class="border border-black p-1.5 sm:p-2" colspan="3">
                         @if($isCarpool)
-                            <div class="space-y-1.5 py-0.5">
+                            <div class="space-y-1 py-0.5">
                                 @foreach($allRequests as $req)
                                     @php
                                         $passengers = $req->passenger_names ?? [];
@@ -176,8 +178,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50">Place to Visit:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5" colspan="3">
+                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50">Place to Visit:</td>
+                    <td class="border border-black p-1.5 sm:p-2" colspan="3">
                         @php
                             $destinations = $allRequests->pluck('destination')->unique()->values();
                         @endphp
@@ -193,8 +195,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50">Purpose/s:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5" colspan="3">
+                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50">Purpose/s:</td>
+                    <td class="border border-black p-1.5 sm:p-2" colspan="3">
                         @if($isCarpool)
                             <div class="space-y-0.5">
                                 @foreach($allRequests as $req)
@@ -202,7 +204,7 @@
                                         <span class="font-bold text-[9px] sm:text-[10px] text-gray-800">[{{ $req->department }}]:</span>
                                         <span class="text-black font-medium">{{ $req->purpose }}</span>
                                         @if($req->is_urgent)
-                                            <span class="ml-1 px-1 py-0.2 text-[7px] sm:text-[8px] font-bold text-red-600 border border-red-500 rounded uppercase">Urgent</span>
+                                             <span class="ml-1 px-1 py-0.2 text-[7px] sm:text-[8px] font-bold text-red-600 border border-red-500 rounded uppercase">Urgent</span>
                                         @endif
                                     </div>
                                 @endforeach
@@ -219,20 +221,20 @@
         </table>
 
         <!-- Certifications & Prepared/Approved signatures -->
-        <div class="mb-4 sm:mb-6 text-[10px] sm:text-xs">
-            <p class="italic font-semibold mb-3">I CERTIFY that the vehicle is in GOOD RUNNING CONDITION:</p>
+        <div class="mb-3 sm:mb-4 text-[10px] sm:text-xs">
+            <p class="italic font-semibold mb-2">I CERTIFY that the vehicle is in GOOD RUNNING CONDITION:</p>
             
             <div class="grid grid-cols-2 gap-4 sm:gap-8 mt-1">
                 <!-- Left: Prepared by Joel A. Tumamao -->
                 <div class="flex flex-col text-left">
-                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-4 sm:mb-6">Prepared by:</span>
+                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-3 sm:mb-4">Prepared by:</span>
                     <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">JOEL A. TUMAMAO</span>
                     <span class="text-[8px] sm:text-[10px] text-black font-semibold">General Services Officer</span>
                 </div>
                 
                 <!-- Right: Approved by Engr. James B. Cabildo -->
                 <div class="flex flex-col text-center">
-                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-4 sm:mb-6 text-left pl-2 sm:pl-4">Approved by:</span>
+                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-3 sm:mb-4 text-left pl-2 sm:pl-4">Approved by:</span>
                     <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.</span>
                     <span class="text-[8px] sm:text-[10px] text-black font-semibold">Campus Executive Officer</span>
                 </div>
@@ -240,7 +242,7 @@
         </div>
 
         <!-- Itinerary to be filled by driver -->
-        <div class="border border-black p-2 sm:p-3 mb-3">
+        <div class="border border-black p-2 sm:p-2.5 mb-2.5">
             <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wide text-black block mb-0.5">To be filled up by Driver:</span>
             <span class="text-[10px] sm:text-xs underline font-bold text-black block mb-1">Itinerary of Travel:</span>
             
@@ -277,29 +279,29 @@
                 <tbody>
                     @if($hasDigitalLogs)
                         <tr>
-                            <td class="border border-black p-1 sm:p-1.5 font-mono font-semibold text-center">{{ $travelDate }}</td>
-                            <td class="border border-black p-1 sm:p-1.5 font-mono font-semibold text-center">{{ $depTime }}</td>
-                            <td class="border border-black p-1 sm:p-1.5 font-semibold">CSU Lal-lo Campus</td>
-                            <td class="border border-black p-1 sm:p-1.5 font-mono font-semibold text-center">{{ $arrTime ?: '---' }}</td>
-                            <td class="border border-black p-1 sm:p-1.5 font-semibold">{{ $dest }}</td>
+                            <td class="border border-black p-0.5 sm:p-1 font-mono font-semibold text-center">{{ $travelDate }}</td>
+                            <td class="border border-black p-0.5 sm:p-1 font-mono font-semibold text-center">{{ $depTime }}</td>
+                            <td class="border border-black p-0.5 sm:p-1 font-semibold">CSU Lal-lo Campus</td>
+                            <td class="border border-black p-0.5 sm:p-1 font-mono font-semibold text-center">{{ $arrTime ?: '---' }}</td>
+                            <td class="border border-black p-0.5 sm:p-1 font-semibold">{{ $dest }}</td>
                         </tr>
                         @for($i=0; $i<2; $i++)
                             <tr>
-                                <td class="border border-black p-1 sm:p-1.5 h-5 sm:h-6"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
+                                <td class="border border-black p-0.5 sm:p-1 h-4 sm:h-5"></td>
+                                <td class="border border-black p-0.5 sm:p-1"></td>
+                                <td class="border border-black p-0.5 sm:p-1"></td>
+                                <td class="border border-black p-0.5 sm:p-1"></td>
+                                <td class="border border-black p-0.5 sm:p-1"></td>
                             </tr>
                         @endfor
                     @else
                         @for($i=0; $i<3; $i++)
                             <tr>
-                                <td class="border border-black p-1 sm:p-1.5 h-5 sm:h-6"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
+                                <td class="border border-black p-0.5 sm:p-1 h-4 sm:h-5"></td>
+                                <td class="border border-black p-0.5 sm:p-1"></td>
+                                <td class="border border-black p-0.5 sm:p-1"></td>
+                                <td class="border border-black p-0.5 sm:p-1"></td>
+                                <td class="border border-black p-0.5 sm:p-1"></td>
                             </tr>
                         @endfor
                     @endif
@@ -323,10 +325,10 @@
         </div>
 
         <!-- Post-travel Certification -->
-        <div class="mb-2 text-[10px] sm:text-xs">
-            <p class="font-semibold mb-1.5">I CERTIFY the Condition of Vehicle after travel:</p>
+        <div class="mb-1.5 text-[10px] sm:text-xs">
+            <p class="font-semibold mb-1">I CERTIFY the Condition of Vehicle after travel:</p>
             <div class="flex justify-between items-end gap-2">
-                <div class="flex flex-col gap-1">
+                <div class="flex flex-col gap-0.5">
                     <label class="flex items-center gap-1.5 cursor-default pointer-events-none">
                         <input type="checkbox" disabled {{ $ticket->status === 'completed' ? 'checked' : '' }} class="w-3.5 h-3.5 accent-black pointer-events-none cursor-default" />
                         <span class="font-bold text-black">GOOD</span>
@@ -338,7 +340,7 @@
                 </div>
                 
                 <div class="flex flex-col items-center w-48 sm:w-64">
-                    <div class="h-5 sm:h-6 border-b border-gray-300 w-11/12 mx-auto mb-0.5 flex items-center justify-center">
+                    <div class="h-4 sm:h-5 border-b border-gray-300 w-11/12 mx-auto mb-0.5 flex items-center justify-center">
                         @if($ticket->status === 'completed')
                             <span class="text-[9px] sm:text-[10px] font-bold text-black uppercase tracking-wider">{{ $ticket->driver?->name }}</span>
                         @endif
@@ -349,7 +351,7 @@
         </div>
 
         <!-- Document Metadata footer details -->
-        <div class="pt-2.5 sm:pt-4 flex justify-between items-center text-[9px] sm:text-[10px] text-black font-mono border-t border-black mt-2 sm:mt-4">
+        <div class="pt-2 sm:pt-2.5 flex justify-between items-center text-[9px] sm:text-[10px] text-black font-mono border-t border-black mt-2 sm:mt-2.5">
             <span>F - GSO - 61202</span>
             <span>Rev. No. 02, October 20, 2025</span>
         </div>
@@ -397,13 +399,27 @@
             clone.style.maxWidth = '816px';
             clone.style.minWidth = '816px';
             clone.style.margin = '0 auto';
-            clone.style.padding = '24px 36px';
+            clone.style.padding = '18px 36px';
             clone.style.boxShadow = 'none';
             clone.style.border = 'none';
             clone.style.backgroundColor = '#ffffff';
+            clone.style.boxSizing = 'border-box';
 
             offscreen.appendChild(clone);
             document.body.appendChild(offscreen);
+
+            // 1-Page Guarantee: Letter paper height at 816px width is 1056px.
+            // Ensure clone height stays strictly <= 1040px so html2pdf never creates a 2nd page.
+            if (clone.offsetHeight > 1040) {
+                clone.style.padding = '10px 32px';
+                if (clone.offsetHeight > 1040) {
+                    const ratio = 1030 / clone.offsetHeight;
+                    clone.style.transform = `scale(${ratio})`;
+                    clone.style.transformOrigin = 'top center';
+                    offscreen.style.height = '1035px';
+                    offscreen.style.overflow = 'hidden';
+                }
+            }
 
             const opt = {
                 margin:       0,
@@ -422,12 +438,22 @@
                     scrollY: 0
                 },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                pagebreak: { mode: 'legacy' }
             };
 
             try {
                 const pdfWorker = html2pdf().set(opt).from(clone);
-                const blob = await pdfWorker.output('blob');
+                const pdf = await pdfWorker.toPdf().get('pdf');
+
+                // Hard guarantee: strip any extra spill page if ever created
+                const totalPages = pdf.internal.getNumberOfPages();
+                if (totalPages > 1) {
+                    for (let p = totalPages; p > 1; p--) {
+                        pdf.deletePage(p);
+                    }
+                }
+
+                const blob = pdf.output('blob');
                 const blobUrl = URL.createObjectURL(blob);
 
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;

@@ -692,7 +692,16 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::BODY_END,
-                fn () => view('filament.components.admin-live-notifications'),
+                function () {
+                    if (! auth('admin')->check()) {
+                        return '';
+                    }
+                    $user = auth('admin')->user();
+                    if (! $user || $user->role !== 'admin') {
+                        return '';
+                    }
+                    return view('filament.components.admin-live-notifications');
+                },
             )
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
