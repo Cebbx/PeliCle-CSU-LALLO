@@ -112,7 +112,6 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
         }
 
         if ($panel && in_array($panel, ['admin', 'employee', 'driver']) && auth($panel)->check()) {
-            session(['last_active_portal' => $panel]);
             $user = auth($panel)->user();
         } else {
             $user = auth('admin')->user() ?? auth('employee')->user() ?? auth('driver')->user() ?? auth()->user();
@@ -128,15 +127,18 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
             ->get()
             ->map(function ($n) {
                 return [
-                    'id' => $n->id,
+                    'id' => (string) $n->id,
                     'title' => $n->data['title'] ?? 'New System Transaction',
                     'body' => $n->data['body'] ?? '',
                     'is_emergency' => str_contains(strtolower(($n->data['title'] ?? '') . ($n->data['body'] ?? '')), 'emergency') || str_contains(strtolower(($n->data['title'] ?? '') . ($n->data['body'] ?? '')), 'breakdown'),
                     'created_at' => $n->created_at ? $n->created_at->diffForHumans() : 'Just now',
+                    'created_at_ts' => $n->created_at ? $n->created_at->timestamp : time(),
                 ];
             });
 
         return response()->json([
+            'user_id' => $user->id,
+            'role' => $user->role,
             'count' => $user->unreadNotifications()->count(),
             'latest' => $unread->first(),
             'unread' => $unread,

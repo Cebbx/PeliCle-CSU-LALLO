@@ -366,8 +366,10 @@
             }
         }
 
-        // 4. In-App Floating Toast Banner
+        // 4. In-App Floating Toast Banner (Deduplicated & Self-Dismissing)
         function showFloatingToast(notif) {
+            if (!notif || !notif.id) return;
+
             let container = document.getElementById('pelicle-live-toast-container');
             if (!container) {
                 container = document.createElement('div');
@@ -375,11 +377,16 @@
                 document.body.appendChild(container);
             }
 
+            // Prevent duplicate toasts for the same notification
+            const existing = container.querySelector('[data-toast-id="' + notif.id + '"]');
+            if (existing) return;
+
             const toast = document.createElement('div');
+            toast.setAttribute('data-toast-id', notif.id);
             const isEmerg = notif && notif.is_emergency;
             toast.className = 'pelicle-live-toast ' + (isEmerg ? 'toast-emergency' : 'toast-standard');
             toast.innerHTML = `
-                <div style="font-size: 24px; line-height: 1; flex-shrink: 0;">${isEmerg ? '🚨' : '🔔'}</div>
+                <div style="font-size: 22px; line-height: 1; flex-shrink: 0;">${isEmerg ? '🚨' : '🔔'}</div>
                 <div style="flex: 1; min-width: 0;">
                     <div style="font-size: 13px; font-weight: 800; color: #ffffff; margin-bottom: 2px;">
                         ${notif.title || 'Bagong Notipikasyon sa System'}
@@ -408,9 +415,9 @@
                 if (toast && toast.parentNode) {
                     toast.style.opacity = '0';
                     toast.style.transform = 'translateY(-10px)';
-                    setTimeout(() => toast.remove(), 300);
+                    setTimeout(() => toast.remove(), 250);
                 }
-            }, 6500);
+            }, 4500);
         }
 
         // 5. Update Topbar Bell Badge Indicator
@@ -436,18 +443,28 @@
                 badgeSpan.style.display = 'inline-flex';
             } else {
                 bellBtn.classList.remove('has-unread-alerts');
+                bellBtn.classList.remove('bell-ringing');
                 if (badgeSpan) {
                     badgeSpan.style.display = 'none';
                 }
             }
         }
 
-        // 6. Polling & Event Loop
+        // 6. Polling & Event Loop (Foolproof Single-Alert System)
         const originalTitle = document.title;
-        let lastKnownCount = sessionStorage.getItem('pelicle_last_notif_count') !== null 
-            ? parseInt(sessionStorage.getItem('pelicle_last_notif_count'), 10) 
-            : null;
-        let lastKnownId = sessionStorage.getItem('pelicle_last_notif_id') || null;
+        const currentPath = window.location.pathname;
+        const activePanel = currentPath.startsWith('/employee') ? 'employee' : (currentPath.startsWith('/driver') ? 'driver' : 'admin');
+        const seenStorageKey = 'pelicle_seen_notifs_' + activePanel;
+
+        let seenNotifIds = [];
+        try {
+            seenNotifIds = JSON.parse(localStorage.getItem(seenStorageKey) || '[]');
+            if (!Array.isArray(seenNotifIds)) seenNotifIds = [];
+        } catch (e) {
+            seenNotifIds = [];
+        }
+
+        let isFirstCheck = true;
         let isChecking = false;
 
         async function checkLiveNotifications() {
@@ -455,7 +472,7 @@
             isChecking = true;
 
             try {
-                const res = await fetch('/api/admin/live-notifications-check', {
+                const res = await fetch('/api/admin/live-notifications-check?panel=' + encodeURIComponent(activePanel), {
                     headers: { 'Accept': 'application/json' },
                     cache: 'no-store'
                 });
@@ -464,6 +481,7 @@
                 const currentCount = parseInt(data.count, 10) || 0;
                 const latest = data.latest || null;
                 const latestId = latest ? String(latest.id) : null;
+                const unreadList = Array.isArray(data.unread) ? data.unread : [];
 
                 // Update tab title
                 if (currentCount > 0) {
@@ -475,22 +493,44 @@
                 // Update bell icon badge
                 updateTopbarBellBadge(currentCount);
 
-                // Trigger ringtone & toast if count increased OR a new notification ID arrived
-                const hasNewNotification = (lastKnownCount !== null && currentCount > lastKnownCount) ||
-                                           (lastKnownId !== null && latestId && latestId !== lastKnownId);
+                // On first load: register all currently existing unread notifications as already seen
+                // This ensures old pre-existing notifications DO NOT chime or pop up upon login/refresh!
+                if (isFirstCheck) {
+                    isFirstCheck = false;
+                    unreadList.forEach(item => {
+                        if (item && item.id && !seenNotifIds.includes(String(item.id))) {
+                            seenNotifIds.push(String(item.id));
+                        }
+                    });
+                    try {
+                        if (seenNotifIds.length > 60) seenNotifIds = seenNotifIds.slice(-60);
+                        localStorage.setItem(seenStorageKey, JSON.stringify(seenNotifIds));
+                    } catch (e) {}
+                    return;
+                }
 
-                if (hasNewNotification && latest) {
+                // Only alert if a genuinely new, unseen notification arrives in real-time
+                const isNewUnseen = latestId && !seenNotifIds.includes(latestId);
+
+                if (isNewUnseen && latest && currentCount > 0) {
+                    // Mark as seen immediately in localStorage so it NEVER rings or pops up twice
+                    seenNotifIds.push(latestId);
+                    try {
+                        if (seenNotifIds.length > 60) seenNotifIds = seenNotifIds.slice(-60);
+                        localStorage.setItem(seenStorageKey, JSON.stringify(seenNotifIds));
+                    } catch (e) {}
+
                     const isEmerg = latest.is_emergency || false;
-                    
                     playSystemNotificationSound(isEmerg);
                     ringBellIconBriefly();
+
                     if ('vibrate' in navigator) {
                         try { navigator.vibrate([200, 100, 200]); } catch(e) {}
                     }
                     showDesktopNotification(latest.title, latest.body);
                     showFloatingToast(latest);
 
-                    // Instant Live Sync: trigger immediate refresh on tables & dashboards (only if user is not typing in a form)
+                    // Instant Live Sync: trigger immediate refresh on tables & dashboards (only if user is not typing)
                     const hasOpenDropdown = document.querySelector('.fi-dropdown-panel') || document.querySelector('[aria-expanded="true"]');
                     if (window.Livewire && !isTyping && !hasOpenDropdown && !window.location.pathname.includes('/login') && !window.location.pathname.endsWith('/create') && !window.location.pathname.endsWith('/edit')) {
                         try {
@@ -498,23 +538,16 @@
                         } catch (err) {}
                     }
                 }
-
-                lastKnownCount = currentCount;
-                sessionStorage.setItem('pelicle_last_notif_count', currentCount);
-                if (latestId) {
-                    lastKnownId = latestId;
-                    sessionStorage.setItem('pelicle_last_notif_id', latestId);
-                }
             } catch (err) {
-                // Ignore transient network errors
+                // Ignore network errors
             } finally {
                 isChecking = false;
             }
         }
 
-        // Smooth, zero-lag live sync polling every 2.5 seconds
-        setTimeout(checkLiveNotifications, 600);
-        setInterval(checkLiveNotifications, 2500);
+        // Smooth live sync polling every 3 seconds
+        setTimeout(checkLiveNotifications, 800);
+        setInterval(checkLiveNotifications, 3000);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) checkLiveNotifications();
         });
@@ -523,7 +556,7 @@
         if (window.Livewire) {
             Livewire.hook('commit', ({ succeed }) => {
                 succeed(() => {
-                    setTimeout(checkLiveNotifications, 400);
+                    setTimeout(checkLiveNotifications, 600);
                 });
             });
         }
