@@ -680,6 +680,98 @@ class AdminPanelProvider extends PanelProvider
                             from { opacity: 0; transform: translateY(-20px) scale(0.95); }
                             to { opacity: 1; transform: translateY(0) scale(1); }
                         }
+
+                        /* ========================================================
+                           MOBILE RESPONSIVE TOPBAR & AVATAR PROFILE LOGOUT FIX
+                           ======================================================== */
+                        @media (max-width: 768px) {
+                            /* Ensure topbar header does not overflow horizontally */
+                            header.fi-topbar,
+                            .fi-topbar,
+                            .fi-topbar-header,
+                            header.fi-topbar > div,
+                            .fi-topbar-nav {
+                                padding-left: 6px !important;
+                                padding-right: 14px !important;
+                                max-width: 100vw !important;
+                                box-sizing: border-box !important;
+                            }
+
+                            /* Compact Global Search on mobile to leave plenty of room for bell & profile */
+                            html.dark .fi-global-search-field input,
+                            html.dark .fi-topbar input, 
+                            html.dark .fi-global-search-input, 
+                            html.dark .fi-global-search-input-field,
+                            html:not(.dark) .fi-global-search-field input,
+                            html:not(.dark) .fi-topbar input, 
+                            html:not(.dark) .fi-global-search-input, 
+                            html:not(.dark) .fi-global-search-input-field {
+                                width: 100% !important;
+                                max-width: 130px !important;
+                                min-width: 65px !important;
+                                font-size: 11px !important;
+                                height: 28px !important;
+                                padding-left: 24px !important;
+                                padding-right: 6px !important;
+                            }
+
+                            /* Global search container shrinks flexibly */
+                            .fi-global-search,
+                            .fi-global-search-field {
+                                flex: 1 1 auto !important;
+                                min-width: 0 !important;
+                                max-width: 140px !important;
+                            }
+
+                            /* End items container (Bell + Avatar Profile): tight gap, never overflows screen */
+                            .fi-topbar-end {
+                                display: flex !important;
+                                align-items: center !important;
+                                gap: 6px !important;
+                                flex-shrink: 0 !important;
+                                margin-right: 4px !important;
+                            }
+
+                            /* Profile Avatar container: completely visible with margin from right edge */
+                            .fi-user-menu,
+                            .fi-user-menu-trigger,
+                            .fi-topbar-end > div:last-child {
+                                flex-shrink: 0 !important;
+                                margin-right: 8px !important;
+                                display: inline-flex !important;
+                                align-items: center !important;
+                            }
+
+                            /* Profile Avatar circle */
+                            .fi-user-avatar,
+                            html.dark .fi-user-avatar,
+                            html:not(.dark) .fi-user-avatar {
+                                width: 32px !important;
+                                height: 32px !important;
+                                min-width: 32px !important;
+                                min-height: 32px !important;
+                                flex-shrink: 0 !important;
+                                border-radius: 9999px !important;
+                                border: 1.5px solid #3b82f6 !important;
+                            }
+                        }
+
+                        @media (max-width: 420px) {
+                            html.dark .fi-global-search-field input,
+                            html.dark .fi-topbar input, 
+                            html.dark .fi-global-search-input, 
+                            html.dark .fi-global-search-input-field,
+                            html:not(.dark) .fi-global-search-field input,
+                            html:not(.dark) .fi-topbar input, 
+                            html:not(.dark) .fi-global-search-input, 
+                            html:not(.dark) .fi-global-search-input-field {
+                                max-width: 90px !important;
+                            }
+                            .fi-topbar-end {
+                                gap: 4px !important;
+                                margin-right: 2px !important;
+                            }
+                        }
                     </style>
                 ')
             )

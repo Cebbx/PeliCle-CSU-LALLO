@@ -46,6 +46,27 @@
                 margin: 0.35in;
             }
         }
+        /* Uniform 1px table borders - eliminates html2canvas doubling or inconsistent line weights */
+        .doc-table {
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            border: 1px solid #000000 !important;
+            width: 100% !important;
+        }
+        .doc-table th,
+        .doc-table td {
+            border-right: 1px solid #000000 !important;
+            border-bottom: 1px solid #000000 !important;
+            border-top: none !important;
+            border-left: none !important;
+        }
+        .doc-table tr > th:last-child,
+        .doc-table tr > td:last-child {
+            border-right: none !important;
+        }
+        .doc-table tbody > tr:last-child > td {
+            border-bottom: none !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100 py-3 sm:py-6 px-2 sm:px-4">
