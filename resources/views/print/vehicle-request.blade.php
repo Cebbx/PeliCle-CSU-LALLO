@@ -106,12 +106,12 @@
             <div class="grid grid-cols-12 border-b border-black">
                 <div class="col-span-8 p-2 sm:p-2.5 border-r border-black flex flex-col justify-between" style="min-height: 56px;">
                     <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Client:</span>
-                    <span class="text-xs sm:text-sm font-bold text-black text-center mt-0.5 border-b border-gray-300 w-11/12 mx-auto">{{ $request->employee_name }}</span>
+                    <span class="text-xs sm:text-sm font-bold text-black text-center mt-0.5 w-11/12 mx-auto">{{ $request->employee_name }}</span>
                     <span class="text-[8px] sm:text-[9px] text-black text-center mt-0.5">Name</span>
                 </div>
                 <div class="col-span-4 p-2 sm:p-2.5 flex flex-col justify-between" style="min-height: 56px;">
                     <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Date:</span>
-                    <span class="text-xs sm:text-sm font-bold text-black text-center mt-0.5 border-b border-gray-300 w-11/12 mx-auto">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</span>
+                    <span class="text-xs sm:text-sm font-bold text-black text-center mt-0.5 w-11/12 mx-auto">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</span>
                     <span class="text-[8px] sm:text-[9px] text-black text-center mt-0.5 truncate">Office: <span class="font-bold text-black">{{ $request->department }}</span></span>
                 </div>
             </div>
@@ -159,7 +159,7 @@
                     @if(count($passengers) > 0)
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs font-semibold text-black">
                             @foreach($passengers as $idx => $p)
-                                <div class="border-b border-gray-300 pb-0.5">{{ $idx + 1 }}. {{ $p['name'] ?? $p }}</div>
+                                <div class="py-0.5">{{ $idx + 1 }}. {{ $p['name'] ?? $p }}</div>
                             @endforeach
                         </div>
                     @else
@@ -167,7 +167,7 @@
                     @endif
 
                     @if($request->has_other_passengers && $request->other_passengers)
-                        <div class="mt-1 pt-0.5 border-t border-gray-300 text-xs text-black">
+                        <div class="mt-1 text-xs text-black">
                             <span class="font-bold uppercase text-[9px] sm:text-[10px] text-gray-700">Others / Students:</span>
                             <span class="font-semibold text-black ml-1">{{ $request->other_passengers }}</span>
                         </div>
