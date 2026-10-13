@@ -34,14 +34,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Dynamically override APP_URL and scheme for asset/route generation when accessed via tunnel
+        // Dynamically override APP_URL and scheme for asset/route generation when accessed via tunnel or Render
         $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? null;
         if ($host) {
             $host = trim(explode(',', $host)[0]);
             $proto = 'http';
             if (
                 (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
-                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+                str_ends_with($host, '.onrender.com') ||
+                app()->isProduction()
             ) {
                 $proto = 'https';
             }
@@ -51,6 +53,8 @@ class AppServiceProvider extends ServiceProvider
             if ($proto === 'https') {
                 \Illuminate\Support\Facades\URL::forceScheme('https');
             }
+        } elseif (app()->isProduction()) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
         $this->configureDefaults();
@@ -249,24 +253,6 @@ class AppServiceProvider extends ServiceProvider
                         window.addEventListener("pageshow", function(event) {
                             if (event.persisted) {
                                 window.location.reload();
-                            }
-                        });
-
-                        // Auto-refresh when mobile phone screen turns on or user switches back to browser
-                        document.addEventListener("visibilitychange", function() {
-                            if (document.visibilityState === "visible" && window.Livewire) {
-                                try {
-                                    window.Livewire.dispatch("$refresh");
-                                } catch (e) {}
-                            }
-                        });
-
-                        // Auto-refresh on window focus (app resume)
-                        window.addEventListener("focus", function() {
-                            if (window.Livewire) {
-                                try {
-                                    window.Livewire.dispatch("$refresh");
-                                } catch (e) {}
                             }
                         });
                     </script>

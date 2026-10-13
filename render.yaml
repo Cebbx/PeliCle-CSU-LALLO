@@ -14,7 +14,7 @@ services:
       - key: APP_KEY
         generateValue: true
       - key: APP_URL
-        value: https://pelicle-fleet-system.onrender.com
+        value: https://csu-vehicle-request.onrender.com
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE
