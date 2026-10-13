@@ -460,9 +460,8 @@
                     showFloatingToast(latest);
 
                     // Instant Live Sync: trigger immediate refresh on tables & dashboards (only if user is not typing in a form)
-                    const activeEl = document.activeElement;
-                    const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT' || activeEl.isContentEditable);
-                    if (window.Livewire && !isTyping && !window.location.pathname.includes('/login') && !window.location.pathname.endsWith('/create') && !window.location.pathname.endsWith('/edit')) {
+                    const hasOpenDropdown = document.querySelector('.fi-dropdown-panel') || document.querySelector('[aria-expanded="true"]');
+                    if (window.Livewire && !isTyping && !hasOpenDropdown && !window.location.pathname.includes('/login') && !window.location.pathname.endsWith('/create') && !window.location.pathname.endsWith('/edit')) {
                         try {
                             Livewire.dispatch('$refresh');
                         } catch (err) {}

@@ -16,7 +16,7 @@ use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
 {
-    protected ?string $pollingInterval = '2s';
+    protected ?string $pollingInterval = '30s';
 
     protected string $view = 'filament.driver.pages.driver-dashboard';
 

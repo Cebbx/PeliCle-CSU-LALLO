@@ -127,7 +127,6 @@ class TripLogbook extends Page implements HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->poll('5s')
             ->query(
                 TripTicket::query()->with(['vehicleRequest', 'vehicleRequests', 'driver'])
             )

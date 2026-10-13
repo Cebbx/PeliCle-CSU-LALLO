@@ -13,7 +13,6 @@ class TripTicketsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('2s')
             ->columns([
                 TextColumn::make('ticket_number')
                     ->label('Trip ID')

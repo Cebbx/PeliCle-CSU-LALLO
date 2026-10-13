@@ -19,7 +19,6 @@ class WithdrawalSlipsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('2s')
             ->columns([
                 TextColumn::make('slip_number')
                     ->searchable()
