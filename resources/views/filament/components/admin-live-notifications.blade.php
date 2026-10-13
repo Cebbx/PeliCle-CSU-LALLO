@@ -71,10 +71,11 @@
         border-color: #0f172a !important;
     }
 
-    /* Option A (Ring & Settle): Bell icon color highlight when unread */
+    /* Option A (Ring & Settle): Bell icon color highlight when unread (Steady settled icon) */
     .fi-topbar-database-notifications-btn.has-unread-alerts svg,
     .fi-topbar-database-notifications-btn:has(.fi-badge) svg {
         color: #f59e0b !important;
+        animation: none !important;
         transform-origin: top center;
     }
 
@@ -491,22 +492,49 @@
             }
         }
 
-        // 6. Polling & Event Loop (Foolproof Single-Alert System)
+        // 6. Polling & Event Loop (Foolproof Single-Alert System with Storage Sync & Cooldown)
         const originalTitle = document.title;
         const currentPath = window.location.pathname;
         const activePanel = currentPath.startsWith('/employee') ? 'employee' : (currentPath.startsWith('/driver') ? 'driver' : 'admin');
         const seenStorageKey = 'pelicle_seen_notifs_' + activePanel;
 
         let seenNotifIds = [];
-        try {
-            seenNotifIds = JSON.parse(localStorage.getItem(seenStorageKey) || '[]');
-            if (!Array.isArray(seenNotifIds)) seenNotifIds = [];
-        } catch (e) {
-            seenNotifIds = [];
+        function loadSeenNotifIds() {
+            try {
+                const raw = localStorage.getItem(seenStorageKey) || sessionStorage.getItem(seenStorageKey) || '[]';
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(id => {
+                        const s = String(id);
+                        if (!seenNotifIds.includes(s)) seenNotifIds.push(s);
+                    });
+                }
+            } catch (e) {}
         }
+        function saveSeenNotifIds() {
+            try {
+                if (seenNotifIds.length > 100) seenNotifIds = seenNotifIds.slice(-100);
+                const str = JSON.stringify(seenNotifIds);
+                localStorage.setItem(seenStorageKey, str);
+                sessionStorage.setItem(seenStorageKey, str);
+            } catch (e) {}
+        }
+
+        loadSeenNotifIds();
 
         let isFirstCheck = true;
         let isChecking = false;
+        let lastChimeTime = 0;
+
+        function playChimeWithThrottle(isEmergency) {
+            const now = Date.now();
+            if (now - lastChimeTime < 5000) {
+                // Throttle: Never ring audio multiple times within 5 seconds
+                return;
+            }
+            lastChimeTime = now;
+            playSystemNotificationSound(isEmergency);
+        }
 
         async function checkLiveNotifications() {
             if (isChecking || document.hidden) return;
@@ -520,8 +548,6 @@
                 if (!res.ok) return;
                 const data = await res.json();
                 const currentCount = parseInt(data.count, 10) || 0;
-                const latest = data.latest || null;
-                const latestId = latest ? String(latest.id) : null;
                 const unreadList = Array.isArray(data.unread) ? data.unread : [];
 
                 // Update tab title
@@ -534,42 +560,47 @@
                 // Update bell icon badge
                 updateTopbarBellBadge(currentCount);
 
-                // On first load: register all currently existing unread notifications as already seen
-                // This ensures old pre-existing notifications DO NOT chime or pop up upon login/refresh!
+                // On initial page load: register all currently existing unread notifications as already seen
+                // This guarantees pre-existing unread notifications NEVER ring, chime, or pop up on refresh/load!
                 if (isFirstCheck) {
                     isFirstCheck = false;
                     unreadList.forEach(item => {
-                        if (item && item.id && !seenNotifIds.includes(String(item.id))) {
-                            seenNotifIds.push(String(item.id));
+                        if (item && item.id) {
+                            const s = String(item.id);
+                            if (!seenNotifIds.includes(s)) seenNotifIds.push(s);
                         }
                     });
-                    try {
-                        if (seenNotifIds.length > 60) seenNotifIds = seenNotifIds.slice(-60);
-                        localStorage.setItem(seenStorageKey, JSON.stringify(seenNotifIds));
-                    } catch (e) {}
+                    saveSeenNotifIds();
                     return;
                 }
 
-                // Only alert if a genuinely new, unseen notification arrives in real-time
-                const isNewUnseen = latestId && !seenNotifIds.includes(latestId);
+                // Check for genuinely new, unseen notifications arrived in real-time
+                loadSeenNotifIds();
+                const newUnseenList = [];
+                unreadList.forEach(item => {
+                    if (item && item.id) {
+                        const s = String(item.id);
+                        if (!seenNotifIds.includes(s)) {
+                            seenNotifIds.push(s);
+                            newUnseenList.push(item);
+                        }
+                    }
+                });
 
-                if (isNewUnseen && latest && currentCount > 0) {
-                    // Mark as seen immediately in localStorage so it NEVER rings or pops up twice
-                    seenNotifIds.push(latestId);
-                    try {
-                        if (seenNotifIds.length > 60) seenNotifIds = seenNotifIds.slice(-60);
-                        localStorage.setItem(seenStorageKey, JSON.stringify(seenNotifIds));
-                    } catch (e) {}
+                if (newUnseenList.length > 0 && currentCount > 0) {
+                    // Mark as seen immediately in storage so subsequent polls NEVER alert again on these items
+                    saveSeenNotifIds();
 
-                    const isEmerg = latest.is_emergency || false;
-                    playSystemNotificationSound(isEmerg);
+                    const alertItem = newUnseenList[0];
+                    const isEmerg = alertItem.is_emergency || false;
+                    playChimeWithThrottle(isEmerg);
                     ringBellIconBriefly();
 
                     if ('vibrate' in navigator) {
                         try { navigator.vibrate([200, 100, 200]); } catch(e) {}
                     }
-                    showDesktopNotification(latest.title, latest.body);
-                    showFloatingToast(latest);
+                    showDesktopNotification(alertItem.title, alertItem.body);
+                    showFloatingToast(alertItem);
 
                     // Instant Live Sync: trigger immediate refresh on tables & dashboards (only if user is not typing)
                     const isTyping = Boolean(document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName));
@@ -587,20 +618,11 @@
             }
         }
 
-        // Smooth live sync polling every 3 seconds
-        setTimeout(checkLiveNotifications, 800);
+        // Clean live sync polling every 3 seconds
+        setTimeout(checkLiveNotifications, 1000);
         setInterval(checkLiveNotifications, 3000);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) checkLiveNotifications();
         });
-
-        // Also check whenever Livewire commits
-        if (window.Livewire) {
-            Livewire.hook('commit', ({ succeed }) => {
-                succeed(() => {
-                    setTimeout(checkLiveNotifications, 600);
-                });
-            });
-        }
     })();
 </script>

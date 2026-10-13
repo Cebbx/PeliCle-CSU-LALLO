@@ -607,7 +607,7 @@ class AdminPanelProvider extends PanelProvider
                             border: 1.5px solid #ffffff !important;
                             border-radius: 9999px !important;
                             box-shadow: 0 0 10px rgba(239, 68, 68, 0.8), 0 2px 4px rgba(0, 0, 0, 0.4) !important;
-                            animation: notifRedPulse 2s infinite ease-in-out !important;
+                            animation: none !important;
                         }
 
                         html.dark .fi-topbar-database-notifications-btn .fi-badge,
@@ -616,32 +616,29 @@ class AdminPanelProvider extends PanelProvider
                             border-color: #0f172a !important;
                         }
 
-                        @keyframes notifRedPulse {
-                            0%, 100% {
-                                transform: scale(1);
-                                box-shadow: 0 0 8px rgba(239, 68, 68, 0.7), 0 0 0 0 rgba(239, 68, 68, 0.5);
-                            }
-                            50% {
-                                transform: scale(1.12);
-                                box-shadow: 0 0 15px rgba(239, 68, 68, 0.95), 0 0 0 5px rgba(239, 68, 68, 0);
-                            }
-                        }
-
-                        /* Bell icon subtle animation and highlight when unread */
+                        /* Option A (Ring & Settle): Bell icon color highlight when unread (steady, NO infinite swing) */
                         .fi-topbar-database-notifications-btn.has-unread-alerts svg,
                         .fi-topbar-database-notifications-btn:has(.fi-badge) svg {
                             color: #f59e0b !important;
-                            animation: bellSwingAlert 3.5s infinite ease-in-out !important;
+                            animation: none !important;
+                            transform-origin: top center;
+                        }
+
+                        /* Bell only swings 2-3 times when new notification arrives (.bell-ringing), then settles completely */
+                        .fi-topbar-database-notifications-btn.bell-ringing svg {
+                            animation: bellSwingAlert 1.5s ease-in-out !important;
                             transform-origin: top center;
                         }
 
                         @keyframes bellSwingAlert {
-                            0%, 65%, 100% { transform: rotate(0deg); }
-                            70% { transform: rotate(14deg); }
-                            74% { transform: rotate(-12deg); }
-                            78% { transform: rotate(8deg); }
-                            82% { transform: rotate(-6deg); }
-                            86% { transform: rotate(2deg); }
+                            0% { transform: rotate(0deg); }
+                            15% { transform: rotate(14deg); }
+                            30% { transform: rotate(-12deg); }
+                            45% { transform: rotate(9deg); }
+                            60% { transform: rotate(-7deg); }
+                            75% { transform: rotate(3deg); }
+                            90% { transform: rotate(-1deg); }
+                            100% { transform: rotate(0deg); }
                         }
 
                         /* Floating Real-Time Live Alert Toast (Appears anywhere in admin) */
