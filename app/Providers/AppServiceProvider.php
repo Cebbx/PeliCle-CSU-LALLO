@@ -35,26 +35,30 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Dynamically override APP_URL and scheme for asset/route generation when accessed via tunnel or Render
-        $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? null;
-        if ($host) {
-            $host = trim(explode(',', $host)[0]);
-            $proto = 'http';
-            if (
-                (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
-                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
-                str_ends_with($host, '.onrender.com') ||
-                app()->isProduction()
-            ) {
-                $proto = 'https';
-            }
-            $currentUrl = $proto . '://' . $host;
-            config(['app.url' => $currentUrl]);
-            \Illuminate\Support\Facades\URL::forceRootUrl($currentUrl);
-            if ($proto === 'https') {
+        try {
+            $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? null;
+            if ($host) {
+                $host = trim(explode(',', $host)[0]);
+                $proto = 'http';
+                if (
+                    (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
+                    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+                    str_ends_with($host, '.onrender.com') ||
+                    app()->isProduction()
+                ) {
+                    $proto = 'https';
+                }
+                $currentUrl = $proto . '://' . $host;
+                config(['app.url' => $currentUrl]);
+                \Illuminate\Support\Facades\URL::forceRootUrl($currentUrl);
+                if ($proto === 'https') {
+                    \Illuminate\Support\Facades\URL::forceScheme('https');
+                }
+            } elseif (app()->isProduction()) {
                 \Illuminate\Support\Facades\URL::forceScheme('https');
             }
-        } elseif (app()->isProduction()) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+        } catch (\Throwable $e) {
+            // Silence exception in boot
         }
 
         $this->configureDefaults();

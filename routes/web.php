@@ -21,7 +21,14 @@ Route::post('/guard/verify-pin', [App\Http\Controllers\QrCodeController::class, 
 Route::post('/guard/verify-otp', [App\Http\Controllers\QrCodeController::class, 'verifyOtp'])->name('guard.verify-otp');
 Route::post('/guard/resend-otp', [App\Http\Controllers\QrCodeController::class, 'resendOtp'])->name('guard.resend-otp');
 Route::match(['get', 'post'], '/guard/logout', [App\Http\Controllers\QrCodeController::class, 'logout'])->name('guard.logout');
-Route::get('/guard/logbook/print', [App\Http\Controllers\QrCodeController::class, 'printGateLogbook'])->name('guard.logbook.print');
+Route::get('/debug-500', function () {
+    $logPath = storage_path('logs/laravel.log');
+    if (!file_exists($logPath)) {
+        return 'Log file not found: ' . $logPath;
+    }
+    $lines = file($logPath);
+    return response('<pre style="background:#1e293b;color:#f8fafc;padding:20px;border-radius:8px;font-size:12px;overflow:auto;">' . htmlspecialchars(implode('', array_slice($lines, -100))) . '</pre>');
+});
 
 // Hostinger One-Click Setup (Runs storage:link, migrate, and optimize:clear via browser)
 Route::get('/hostinger-setup', function () {
