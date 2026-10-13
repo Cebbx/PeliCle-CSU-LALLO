@@ -77,10 +77,10 @@
 
     <!-- Main Ticket Sheet -->
     <div class="bg-white w-full max-w-[8.5in] mx-auto p-3.5 sm:p-7 flex flex-col print-container shadow-md sm:shadow-lg border border-gray-200 box-border">
-        <!-- Header (Properly Centered Header with Left Logo) -->
-        <div class="relative w-full border-b-2 border-black pb-2.5 sm:pb-3 mb-3 sm:mb-4 flex items-center justify-center min-h-[54px] sm:min-h-[64px]">
-            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-15 sm:h-15 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
-            <div class="text-center w-full px-14 sm:px-18">
+        <!-- Header (Centered Header with Logo beside University text) -->
+        <div class="flex items-center justify-center gap-3 sm:gap-4 border-b-2 border-black pb-2.5 sm:pb-3 mb-3 sm:mb-4">
+            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-12 h-12 sm:w-14 sm:h-14 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
+            <div class="text-center">
                 <h2 class="text-[10px] sm:text-xs uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</h2>
                 <h1 class="text-xs sm:text-base font-extrabold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
                 <h3 class="text-[10px] sm:text-xs text-black mt-0.5 font-medium leading-tight">Lal-lo, Cagayan</h3>
@@ -119,19 +119,19 @@
         <table class="w-full border-collapse border border-black mb-3 sm:mb-4 text-[10px] sm:text-xs">
             <tbody>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50 w-24 sm:w-28">Date:</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold w-24 sm:w-28">Date:</td>
                     <td class="border border-black p-1.5 sm:p-2 w-1/2">{{ \Carbon\Carbon::parse($ticket->vehicleRequest?->date ?? $ticket->created_at)->format('F d, Y') }}</td>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50 w-20 sm:w-24">Vehicle:</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold w-20 sm:w-24">Vehicle:</td>
                     <td class="border border-black p-1.5 sm:p-2">{{ $vehicleModel }}</td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50">Driver's Name:</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold">Driver's Name:</td>
                     <td class="border border-black p-1.5 sm:p-2 font-bold">{{ $ticket->driver?->name ?? 'N/A' }}</td>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50">PLATE No:</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold">PLATE No:</td>
                     <td class="border border-black p-1.5 sm:p-2 font-bold">{{ $vehiclePlate }}</td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50">Authorized Passenger/s:</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold">Authorized Passenger/s:</td>
                     <td class="border border-black p-1.5 sm:p-2" colspan="3">
                         @if($isCarpool)
                             <div class="space-y-1 py-0.5">
@@ -178,7 +178,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50">Place to Visit:</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold">Place to Visit:</td>
                     <td class="border border-black p-1.5 sm:p-2" colspan="3">
                         @php
                             $destinations = $allRequests->pluck('destination')->unique()->values();
@@ -195,7 +195,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold bg-gray-50">Purpose/s:</td>
+                    <td class="border border-black p-1.5 sm:p-2 font-bold">Purpose/s:</td>
                     <td class="border border-black p-1.5 sm:p-2" colspan="3">
                         @if($isCarpool)
                             <div class="space-y-0.5">
@@ -428,7 +428,7 @@
                 html2canvas:  {
                     scale: 2,
                     useCORS: true,
-                    allowTaint: true,
+                    allowTaint: false,
                     logging: false,
                     width: 816,
                     windowWidth: 816,

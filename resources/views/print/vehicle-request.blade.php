@@ -77,14 +77,14 @@
 
     <!-- Main Form Page Sheet -->
     <div class="bg-white w-full max-w-[8.5in] mx-auto p-3.5 sm:p-7 shadow-md sm:shadow-lg border border-gray-200 flex flex-col print-container box-border">
-        <!-- Header (Properly Centered Header with Left Logo) -->
-        <div class="relative w-full border-b-2 border-black pb-2.5 sm:pb-3 mb-3 sm:mb-4 flex items-center justify-center min-h-[58px] sm:min-h-[68px]">
-            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-15 sm:h-15 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
-            <div class="text-center w-full px-14 sm:px-18">
+        <!-- Header (Centered Header with Logo beside University text) -->
+        <div class="flex items-center justify-center gap-3 sm:gap-4 border-b-2 border-black pb-2.5 sm:pb-3 mb-3 sm:mb-4">
+            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-12 h-12 sm:w-14 sm:h-14 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
+            <div class="text-center">
                 <h2 class="text-[10px] sm:text-xs uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</h2>
                 <h1 class="text-xs sm:text-base font-extrabold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
                 <h3 class="text-[10px] sm:text-xs text-black mt-0.5 font-medium leading-tight">Lal-lo Campus</h3>
-                <h2 class="text-[9px] sm:text-[11px] font-bold uppercase tracking-wider text-black mt-0.5 sm:mt-1 leading-tight">General Service Office</h2>
+                <h2 class="text-[9px] sm:text-[11px] font-bold uppercase tracking-wider text-black mt-0.5 leading-tight">General Service Office</h2>
             </div>
         </div>
 
@@ -312,7 +312,7 @@
                 html2canvas:  {
                     scale: 2,
                     useCORS: true,
-                    allowTaint: true,
+                    allowTaint: false,
                     logging: false,
                     width: 816,
                     windowWidth: 816,

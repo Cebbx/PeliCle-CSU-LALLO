@@ -294,7 +294,7 @@
                 html2canvas:  {
                     scale: 2,
                     useCORS: true,
-                    allowTaint: true,
+                    allowTaint: false,
                     logging: false,
                     width: 816,
                     windowWidth: 816,
