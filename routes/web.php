@@ -42,7 +42,9 @@ Route::get('/hostinger-setup', function () {
 
     try {
         \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'UserSeeder', '--force' => true]);
-        $results[] = '✓ User Seed: SUCCESS';
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'DepartmentUserSeeder', '--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'DriverSeeder', '--force' => true]);
+        $results[] = '✓ Seed All Accounts (Admin, Departments, Drivers): SUCCESS';
     } catch (\Throwable $e) {
         $results[] = 'User Seed note: ' . $e->getMessage();
     }
