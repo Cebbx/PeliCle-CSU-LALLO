@@ -9,11 +9,32 @@
     <style>
         body {
             font-family: 'Arial', 'Calibri', sans-serif;
-            background-color: #f3f4f6; /* Gray background on screen */
+            background-color: #f3f4f6;
             color: black;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
+
+        /* Screen Document Wrapper */
+        .sheet-outer {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 2rem;
+        }
+
+        .trip-ticket-doc {
+            width: 816px; /* Exactly 8.5 inches at 96 DPI */
+            min-width: 816px;
+            max-width: 816px;
+            background: #ffffff;
+            margin: 0 auto;
+            padding: 36px 40px;
+            box-sizing: border-box;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
         @media print {
             body {
                 background: white !important;
@@ -21,11 +42,19 @@
                 font-size: 11px;
                 padding: 0 !important;
                 margin: 0 !important;
+                overflow: visible !important;
             }
             .no-print {
                 display: none !important;
             }
-            .print-container {
+            .sheet-outer {
+                overflow: visible !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: block !important;
+                width: 100% !important;
+            }
+            .trip-ticket-doc {
                 min-height: 0 !important;
                 height: auto !important;
                 border: none !important;
@@ -33,11 +62,13 @@
                 padding: 0 !important;
                 margin: 0 !important;
                 max-width: 100% !important;
+                min-width: 0 !important;
                 width: 100% !important;
+                overflow: visible !important;
             }
             @page {
-                size: letter; /* Force US Letter paper size */
-                margin: 0.35in;
+                size: letter portrait;
+                margin: 0.3in 0.35in;
             }
         }
     </style>
@@ -45,10 +76,10 @@
 <body class="bg-gray-100 py-3 sm:py-6 px-2 sm:px-4">
 
     <!-- Floating Top Bar (Sticky, Mobile Responsive, hidden on print) -->
-    <div class="no-print sticky top-2 z-50 max-w-[8.5in] mx-auto mb-4 bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 flex flex-wrap items-center justify-between gap-3">
+    <div class="no-print sticky top-2 z-50 max-w-[816px] mx-auto mb-3 bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
             <span class="text-gray-800 font-extrabold text-xs sm:text-sm tracking-tight">Vehicle Trip Ticket</span>
-            <span class="text-[10px] sm:text-xs text-gray-500 font-mono hidden sm:inline">({{ $ticket->ticket_number }})</span>
+            <span class="text-xs text-gray-500 font-mono">({{ $ticket->ticket_number }})</span>
         </div>
         <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
             <!-- Back Button -->
@@ -73,285 +104,304 @@
         </div>
     </div>
 
-    <!-- Main Ticket Sheet -->
-    <div class="bg-white w-full max-w-[8.5in] mx-auto p-3.5 sm:p-8 flex flex-col print-container shadow-md sm:shadow-lg border border-gray-200 box-border">
-        <!-- Header (Flexbox layout - Centered on Mobile, Desktop & Print) -->
-        <div class="w-full border-b-2 border-black pb-3 sm:pb-4 mb-4 sm:mb-6 flex items-center justify-center gap-3 sm:gap-6">
-            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-12 h-12 sm:w-16 sm:h-16 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
-            <div class="text-center">
-                <h2 class="text-[10px] sm:text-xs uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</h2>
-                <h1 class="text-xs sm:text-base font-extrabold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
-                <h3 class="text-[10px] sm:text-xs text-black mt-0.5 font-medium leading-tight">Lal-lo, Cagayan</h3>
-            </div>
-        </div>
+    <!-- Mobile Scroll Hint (Visible only on narrow screens, hidden on print) -->
+    <div class="no-print block md:hidden max-w-[816px] mx-auto mb-3 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-xs flex items-center justify-between">
+        <span class="flex items-center gap-1.5">
+            <svg class="w-4 h-4 flex-shrink-0 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 1118 0z"/>
+            </svg>
+            <span>Scroll left/right to view full preview. Tap <strong>Download PDF File</strong> for the full Letter printout.</span>
+        </span>
+    </div>
 
-        <!-- Title and QR Code row -->
-        @php
-            $allRequests = $ticket->all_vehicle_requests;
-            $isCarpool = count($allRequests) > 1;
-            $hasAnyUrgent = $allRequests->contains('is_urgent', true);
-        @endphp
-        <div class="flex justify-between items-center mb-4 sm:mb-6 gap-2">
-            <div>
-                <h1 class="text-xs sm:text-sm font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Trip Ticket</h1>
-                <div class="text-[11px] sm:text-xs font-bold text-black mt-1.5 font-mono">{{ $ticket->formatted_ticket_number }}</div>
-                @if($hasAnyUrgent)
-                    <div class="mt-1 flex flex-wrap items-center gap-1.5">
-                        <span class="inline-block px-1.5 py-0.5 border border-red-600 text-red-600 font-extrabold text-[8px] sm:text-[9px] tracking-widest uppercase rounded">🚨 URGENT DISPATCH</span>
-                    </div>
-                @endif
+    <!-- Scrollable Screen Wrapper -->
+    <div class="sheet-outer">
+        <!-- Main Ticket Sheet (Strict 8.5in desktop Letter format) -->
+        <div class="trip-ticket-doc flex flex-col">
+            <!-- Header (Flexbox layout - Centered CSU Logo and Text) -->
+            <div class="w-full border-b-2 border-black pb-3 mb-4 flex items-center justify-center gap-5">
+                <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-16 h-16 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
+                <div class="text-center">
+                    <h2 class="text-xs uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</h2>
+                    <h1 class="text-base font-extrabold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
+                    <h3 class="text-xs text-black mt-0.5 font-medium leading-tight">Lal-lo, Cagayan</h3>
+                </div>
             </div>
-            
-            <!-- Scan to Complete QR Code -->
-            <div class="flex flex-col items-center border border-black p-1 bg-white rounded shadow-sm flex-shrink-0">
-                @php
-                    $completionUrl = route('trip-tickets.complete-via-qr', ['ticket_number' => $ticket->ticket_number]);
-                    $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' . urlencode($completionUrl);
-                @endphp
-                <img src="{{ $qrCodeUrl }}" alt="Completion QR" class="w-[65px] h-[65px] sm:w-[80px] sm:h-[80px] object-contain" />
-                <span class="text-[7px] sm:text-[8px] font-bold text-black mt-0.5 uppercase tracking-wider">Scan to Complete</span>
-            </div>
-        </div>
 
-        <!-- Details Table Grid -->
-        <table class="w-full border-collapse border border-black mb-4 sm:mb-6 text-[10px] sm:text-xs">
-            <tbody>
-                <tr>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50 w-24 sm:w-28">Date:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5 w-1/2">{{ \Carbon\Carbon::parse($ticket->vehicleRequest?->date ?? $ticket->created_at)->format('F d, Y') }}</td>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50 w-20 sm:w-24">Vehicle:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5">{{ $vehicleModel }}</td>
-                </tr>
-                <tr>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50">Driver's Name:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold">{{ $ticket->driver?->name ?? 'N/A' }}</td>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50">PLATE No:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold">{{ $vehiclePlate }}</td>
-                </tr>
-                <tr>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50">Authorized Passenger/s:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5" colspan="3">
-                        @if($isCarpool)
-                            <div class="space-y-1.5 py-0.5">
-                                @foreach($allRequests as $req)
-                                    @php
-                                        $passengers = $req->passenger_names ?? [];
-                                        if (is_string($passengers)) {
-                                            $passengers = json_decode($passengers, true) ?? [];
-                                        }
-                                        $pNames = collect($passengers)->pluck('name')->join(', ');
-                                    @endphp
-                                    <div class="border-b border-gray-200 pb-1 last:border-b-0 last:pb-0">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="font-bold text-black uppercase text-[9px] bg-gray-100 px-1 py-0.2 rounded border border-gray-300">
-                                                {{ $req->department ?: 'N/A' }} ({{ $req->number_of_passengers }} {{ ($req->number_of_passengers ?: 1) > 1 ? 'persons' : 'person' }})
-                                            </span>
-                                            <span class="font-semibold text-black text-[10px] sm:text-xs">
-                                                {{ $pNames ?: $req->employee_name }}
-                                            </span>
-                                        </div>
-                                        @if($req->has_other_passengers && $req->other_passengers)
-                                            <div class="text-[8px] sm:text-[9px] text-gray-700 italic ml-1.5 mt-0.5">
-                                                <span class="font-bold uppercase text-[7px] sm:text-[8px] text-gray-500">Others/Students:</span> {{ $req->other_passengers }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            @php
-                                $passengers = $ticket->vehicleRequest?->passenger_names ?? [];
-                                if (is_string($passengers)) {
-                                    $passengers = json_decode($passengers, true) ?? [];
-                                }
-                                $passengerNames = collect($passengers)->pluck('name')->join(', ');
-                            @endphp
-                            <span class="font-semibold text-black">{{ $passengerNames ?: $ticket->vehicleRequest?->employee_name ?? 'N/A' }}</span>
-                            @if($ticket->vehicleRequest?->has_other_passengers && $ticket->vehicleRequest?->other_passengers)
-                                <div class="mt-1 text-[10px] sm:text-xs font-semibold text-black">
-                                    <span class="font-bold uppercase text-[8px] sm:text-[9px] text-gray-600">Others/Students:</span> {{ $ticket->vehicleRequest->other_passengers }}
-                                </div>
-                            @endif
-                        @endif
-                    </td>
-                </tr>
-                <tr>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50">Place to Visit:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5" colspan="3">
-                        @php
-                            $destinations = $allRequests->pluck('destination')->unique()->values();
-                        @endphp
-                        @if(count($destinations) > 1)
-                            <div class="space-y-0.5">
-                                @foreach($allRequests as $req)
-                                    <div><span class="font-bold text-[9px] sm:text-[10px] text-gray-700">[{{ $req->department }}]:</span> {{ $req->destination }}</div>
-                                @endforeach
-                            </div>
-                        @else
-                            {{ $destinations->first() ?? $ticket->vehicleRequest?->destination ?? 'N/A' }}
-                        @endif
-                    </td>
-                </tr>
-                <tr>
-                    <td class="border border-black p-1.5 sm:p-2.5 font-bold bg-gray-50">Purpose/s:</td>
-                    <td class="border border-black p-1.5 sm:p-2.5" colspan="3">
-                        @if($isCarpool)
-                            <div class="space-y-0.5">
-                                @foreach($allRequests as $req)
-                                    <div>
-                                        <span class="font-bold text-[9px] sm:text-[10px] text-gray-800">[{{ $req->department }}]:</span>
-                                        <span class="text-black font-medium">{{ $req->purpose }}</span>
-                                        @if($req->is_urgent)
-                                            <span class="ml-1 px-1 py-0.2 text-[7px] sm:text-[8px] font-bold text-red-600 border border-red-500 rounded uppercase">Urgent</span>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            {{ $ticket->vehicleRequest?->purpose ?? 'N/A' }}
-                            @if($ticket->vehicleRequest?->is_urgent)
-                                <span class="ml-1.5 px-1 py-0.2 text-[8px] sm:text-[9px] font-bold text-red-600 border border-red-500 rounded uppercase">Priority: Urgent</span>
-                            @endif
-                        @endif
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!-- Certifications & Prepared/Approved signatures -->
-        <div class="mb-4 sm:mb-6 text-[10px] sm:text-xs">
-            <p class="italic font-semibold mb-3">I CERTIFY that the vehicle is in GOOD RUNNING CONDITION:</p>
-            
-            <div class="grid grid-cols-2 gap-4 sm:gap-8 mt-1">
-                <!-- Left: Prepared by Joel A. Tumamao -->
-                <div class="flex flex-col text-left">
-                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-4 sm:mb-6">Prepared by:</span>
-                    <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">JOEL A. TUMAMAO</span>
-                    <span class="text-[8px] sm:text-[10px] text-black font-semibold">General Services Officer</span>
+            <!-- Title and QR Code row -->
+            @php
+                $allRequests = $ticket->all_vehicle_requests;
+                $isCarpool = count($allRequests) > 1;
+                $hasAnyUrgent = $allRequests->contains('is_urgent', true);
+            @endphp
+            <div class="flex justify-between items-center mb-4 gap-2">
+                <div>
+                    <h1 class="text-sm font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Trip Ticket</h1>
+                    <div class="text-xs font-bold text-black mt-1 font-mono">{{ $ticket->formatted_ticket_number }}</div>
+                    @if($hasAnyUrgent)
+                        <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                            <span class="inline-block px-1.5 py-0.5 border border-red-600 text-red-600 font-extrabold text-[9px] tracking-widest uppercase rounded">🚨 URGENT DISPATCH</span>
+                        </div>
+                    @endif
                 </div>
                 
-                <!-- Right: Approved by Engr. James B. Cabildo -->
-                <div class="flex flex-col text-center">
-                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-4 sm:mb-6 text-left pl-2 sm:pl-4">Approved by:</span>
-                    <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.</span>
-                    <span class="text-[8px] sm:text-[10px] text-black font-semibold">Campus Executive Officer</span>
+                <!-- Scan to Complete QR Code -->
+                <div class="flex flex-col items-center border border-black p-1 bg-white rounded shadow-sm flex-shrink-0">
+                    @php
+                        $completionUrl = route('trip-tickets.complete-via-qr', ['ticket_number' => $ticket->ticket_number]);
+                        $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' . urlencode($completionUrl);
+                    @endphp
+                    <img src="{{ $qrCodeUrl }}" alt="Completion QR" class="w-[75px] h-[75px] object-contain" />
+                    <span class="text-[8px] font-bold text-black mt-0.5 uppercase tracking-wider">Scan to Complete</span>
                 </div>
             </div>
-        </div>
 
-        <!-- Itinerary to be filled by driver -->
-        <div class="border border-black p-2 sm:p-3 mb-3">
-            <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wide text-black block mb-0.5">To be filled up by Driver:</span>
-            <span class="text-[10px] sm:text-xs underline font-bold text-black block mb-1">Itinerary of Travel:</span>
-            
-            @php
-                $depLog = \App\Models\ActivityLog::where('model_type', \App\Models\TripTicket::class)
-                    ->where('model_id', $ticket->id)
-                    ->where('action', 'Departure Logged')
-                    ->first();
-                $arrLog = \App\Models\ActivityLog::where('model_type', \App\Models\TripTicket::class)
-                    ->where('model_id', $ticket->id)
-                    ->where('action', 'Arrival Logged')
-                    ->first();
-                $hasDigitalLogs = ($depLog || $arrLog || $ticket->status === 'completed');
-                $travelDate = $ticket->vehicleRequest?->date ? \Carbon\Carbon::parse($ticket->vehicleRequest->date)->format('Y-m-d') : '';
-                $depTime = $depLog ? \Carbon\Carbon::parse($depLog->created_at)->format('g:i A') : ($ticket->vehicleRequest?->time ? \Carbon\Carbon::parse($ticket->vehicleRequest->time)->format('g:i A') : '');
-                $arrTime = $arrLog ? \Carbon\Carbon::parse($arrLog->created_at)->format('g:i A') : ($ticket->status === 'completed' ? \Carbon\Carbon::parse($ticket->updated_at)->format('g:i A') : '');
-                $dest = $ticket->vehicleRequest?->destination ?? '';
-            @endphp
-
-            <table class="w-full border-collapse border border-black text-[9px] sm:text-[10px]">
-                <thead>
-                    <tr>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold" rowspan="2">DATE</th>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold" colspan="2">DEPARTURE</th>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold" colspan="2">ARRIVAL</th>
-                    </tr>
-                    <tr>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold">TIME</th>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold">PLACE</th>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold">TIME</th>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold">PLACE</th>
-                    </tr>
-                </thead>
+            <!-- Details Table Grid -->
+            <table class="w-full border-collapse border border-black mb-4 text-xs">
                 <tbody>
-                    @if($hasDigitalLogs)
-                        <tr>
-                            <td class="border border-black p-1 sm:p-1.5 font-mono font-semibold text-center">{{ $travelDate }}</td>
-                            <td class="border border-black p-1 sm:p-1.5 font-mono font-semibold text-center">{{ $depTime }}</td>
-                            <td class="border border-black p-1 sm:p-1.5 font-semibold">CSU Lal-lo Campus</td>
-                            <td class="border border-black p-1 sm:p-1.5 font-mono font-semibold text-center">{{ $arrTime ?: '---' }}</td>
-                            <td class="border border-black p-1 sm:p-1.5 font-semibold">{{ $dest }}</td>
-                        </tr>
-                        @for($i=0; $i<2; $i++)
-                            <tr>
-                                <td class="border border-black p-1 sm:p-1.5 h-5 sm:h-6"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                            </tr>
-                        @endfor
-                    @else
-                        @for($i=0; $i<3; $i++)
-                            <tr>
-                                <td class="border border-black p-1 sm:p-1.5 h-5 sm:h-6"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                                <td class="border border-black p-1 sm:p-1.5"></td>
-                            </tr>
-                        @endfor
-                    @endif
+                    <tr>
+                        <td class="border border-black p-2 font-bold bg-gray-50 w-32">Date:</td>
+                        <td class="border border-black p-2 w-[38%]">{{ \Carbon\Carbon::parse($ticket->vehicleRequest?->date ?? $ticket->created_at)->format('F d, Y') }}</td>
+                        <td class="border border-black p-2 font-bold bg-gray-50 w-28">Vehicle:</td>
+                        <td class="border border-black p-2">{{ $vehicleModel }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-2 font-bold bg-gray-50">Driver's Name:</td>
+                        <td class="border border-black p-2 font-bold">{{ $ticket->driver?->name ?? 'N/A' }}</td>
+                        <td class="border border-black p-2 font-bold bg-gray-50">PLATE No:</td>
+                        <td class="border border-black p-2 font-bold">{{ $vehiclePlate }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-2 font-bold bg-gray-50">Authorized Passenger/s:</td>
+                        <td class="border border-black p-2" colspan="3">
+                            @if($isCarpool)
+                                <div class="space-y-1.5 py-0.5">
+                                    @foreach($allRequests as $req)
+                                        @php
+                                            $passengers = $req->passenger_names ?? [];
+                                            if (is_string($passengers)) {
+                                                $passengers = json_decode($passengers, true) ?? [];
+                                            }
+                                            $pNames = collect($passengers)->pluck('name')->join(', ');
+                                        @endphp
+                                        <div class="border-b border-gray-200 pb-1 last:border-b-0 last:pb-0">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="font-bold text-black uppercase text-[9px] bg-gray-100 px-1 py-0.2 rounded border border-gray-300">
+                                                    {{ $req->department ?: 'N/A' }} ({{ $req->number_of_passengers }} {{ ($req->number_of_passengers ?: 1) > 1 ? 'persons' : 'person' }})
+                                                </span>
+                                                <span class="font-semibold text-black text-xs">
+                                                    {{ $pNames ?: $req->employee_name }}
+                                                </span>
+                                            </div>
+                                            @if($req->has_other_passengers && $req->other_passengers)
+                                                <div class="text-[9px] text-gray-700 italic ml-1.5 mt-0.5">
+                                                    <span class="font-bold uppercase text-[8px] text-gray-500">Others/Students:</span> {{ $req->other_passengers }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                @php
+                                    $passengers = $ticket->vehicleRequest?->passenger_names ?? [];
+                                    if (is_string($passengers)) {
+                                        $passengers = json_decode($passengers, true) ?? [];
+                                    }
+                                    $passengerNames = collect($passengers)->pluck('name')->join(', ');
+                                @endphp
+                                <span class="font-semibold text-black">{{ $passengerNames ?: $ticket->vehicleRequest?->employee_name ?? 'N/A' }}</span>
+                                @if($ticket->vehicleRequest?->has_other_passengers && $ticket->vehicleRequest?->other_passengers)
+                                    <div class="mt-1 text-xs font-semibold text-black">
+                                        <span class="font-bold uppercase text-[9px] text-gray-600">Others/Students:</span> {{ $ticket->vehicleRequest->other_passengers }}
+                                    </div>
+                                @endif
+                            @endif
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-2 font-bold bg-gray-50">Place to Visit:</td>
+                        <td class="border border-black p-2" colspan="3">
+                            @php
+                                $destinations = $allRequests->pluck('destination')->unique()->values();
+                            @endphp
+                            @if(count($destinations) > 1)
+                                <div class="space-y-0.5">
+                                    @foreach($allRequests as $req)
+                                        <div><span class="font-bold text-[10px] text-gray-700">[{{ $req->department }}]:</span> {{ $req->destination }}</div>
+                                    @endforeach
+                                </div>
+                            @else
+                                {{ $destinations->first() ?? $ticket->vehicleRequest?->destination ?? 'N/A' }}
+                            @endif
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-2 font-bold bg-gray-50">Purpose/s:</td>
+                        <td class="border border-black p-2" colspan="3">
+                            @if($isCarpool)
+                                <div class="space-y-0.5">
+                                    @foreach($allRequests as $req)
+                                        <div>
+                                            <span class="font-bold text-[10px] text-gray-800">[{{ $req->department }}]:</span>
+                                            <span class="text-black font-medium">{{ $req->purpose }}</span>
+                                            @if($req->is_urgent)
+                                                <span class="ml-1 px-1 py-0.2 text-[8px] font-bold text-red-600 border border-red-500 rounded uppercase">Urgent</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                {{ $ticket->vehicleRequest?->purpose ?? 'N/A' }}
+                                @if($ticket->vehicleRequest?->is_urgent)
+                                    <span class="ml-1.5 px-1 py-0.2 text-[9px] font-bold text-red-600 border border-red-500 rounded uppercase">Priority: Urgent</span>
+                                @endif
+                            @endif
+                        </td>
+                    </tr>
                 </tbody>
             </table>
 
-            @if($ticket->start_odometer || $ticket->end_odometer)
-                <div class="mt-1.5 p-1 bg-gray-50 border border-black text-[8px] sm:text-[9px] flex justify-between items-center font-mono">
-                    <div>
-                        <span class="font-bold">Start:</span> {{ $ticket->start_odometer ? number_format($ticket->start_odometer) . ' km' : 'N/A' }}
-                    </div>
-                    <div>
-                        <span class="font-bold">Arrival:</span> {{ $ticket->end_odometer ? number_format($ticket->end_odometer) . ' km' : 'N/A' }}
-                    </div>
-                    <div>
-                        <span class="font-bold">Distance:</span> 
-                        <span class="font-bold text-black underline">{{ $ticket->distance_traveled ? number_format($ticket->distance_traveled) . ' km' : 'N/A' }}</span>
-                    </div>
-                </div>
-            @endif
-        </div>
-
-        <!-- Post-travel Certification -->
-        <div class="mb-2 text-[10px] sm:text-xs">
-            <p class="font-semibold mb-1.5">I CERTIFY the Condition of Vehicle after travel:</p>
-            <div class="flex justify-between items-end gap-2">
-                <div class="flex flex-col gap-1">
-                    <label class="flex items-center gap-1.5 cursor-default pointer-events-none">
-                        <input type="checkbox" disabled {{ $ticket->status === 'completed' ? 'checked' : '' }} class="w-3.5 h-3.5 accent-black pointer-events-none cursor-default" />
-                        <span class="font-bold text-black">GOOD</span>
-                    </label>
-                    <label class="flex items-center gap-1.5 cursor-default pointer-events-none">
-                        <input type="checkbox" disabled class="w-3.5 h-3.5 accent-black pointer-events-none cursor-default" />
-                        <span class="font-bold text-black">Not GOOD (for Service maintenance)</span>
-                    </label>
-                </div>
+            <!-- Certifications & Prepared/Approved signatures -->
+            <div class="mb-4 text-xs">
+                <p class="italic font-semibold mb-2">I CERTIFY that the vehicle is in GOOD RUNNING CONDITION:</p>
                 
-                <div class="flex flex-col items-center w-48 sm:w-64">
-                    <div class="h-5 sm:h-6 border-b border-gray-300 w-11/12 mx-auto mb-0.5 flex items-center justify-center">
-                        @if($ticket->status === 'completed')
-                            <span class="text-[9px] sm:text-[10px] font-bold text-black uppercase tracking-wider">{{ $ticket->driver?->name }}</span>
-                        @endif
+                @php
+                    $gsoName = \App\Models\CampusSetting::get('gso_name', 'JOEL A. TUMAMAO');
+                    $gsoTitle = \App\Models\CampusSetting::get('gso_title', 'General Services Officer');
+                    $ceoName = \App\Models\CampusSetting::get('ceo_name', 'ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.');
+                    $ceoTitle = \App\Models\CampusSetting::get('ceo_title', 'Campus Executive Officer');
+                @endphp
+                <div class="grid grid-cols-2 gap-8 mt-1">
+                    <!-- Left: Prepared by GSO -->
+                    <div class="flex flex-col text-left">
+                        <span class="text-xs text-black font-semibold mb-5">Prepared by:</span>
+                        <span class="text-xs font-extrabold text-black uppercase">{{ $gsoName }}</span>
+                        <span class="text-[10px] text-black font-semibold">{{ $gsoTitle }}</span>
                     </div>
-                    <div class="w-full border-t border-black text-center pt-0.5 text-[9px] sm:text-[10px] font-bold text-black uppercase">Driver's Signature</div>
+                    
+                    <!-- Right: Approved by CEO -->
+                    <div class="flex flex-col text-center">
+                        <span class="text-xs text-black font-semibold mb-5 text-left pl-4">Approved by:</span>
+                        <span class="text-xs font-extrabold text-black uppercase">{{ $ceoName }}</span>
+                        <span class="text-[10px] text-black font-semibold">{{ $ceoTitle }}</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Document Metadata footer details -->
-        <div class="pt-2.5 sm:pt-4 flex justify-between items-center text-[9px] sm:text-[10px] text-black font-mono border-t border-black mt-2 sm:mt-4">
-            <span>F - GSO - 61202</span>
-            <span>Rev. No. 02, October 20, 2025</span>
+            <!-- Itinerary to be filled by driver -->
+            <div class="border border-black p-2.5 mb-3">
+                <span class="text-[10px] font-extrabold uppercase tracking-wide text-black block mb-0.5">To be filled up by Driver:</span>
+                <span class="text-xs underline font-bold text-black block mb-1.5">Itinerary of Travel:</span>
+                
+                @php
+                    $depLog = \App\Models\ActivityLog::where('model_type', \App\Models\TripTicket::class)
+                        ->where('model_id', $ticket->id)
+                        ->where('action', 'Departure Logged')
+                        ->first();
+                    $arrLog = \App\Models\ActivityLog::where('model_type', \App\Models\TripTicket::class)
+                        ->where('model_id', $ticket->id)
+                        ->where('action', 'Arrival Logged')
+                        ->first();
+                    $hasDigitalLogs = ($depLog || $arrLog || $ticket->status === 'completed');
+                    $travelDate = $ticket->vehicleRequest?->date ? \Carbon\Carbon::parse($ticket->vehicleRequest->date)->format('Y-m-d') : '';
+                    $depTime = $depLog ? \Carbon\Carbon::parse($depLog->created_at)->format('g:i A') : ($ticket->vehicleRequest?->time ? \Carbon\Carbon::parse($ticket->vehicleRequest->time)->format('g:i A') : '');
+                    $arrTime = $arrLog ? \Carbon\Carbon::parse($arrLog->created_at)->format('g:i A') : ($ticket->status === 'completed' ? \Carbon\Carbon::parse($ticket->updated_at)->format('g:i A') : '');
+                    $dest = $ticket->vehicleRequest?->destination ?? '';
+                @endphp
+
+                <table class="w-full border-collapse border border-black text-[10px]">
+                    <thead>
+                        <tr>
+                            <th class="border border-black p-1 text-center font-bold w-[18%]" rowspan="2">DATE</th>
+                            <th class="border border-black p-1 text-center font-bold w-[41%]" colspan="2">DEPARTURE</th>
+                            <th class="border border-black p-1 text-center font-bold w-[41%]" colspan="2">ARRIVAL</th>
+                        </tr>
+                        <tr>
+                            <th class="border border-black p-1 text-center font-bold w-[14%]">TIME</th>
+                            <th class="border border-black p-1 text-center font-bold w-[27%]">PLACE</th>
+                            <th class="border border-black p-1 text-center font-bold w-[14%]">TIME</th>
+                            <th class="border border-black p-1 text-center font-bold w-[27%]">PLACE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if($hasDigitalLogs)
+                            <tr>
+                                <td class="border border-black p-1.5 font-mono font-semibold text-center">{{ $travelDate }}</td>
+                                <td class="border border-black p-1.5 font-mono font-semibold text-center">{{ $depTime }}</td>
+                                <td class="border border-black p-1.5 font-semibold">CSU Lal-lo Campus</td>
+                                <td class="border border-black p-1.5 font-mono font-semibold text-center">{{ $arrTime ?: '---' }}</td>
+                                <td class="border border-black p-1.5 font-semibold">{{ $dest }}</td>
+                            </tr>
+                            @for($i=0; $i<2; $i++)
+                                <tr>
+                                    <td class="border border-black p-1.5 h-6"></td>
+                                    <td class="border border-black p-1.5"></td>
+                                    <td class="border border-black p-1.5"></td>
+                                    <td class="border border-black p-1.5"></td>
+                                    <td class="border border-black p-1.5"></td>
+                                </tr>
+                            @endfor
+                        @else
+                            @for($i=0; $i<3; $i++)
+                                <tr>
+                                    <td class="border border-black p-1.5 h-6"></td>
+                                    <td class="border border-black p-1.5"></td>
+                                    <td class="border border-black p-1.5"></td>
+                                    <td class="border border-black p-1.5"></td>
+                                    <td class="border border-black p-1.5"></td>
+                                </tr>
+                            @endfor
+                        @endif
+                    </tbody>
+                </table>
+
+                @if($ticket->start_odometer || $ticket->end_odometer)
+                    <div class="mt-1.5 p-1.5 bg-gray-50 border border-black text-[9px] flex justify-between items-center font-mono">
+                        <div>
+                            <span class="font-bold">Start:</span> {{ $ticket->start_odometer ? number_format($ticket->start_odometer) . ' km' : 'N/A' }}
+                        </div>
+                        <div>
+                            <span class="font-bold">Arrival:</span> {{ $ticket->end_odometer ? number_format($ticket->end_odometer) . ' km' : 'N/A' }}
+                        </div>
+                        <div>
+                            <span class="font-bold">Distance:</span> 
+                            <span class="font-bold text-black underline">{{ $ticket->distance_traveled ? number_format($ticket->distance_traveled) . ' km' : 'N/A' }}</span>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Post-travel Certification -->
+            <div class="mb-2 text-xs">
+                <p class="font-semibold mb-1.5">I CERTIFY the Condition of Vehicle after travel:</p>
+                <div class="flex justify-between items-end gap-2">
+                    <div class="flex flex-col gap-1">
+                        <label class="flex items-center gap-2 cursor-default pointer-events-none">
+                            <input type="checkbox" disabled {{ $ticket->status === 'completed' ? 'checked' : '' }} class="w-3.5 h-3.5 accent-black pointer-events-none cursor-default" />
+                            <span class="font-bold text-black">GOOD</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-default pointer-events-none">
+                            <input type="checkbox" disabled class="w-3.5 h-3.5 accent-black pointer-events-none cursor-default" />
+                            <span class="font-bold text-black">Not GOOD (for Service maintenance)</span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex flex-col items-center w-64">
+                        <div class="h-6 border-b border-gray-300 w-11/12 mx-auto mb-0.5 flex items-center justify-center">
+                            @if($ticket->status === 'completed')
+                                <span class="text-[10px] font-bold text-black uppercase tracking-wider">{{ $ticket->driver?->name }}</span>
+                            @endif
+                        </div>
+                        <div class="w-full border-t border-black text-center pt-0.5 text-[10px] font-bold text-black uppercase">Driver's Signature</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document Metadata footer details -->
+            <div class="pt-3 flex justify-between items-center text-[10px] text-black font-mono border-t border-black mt-3">
+                <span>F - GSO - 61202</span>
+                <span>Rev. No. 02, October 20, 2025</span>
+            </div>
         </div>
     </div>
 
@@ -377,12 +427,39 @@
                 `;
             }
 
-            const element = document.querySelector('.print-container');
+            // Immediately ensure page scroll is at origin
+            window.scrollTo(0, 0);
+
+            const sourceDoc = document.querySelector('.trip-ticket-doc');
             const filename = 'Vehicle-Trip-Ticket-{{ $ticket->ticket_number }}.pdf';
 
-            // Clean 1-Page US Letter Configuration (Strictly avoids blank 2nd page)
+            // Create offscreen container fixed to 816px (standard 8.5in at 96 DPI)
+            const offscreen = document.createElement('div');
+            offscreen.style.position = 'fixed';
+            offscreen.style.left = '-10000px';
+            offscreen.style.top = '0';
+            offscreen.style.width = '816px';
+            offscreen.style.minWidth = '816px';
+            offscreen.style.maxWidth = '816px';
+            offscreen.style.backgroundColor = '#ffffff';
+            offscreen.style.zIndex = '-9999';
+            offscreen.style.overflow = 'visible';
+
+            const clone = sourceDoc.cloneNode(true);
+            clone.style.width = '816px';
+            clone.style.minWidth = '816px';
+            clone.style.maxWidth = '816px';
+            clone.style.margin = '0';
+            clone.style.padding = '32px 36px';
+            clone.style.boxShadow = 'none';
+            clone.style.border = 'none';
+            clone.style.backgroundColor = '#ffffff';
+
+            offscreen.appendChild(clone);
+            document.body.appendChild(offscreen);
+
             const opt = {
-                margin:       [0.2, 0.25, 0.2, 0.25], // top, left, bottom, right in inches
+                margin:       [0.2, 0.2, 0.2, 0.2], // top, left, bottom, right in inches
                 filename:     filename,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  {
@@ -390,36 +467,19 @@
                     useCORS: true,
                     allowTaint: true,
                     logging: false,
+                    width: 816,
+                    windowWidth: 816,
+                    x: 0,
+                    y: 0,
                     scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: 816, // Exactly 8.5in at 96 DPI for perfect desktop layout
-                    onclone: function(clonedDoc) {
-                        clonedDoc.body.style.width = '816px';
-                        clonedDoc.body.style.minWidth = '816px';
-                        clonedDoc.body.style.margin = '0 auto';
-                        clonedDoc.body.style.padding = '0';
-                        clonedDoc.body.style.background = '#ffffff';
-
-                        const el = clonedDoc.querySelector('.print-container');
-                        if (el) {
-                            el.style.width = '768px'; // 8.0 inches wide inside margins
-                            el.style.maxWidth = '768px';
-                            el.style.minWidth = '768px';
-                            el.style.margin = '0 auto';
-                            el.style.padding = '18px 24px';
-                            el.style.minHeight = '0';
-                            el.style.height = 'auto';
-                            el.style.boxShadow = 'none';
-                            el.style.border = 'none';
-                        }
-                    }
+                    scrollY: 0
                 },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
             try {
-                const pdfWorker = html2pdf().set(opt).from(element);
+                const pdfWorker = html2pdf().set(opt).from(clone);
                 const blob = await pdfWorker.output('blob');
                 const blobUrl = URL.createObjectURL(blob);
 
@@ -462,6 +522,10 @@
                     btnEl.disabled = false;
                     btnEl.innerHTML = originalHtml;
                 }
+            } finally {
+                if (offscreen.parentNode) {
+                    offscreen.parentNode.removeChild(offscreen);
+                }
             }
         }
 
@@ -470,8 +534,17 @@
                 btn.classList.add('opacity-75');
                 setTimeout(() => btn.classList.remove('opacity-75'), 1200);
             }
+            window.scrollTo(0, 0);
+            const sheetOuters = document.querySelectorAll('.sheet-outer');
+            sheetOuters.forEach(el => el.scrollLeft = 0);
             window.print();
         }
+
+        window.addEventListener('beforeprint', () => {
+            window.scrollTo(0, 0);
+            const sheetOuters = document.querySelectorAll('.sheet-outer');
+            sheetOuters.forEach(el => el.scrollLeft = 0);
+        });
     </script>
 
 </body>

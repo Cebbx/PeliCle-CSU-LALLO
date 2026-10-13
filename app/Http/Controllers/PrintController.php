@@ -145,6 +145,109 @@ class PrintController extends Controller
         return view('print.trip-ticket', compact('ticket', 'vehicleModel', 'vehiclePlate'));
     }
 
+    public function printTravelOrder(Request $request, $id)
+    {
+        $ticket = TripTicket::with(['driver', 'vehicleRequest', 'vehicleRequests'])->findOrFail($id);
+        $type = $request->query('type', 'employee'); // employee or driver
+
+        $vr = $ticket->vehicleRequest ?: $ticket->vehicleRequests->first();
+
+        $name = '';
+        $position = '';
+        
+        if ($type === 'driver') {
+            $name = $ticket->driver?->name ?? '';
+            $position = 'Administrative Assistant I / Driver';
+        } else {
+            $name = $vr?->employee_name ?? '';
+            $position = $vr?->department ?? '';
+        }
+
+        $departure = '__________________';
+        if ($vr && !empty($vr->date)) {
+            $timeStr = !empty($vr->time) ? $vr->time : '00:00';
+            try {
+                $departure = \Carbon\Carbon::parse($vr->date . ' ' . $timeStr)->format('F d, Y h:i A');
+            } catch (\Throwable $e) {
+                $departure = $vr->date;
+            }
+        } elseif (!empty($ticket->departure_time)) {
+            try {
+                $departure = \Carbon\Carbon::parse($ticket->departure_time)->format('F d, Y h:i A');
+            } catch (\Throwable $e) {}
+        }
+
+        $arrival = '__________________';
+        if ($vr && !empty($vr->return_date)) {
+            $returnTimeStr = !empty($vr->return_time) ? $vr->return_time : '00:00';
+            try {
+                $arrival = \Carbon\Carbon::parse($vr->return_date . ' ' . $returnTimeStr)->format('F d, Y h:i A');
+            } catch (\Throwable $e) {
+                $arrival = $vr->return_date;
+            }
+        } elseif (!empty($ticket->arrival_time)) {
+            try {
+                $arrival = \Carbon\Carbon::parse($ticket->arrival_time)->format('F d, Y h:i A');
+            } catch (\Throwable $e) {}
+        }
+        
+        $destination = $vr?->destination ?? '';
+        $purpose = $vr?->purpose ?? '';
+
+        $vehicleName = '';
+        if ($ticket->vehicle) {
+            $dbVehicle = \App\Models\Vehicle::where('plate_number', $ticket->vehicle)->first();
+            $vehicleName = $dbVehicle ? "{$dbVehicle->brand} ({$dbVehicle->plate_number})" : $ticket->vehicle;
+        }
+
+        $seriesYear = date('Y');
+        $seriesMonth = date('m');
+        $seriesDay = date('d');
+
+        if ($vr) {
+            $reqDate = null;
+            if (!empty($vr->created_at)) {
+                $reqDate = $vr->created_at;
+            } elseif (!empty($vr->date)) {
+                try {
+                    $reqDate = \Carbon\Carbon::parse($vr->date);
+                } catch (\Throwable $e) {}
+            }
+            if ($reqDate) {
+                $seriesYear = $reqDate->format('Y');
+                $seriesMonth = $reqDate->format('m');
+                $seriesDay = $reqDate->format('d');
+            }
+            if (!empty($vr->request_number)) {
+                $cleanNum = preg_replace('/^VR-/', '', $vr->request_number);
+                $parts = explode('-', $cleanNum);
+                if (count($parts) >= 3) {
+                    $seriesYear = $parts[0];
+                    $seriesMonth = $parts[1];
+                    $seriesDay = $parts[2];
+                }
+            }
+        }
+
+        $isOB = !str_contains(strtolower($purpose), 'official time');
+
+        return view('print.travel-order', compact(
+            'ticket',
+            'type',
+            'name',
+            'position',
+            'departure',
+            'arrival',
+            'destination',
+            'purpose',
+            'vehicleName',
+            'seriesYear',
+            'seriesMonth',
+            'seriesDay',
+            'isOB'
+        ));
+    }
+
     public function printSlip($id)
     {
         $slip = \App\Models\WithdrawalSlip::with(['tripTicket.driver'])->findOrFail($id);

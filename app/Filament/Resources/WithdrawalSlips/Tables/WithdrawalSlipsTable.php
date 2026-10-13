@@ -66,10 +66,44 @@ class WithdrawalSlipsTable
                     ->label('Archive Status'),
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->label('View Slip')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->modalHeading(fn ($record) => "Fuel Withdrawal Slip — Control No. {$record->slip_number}")
+                    ->extraModalFooterActions([
+                        Action::make('printFromModal')
+                            ->label('Print Slip')
+                            ->icon('heroicon-o-printer')
+                            ->color('primary')
+                            ->url(fn ($record) => route('withdrawal-slips.print', $record->id))
+                            ->openUrlInNewTab(),
+                    ]),
+                Action::make('approve_slip')
+                    ->label('Approve Slip')
+                    ->icon('heroicon-o-check-badge')
+                    ->color('success')
+                    ->visible(fn ($record) => $record->status === 'pending')
+                    ->requiresConfirmation()
+                    ->modalHeading('Approve Fuel Withdrawal Slip')
+                    ->modalDescription(fn ($record) => "Are you sure you want to approve fuel slip {$record->slip_number}? This will officially authorize fuel withdrawal.")
+                    ->modalSubmitActionLabel('Yes, Approve Slip')
+                    ->action(function ($record) {
+                        $record->update(['status' => 'approved']);
+                        \Filament\Notifications\Notification::make()
+                            ->title('Withdrawal Slip Approved')
+                            ->body("Fuel withdrawal slip {$record->slip_number} is now approved.")
+                            ->success()
+                            ->send();
+                    }),
+                EditAction::make()
+                    ->label('Edit')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('primary'),
                 Action::make('print')
                     ->label('Print Slip')
                     ->icon('heroicon-o-printer')
-                    ->color('primary')
+                    ->color('info')
                     ->url(fn ($record) => route('withdrawal-slips.print', $record->id))
                     ->openUrlInNewTab(),
                 DeleteAction::make()

@@ -123,12 +123,20 @@ class User extends Authenticatable implements FilamentUser
 
     public static function getCeoName(): string
     {
+        $setting = \App\Models\CampusSetting::get('ceo_name');
+        if ($setting) {
+            return $setting;
+        }
         $ceo = static::getCeo();
         return $ceo?->name ?? 'ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.';
     }
 
     public static function getCeoTitle(): string
     {
+        $setting = \App\Models\CampusSetting::get('ceo_title');
+        if ($setting) {
+            return $setting;
+        }
         $ceo = static::getCeo();
         return $ceo?->position ?? 'Campus Executive Officer';
     }
@@ -143,13 +151,31 @@ class User extends Authenticatable implements FilamentUser
 
     public static function getGsoName(): string
     {
+        $setting = \App\Models\CampusSetting::get('gso_name');
+        if ($setting) {
+            return $setting;
+        }
         $gso = static::getGso();
         return $gso?->name ?? 'JOEL A. TUMAMAO';
     }
 
     public static function getGsoTitle(): string
     {
+        $setting = \App\Models\CampusSetting::get('gso_title');
+        if ($setting) {
+            return $setting;
+        }
         $gso = static::getGso();
         return $gso?->position ?? 'General Services Officer';
+    }
+
+    public static function getCaoName(): string
+    {
+        return \App\Models\CampusSetting::get('cao_name', 'DR. ARLENE D. TALAMAYAN');
+    }
+
+    public static function getCaoTitle(): string
+    {
+        return \App\Models\CampusSetting::get('cao_title', 'Chief Administrative Officer');
     }
 }

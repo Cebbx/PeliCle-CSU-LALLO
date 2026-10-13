@@ -345,6 +345,26 @@ class TripTicketsTable
                         ->color('info')
                         ->url(fn ($record) => route('trip-tickets.print', $record->id))
                         ->openUrlInNewTab(),
+                    Action::make('create_slip')
+                        ->label('Create Fuel Slip')
+                        ->icon('heroicon-o-document-plus')
+                        ->color('warning')
+                        ->visible(fn ($record) => !$record->withdrawalSlips()->exists() && in_array($record->status, ['pending', 'active']))
+                        ->url(fn ($record) => \App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('create', [
+                            'trip_ticket_id' => $record->id,
+                        ])),
+                    Action::make('print_travel_order_driver')
+                        ->label('Print Driver Travel Order')
+                        ->icon('heroicon-o-document-text')
+                        ->color('success')
+                        ->url(fn ($record) => route('trip-tickets.print-travel-order', [$record->id, 'type' => 'driver']))
+                        ->openUrlInNewTab(),
+                    Action::make('print_travel_order_employee')
+                        ->label('Print Passenger Travel Order')
+                        ->icon('heroicon-o-user-group')
+                        ->color('primary')
+                        ->url(fn ($record) => route('trip-tickets.print-travel-order', [$record->id, 'type' => 'employee']))
+                        ->openUrlInNewTab(),
                     \Filament\Actions\DeleteAction::make()
                         ->label('Archive Trip Ticket')
                         ->icon('heroicon-o-archive-box')
