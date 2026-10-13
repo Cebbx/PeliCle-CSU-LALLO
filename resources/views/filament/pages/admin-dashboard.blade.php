@@ -1140,25 +1140,7 @@
 
         </div>
 
-        <!-- ROW 4: Fleet Booking & Travel Calendar Widget -->
-        <div style="margin-top: 14px;">
-            <x-filament-widgets::widgets :widgets="$widgets ?? []" />
-        </div>
 
-        <!-- Clean Simple System Footer -->
-        <div class="dash-footer-bar" style="margin-top: 20px; padding: 14px 18px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 11px; color: #64748b; font-family: 'Outfit', sans-serif;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-weight: 700; color: #cbd5e1;">Cagayan State University &bull; Lal-lo Campus</span>
-                <span style="color: #475569;">|</span>
-                <span>PeliCle: Vehicle &amp; Trip Management System</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
-                <span style="color: #94a3b8; font-weight: 600;">System Online</span>
-                <span style="color: #475569;">&bull;</span>
-                <span>{{ now('Asia/Manila')->format('Y') }}</span>
-            </div>
-        </div>
 
         <!-- Travelers Leaderboard Modal -->
         <div x-show="showTravelersModal" 

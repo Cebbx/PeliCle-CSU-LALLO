@@ -55,9 +55,7 @@ class Dashboard extends BaseDashboard
 
     public function getWidgets(): array
     {
-        return [
-            \App\Filament\Widgets\FleetCalendarWidget::class,
-        ];
+        return [];
     }
 
     public function getDriverStats(): array
