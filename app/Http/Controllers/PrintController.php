@@ -42,10 +42,34 @@ class PrintController extends Controller
         ]);
     }
 
+    public function downloadSignedDocument($id)
+    {
+        $request = VehicleRequest::findOrFail($id);
+
+        if (!$request->document) {
+            abort(404, 'No signed document has been uploaded for this request yet.');
+        }
+
+        $filePath = storage_path('app/public/' . $request->document);
+        if (!file_exists($filePath)) {
+            $fallback = public_path('storage/' . $request->document);
+            if (file_exists($fallback)) {
+                $filePath = $fallback;
+            } else {
+                abort(404, 'The uploaded signed document file was not found on the server.');
+            }
+        }
+
+        $extension = strtolower(pathinfo($request->document, PATHINFO_EXTENSION));
+        $downloadFilename = 'CEO-Signed-Document-' . ($request->request_number ?: $request->id) . '.' . $extension;
+
+        return response()->download($filePath, $downloadFilename);
+    }
+
     public function viewTripTicketSignedDocument($id)
     {
         $ticket = TripTicket::with('vehicleRequest')->findOrFail($id);
-        
+
         $doc = $ticket->document ?: $ticket->vehicleRequest?->document;
 
         if (!$doc) {
@@ -66,6 +90,32 @@ class PrintController extends Controller
             'fileName' => basename($doc),
             'downloadFilename' => $downloadFilename,
         ]);
+    }
+
+    public function downloadTripTicketSignedDocument($id)
+    {
+        $ticket = TripTicket::with('vehicleRequest')->findOrFail($id);
+
+        $doc = $ticket->document ?: $ticket->vehicleRequest?->document;
+
+        if (!$doc) {
+            abort(404, 'No signed document has been uploaded for this trip ticket yet.');
+        }
+
+        $filePath = storage_path('app/public/' . $doc);
+        if (!file_exists($filePath)) {
+            $fallback = public_path('storage/' . $doc);
+            if (file_exists($fallback)) {
+                $filePath = $fallback;
+            } else {
+                abort(404, 'The uploaded signed document file was not found on the server.');
+            }
+        }
+
+        $extension = strtolower(pathinfo($doc, PATHINFO_EXTENSION));
+        $downloadFilename = 'CEO-Signed-Document-' . ($ticket->ticket_number ?: $ticket->id) . '.' . $extension;
+
+        return response()->download($filePath, $downloadFilename);
     }
 
     public function printTicket($id)
