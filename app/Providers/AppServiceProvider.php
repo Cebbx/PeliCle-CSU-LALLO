@@ -75,8 +75,10 @@ class AppServiceProvider extends ServiceProvider
                         if ($found) {
                             $credentials['email'] = $found->email;
                         }
-                    } elseif ($plainEmail === 'employee') {
+                    } elseif (in_array($plainEmail, ['employee', 'employee@gmail.com', 'staff', 'user'])) {
                         $credentials['email'] = 'employee@example.com';
+                    } elseif (in_array($plainEmail, ['ceo', 'hrmo', 'cics', 'cte', 'coa', 'chm', 'accounting', 'budget', 'property', 'records', 'planning', 'mis', 'registrar', 'admission', 'publication', 'library', 'cafevalena', 'csc', 'dmst'])) {
+                        $credentials['email'] = $plainEmail . '@csu.edu.ph';
                     }
 
                     return parent::retrieveByCredentials($credentials);
