@@ -266,7 +266,7 @@
             clone.style.maxWidth = '816px';
             clone.style.minWidth = '816px';
             clone.style.margin = '0 auto';
-            clone.style.padding = '32px 40px';
+            clone.style.padding = '32px 48px';
             clone.style.boxShadow = 'none';
             clone.style.border = 'none';
             clone.style.backgroundColor = '#ffffff';
@@ -275,7 +275,7 @@
             document.body.appendChild(offscreen);
 
             const opt = {
-                margin:       [0.25, 0.25, 0.25, 0.25], // top, left, bottom, right in inches
+                margin:       0,
                 filename:     filename,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  {

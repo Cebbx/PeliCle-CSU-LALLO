@@ -75,10 +75,10 @@
 
     <!-- Main Form Page Sheet -->
     <div class="bg-white w-full max-w-[8.5in] mx-auto p-3.5 sm:p-8 shadow-md sm:shadow-lg border border-gray-200 flex flex-col print-container box-border">
-        <!-- Header (Flexbox layout - Centered on Mobile, Desktop & Print) -->
-        <div class="w-full border-b-2 border-black pb-3 sm:pb-4 mb-4 sm:mb-6 flex items-center justify-center gap-3 sm:gap-6">
-            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-12 h-12 sm:w-16 sm:h-16 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
-            <div class="text-center">
+        <!-- Header (Properly Centered Header with Left Logo) -->
+        <div class="relative w-full border-b-2 border-black pb-3 sm:pb-4 mb-4 sm:mb-6 flex items-center justify-center min-h-[64px] sm:min-h-[76px]">
+            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
+            <div class="text-center w-full px-14 sm:px-18">
                 <h2 class="text-[10px] sm:text-xs uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</h2>
                 <h1 class="text-xs sm:text-base font-extrabold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
                 <h3 class="text-[10px] sm:text-xs text-black mt-0.5 font-medium leading-tight">Lal-lo Campus</h3>
@@ -281,7 +281,7 @@
             clone.style.maxWidth = '816px';
             clone.style.minWidth = '816px';
             clone.style.margin = '0 auto';
-            clone.style.padding = '24px 32px';
+            clone.style.padding = '24px 36px';
             clone.style.boxShadow = 'none';
             clone.style.border = 'none';
             clone.style.backgroundColor = '#ffffff';
@@ -290,7 +290,7 @@
             document.body.appendChild(offscreen);
 
             const opt = {
-                margin:       [0.2, 0.2, 0.2, 0.2], // top, left, bottom, right in inches
+                margin:       0,
                 filename:     filename,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  {
