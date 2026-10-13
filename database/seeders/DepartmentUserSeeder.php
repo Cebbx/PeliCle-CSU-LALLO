@@ -37,12 +37,16 @@ class DepartmentUserSeeder extends Seeder
 
         foreach ($departments as $code => $name) {
             $email = $code . '@csu.edu.ph';
-            User::create([
-                'name' => $name,
-                'email' => $email,
-                'password' => Hash::make($code),
-                'role' => 'employee',
-            ]);
+            User::updateOrCreate(
+                ['email' => $email],
+                [
+                    'name' => $name,
+                    'department' => $name,
+                    'password' => Hash::make($code),
+                    'plain_password' => $code,
+                    'role' => 'employee',
+                ]
+            );
         }
     }
 }
