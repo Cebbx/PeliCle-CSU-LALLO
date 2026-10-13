@@ -144,23 +144,23 @@
         </div>
 
         <!-- Details Table Grid -->
-        <table class="w-full border-collapse border border-black mb-3 sm:mb-4 text-[10px] sm:text-xs">
+        <table class="doc-table mb-3 sm:mb-4 text-[10px] sm:text-xs">
             <tbody>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold w-24 sm:w-28">Date:</td>
-                    <td class="border border-black p-1.5 sm:p-2 w-1/2">{{ \Carbon\Carbon::parse($ticket->vehicleRequest?->date ?? $ticket->created_at)->format('F d, Y') }}</td>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold w-20 sm:w-24">Vehicle:</td>
-                    <td class="border border-black p-1.5 sm:p-2">{{ $vehicleModel }}</td>
+                    <td class="p-1.5 sm:p-2 font-bold w-24 sm:w-28">Date:</td>
+                    <td class="p-1.5 sm:p-2 w-1/2">{{ \Carbon\Carbon::parse($ticket->vehicleRequest?->date ?? $ticket->created_at)->format('F d, Y') }}</td>
+                    <td class="p-1.5 sm:p-2 font-bold w-20 sm:w-24">Vehicle:</td>
+                    <td class="p-1.5 sm:p-2">{{ $vehicleModel }}</td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold">Driver's Name:</td>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold">{{ $ticket->driver?->name ?? 'N/A' }}</td>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold">PLATE No:</td>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold">{{ $vehiclePlate }}</td>
+                    <td class="p-1.5 sm:p-2 font-bold">Driver's Name:</td>
+                    <td class="p-1.5 sm:p-2 font-bold">{{ $ticket->driver?->name ?? 'N/A' }}</td>
+                    <td class="p-1.5 sm:p-2 font-bold">PLATE No:</td>
+                    <td class="p-1.5 sm:p-2 font-bold">{{ $vehiclePlate }}</td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold">Authorized Passenger/s:</td>
-                    <td class="border border-black p-1.5 sm:p-2" colspan="3">
+                    <td class="p-1.5 sm:p-2 font-bold">Authorized Passenger/s:</td>
+                    <td class="p-1.5 sm:p-2" colspan="3">
                         @if($isCarpool)
                             <div class="space-y-1 py-0.5">
                                 @foreach($allRequests as $req)
@@ -171,9 +171,9 @@
                                         }
                                         $pNames = collect($passengers)->pluck('name')->join(', ');
                                     @endphp
-                                    <div class="border-b border-gray-200 pb-1 last:border-b-0 last:pb-0">
+                                    <div class="pb-1 last:pb-0">
                                         <div class="flex items-center gap-1.5">
-                                            <span class="font-bold text-black uppercase text-[9px] bg-gray-100 px-1 py-0.2 rounded border border-gray-300">
+                                            <span class="font-bold text-black uppercase text-[9px] bg-white px-1 py-0.2 rounded border border-black">
                                                 {{ $req->department ?: 'N/A' }} ({{ $req->number_of_passengers }} {{ ($req->number_of_passengers ?: 1) > 1 ? 'persons' : 'person' }})
                                             </span>
                                             <span class="font-semibold text-black text-[10px] sm:text-xs">
@@ -206,8 +206,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold">Place to Visit:</td>
-                    <td class="border border-black p-1.5 sm:p-2" colspan="3">
+                    <td class="p-1.5 sm:p-2 font-bold">Place to Visit:</td>
+                    <td class="p-1.5 sm:p-2" colspan="3">
                         @php
                             $destinations = $allRequests->pluck('destination')->unique()->values();
                         @endphp
@@ -223,8 +223,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="border border-black p-1.5 sm:p-2 font-bold">Purpose/s:</td>
-                    <td class="border border-black p-1.5 sm:p-2" colspan="3">
+                    <td class="p-1.5 sm:p-2 font-bold">Purpose/s:</td>
+                    <td class="p-1.5 sm:p-2" colspan="3">
                         @if($isCarpool)
                             <div class="space-y-0.5">
                                 @foreach($allRequests as $req)
@@ -290,46 +290,46 @@
                 $dest = $ticket->vehicleRequest?->destination ?? '';
             @endphp
 
-            <table class="w-full border-collapse border border-black text-[9px] sm:text-[10px]">
+            <table class="doc-table text-[9px] sm:text-[10px]">
                 <thead>
                     <tr>
-                        <th class="border border-black p-1 text-center font-bold" rowspan="2">DATE</th>
-                        <th class="border border-black p-1 text-center font-bold" colspan="2">DEPARTURE</th>
-                        <th class="border border-black p-1 text-center font-bold" colspan="2">ARRIVAL</th>
+                        <th class="p-1 text-center font-bold" rowspan="2">DATE</th>
+                        <th class="p-1 text-center font-bold" colspan="2">DEPARTURE</th>
+                        <th class="p-1 text-center font-bold" colspan="2">ARRIVAL</th>
                     </tr>
                     <tr>
-                        <th class="border border-black p-1 text-center font-bold">TIME</th>
-                        <th class="border border-black p-1 text-center font-bold">PLACE</th>
-                        <th class="border border-black p-1 text-center font-bold">TIME</th>
-                        <th class="border border-black p-1 text-center font-bold">PLACE</th>
+                        <th class="p-1 text-center font-bold">TIME</th>
+                        <th class="p-1 text-center font-bold">PLACE</th>
+                        <th class="p-1 text-center font-bold">TIME</th>
+                        <th class="p-1 text-center font-bold">PLACE</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if($hasDigitalLogs)
                         <tr>
-                            <td class="border border-black p-1 font-mono font-semibold text-center">{{ $travelDate }}</td>
-                            <td class="border border-black p-1 font-mono font-semibold text-center">{{ $depTime }}</td>
-                            <td class="border border-black p-1 font-semibold">CSU Lal-lo Campus</td>
-                            <td class="border border-black p-1 font-mono font-semibold text-center">{{ $arrTime ?: '---' }}</td>
-                            <td class="border border-black p-1 font-semibold">{{ $dest }}</td>
+                            <td class="p-1 font-mono font-semibold text-center">{{ $travelDate }}</td>
+                            <td class="p-1 font-mono font-semibold text-center">{{ $depTime }}</td>
+                            <td class="p-1 font-semibold">CSU Lal-lo Campus</td>
+                            <td class="p-1 font-mono font-semibold text-center">{{ $arrTime ?: '---' }}</td>
+                            <td class="p-1 font-semibold">{{ $dest }}</td>
                         </tr>
                         @for($i=0; $i<2; $i++)
                             <tr>
-                                <td class="border border-black p-1 h-7 sm:h-8"></td>
-                                <td class="border border-black p-1"></td>
-                                <td class="border border-black p-1"></td>
-                                <td class="border border-black p-1"></td>
-                                <td class="border border-black p-1"></td>
+                                <td class="p-1 h-7 sm:h-8"></td>
+                                <td class="p-1"></td>
+                                <td class="p-1"></td>
+                                <td class="p-1"></td>
+                                <td class="p-1"></td>
                             </tr>
                         @endfor
                     @else
                         @for($i=0; $i<3; $i++)
                             <tr>
-                                <td class="border border-black p-1 h-7 sm:h-8"></td>
-                                <td class="border border-black p-1"></td>
-                                <td class="border border-black p-1"></td>
-                                <td class="border border-black p-1"></td>
-                                <td class="border border-black p-1"></td>
+                                <td class="p-1 h-7 sm:h-8"></td>
+                                <td class="p-1"></td>
+                                <td class="p-1"></td>
+                                <td class="p-1"></td>
+                                <td class="p-1"></td>
                             </tr>
                         @endfor
                     @endif
@@ -337,7 +337,7 @@
             </table>
 
             @if($ticket->start_odometer || $ticket->end_odometer)
-                <div class="mt-1.5 p-1 bg-gray-50 border border-black text-[8px] sm:text-[9px] flex justify-between items-center font-mono">
+                <div class="mt-1.5 p-1 bg-white border border-black text-[8px] sm:text-[9px] flex justify-between items-center font-mono">
                     <div>
                         <span class="font-bold">Start:</span> {{ $ticket->start_odometer ? number_format($ticket->start_odometer) . ' km' : 'N/A' }}
                     </div>
@@ -368,9 +368,9 @@
                 </div>
                 
                 <div class="flex flex-col items-center w-48 sm:w-64">
-                    <div class="h-6 sm:h-7 border-b border-gray-300 w-11/12 mx-auto mb-0.5 flex items-center justify-center">
+                    <div class="h-6 sm:h-7 w-11/12 mx-auto mb-0.5 flex items-end justify-center">
                         @if($ticket->status === 'completed')
-                            <span class="text-[9px] sm:text-[10px] font-bold text-black uppercase tracking-wider">{{ $ticket->driver?->name }}</span>
+                            <span class="text-[9px] sm:text-[10px] font-bold text-black uppercase tracking-wider pb-0.5">{{ $ticket->driver?->name }}</span>
                         @endif
                     </div>
                     <div class="w-full border-t border-black text-center pt-0.5 text-[9px] sm:text-[10px] font-bold text-black uppercase">Driver's Signature</div>
