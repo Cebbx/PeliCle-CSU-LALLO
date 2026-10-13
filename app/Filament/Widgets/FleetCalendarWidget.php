@@ -15,42 +15,115 @@ class FleetCalendarWidget extends Widget
 
     protected function getViewData(): array
     {
-        $tickets = TripTicket::with(['vehicleRequest', 'driver'])
+        $tickets = TripTicket::with(['vehicleRequest', 'vehicleRequests', 'driver'])
             ->whereIn('status', ['pending', 'active', 'completed'])
+            ->latest('updated_at')
+            ->limit(50)
             ->get();
 
-        $events = [];
+        $trips = [];
+        $pendingCount = 0;
+        $activeCount = 0;
+        $completedCount = 0;
+
         foreach ($tickets as $ticket) {
-            if (!$ticket->vehicleRequest) {
-                continue;
+            $req = $ticket->vehicleRequest ?? $ticket->vehicleRequests->first();
+            $driverName = $ticket->driver?->name ?? 'Unassigned Driver';
+            
+            $status = $ticket->status;
+            if ($status === 'active') {
+                $activeCount++;
+            } elseif ($status === 'pending') {
+                $pendingCount++;
+            } elseif ($status === 'completed') {
+                $completedCount++;
             }
 
-            $req = $ticket->vehicleRequest;
-            $start = $req->date . 'T' . $req->time;
+            $dateStr = $req?->date ?? ($ticket->created_at ? $ticket->created_at->format('Y-m-d') : date('Y-m-d'));
+            $timeStr = $req?->time ?? '08:00:00';
             
-            $end = ($req->return_date && $req->return_time)
-                ? ($req->return_date . 'T' . $req->return_time)
-                : date('Y-m-d\TH:i:s', strtotime($start . ' +2 hours'));
+            try {
+                $parsedDate = \Carbon\Carbon::parse($dateStr . ' ' . $timeStr, 'Asia/Manila');
+                $formattedDate = $parsedDate->format('M d, Y');
+                $formattedTime = $parsedDate->format('h:i A');
+                $dayOfWeek = $parsedDate->format('D');
+                $monthShort = $parsedDate->format('M');
+                $dayNum = $parsedDate->format('d');
+                $isToday = $parsedDate->isToday();
+            } catch (\Throwable $e) {
+                $formattedDate = $dateStr;
+                $formattedTime = $timeStr;
+                $dayOfWeek = '';
+                $monthShort = '';
+                $dayNum = '';
+                $isToday = false;
+            }
 
-            $driverName = $ticket->driver?->name ?? 'No Driver';
-            
-            $events[] = [
+            $destination = $req?->destination ?? 'Official Route / Campus Base';
+            $purpose = $req?->purpose ?? 'University Official Business';
+            $requestedBy = $req?->employee_name ?? ($req?->user?->name ?? 'CSU Employee');
+            $dept = $req?->department ?? 'General Services';
+
+            $viewUrl = \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $ticket->id]);
+
+            $trips[] = [
                 'id' => $ticket->id,
-                'title' => "{$ticket->ticket_number} - {$ticket->vehicle} ({$driverName})",
-                'start' => $start,
-                'end' => $end,
-                'color' => match ($ticket->status) {
-                    'pending' => '#d97706', // Amber-600
-                    'active' => '#2563eb', // Blue-600
-                    'completed' => '#059669', // Emerald-600
-                    default => '#4b5563',
-                },
-                'url' => \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('edit', ['record' => $ticket->id]),
+                'ticket_number' => $ticket->ticket_number,
+                'clean_ticket_number' => $ticket->formatted_ticket_number ?? $ticket->ticket_number,
+                'status' => $status,
+                'vehicle' => $ticket->vehicle ?: 'Assigned Vehicle',
+                'driver' => $driverName,
+                'destination' => $destination,
+                'purpose' => $purpose,
+                'requested_by' => $requestedBy,
+                'department' => $dept,
+                'date_str' => $dateStr,
+                'formatted_date' => $formattedDate,
+                'formatted_time' => $formattedTime,
+                'day_of_week' => $dayOfWeek,
+                'month_short' => $monthShort,
+                'day_num' => $dayNum,
+                'is_today' => $isToday,
+                'url' => $viewUrl,
+            ];
+        }
+
+        // Sort: Active first, then Pending, then Completed
+        usort($trips, function ($a, $b) {
+            $priority = ['active' => 1, 'pending' => 2, 'completed' => 3];
+            $pA = $priority[$a['status']] ?? 4;
+            $pB = $priority[$b['status']] ?? 4;
+            if ($pA !== $pB) {
+                return $pA <=> $pB;
+            }
+            return strcmp($b['date_str'], $a['date_str']);
+        });
+
+        // Compute current week days for the week bar
+        $startOfWeek = \Carbon\Carbon::now('Asia/Manila')->startOfWeek();
+        $weekDays = [];
+        for ($i = 0; $i < 7; $i++) {
+            $day = (clone $startOfWeek)->addDays($i);
+            $dayDateStr = $day->format('Y-m-d');
+            $hasTrip = collect($trips)->contains(fn ($t) => $t['date_str'] === $dayDateStr);
+            $weekDays[] = [
+                'name' => $day->format('D'),
+                'num' => $day->format('d'),
+                'date_str' => $dayDateStr,
+                'is_today' => $day->isToday(),
+                'has_trip' => $hasTrip,
             ];
         }
 
         return [
-            'events' => $events,
+            'trips' => $trips,
+            'weekDays' => $weekDays,
+            'counts' => [
+                'total' => count($trips),
+                'active' => $activeCount,
+                'pending' => $pendingCount,
+                'completed' => $completedCount,
+            ],
         ];
     }
 }
