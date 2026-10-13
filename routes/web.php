@@ -21,6 +21,7 @@ Route::post('/guard/verify-pin', [App\Http\Controllers\QrCodeController::class, 
 Route::post('/guard/verify-otp', [App\Http\Controllers\QrCodeController::class, 'verifyOtp'])->name('guard.verify-otp');
 Route::post('/guard/resend-otp', [App\Http\Controllers\QrCodeController::class, 'resendOtp'])->name('guard.resend-otp');
 Route::match(['get', 'post'], '/guard/logout', [App\Http\Controllers\QrCodeController::class, 'logout'])->name('guard.logout');
+Route::get('/guard/logbook/print', [App\Http\Controllers\QrCodeController::class, 'printGateLogbook'])->name('guard.logbook.print');
 Route::get('/debug-500', function () {
     $logPath = storage_path('logs/laravel.log');
     if (!file_exists($logPath)) {

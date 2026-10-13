@@ -28,35 +28,49 @@
         <!-- FullCalendar JS Script -->
         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                var calendarEl = document.getElementById('fleet-calendar');
-                if (!calendarEl) return;
+            (function() {
+                function initFleetCalendar() {
+                    var calendarEl = document.getElementById('fleet-calendar');
+                    if (!calendarEl || calendarEl.dataset.initialized === 'true' || typeof FullCalendar === 'undefined') return;
+                    calendarEl.dataset.initialized = 'true';
 
-                var calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                    },
-                    events: @json($events),
-                    eventClick: function(info) {
-                        info.jsEvent.preventDefault(); // Don't navigate automatically
-                        if (info.event.url) {
-                            window.location.href = info.event.url;
+                    var calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        },
+                        events: @json($events),
+                        eventClick: function(info) {
+                            info.jsEvent.preventDefault();
+                            if (info.event.url) {
+                                window.location.href = info.event.url;
+                            }
+                        },
+                        height: 'auto',
+                        themeSystem: 'standard',
+                        eventTimeFormat: {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            meridiem: 'short'
                         }
-                    },
-                    height: 'auto',
-                    themeSystem: 'standard',
-                    eventTimeFormat: {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        meridiem: 'short'
-                    }
+                    });
+                    
+                    calendar.render();
+                }
+
+                if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    setTimeout(initFleetCalendar, 50);
+                } else {
+                    document.addEventListener('DOMContentLoaded', initFleetCalendar);
+                }
+                document.addEventListener('livewire:navigated', function() {
+                    var el = document.getElementById('fleet-calendar');
+                    if (el) el.dataset.initialized = 'false';
+                    setTimeout(initFleetCalendar, 50);
                 });
-                
-                calendar.render();
-            });
+            })();
         </script>
         
         <style>

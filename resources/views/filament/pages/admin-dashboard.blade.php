@@ -1140,6 +1140,161 @@
 
         </div>
 
+        <!-- ROW 4: Fleet Booking & Travel Calendar Widget -->
+        <div style="margin-top: 14px;">
+            <x-filament-widgets::widgets :widgets="$widgets ?? []" />
+        </div>
+
+        <!-- Travelers Leaderboard Modal -->
+        <div x-show="showTravelersModal" 
+             x-cloak 
+             class="travelers-modal-backdrop" 
+             style="display: none;"
+             @click.self="showTravelersModal = false"
+             @keydown.escape.window="showTravelersModal = false">
+            <div class="travelers-modal-card" @click.stop>
+                <div class="travelers-modal-header">
+                    <div>
+                        <h3 class="travelers-modal-title">🏆 Most Frequent Travelers</h3>
+                        <p class="travelers-modal-desc">Top employees and passengers with the highest number of trips</p>
+                    </div>
+                    <button type="button" @click="showTravelersModal = false" class="travelers-modal-close" title="Close">
+                        <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="travelers-list-wrap">
+                    @forelse($mostTravelers as $idx => $traveler)
+                        @php
+                            $rank = $idx + 1;
+                            $badgeBg = match($rank) {
+                                1 => 'background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);',
+                                2 => 'background: linear-gradient(135deg, #94a3b8, #64748b); color: #ffffff;',
+                                3 => 'background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff;',
+                                default => 'background: #1e293b; color: #94a3b8; border-color: #334155;'
+                            };
+                            $medal = match($rank) {
+                                1 => '🥇',
+                                2 => '🥈',
+                                3 => '🥉',
+                                default => '#' . $rank
+                            };
+                        @endphp
+                        <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tableSearch' => $traveler['name']]) }}" class="traveler-row-item" style="text-decoration: none; cursor: pointer; transition: background 0.15s;" title="Filter requests for {{ $traveler['name'] }}">
+                            <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                                <div class="traveler-rank-badge" style="{{ $badgeBg }}">
+                                    {{ $medal }}
+                                </div>
+                                <div style="min-width: 0;">
+                                    <div class="traveler-row-name" title="{{ $traveler['name'] }}">{{ $traveler['name'] }}</div>
+                                    <div class="traveler-row-dept" title="{{ $traveler['department'] }}">{{ $traveler['department'] }}</div>
+                                </div>
+                            </div>
+                            <span class="traveler-trip-badge">
+                                {{ $traveler['trips'] }} {{ Str::plural('trip', $traveler['trips']) }}
+                            </span>
+                        </a>
+                    @empty
+                        <div style="padding: 32px 16px; text-align: center; color: #64748b; font-size: 13px;">
+                            No traveler history recorded yet.
+                        </div>
+                    @endforelse
+                </div>
+
+                <div class="travelers-modal-footer">
+                    <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index') }}" class="travelers-view-requests-btn">
+                        View All Vehicle Requests &rarr;
+                    </a>
+                    <button type="button" @click="showTravelersModal = false" class="travelers-close-btn">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Live Transactions Modal -->
+        <div x-show="showTransactionsModal" 
+             x-cloak 
+             class="travelers-modal-backdrop" 
+             style="display: none;"
+             @click.self="showTransactionsModal = false"
+             @keydown.escape.window="showTransactionsModal = false">
+            <div class="travelers-modal-card" style="max-width: 680px;" @click.stop>
+                <div class="travelers-modal-header" style="background: #0f172a; border-bottom: 1px solid #1e293b;">
+                    <div>
+                        <h3 class="travelers-modal-title" style="display: flex; align-items: center; gap: 8px;">
+                            <span>📋</span>
+                            <span>Live System Transactions & Incident Feed</span>
+                        </h3>
+                        <p class="travelers-modal-desc">Real-time audit log ng lahat ng biyahe, emergency reports, requests, at approvals</p>
+                    </div>
+                    <button type="button" @click="showTransactionsModal = false" class="travelers-modal-close" title="Close">
+                        <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div style="max-height: 480px; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
+                    @forelse($latestTransactions ?? [] as $tx)
+                        @php
+                            $isEmergency = str_contains(strtolower($tx->action), 'breakdown') || str_contains(strtolower($tx->details), 'breakdown') || str_contains(strtolower($tx->details), 'emergency');
+                            $txBg = $isEmergency ? 'rgba(239, 68, 68, 0.12)' : '#101726';
+                            $txBorder = $isEmergency ? '#ef4444' : '#1e293b';
+                            $badgeColor = $isEmergency ? '#ef4444' : '#0284c7';
+                        @endphp
+                        <div style="background: {{ $txBg }}; border: 1px solid {{ $txBorder }}; border-radius: 10px; padding: 12px 14px; transition: transform 0.15s;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="background: {{ $badgeColor }}; color: #ffffff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;">
+                                        {{ $tx->action }}
+                                    </span>
+                                    <span style="font-size: 12.5px; font-weight: 700; color: #ffffff;">
+                                        {{ $tx->user_name }}
+                                    </span>
+                                </div>
+                                <span style="font-size: 11px; color: #94a3b8; white-space: nowrap;">
+                                    {{ $tx->created_at ? $tx->created_at->diffForHumans() : 'Recently' }}
+                                </span>
+                            </div>
+                            <div style="font-size: 12px; color: #cbd5e1; margin-top: 6px; line-height: 1.45;">
+                                {{ $tx->details }}
+                            </div>
+                            <div style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px;">
+                                <span style="font-size: 10px; color: #64748b;">
+                                    IP: {{ $tx->ip_address ?? 'Local' }} &bull; {{ $tx->created_at ? $tx->created_at->format('M d, Y h:i A') : '' }}
+                                </span>
+                                @if($tx->model_id && str_contains($tx->model_type, 'TripTicket'))
+                                    <a href="{{ \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $tx->model_id]) }}" style="font-size: 11px; color: #38bdf8; text-decoration: underline; font-weight: 600;">
+                                        Open Trip Ticket #{{ $tx->model_id }} &rarr;
+                                    </a>
+                                @elseif($tx->model_id && str_contains($tx->model_type, 'VehicleRequest'))
+                                    <a href="/admin/vehicle-requests" style="font-size: 11px; color: #38bdf8; text-decoration: underline; font-weight: 600;">
+                                        Open Vehicle Requests &rarr;
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div style="padding: 32px 16px; text-align: center; color: #64748b; font-size: 13px;">
+                            No transactions or activity logs found.
+                        </div>
+                    @endforelse
+                </div>
+
+                <div class="travelers-modal-footer" style="background: #0f172a; border-top: 1px solid #1e293b;">
+                    <a href="/admin/activity-logs" class="travelers-view-requests-btn">
+                        View Full Audit Logs Table &rarr;
+                    </a>
+                    <button type="button" @click="showTransactionsModal = false" class="travelers-close-btn">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -1173,12 +1328,14 @@
             }
 
             const currentPending = {{ (int) $pendingRequests }};
+            const currentIncidents = {{ (int) count($emergencyIncidents ?? []) }};
             if (typeof window._lastPendingRequestsCount !== 'undefined') {
-                if (currentPending > window._lastPendingRequestsCount) {
+                if (currentPending > window._lastPendingRequestsCount || (typeof window._lastIncidentsCount !== 'undefined' && currentIncidents > window._lastIncidentsCount)) {
                     playChime();
                 }
             }
             window._lastPendingRequestsCount = currentPending;
+            window._lastIncidentsCount = currentIncidents;
         })();
     </script>
 </x-filament-panels::page>

@@ -44,6 +44,7 @@ class Dashboard extends BaseDashboard
             'tripActivity' => $this->getTripActivityData(),
             'emergencyIncidents' => $this->getRecentEmergencyIncidents(),
             'latestTransactions' => $this->getLatestTransactions(),
+            'widgets' => $this->getWidgets(),
         ];
     }
 
