@@ -237,7 +237,28 @@ class DriverPanelProvider extends PanelProvider
             )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::BODY_END,
-                fn () => view('filament.components.admin-live-notifications'),
+                function () {
+                    if (! auth('driver')->check()) {
+                        return '';
+                    }
+                    $user = auth('driver')->user();
+                    if (! $user || $user->role !== 'driver') {
+                        return '';
+                    }
+                    $driver = $user->driver 
+                        ?? \App\Models\Driver::where('name', $user->name)->first()
+                        ?? ($user->email ? \App\Models\Driver::where('license_number', $user->email)->first() : null);
+                    if (! $driver) {
+                        return '';
+                    }
+                    $hasTrip = \App\Models\TripTicket::where('driver_id', $driver->id)
+                        ->whereIn('status', ['pending', 'active'])
+                        ->exists();
+                    if (! $hasTrip) {
+                        return '';
+                    }
+                    return view('filament.components.admin-live-notifications');
+                },
             )
             ->discoverResources(in: app_path('Filament/Driver/Resources'), for: 'App\Filament\Driver\Resources')
             ->discoverPages(in: app_path('Filament/Driver/Pages'), for: 'App\Filament\Driver\Pages')

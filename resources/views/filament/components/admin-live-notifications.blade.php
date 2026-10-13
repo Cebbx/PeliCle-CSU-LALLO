@@ -1,4 +1,40 @@
-{{-- Real-Time System Audio Alert & Live Notification Engine for All Panels (Admin, Employee, Driver) --}}
+@php
+    $user = \Filament\Facades\Filament::auth()->user() 
+        ?? auth('admin')->user() 
+        ?? auth('driver')->user();
+
+    // STRICT GUARD 1: Guest / Unauthenticated check (Never run on login screens or for guests)
+    if (! $user) {
+        return;
+    }
+
+    // STRICT GUARD 2: Explicitly stop if current route is a login or authentication page
+    $currentPath = request()->path();
+    if (str_contains($currentPath, 'login') || str_contains($currentPath, 'password') || str_contains($currentPath, 'auth')) {
+        return;
+    }
+
+    // STRICT GUARD 3: Strict Role Filter
+    // - Admin: Always allowed
+    // - Driver: ONLY if they have an active or pending trip ticket
+    // - Employees & other roles: Completely disabled from live alert chimes/popups
+    if ($user->role === 'driver') {
+        $driver = $user->driver 
+            ?? \App\Models\Driver::where('name', $user->name)->first()
+            ?? ($user->email ? \App\Models\Driver::where('license_number', $user->email)->first() : null);
+
+        $hasTrip = $driver ? \App\Models\TripTicket::where('driver_id', $driver->id)
+            ->whereIn('status', ['pending', 'active'])
+            ->exists() : false;
+
+        if (! $hasTrip) {
+            return;
+        }
+    } elseif ($user->role !== 'admin') {
+        return;
+    }
+@endphp
+{{-- Real-Time System Audio Alert & Live Notification Engine (Strictly Admin & Active Drivers Only) --}}
 <style>
     /* ========================================================
        CRIMSON RED UNREAD NOTIFICATION BADGE & PULSE
@@ -116,6 +152,11 @@
 
 <script>
     (function() {
+        // Immediate exit if on login or auth screens
+        if (window.location.pathname.includes('/login') || window.location.pathname.includes('/password') || window.location.pathname.includes('/auth')) {
+            return;
+        }
+
         // 1. iOS Safari (iPhone 11) + Android + Desktop WAV Ringtone & WebAudio Engine
         let audioCtx = null;
         let iosAudioUnlocked = false;
@@ -531,6 +572,7 @@
                     showFloatingToast(latest);
 
                     // Instant Live Sync: trigger immediate refresh on tables & dashboards (only if user is not typing)
+                    const isTyping = Boolean(document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName));
                     const hasOpenDropdown = document.querySelector('.fi-dropdown-panel') || document.querySelector('[aria-expanded="true"]');
                     if (window.Livewire && !isTyping && !hasOpenDropdown && !window.location.pathname.includes('/login') && !window.location.pathname.endsWith('/create') && !window.location.pathname.endsWith('/edit')) {
                         try {
