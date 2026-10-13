@@ -26,8 +26,7 @@
         justify-content: center !important;
         border: 1.5px solid #ffffff !important;
         border-radius: 9999px !important;
-        box-shadow: 0 0 10px rgba(239, 68, 68, 0.8), 0 2px 4px rgba(0, 0, 0, 0.4) !important;
-        animation: notifRedPulse 2s infinite ease-in-out !important;
+        box-shadow: 0 0 6px rgba(239, 68, 68, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4) !important;
     }
 
     html.dark .fi-topbar-database-notifications-btn .fi-badge,
@@ -36,32 +35,40 @@
         border-color: #0f172a !important;
     }
 
-    @keyframes notifRedPulse {
-        0%, 100% {
-            transform: scale(1);
-            box-shadow: 0 0 8px rgba(239, 68, 68, 0.7), 0 0 0 0 rgba(239, 68, 68, 0.5);
-        }
-        50% {
-            transform: scale(1.15);
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.95), 0 0 0 5px rgba(239, 68, 68, 0);
-        }
-    }
-
-    /* Bell icon subtle animation and highlight when unread */
+    /* Option A (Ring & Settle): Bell icon color highlight when unread */
     .fi-topbar-database-notifications-btn.has-unread-alerts svg,
     .fi-topbar-database-notifications-btn:has(.fi-badge) svg {
         color: #f59e0b !important;
-        animation: bellSwingAlert 3s infinite ease-in-out !important;
         transform-origin: top center;
     }
 
+    /* Option A: Only swings 2-3 times when new notification arrives, then settles completely */
+    .fi-topbar-database-notifications-btn.bell-ringing svg {
+        animation: bellSwingAlert 1.5s ease-in-out !important;
+        transform-origin: top center;
+    }
+
+    /* Subtle badge pop when bell rings */
+    .fi-topbar-database-notifications-btn.bell-ringing .fi-badge,
+    .fi-topbar-database-notifications-btn.bell-ringing .pelicle-unread-badge {
+        animation: badgePopOnce 0.6s ease-out !important;
+    }
+
+    @keyframes badgePopOnce {
+        0% { transform: scale(0.85); }
+        50% { transform: scale(1.25); }
+        100% { transform: scale(1); }
+    }
+
     @keyframes bellSwingAlert {
-        0%, 65%, 100% { transform: rotate(0deg); }
-        70% { transform: rotate(14deg); }
-        74% { transform: rotate(-12deg); }
-        78% { transform: rotate(8deg); }
-        82% { transform: rotate(-6deg); }
-        86% { transform: rotate(2deg); }
+        0% { transform: rotate(0deg); }
+        15% { transform: rotate(14deg); }
+        30% { transform: rotate(-12deg); }
+        45% { transform: rotate(9deg); }
+        60% { transform: rotate(-7deg); }
+        75% { transform: rotate(3deg); }
+        90% { transform: rotate(-1deg); }
+        100% { transform: rotate(0deg); }
     }
 
     /* Floating Real-Time Live Alert Toast (Appears anywhere in panel) */
@@ -285,18 +292,41 @@
             }
         }
 
+        // Option A (Ring & Settle): Rings 2-3 times on incoming event, then settles completely
+        function ringBellIconBriefly() {
+            const bellBtn = document.querySelector('.fi-topbar-database-notifications-btn');
+            if (!bellBtn) return;
+            bellBtn.classList.remove('bell-ringing');
+            void bellBtn.offsetWidth; // Force CSS reflow to replay animation cleanly
+            bellBtn.classList.add('bell-ringing');
+            setTimeout(() => {
+                bellBtn.classList.remove('bell-ringing');
+            }, 1600);
+        }
+
+        // Immediately stop bell ringing if user clicks or opens the notification panel
+        document.addEventListener('click', (e) => {
+            const bell = e.target.closest('.fi-topbar-database-notifications-btn');
+            if (bell) {
+                bell.classList.remove('bell-ringing');
+            }
+        }, { passive: true });
+
         // Global manual testers
         window.testBellSound = function() {
             unlockAudio();
             playSystemNotificationSound(false);
+            ringBellIconBriefly();
         };
         window.testAlarmSound = function() {
             unlockAudio();
             playSystemNotificationSound(true);
+            ringBellIconBriefly();
         };
         window.testPeliCleSound = function(emergency = false) {
             unlockAudio();
             playSystemNotificationSound(emergency);
+            ringBellIconBriefly();
         };
 
         // 3. Desktop Browser Notification Permission
@@ -453,6 +483,7 @@
                     const isEmerg = latest.is_emergency || false;
                     
                     playSystemNotificationSound(isEmerg);
+                    ringBellIconBriefly();
                     if ('vibrate' in navigator) {
                         try { navigator.vibrate([200, 100, 200]); } catch(e) {}
                     }
