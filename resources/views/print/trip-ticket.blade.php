@@ -26,16 +26,20 @@
                 display: none !important;
             }
             .print-container {
-                min-height: 0 !important;
-                height: auto !important;
+                min-height: 10.3in !important;
+                height: 10.3in !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
                 border: none !important;
                 box-shadow: none !important;
-                padding: 0 !important;
+                padding: 0.15in 0.25in !important;
                 margin: 0 !important;
                 max-width: 100% !important;
                 width: 100% !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
+                box-sizing: border-box !important;
             }
             @page {
                 size: letter; /* Force US Letter paper size */
@@ -76,42 +80,45 @@
     </div>
 
     <!-- Main Ticket Sheet -->
-    <div class="bg-white w-full max-w-[8.5in] mx-auto p-3.5 sm:p-7 flex flex-col print-container shadow-md sm:shadow-lg border border-gray-200 box-border">
-        <!-- Header (Centered Header with Logo beside University text) -->
-        <div class="flex items-center justify-center gap-3 sm:gap-4 border-b-2 border-black pb-2.5 sm:pb-3 mb-3 sm:mb-4">
-            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-12 h-12 sm:w-14 sm:h-14 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
-            <div class="text-center">
-                <h2 class="text-[10px] sm:text-xs uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</h2>
-                <h1 class="text-xs sm:text-base font-extrabold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
-                <h3 class="text-[10px] sm:text-xs text-black mt-0.5 font-medium leading-tight">Lal-lo, Cagayan</h3>
+    <div class="bg-white w-full max-w-[8.5in] mx-auto p-3.5 sm:p-7 flex flex-col justify-between print-container shadow-md sm:shadow-lg border border-gray-200 box-border min-h-[9.8in] sm:min-h-[10.2in]">
+        <!-- Header & Title Block -->
+        <div>
+            <!-- Header (Centered Header with Logo beside University text) -->
+            <div class="flex items-center justify-center gap-3 sm:gap-4 border-b-2 border-black pb-2.5 sm:pb-3 mb-3 sm:mb-4">
+                <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-12 h-12 sm:w-14 sm:h-14 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
+                <div class="text-center">
+                    <h2 class="text-[10px] sm:text-xs uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</h2>
+                    <h1 class="text-xs sm:text-base font-extrabold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
+                    <h3 class="text-[10px] sm:text-xs text-black mt-0.5 font-medium leading-tight">Lal-lo, Cagayan</h3>
+                </div>
             </div>
-        </div>
 
-        <!-- Title and QR Code row -->
-        @php
-            $allRequests = $ticket->all_vehicle_requests;
-            $isCarpool = count($allRequests) > 1;
-            $hasAnyUrgent = $allRequests->contains('is_urgent', true);
-        @endphp
-        <div class="flex justify-between items-center mb-3 sm:mb-4 gap-2">
-            <div>
-                <h1 class="text-xs sm:text-sm font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Trip Ticket</h1>
-                <div class="text-[11px] sm:text-xs font-bold text-black mt-1 font-mono">{{ $ticket->formatted_ticket_number }}</div>
-                @if($hasAnyUrgent)
-                    <div class="mt-1 flex flex-wrap items-center gap-1.5">
-                        <span class="inline-block px-1.5 py-0.5 border border-red-600 text-red-600 font-extrabold text-[8px] sm:text-[9px] tracking-widest uppercase rounded">🚨 URGENT DISPATCH</span>
-                    </div>
-                @endif
-            </div>
-            
-            <!-- Scan to Complete QR Code -->
-            <div class="flex flex-col items-center border border-black p-1 bg-white rounded shadow-sm flex-shrink-0">
-                @php
-                    $completionUrl = route('trip-tickets.complete-via-qr', ['ticket_number' => $ticket->ticket_number]);
-                    $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=72x72&data=' . urlencode($completionUrl);
-                @endphp
-                <img src="{{ $qrCodeUrl }}" alt="Completion QR" class="w-[60px] h-[60px] sm:w-[72px] sm:h-[72px] object-contain" />
-                <span class="text-[7px] sm:text-[8px] font-bold text-black mt-0.5 uppercase tracking-wider">Scan to Complete</span>
+            <!-- Title and QR Code row -->
+            @php
+                $allRequests = $ticket->all_vehicle_requests;
+                $isCarpool = count($allRequests) > 1;
+                $hasAnyUrgent = $allRequests->contains('is_urgent', true);
+            @endphp
+            <div class="flex justify-between items-center mb-3 sm:mb-4 gap-2">
+                <div>
+                    <h1 class="text-xs sm:text-sm font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Trip Ticket</h1>
+                    <div class="text-[11px] sm:text-xs font-bold text-black mt-1 font-mono">{{ $ticket->formatted_ticket_number }}</div>
+                    @if($hasAnyUrgent)
+                        <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                            <span class="inline-block px-1.5 py-0.5 border border-red-600 text-red-600 font-extrabold text-[8px] sm:text-[9px] tracking-widest uppercase rounded">🚨 URGENT DISPATCH</span>
+                        </div>
+                    @endif
+                </div>
+                
+                <!-- Scan to Complete QR Code -->
+                <div class="flex flex-col items-center border border-black p-1 bg-white rounded shadow-sm flex-shrink-0">
+                    @php
+                        $completionUrl = route('trip-tickets.complete-via-qr', ['ticket_number' => $ticket->ticket_number]);
+                        $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=72x72&data=' . urlencode($completionUrl);
+                    @endphp
+                    <img src="{{ $qrCodeUrl }}" alt="Completion QR" class="w-[60px] h-[60px] sm:w-[72px] sm:h-[72px] object-contain" />
+                    <span class="text-[7px] sm:text-[8px] font-bold text-black mt-0.5 uppercase tracking-wider">Scan to Complete</span>
+                </div>
             </div>
         </div>
 
@@ -227,14 +234,14 @@
             <div class="grid grid-cols-2 gap-4 sm:gap-8 mt-1">
                 <!-- Left: Prepared by Joel A. Tumamao -->
                 <div class="flex flex-col text-left">
-                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-3 sm:mb-4">Prepared by:</span>
+                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-6 sm:mb-7">Prepared by:</span>
                     <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">JOEL A. TUMAMAO</span>
                     <span class="text-[8px] sm:text-[10px] text-black font-semibold">General Services Officer</span>
                 </div>
                 
                 <!-- Right: Approved by Engr. James B. Cabildo -->
                 <div class="flex flex-col text-center">
-                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-3 sm:mb-4 text-left pl-2 sm:pl-4">Approved by:</span>
+                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-6 sm:mb-7 text-left pl-2 sm:pl-4">Approved by:</span>
                     <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.</span>
                     <span class="text-[8px] sm:text-[10px] text-black font-semibold">Campus Executive Officer</span>
                 </div>
@@ -265,43 +272,43 @@
             <table class="w-full border-collapse border border-black text-[9px] sm:text-[10px]">
                 <thead>
                     <tr>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold" rowspan="2">DATE</th>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold" colspan="2">DEPARTURE</th>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold" colspan="2">ARRIVAL</th>
+                        <th class="border border-black p-1 text-center font-bold" rowspan="2">DATE</th>
+                        <th class="border border-black p-1 text-center font-bold" colspan="2">DEPARTURE</th>
+                        <th class="border border-black p-1 text-center font-bold" colspan="2">ARRIVAL</th>
                     </tr>
                     <tr>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold">TIME</th>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold">PLACE</th>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold">TIME</th>
-                        <th class="border border-black p-0.5 sm:p-1 text-center font-bold">PLACE</th>
+                        <th class="border border-black p-1 text-center font-bold">TIME</th>
+                        <th class="border border-black p-1 text-center font-bold">PLACE</th>
+                        <th class="border border-black p-1 text-center font-bold">TIME</th>
+                        <th class="border border-black p-1 text-center font-bold">PLACE</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if($hasDigitalLogs)
                         <tr>
-                            <td class="border border-black p-0.5 sm:p-1 font-mono font-semibold text-center">{{ $travelDate }}</td>
-                            <td class="border border-black p-0.5 sm:p-1 font-mono font-semibold text-center">{{ $depTime }}</td>
-                            <td class="border border-black p-0.5 sm:p-1 font-semibold">CSU Lal-lo Campus</td>
-                            <td class="border border-black p-0.5 sm:p-1 font-mono font-semibold text-center">{{ $arrTime ?: '---' }}</td>
-                            <td class="border border-black p-0.5 sm:p-1 font-semibold">{{ $dest }}</td>
+                            <td class="border border-black p-1 font-mono font-semibold text-center">{{ $travelDate }}</td>
+                            <td class="border border-black p-1 font-mono font-semibold text-center">{{ $depTime }}</td>
+                            <td class="border border-black p-1 font-semibold">CSU Lal-lo Campus</td>
+                            <td class="border border-black p-1 font-mono font-semibold text-center">{{ $arrTime ?: '---' }}</td>
+                            <td class="border border-black p-1 font-semibold">{{ $dest }}</td>
                         </tr>
                         @for($i=0; $i<2; $i++)
                             <tr>
-                                <td class="border border-black p-0.5 sm:p-1 h-4 sm:h-5"></td>
-                                <td class="border border-black p-0.5 sm:p-1"></td>
-                                <td class="border border-black p-0.5 sm:p-1"></td>
-                                <td class="border border-black p-0.5 sm:p-1"></td>
-                                <td class="border border-black p-0.5 sm:p-1"></td>
+                                <td class="border border-black p-1 h-7 sm:h-8"></td>
+                                <td class="border border-black p-1"></td>
+                                <td class="border border-black p-1"></td>
+                                <td class="border border-black p-1"></td>
+                                <td class="border border-black p-1"></td>
                             </tr>
                         @endfor
                     @else
                         @for($i=0; $i<3; $i++)
                             <tr>
-                                <td class="border border-black p-0.5 sm:p-1 h-4 sm:h-5"></td>
-                                <td class="border border-black p-0.5 sm:p-1"></td>
-                                <td class="border border-black p-0.5 sm:p-1"></td>
-                                <td class="border border-black p-0.5 sm:p-1"></td>
-                                <td class="border border-black p-0.5 sm:p-1"></td>
+                                <td class="border border-black p-1 h-7 sm:h-8"></td>
+                                <td class="border border-black p-1"></td>
+                                <td class="border border-black p-1"></td>
+                                <td class="border border-black p-1"></td>
+                                <td class="border border-black p-1"></td>
                             </tr>
                         @endfor
                     @endif
@@ -340,7 +347,7 @@
                 </div>
                 
                 <div class="flex flex-col items-center w-48 sm:w-64">
-                    <div class="h-4 sm:h-5 border-b border-gray-300 w-11/12 mx-auto mb-0.5 flex items-center justify-center">
+                    <div class="h-6 sm:h-7 border-b border-gray-300 w-11/12 mx-auto mb-0.5 flex items-center justify-center">
                         @if($ticket->status === 'completed')
                             <span class="text-[9px] sm:text-[10px] font-bold text-black uppercase tracking-wider">{{ $ticket->driver?->name }}</span>
                         @endif
@@ -398,12 +405,17 @@
             clone.style.width = '816px';
             clone.style.maxWidth = '816px';
             clone.style.minWidth = '816px';
+            clone.style.height = '1010px';
+            clone.style.minHeight = '1010px';
             clone.style.margin = '0 auto';
-            clone.style.padding = '18px 36px';
+            clone.style.padding = '24px 36px 20px 36px';
             clone.style.boxShadow = 'none';
             clone.style.border = 'none';
             clone.style.backgroundColor = '#ffffff';
             clone.style.boxSizing = 'border-box';
+            clone.style.display = 'flex';
+            clone.style.flexDirection = 'column';
+            clone.style.justifyContent = 'space-between';
 
             offscreen.appendChild(clone);
             document.body.appendChild(offscreen);
@@ -411,14 +423,11 @@
             // 1-Page Guarantee: Letter paper height at 816px width is 1056px.
             // Ensure clone height stays strictly <= 1040px so html2pdf never creates a 2nd page.
             if (clone.offsetHeight > 1040) {
-                clone.style.padding = '10px 32px';
-                if (clone.offsetHeight > 1040) {
-                    const ratio = 1030 / clone.offsetHeight;
-                    clone.style.transform = `scale(${ratio})`;
-                    clone.style.transformOrigin = 'top center';
-                    offscreen.style.height = '1035px';
-                    offscreen.style.overflow = 'hidden';
-                }
+                const ratio = 1030 / clone.offsetHeight;
+                clone.style.transform = `scale(${ratio})`;
+                clone.style.transformOrigin = 'top center';
+                offscreen.style.height = '1035px';
+                offscreen.style.overflow = 'hidden';
             }
 
             const opt = {

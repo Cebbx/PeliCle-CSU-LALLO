@@ -26,16 +26,20 @@
                 display: none !important;
             }
             .print-container {
-                min-height: 0 !important;
-                height: auto !important;
+                min-height: 10.3in !important;
+                height: 10.3in !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
                 border: none !important;
                 box-shadow: none !important;
-                padding: 0 !important;
+                padding: 0.15in 0.25in !important;
                 margin: 0 !important;
                 max-width: 100% !important;
                 width: 100% !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
+                box-sizing: border-box !important;
             }
             @page {
                 size: letter; /* Force US Letter paper size */
@@ -76,33 +80,36 @@
     </div>
 
     <!-- Main Form Page Sheet -->
-    <div class="bg-white w-full max-w-[8.5in] mx-auto p-3.5 sm:p-7 shadow-md sm:shadow-lg border border-gray-200 flex flex-col print-container box-border">
-        <!-- Header (Centered Header with Logo beside University text) -->
-        <div class="flex items-center justify-center gap-3 sm:gap-4 border-b-2 border-black pb-2.5 sm:pb-3 mb-3 sm:mb-4">
-            <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-12 h-12 sm:w-14 sm:h-14 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
-            <div class="text-center">
-                <h2 class="text-[10px] sm:text-xs uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</h2>
-                <h1 class="text-xs sm:text-base font-extrabold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
-                <h3 class="text-[10px] sm:text-xs text-black mt-0.5 font-medium leading-tight">Lal-lo Campus</h3>
-                <h2 class="text-[9px] sm:text-[11px] font-bold uppercase tracking-wider text-black mt-0.5 leading-tight">General Service Office</h2>
+    <div class="bg-white w-full max-w-[8.5in] mx-auto p-3.5 sm:p-7 shadow-md sm:shadow-lg border border-gray-200 flex flex-col justify-between print-container box-border min-h-[9.8in] sm:min-h-[10.2in]">
+        <!-- Header & Title Block -->
+        <div>
+            <!-- Header (Centered Header with Logo beside University text) -->
+            <div class="flex items-center justify-center gap-3 sm:gap-4 border-b-2 border-black pb-2.5 sm:pb-3 mb-3 sm:mb-4">
+                <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-12 h-12 sm:w-14 sm:h-14 object-contain flex-shrink-0" onerror="this.src='/csu-logo-sm.png'" />
+                <div class="text-center">
+                    <h2 class="text-[10px] sm:text-xs uppercase tracking-wider text-black font-medium leading-tight">Republic of the Philippines</h2>
+                    <h1 class="text-xs sm:text-base font-extrabold uppercase text-black tracking-wide mt-0.5 leading-tight">Cagayan State University</h1>
+                    <h3 class="text-[10px] sm:text-xs text-black mt-0.5 font-medium leading-tight">Lal-lo Campus</h3>
+                    <h2 class="text-[9px] sm:text-[11px] font-bold uppercase tracking-wider text-black mt-0.5 leading-tight">General Service Office</h2>
+                </div>
             </div>
-        </div>
 
-        <!-- Title -->
-        <div class="text-center mb-3 sm:mb-4">
-            <h1 class="text-sm sm:text-base font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Request Form</h1>
+            <!-- Title -->
+            <div class="text-center mb-3 sm:mb-4">
+                <h1 class="text-xs sm:text-sm font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Request Form</h1>
+            </div>
         </div>
 
         <!-- Request Details Table Grid -->
         <div class="border border-black mb-3 sm:mb-4 text-xs sm:text-sm">
             <!-- Row 1 -->
             <div class="grid grid-cols-12 border-b border-black">
-                <div class="col-span-8 p-2 sm:p-2.5 border-r border-black flex flex-col justify-between" style="min-height: 52px;">
+                <div class="col-span-8 p-2 sm:p-2.5 border-r border-black flex flex-col justify-between" style="min-height: 56px;">
                     <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Client:</span>
                     <span class="text-xs sm:text-sm font-bold text-black text-center mt-0.5 border-b border-gray-300 w-11/12 mx-auto">{{ $request->employee_name }}</span>
                     <span class="text-[8px] sm:text-[9px] text-black text-center mt-0.5">Name</span>
                 </div>
-                <div class="col-span-4 p-2 sm:p-2.5 flex flex-col justify-between" style="min-height: 52px;">
+                <div class="col-span-4 p-2 sm:p-2.5 flex flex-col justify-between" style="min-height: 56px;">
                     <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Date:</span>
                     <span class="text-xs sm:text-sm font-bold text-black text-center mt-0.5 border-b border-gray-300 w-11/12 mx-auto">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</span>
                     <span class="text-[8px] sm:text-[9px] text-black text-center mt-0.5 truncate">Office: <span class="font-bold text-black">{{ $request->department }}</span></span>
@@ -111,11 +118,11 @@
 
             <!-- Row 2 -->
             <div class="grid grid-cols-12 border-b border-black">
-                <div class="col-span-6 p-2 sm:p-2.5 border-r border-black flex flex-col" style="min-height: 42px;">
+                <div class="col-span-6 p-2 sm:p-2.5 border-r border-black flex flex-col" style="min-height: 46px;">
                     <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Date of Travel:</span>
                     <span class="text-xs sm:text-sm font-bold text-black mt-0.5">{{ \Carbon\Carbon::parse($request->date)->format('F d, Y') }}</span>
                 </div>
-                <div class="col-span-6 p-2 sm:p-2.5 flex flex-col" style="min-height: 42px;">
+                <div class="col-span-6 p-2 sm:p-2.5 flex flex-col" style="min-height: 46px;">
                     <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Departure Time:</span>
                     <span class="text-xs sm:text-sm font-bold text-black mt-0.5">{{ \Carbon\Carbon::parse($request->time)->format('g:i A') }}</span>
                 </div>
@@ -123,7 +130,7 @@
 
             <!-- Row 3 -->
             <div class="grid grid-cols-12 border-b border-black">
-                <div class="col-span-12 p-2 sm:p-2.5 flex flex-col" style="min-height: 42px;">
+                <div class="col-span-12 p-2 sm:p-2.5 flex flex-col" style="min-height: 46px;">
                     <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Destination:</span>
                     <span class="text-xs sm:text-sm font-bold text-black mt-0.5">{{ $request->destination }}</span>
                 </div>
@@ -131,7 +138,7 @@
 
             <!-- Row 4 -->
             <div class="grid grid-cols-12 border-b border-black">
-                <div class="col-span-12 p-2 sm:p-2.5 flex flex-col" style="min-height: 52px;">
+                <div class="col-span-12 p-2 sm:p-2.5 flex flex-col" style="min-height: 56px;">
                     <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Purpose of Travel:</span>
                     <span class="text-xs sm:text-sm font-medium text-black mt-0.5 leading-relaxed">{{ $request->purpose }}</span>
                 </div>
@@ -176,9 +183,9 @@
                 <!-- Client's Signature -->
                 <div class="flex flex-col items-center">
                     @if(!empty($request->signature_url))
-                        <img src="{{ $request->signature_url }}" alt="Client Signature" class="h-8 sm:h-10 max-h-10 object-contain mb-1" />
+                        <img src="{{ $request->signature_url }}" alt="Client Signature" class="h-10 sm:h-12 max-h-12 object-contain mb-1" />
                     @else
-                        <div class="h-8 sm:h-10"></div>
+                        <div class="h-10 sm:h-12"></div>
                     @endif
                     <div class="w-full border-t border-black text-center pt-1">
                         <span class="text-[10px] sm:text-xs font-bold text-black uppercase">Client's Signature</span>
@@ -186,9 +193,9 @@
                 </div>
 
                 <!-- Received by -->
-                <div class="flex flex-col mt-4 sm:mt-6">
+                <div class="flex flex-col mt-5 sm:mt-7">
                     <span class="text-[9px] sm:text-[10px] font-bold text-black uppercase">Received by:</span>
-                    <div class="w-full border-b border-black mt-4 sm:mt-5"></div>
+                    <div class="w-full border-b border-black mt-5 sm:mt-6"></div>
                 </div>
             </div>
 
@@ -224,8 +231,8 @@
                 </div>
 
                 <!-- GSO signature (Line is on top of JOEL A. TUMAMAO) -->
-                <div class="flex flex-col items-center mt-4 sm:mt-6">
-                    <div class="h-3 sm:h-5"></div>
+                <div class="flex flex-col items-center mt-5 sm:mt-7">
+                    <div class="h-6 sm:h-8"></div>
                     <div class="w-full border-t border-black text-center pt-1">
                         <span class="text-xs sm:text-sm font-extrabold text-black uppercase tracking-wide">JOEL A. TUMAMAO</span>
                     </div>
@@ -282,12 +289,17 @@
             clone.style.width = '816px';
             clone.style.maxWidth = '816px';
             clone.style.minWidth = '816px';
+            clone.style.height = '1010px';
+            clone.style.minHeight = '1010px';
             clone.style.margin = '0 auto';
-            clone.style.padding = '18px 36px';
+            clone.style.padding = '24px 36px 20px 36px';
             clone.style.boxShadow = 'none';
             clone.style.border = 'none';
             clone.style.backgroundColor = '#ffffff';
             clone.style.boxSizing = 'border-box';
+            clone.style.display = 'flex';
+            clone.style.flexDirection = 'column';
+            clone.style.justifyContent = 'space-between';
 
             offscreen.appendChild(clone);
             document.body.appendChild(offscreen);
@@ -295,14 +307,11 @@
             // 1-Page Guarantee: Letter paper height at 816px width is 1056px.
             // Ensure clone height stays strictly <= 1040px so html2pdf never creates a 2nd page.
             if (clone.offsetHeight > 1040) {
-                clone.style.padding = '10px 32px';
-                if (clone.offsetHeight > 1040) {
-                    const ratio = 1030 / clone.offsetHeight;
-                    clone.style.transform = `scale(${ratio})`;
-                    clone.style.transformOrigin = 'top center';
-                    offscreen.style.height = '1035px';
-                    offscreen.style.overflow = 'hidden';
-                }
+                const ratio = 1030 / clone.offsetHeight;
+                clone.style.transform = `scale(${ratio})`;
+                clone.style.transformOrigin = 'top center';
+                offscreen.style.height = '1035px';
+                offscreen.style.overflow = 'hidden';
             }
 
             const opt = {
