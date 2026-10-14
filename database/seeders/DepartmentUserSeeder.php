@@ -32,21 +32,30 @@ class DepartmentUserSeeder extends Seeder
             'dmst' => 'Department of Military Science and Tactics Office (DMST Office)'
         ];
 
-        // Clean up previous wrong seeded employee accounts
-        User::where('role', 'employee')->where('email', 'like', '%@csu.edu.ph')->delete();
-
         foreach ($departments as $code => $name) {
             $email = $code . '@csu.edu.ph';
-            User::updateOrCreate(
-                ['email' => $email],
-                [
+            $user = User::withTrashed()->where('email', $email)->first();
+            if ($user) {
+                if ($user->trashed()) {
+                    $user->restore();
+                }
+                $user->update([
                     'name' => $name,
                     'department' => $name,
                     'password' => Hash::make($code),
                     'plain_password' => $code,
                     'role' => 'employee',
-                ]
-            );
+                ]);
+            } else {
+                User::create([
+                    'email' => $email,
+                    'name' => $name,
+                    'department' => $name,
+                    'password' => Hash::make($code),
+                    'plain_password' => $code,
+                    'role' => 'employee',
+                ]);
+            }
         }
     }
 }

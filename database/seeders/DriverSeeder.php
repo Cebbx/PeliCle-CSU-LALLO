@@ -53,16 +53,27 @@ class DriverSeeder extends Seeder
         foreach ($drivers as $driverData) {
             Driver::firstOrCreate(['license_number' => $driverData['license_number']], $driverData);
             
-            // Pre-create the user account for the driver
-            User::updateOrCreate(
-                ['email' => $driverData['license_number']],
-                [
+            // Pre-create the user account for the driver safely handling any soft deletes
+            $user = User::withTrashed()->where('email', $driverData['license_number'])->first();
+            if ($user) {
+                if ($user->trashed()) {
+                    $user->restore();
+                }
+                $user->update([
                     'name' => $driverData['name'],
                     'password' => Hash::make($driverData['license_number']),
                     'plain_password' => $driverData['license_number'],
                     'role' => 'driver',
-                ]
-            );
+                ]);
+            } else {
+                User::create([
+                    'email' => $driverData['license_number'],
+                    'name' => $driverData['name'],
+                    'password' => Hash::make($driverData['license_number']),
+                    'plain_password' => $driverData['license_number'],
+                    'role' => 'driver',
+                ]);
+            }
         }
     }
 }

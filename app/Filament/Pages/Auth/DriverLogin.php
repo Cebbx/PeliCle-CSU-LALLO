@@ -59,35 +59,73 @@ class DriverLogin extends BaseLogin
         $cleanPhone = preg_replace('/[^0-9]/', '', $input);
         $cleanLicense = strtoupper(str_replace(['-', ' '], '', $input));
 
-        $driver = Driver::where('license_number', $input)
-            ->orWhereRaw('LOWER(license_number) = ?', [strtolower($input)])
-            ->orWhereRaw("REPLACE(REPLACE(UPPER(license_number), '-', ''), ' ', '') = ?", [$cleanLicense])
-            ->orWhere('contact_number', $input)
-            ->when(!empty($cleanPhone), fn ($q) => $q->orWhere('contact_number', $cleanPhone))
-            ->first();
+        // Auto-heal drivers table if empty on a fresh deployment
+        if (Driver::count() === 0) {
+            try {
+                (new \Database\Seeders\DriverSeeder())->run();
+            } catch (\Throwable $e) {
+                // Silently proceed
+            }
+        }
+
+        $findDriver = function () use ($input, $cleanPhone, $cleanLicense) {
+            return Driver::where('license_number', $input)
+                ->orWhereRaw('LOWER(license_number) = ?', [strtolower($input)])
+                ->orWhereRaw("REPLACE(REPLACE(UPPER(license_number), '-', ''), ' ', '') = ?", [$cleanLicense])
+                ->orWhere('contact_number', $input)
+                ->when(!empty($cleanPhone), fn ($q) => $q->orWhere('contact_number', $cleanPhone))
+                ->orWhereRaw('LOWER(name) LIKE ?', ['%' . strtolower($input) . '%'])
+                ->first();
+        };
+
+        $driver = $findDriver();
+
+        if (! $driver && Driver::count() === 0) {
+            try {
+                (new \Database\Seeders\DriverSeeder())->run();
+                $driver = $findDriver();
+            } catch (\Throwable $e) {
+                // Ignore
+            }
+        }
 
         if (! $driver) {
+            $sampleDrivers = Driver::query()
+                ->take(3)
+                ->get()
+                ->map(fn ($d) => "{$d->name} ({$d->license_number})")
+                ->implode(', ');
+
+            $hint = !empty($sampleDrivers) ? " (Mga halimbawa: {$sampleDrivers})" : "";
+
             Notification::make()
                 ->title('Driver Not Found')
-                ->body('No driver record found matching "' . e($input) . '". Please verify your License ID or contact number.')
+                ->body('Hindi mahanap ang driver para sa "' . e($input) . '". Pakisuri ang License ID o contact number.' . $hint)
                 ->danger()
                 ->send();
 
             return null;
         }
 
-        // Find or create a user account for the driver
-        $user = User::firstOrCreate(
-            ['email' => $driver->license_number],
-            [
+        // Find or create a user account for the driver safely handling any soft deletes
+        $user = User::withTrashed()->where('email', $driver->license_number)->first();
+        if ($user) {
+            if ($user->trashed()) {
+                $user->restore();
+            }
+            $user->update([
+                'name' => $driver->name,
+                'role' => 'driver',
+                'plain_password' => $driver->license_number,
+            ]);
+        } else {
+            $user = User::create([
+                'email' => $driver->license_number,
                 'name' => $driver->name,
                 'password' => Hash::make($driver->license_number),
+                'plain_password' => $driver->license_number,
                 'role' => 'driver'
-            ]
-        );
-
-        if ($user->role !== 'driver') {
-            $user->update(['role' => 'driver']);
+            ]);
         }
 
         Filament::auth()->login($user, remember: true);

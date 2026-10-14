@@ -49,10 +49,11 @@ Route::get('/hostinger-setup', function () {
     }
 
     try {
-        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'UserSeeder', '--force' => true]);
-        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'DepartmentUserSeeder', '--force' => true]);
-        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'DriverSeeder', '--force' => true]);
-        $results[] = '✓ Seed All Accounts (Admin, Departments, Drivers): SUCCESS';
+        (new \Database\Seeders\UserSeeder())->run();
+        (new \Database\Seeders\DepartmentUserSeeder())->run();
+        (new \Database\Seeders\DriverSeeder())->run();
+        (new \Database\Seeders\VehicleSeeder())->run();
+        $results[] = '✓ Seed All Accounts (Admin, Departments, Drivers, Vehicles): SUCCESS';
     } catch (\Throwable $e) {
         $results[] = 'User Seed note: ' . $e->getMessage();
     }

@@ -14,68 +14,49 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::firstOrCreate(
-            ['email' => 'admin@example.com'],
+        $users = [
             [
-                'name' => 'JOEL A. TUMAMAO',
                 'email' => 'admin@example.com',
-                'email_verified_at' => now(),
+                'name' => 'JOEL A. TUMAMAO',
                 'password' => Hash::make('password'),
                 'plain_password' => 'password',
                 'role' => 'admin',
-                'two_factor_secret' => null,
-                'two_factor_recovery_codes' => null,
-                'two_factor_confirmed_at' => null,
-                'remember_token' => null,
-            ]
-        );
-
-        User::firstOrCreate(
-            ['email' => 'thrishiabaletbet@gmail.com'],
+            ],
             [
-                'name' => 'Admin (Trishia)',
                 'email' => 'thrishiabaletbet@gmail.com',
-                'email_verified_at' => now(),
-                'password' => Hash::make('password'),
-                'plain_password' => 'password',
-                'role' => 'admin',
-                'two_factor_secret' => null,
-                'two_factor_recovery_codes' => null,
-                'two_factor_confirmed_at' => null,
-                'remember_token' => null,
-            ]
-        );
-
-        User::firstOrCreate(
-            ['email' => 'trishiabaletbet@gmail.com'],
-            [
                 'name' => 'Admin (Trishia)',
-                'email' => 'trishiabaletbet@gmail.com',
-                'email_verified_at' => now(),
                 'password' => Hash::make('password'),
                 'plain_password' => 'password',
                 'role' => 'admin',
-                'two_factor_secret' => null,
-                'two_factor_recovery_codes' => null,
-                'two_factor_confirmed_at' => null,
-                'remember_token' => null,
-            ]
-        );
-
-        User::firstOrCreate(
-            ['email' => 'employee@example.com'],
+            ],
             [
-                'name' => 'Employee User',
+                'email' => 'trishiabaletbet@gmail.com',
+                'name' => 'Admin (Trishia)',
+                'password' => Hash::make('password'),
+                'plain_password' => 'password',
+                'role' => 'admin',
+            ],
+            [
                 'email' => 'employee@example.com',
-                'email_verified_at' => now(),
+                'name' => 'Employee User',
                 'password' => Hash::make('password'),
                 'plain_password' => 'password',
                 'role' => 'employee',
-                'two_factor_secret' => null,
-                'two_factor_recovery_codes' => null,
-                'two_factor_confirmed_at' => null,
-                'remember_token' => null,
-            ]
-        );
+            ],
+        ];
+
+        foreach ($users as $data) {
+            $user = User::withTrashed()->where('email', $data['email'])->first();
+            if ($user) {
+                if ($user->trashed()) {
+                    $user->restore();
+                }
+                $user->update($data);
+            } else {
+                User::create(array_merge($data, [
+                    'email_verified_at' => now(),
+                ]));
+            }
+        }
     }
 }

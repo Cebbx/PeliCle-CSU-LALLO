@@ -68,8 +68,18 @@ require "vendor/autoload.php";
 $app = require_once "bootstrap/app.php";
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
-if (\App\Models\User::count() === 0) {
-    \Illuminate\Support\Facades\Artisan::call("db:seed", ["--force" => true]);
+
+try {
+    if (\App\Models\Driver::count() === 0) {
+        (new \Database\Seeders\DriverSeeder())->run();
+    }
+    if (\App\Models\Vehicle::count() === 0) {
+        (new \Database\Seeders\VehicleSeeder())->run();
+    }
+    (new \Database\Seeders\UserSeeder())->run();
+    (new \Database\Seeders\DepartmentUserSeeder())->run();
+} catch (\Throwable $e) {
+    fwrite(STDERR, "Seed bootstrap note: " . $e->getMessage() . "\n");
 }
 ' 2>/dev/null || true
 php artisan optimize:clear || true
