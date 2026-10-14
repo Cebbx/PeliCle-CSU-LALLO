@@ -249,22 +249,39 @@
         </table>
 
         <!-- Certifications & Prepared/Approved signatures -->
-        <div class="mb-3 sm:mb-4 text-[10px] sm:text-xs">
-            <p class="italic font-semibold mb-2">I CERTIFY that the vehicle is in GOOD RUNNING CONDITION:</p>
+        <div class="mb-2.5 sm:mb-3 text-[10px] sm:text-xs">
+            <p class="italic font-semibold mb-1 sm:mb-1.5">I CERTIFY that the vehicle is in GOOD RUNNING CONDITION:</p>
             
             <div class="grid grid-cols-2 gap-4 sm:gap-8 mt-1">
                 <!-- Left: Prepared by Joel A. Tumamao -->
                 <div class="flex flex-col text-left">
-                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-6 sm:mb-7">Prepared by:</span>
+                    <span class="text-[9.5px] sm:text-[10px] text-black font-semibold mb-4 sm:mb-5">Prepared by:</span>
                     <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">{{ \App\Models\User::getGsoName() }}</span>
-                    <span class="text-[8px] sm:text-[10px] text-black font-semibold">{{ \App\Models\User::getGsoTitle() }}</span>
+                    <span class="text-[8px] sm:text-[9.5px] text-black font-semibold">{{ \App\Models\User::getGsoTitle() }}</span>
                 </div>
                 
                 <!-- Right: Approved by Engr. James B. Cabildo -->
-                <div class="flex flex-col text-center">
-                    <span class="text-[10px] sm:text-xs text-black font-semibold mb-6 sm:mb-7 text-left pl-2 sm:pl-4">Approved by:</span>
+                <div class="flex flex-col text-left sm:pl-4">
+                    <span class="text-[9.5px] sm:text-[10px] text-black font-semibold mb-4 sm:mb-5">Approved by:</span>
                     <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">{{ \App\Models\User::getCeoName() }}</span>
-                    <span class="text-[8px] sm:text-[10px] text-black font-semibold">{{ \App\Models\User::getCeoTitle() }}</span>
+                    <span class="text-[8px] sm:text-[9.5px] text-black font-semibold">{{ \App\Models\User::getCeoTitle() }}</span>
+                </div>
+            </div>
+
+            <!-- Driver's Signature Line -->
+            <div class="mt-3 sm:mt-4 mb-2 flex flex-col items-start w-48 sm:w-56">
+                <div class="w-full border-b border-black mb-1"></div>
+                <span class="text-[9px] sm:text-[10px] font-bold text-black uppercase w-full text-center">Driver's Signature</span>
+            </div>
+
+            <!-- Passenger Certification & Full Width Signature Line -->
+            <div class="mt-2.5 sm:mt-3 mb-1 text-left">
+                <p class="italic text-[9.5px] sm:text-[10.5px] text-black font-medium mb-4 sm:mb-5">
+                    I HEREBY CERTIFY that the vehicle was used on Official Business as stated above.
+                </p>
+                <div class="w-full border-b border-black mb-1"></div>
+                <div class="text-center font-bold text-[9.5px] sm:text-[10.5px] text-black uppercase">
+                    Passenger's Signature
                 </div>
             </div>
         </div>
