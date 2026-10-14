@@ -688,7 +688,6 @@ class VehicleRequestsTable
                         ->icon('heroicon-o-arrow-uturn-left')
                         ->color('success'),
                 ]),
-            ])
-            ->poll(app()->isLocal() ? '1s' : '2s');
+            ]);
     }
 }

@@ -620,7 +620,6 @@ class VehicleRequestsTable
                     ->label('Urgent Requests Only')
                     ->query(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('is_urgent', true)),
             ])
-            ->deferFilters(false)
-            ->poll(app()->isLocal() ? '1s' : '2s');
+            ->deferFilters(false);
     }
 }

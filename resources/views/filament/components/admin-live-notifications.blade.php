@@ -584,11 +584,19 @@
                     showDesktopNotification(alertItem.title, alertItem.body);
                     showFloatingToast(alertItem);
 
-                    // Instant Live Sync: Refresh table or list when notification arrives
+                    // Safe Live Sync: NEVER refresh if a dropdown, action, form, or modal is currently open or focused
                     const isTyping = Boolean(document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName));
                     const hasOpenModal = Boolean(document.querySelector('.fi-modal-window:not([hidden])') || document.querySelector('[role="dialog"]:not([hidden])'));
+                    const hasOpenDropdown = Boolean(document.querySelector('.fi-dropdown-panel') || document.querySelector('[aria-expanded="true"]'));
+                    const isActionButtonActive = Boolean(document.activeElement && document.activeElement.closest('.fi-ta-actions, .fi-ac-action, .fi-btn'));
+                    const hasFormOnPage = Boolean(
+                        document.querySelector('.fi-form') ||
+                        document.querySelector('.fi-fo-field-wrp') ||
+                        window.location.pathname.includes('/create') ||
+                        window.location.pathname.includes('/edit')
+                    );
 
-                    if (window.Livewire && !isTyping && !hasOpenModal && !window.location.pathname.includes('/login')) {
+                    if (window.Livewire && !isTyping && !hasOpenModal && !hasOpenDropdown && !isActionButtonActive && !hasFormOnPage && !window.location.pathname.includes('/login')) {
                         try {
                             Livewire.dispatch('$refresh');
                         } catch (err) {}
@@ -601,18 +609,9 @@
             }
         }
 
-        // 0-second immediate check on page load, followed by rapid 1s (localhost) or 2s (cloud) polling
-        const isLocalHost = Boolean(
-            window.location.hostname === 'localhost' ||
-            window.location.hostname === '127.0.0.1' ||
-            window.location.hostname.startsWith('192.168.') ||
-            window.location.hostname.startsWith('10.')
-        );
-        const pollInterval = isLocalHost ? 1000 : 2000;
-
-        // Immediate 0-second initial check
-        setTimeout(checkLiveNotifications, 100);
-        setInterval(checkLiveNotifications, pollInterval);
+        // Live notification polling every 8 seconds (fast for alerts, perfectly smooth without UI interruptions)
+        setTimeout(checkLiveNotifications, 1000);
+        setInterval(checkLiveNotifications, 8000);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) checkLiveNotifications();
         });
