@@ -111,7 +111,8 @@ class TripTicketsTable
             ])
             ->toolbarActions([
                 // Drivers don't need bulk delete tools
-            ]);
+            ])
+            ->poll(app()->isLocal() ? '1s' : '2s');
     }
 }
 

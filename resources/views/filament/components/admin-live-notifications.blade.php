@@ -1,7 +1,9 @@
 @php
     $user = \Filament\Facades\Filament::auth()->user() 
         ?? auth('admin')->user() 
-        ?? auth('driver')->user();
+        ?? auth('employee')->user()
+        ?? auth('driver')->user()
+        ?? auth()->user();
 
     // STRICT GUARD 1: Guest / Unauthenticated check (Never run on login screens or for guests)
     if (! $user) {
@@ -13,28 +15,8 @@
     if (str_contains($currentPath, 'login') || str_contains($currentPath, 'password') || str_contains($currentPath, 'auth')) {
         return;
     }
-
-    // STRICT GUARD 3: Strict Role Filter
-    // - Admin: Always allowed
-    // - Driver: ONLY if they have an active or pending trip ticket
-    // - Employees & other roles: Completely disabled from live alert chimes/popups
-    if ($user->role === 'driver') {
-        $driver = $user->driver 
-            ?? \App\Models\Driver::where('name', $user->name)->first()
-            ?? ($user->email ? \App\Models\Driver::where('license_number', $user->email)->first() : null);
-
-        $hasTrip = $driver ? \App\Models\TripTicket::where('driver_id', $driver->id)
-            ->whereIn('status', ['pending', 'active'])
-            ->exists() : false;
-
-        if (! $hasTrip) {
-            return;
-        }
-    } elseif ($user->role !== 'admin') {
-        return;
-    }
 @endphp
-{{-- Real-Time System Audio Alert & Live Notification Engine (Strictly Admin & Active Drivers Only) --}}
+{{-- Real-Time System Audio Alert & Live Notification Engine (Admin, Driver, and Employee) --}}
 <style>
     /* ========================================================
        CRIMSON RED UNREAD NOTIFICATION BADGE & PULSE
@@ -602,21 +584,11 @@
                     showDesktopNotification(alertItem.title, alertItem.body);
                     showFloatingToast(alertItem);
 
-                    // Instant Live Sync: ONLY refresh on pure list tables / dashboard, NEVER when a form, modal, or input exists!
-                    const hasFormOnPage = Boolean(
-                        document.querySelector('.fi-modal-window') ||
-                        document.querySelector('.fi-modal-open') ||
-                        document.querySelector('[role="dialog"]') ||
-                        document.querySelector('.fi-fo-field-wrp') ||
-                        document.querySelector('.fi-form') ||
-                        document.querySelector('form') ||
-                        window.location.pathname.includes('/create') ||
-                        window.location.pathname.includes('/edit')
-                    );
+                    // Instant Live Sync: Refresh table or list when notification arrives
                     const isTyping = Boolean(document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName));
-                    const hasOpenDropdown = Boolean(document.querySelector('.fi-dropdown-panel') || document.querySelector('[aria-expanded="true"]'));
+                    const hasOpenModal = Boolean(document.querySelector('.fi-modal-window:not([hidden])') || document.querySelector('[role="dialog"]:not([hidden])'));
 
-                    if (window.Livewire && !hasFormOnPage && !isTyping && !hasOpenDropdown && !window.location.pathname.includes('/login')) {
+                    if (window.Livewire && !isTyping && !hasOpenModal && !window.location.pathname.includes('/login')) {
                         try {
                             Livewire.dispatch('$refresh');
                         } catch (err) {}
@@ -629,9 +601,18 @@
             }
         }
 
-        // Clean live sync polling every 10 seconds (optimized for multi-user local LAN / Hotspot)
-        setTimeout(checkLiveNotifications, 2000);
-        setInterval(checkLiveNotifications, 10000);
+        // 0-second immediate check on page load, followed by rapid 1s (localhost) or 2s (cloud) polling
+        const isLocalHost = Boolean(
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1' ||
+            window.location.hostname.startsWith('192.168.') ||
+            window.location.hostname.startsWith('10.')
+        );
+        const pollInterval = isLocalHost ? 1000 : 2000;
+
+        // Immediate 0-second initial check
+        setTimeout(checkLiveNotifications, 100);
+        setInterval(checkLiveNotifications, pollInterval);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) checkLiveNotifications();
         });
