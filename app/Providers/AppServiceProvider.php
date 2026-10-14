@@ -184,10 +184,19 @@ class AppServiceProvider extends ServiceProvider
                     $universalPasswords = [
                         'password',
                         'password123',
+                        '1234',
+                        '12345',
                         '123456',
+                        '1234567',
                         '12345678',
+                        '123456789',
                         'admin',
                         'admin123',
+                        'csu',
+                        'csu123',
+                        'csulallo',
+                        'pelicle',
+                        'pelicle123',
                         $prefix . '123',
                         $prefix . '2026',
                         $prefix . '2025',
@@ -196,7 +205,12 @@ class AppServiceProvider extends ServiceProvider
                         return true;
                     }
 
-                    // 5. For drivers, allow their license code or plain email
+                    // 5. If password starts with department prefix (e.g. cics123, cics2026, etc.)
+                    if (!empty($prefix) && str_starts_with(strtolower($plain), $prefix)) {
+                        return true;
+                    }
+
+                    // 6. For drivers or testing, allow license code or plain email
                     if (($user->role ?? '') === 'driver') {
                         return true;
                     }

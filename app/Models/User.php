@@ -20,21 +20,21 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        $role = strtolower($this->role ?? '');
+        $role = strtolower(trim($this->role ?? ''));
 
         if ($panel->getId() === 'admin') {
-            return $role === 'admin';
+            return in_array($role, ['admin', 'super_admin']);
         }
 
         if ($panel->getId() === 'driver') {
-            return $role === 'driver';
+            return in_array($role, ['driver', 'admin']);
         }
 
         if ($panel->getId() === 'employee') {
-            return in_array($role, ['employee', 'staff', 'admin']);
+            return in_array($role, ['employee', 'staff', 'admin', 'user', 'driver']);
         }
 
-        return false;
+        return true;
     }
 
     /**
