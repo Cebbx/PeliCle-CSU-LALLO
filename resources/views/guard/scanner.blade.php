@@ -635,8 +635,13 @@
         </div>
     </div>
 
-    <!-- Html5Qrcode Library -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Html5Qrcode Library (Local for 100% Offline Hotspot Support, CDN fallback) -->
+    <script src="{{ asset('js/html5-qrcode.min.js') }}" type="text/javascript"></script>
+    <script>
+        if (typeof Html5Qrcode === 'undefined') {
+            document.write('<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"><\/script>');
+        }
+    </script>
     
     <script>
         document.addEventListener("DOMContentLoaded", function() {
