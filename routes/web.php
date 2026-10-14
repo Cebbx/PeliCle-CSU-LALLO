@@ -96,7 +96,7 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
     Route::get('/logbook/print', [App\Http\Controllers\PrintController::class, 'printTripLogbook'])->name('logbook.print');
     Route::get('/logbook/export-csv', [App\Http\Controllers\PrintController::class, 'exportTripLogbookCsv'])->name('logbook.export-csv');
 
-    // Real-Time Live Notification Check Endpoint (Strictly Admin & Driver with Active/Pending Trip)
+    // Real-Time Live Notification Check Endpoint (Admin, Driver, and Employee)
     Route::get('/api/admin/live-notifications-check', function (\Illuminate\Http\Request $request) {
         $refererPath = parse_url($request->headers->get('referer', ''), PHP_URL_PATH) ?? '';
         $panel = $request->query('panel');
@@ -104,37 +104,24 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
         if (! $panel) {
             if (str_starts_with($refererPath, '/driver')) {
                 $panel = 'driver';
+            } elseif (str_starts_with($refererPath, '/employee')) {
+                $panel = 'employee';
             } elseif (str_starts_with($refererPath, '/admin')) {
                 $panel = 'admin';
             }
         }
 
-        if ($panel && in_array($panel, ['admin', 'driver']) && auth($panel)->check()) {
+        if ($panel && in_array($panel, ['admin', 'driver', 'employee']) && auth($panel)->check()) {
             $user = auth($panel)->user();
         } else {
-            $user = auth('admin')->user() ?? auth('driver')->user();
+            $user = auth('admin')->user() 
+                ?? auth('driver')->user() 
+                ?? auth('employee')->user() 
+                ?? auth()->user();
         }
 
         // GUARD 1: Unauthenticated / Guest
         if (! $user) {
-            return response()->json(['count' => 0, 'unread' => []]);
-        }
-
-        // GUARD 2: Driver must have an active or pending trip ticket
-        if ($user->role === 'driver') {
-            $driver = $user->driver 
-                ?? \App\Models\Driver::where('name', $user->name)->first()
-                ?? ($user->email ? \App\Models\Driver::where('license_number', $user->email)->first() : null);
-
-            $hasTrip = $driver ? \App\Models\TripTicket::where('driver_id', $driver->id)
-                ->whereIn('status', ['pending', 'active'])
-                ->exists() : false;
-
-            if (! $hasTrip) {
-                return response()->json(['count' => 0, 'unread' => []]);
-            }
-        } elseif ($user->role !== 'admin') {
-            // GUARD 3: Employee or any other non-admin role is blocked from live alerts
             return response()->json(['count' => 0, 'unread' => []]);
         }
 
