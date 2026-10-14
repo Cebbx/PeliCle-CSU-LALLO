@@ -266,6 +266,16 @@
                 </div>
             </div>
 
+            <!-- PWA Install Banner -->
+            <div id="pwa-install-container" class="hidden w-full max-w-md mx-auto text-center mt-2">
+                <button id="pwa-install-btn" type="button" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-sky-500/25 border border-sky-400/40 transition-all transform hover:-translate-y-0.5 active:scale-95 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>I-install ang PeliCle App sa Telepono / PC</span>
+                </button>
+            </div>
+
         </main>
 
         <!-- Footer -->
@@ -273,6 +283,50 @@
             <p>&copy; {{ date('Y') }} Cagayan State University Lal-lo Campus. All rights reserved.</p>
             <p class="font-display opacity-40">PeliCle Fleet Management System</p>
         </footer>
+
+        <script>
+            let deferredPrompt = null;
+            const installContainer = document.getElementById('pwa-install-container');
+            const installBtn = document.getElementById('pwa-install-btn');
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                if (installContainer) {
+                    installContainer.classList.remove('hidden');
+                }
+            });
+
+            // For iOS devices: show install button if not standalone
+            const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            if (isIos && !isStandalone && installContainer) {
+                installContainer.classList.remove('hidden');
+            }
+
+            if (installBtn) {
+                installBtn.addEventListener('click', async () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        deferredPrompt = null;
+                        if (outcome === 'accepted') {
+                            installContainer.classList.add('hidden');
+                        }
+                    } else if (isIos) {
+                        alert('Para i-install sa iPhone/iPad: Pindutin ang Share button sa Safari (ibabang icon) at piliin ang "Add to Home Screen" (➕).');
+                    } else {
+                        alert('Maaari mong i-install ang app sa pamamagitan ng pag-click sa "Install" icon sa address bar ng inyong browser.');
+                    }
+                });
+            }
+
+            window.addEventListener('appinstalled', () => {
+                if (installContainer) {
+                    installContainer.classList.add('hidden');
+                }
+            });
+        </script>
 
     </body>
 </html>

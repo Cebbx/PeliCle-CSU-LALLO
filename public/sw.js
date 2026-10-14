@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pelicle-v2';
+const CACHE_NAME = 'pelicle-v3';
 const STATIC_ASSETS = [
     '/manifest.json',
     '/icons/icon-192x192.png',
