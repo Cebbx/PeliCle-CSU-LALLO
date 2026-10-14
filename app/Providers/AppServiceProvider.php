@@ -34,30 +34,35 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Dynamically override APP_URL and scheme for asset/route generation when accessed via tunnel or Render
+        // Dynamically override APP_URL and scheme for asset/route generation
         try {
             $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? null;
             if ($host) {
                 $host = trim(explode(',', $host)[0]);
+                $forwardedProto = strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+                $isPort8000 = str_contains($host, ':8000') || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 8000);
+
                 $proto = 'http';
-                if (
+                if ($isPort8000 && $forwardedProto !== 'https') {
+                    // Direct local / hotspot artisan serve connection is ALWAYS plain HTTP
+                    $proto = 'http';
+                } elseif (
                     (isset($_SERVER['HTTPS']) && in_array(strtolower((string)$_SERVER['HTTPS']), ['on', '1'])) ||
-                    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') ||
-                    (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
-                    (str_contains($host, '.test')) ||
+                    $forwardedProto === 'https' ||
+                    (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443) ||
+                    str_contains($host, '.test') ||
                     str_ends_with($host, '.onrender.com') ||
-                    app()->isProduction() ||
-                    str_starts_with((string)config('app.url'), 'https://')
+                    str_contains($host, '.trycloudflare.com') ||
+                    str_contains($host, '.ngrok')
                 ) {
                     $proto = 'https';
                 }
+
                 $currentUrl = $proto . '://' . $host;
                 config(['app.url' => $currentUrl]);
                 \Illuminate\Support\Facades\URL::forceRootUrl($currentUrl);
-                if ($proto === 'https') {
-                    \Illuminate\Support\Facades\URL::forceScheme('https');
-                }
-            } elseif (app()->isProduction() || str_starts_with((string)config('app.url'), 'https://')) {
+                \Illuminate\Support\Facades\URL::forceScheme($proto);
+            } elseif (app()->isProduction()) {
                 \Illuminate\Support\Facades\URL::forceScheme('https');
             }
         } catch (\Throwable $e) {
