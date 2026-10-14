@@ -353,6 +353,7 @@ class VehicleRequestForm
 
                 Hidden::make('status')
                     ->default('pending'),
-            ]);
+            ])
+            ->disabled(fn ($record) => $record && (in_array($record->status, ['rejected', 'cancelled', 'expired']) || $record->status !== 'pending' || !empty($record->document)));
     }
 }

@@ -164,6 +164,7 @@ class VehicleRequestsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
+            ->recordUrl(fn ($record) => (!in_array($record->status, ['rejected', 'cancelled', 'expired']) && $record->status === 'pending' && empty($record->document)) ? \App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('edit', ['record' => $record]) : null)
             ->recordActions([
                 ActionGroup::make([
                     EditAction::make()

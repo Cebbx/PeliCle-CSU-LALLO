@@ -14,6 +14,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class VehicleRequestResource extends Resource
 {
@@ -28,6 +29,16 @@ class VehicleRequestResource extends Resource
     protected static ?string $pluralModelLabel = 'Trip Ticket Requests';
 
     protected static ?string $recordTitleAttribute = 'request_number';
+
+    public static function canEdit(Model $record): bool
+    {
+        // Disapproved (rejected), cancelled, expired, or non-pending forms can NEVER be edited by employee
+        if (in_array($record->status, ['rejected', 'cancelled', 'expired']) || $record->status !== 'pending' || !empty($record->document)) {
+            return false;
+        }
+
+        return parent::canEdit($record);
+    }
 
     public static function getEloquentQuery(): Builder
     {
