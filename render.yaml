@@ -12,7 +12,7 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_KEY
-        generateValue: true
+        value: base64:b0csUkDjXbSebH3/XMh148ORsb1zoV1ARYDtUgnar4M=
       - key: APP_URL
         value: https://csu-vehicle-request.onrender.com
       - key: DB_CONNECTION

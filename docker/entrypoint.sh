@@ -63,7 +63,15 @@ fi
 # Run setup routines safely (never let them crash container startup)
 php artisan storage:link --force || true
 php artisan migrate --force || true
-php artisan db:seed --force || true
+php -r '
+require "vendor/autoload.php";
+$app = require_once "bootstrap/app.php";
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
+if (\App\Models\User::count() === 0) {
+    \Illuminate\Support\Facades\Artisan::call("db:seed", ["--force" => true]);
+}
+' 2>/dev/null || true
 php artisan optimize:clear || true
 
 # Fix permissions AFTER artisan commands so www-data owns sqlite, logs, sessions, and cache
