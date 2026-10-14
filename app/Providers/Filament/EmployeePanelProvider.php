@@ -25,7 +25,7 @@ class EmployeePanelProvider extends PanelProvider
         return $panel
             ->id('employee')
             ->path('employee')
-            ->login(\App\Filament\Pages\Auth\EmployeeLogin::class)
+            ->login()
             ->authGuard('employee')
             ->colors([
                 'primary' => Color::Amber,
