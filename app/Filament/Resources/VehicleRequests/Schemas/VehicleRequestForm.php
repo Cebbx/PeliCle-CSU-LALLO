@@ -26,7 +26,6 @@ class VehicleRequestForm
                 TextInput::make('request_number')
                     ->label('Vehicle Request')
                     ->default(fn () => \App\Models\VehicleRequest::generateNextRequestNumber())
-                    ->unique('vehicle_requests', 'request_number', ignoreRecord: true)
                     ->disabled()
                     ->dehydrated()
                     ->required(),

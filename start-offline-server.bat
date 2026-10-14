@@ -56,9 +56,10 @@ echo      Officer: Edward Cabbat
 echo      Password: 1001 (No OTP / No email needed - 100%% Offline)
 echo ===================================================================
 echo.
-echo [3/3] Starting Laravel Server on 0.0.0.0:8000...
+echo [3/3] Starting Laravel Server on 0.0.0.0:8000 (Multi-Worker Enabled)...
 echo Keep this window OPEN during your evaluation / demo.
 echo Press Ctrl + C to stop the server anytime.
 echo.
-"%PHP_EXE%" artisan serve --host=0.0.0.0 --port=8000
+set PHP_CLI_SERVER_WORKERS=8
+"%PHP_EXE%" -d memory_limit=512M -d max_execution_time=120 artisan serve --host=0.0.0.0 --port=8000
 pause

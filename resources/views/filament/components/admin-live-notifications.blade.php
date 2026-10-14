@@ -602,10 +602,21 @@
                     showDesktopNotification(alertItem.title, alertItem.body);
                     showFloatingToast(alertItem);
 
-                    // Instant Live Sync: trigger immediate refresh on tables & dashboards (only if user is not typing)
+                    // Instant Live Sync: ONLY refresh on pure list tables / dashboard, NEVER when a form, modal, or input exists!
+                    const hasFormOnPage = Boolean(
+                        document.querySelector('.fi-modal-window') ||
+                        document.querySelector('.fi-modal-open') ||
+                        document.querySelector('[role="dialog"]') ||
+                        document.querySelector('.fi-fo-field-wrp') ||
+                        document.querySelector('.fi-form') ||
+                        document.querySelector('form') ||
+                        window.location.pathname.includes('/create') ||
+                        window.location.pathname.includes('/edit')
+                    );
                     const isTyping = Boolean(document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName));
-                    const hasOpenDropdown = document.querySelector('.fi-dropdown-panel') || document.querySelector('[aria-expanded="true"]');
-                    if (window.Livewire && !isTyping && !hasOpenDropdown && !window.location.pathname.includes('/login') && !window.location.pathname.endsWith('/create') && !window.location.pathname.endsWith('/edit')) {
+                    const hasOpenDropdown = Boolean(document.querySelector('.fi-dropdown-panel') || document.querySelector('[aria-expanded="true"]'));
+
+                    if (window.Livewire && !hasFormOnPage && !isTyping && !hasOpenDropdown && !window.location.pathname.includes('/login')) {
                         try {
                             Livewire.dispatch('$refresh');
                         } catch (err) {}
@@ -618,9 +629,9 @@
             }
         }
 
-        // Clean live sync polling every 3 seconds
-        setTimeout(checkLiveNotifications, 1000);
-        setInterval(checkLiveNotifications, 3000);
+        // Clean live sync polling every 10 seconds (optimized for multi-user local LAN / Hotspot)
+        setTimeout(checkLiveNotifications, 2000);
+        setInterval(checkLiveNotifications, 10000);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) checkLiveNotifications();
         });

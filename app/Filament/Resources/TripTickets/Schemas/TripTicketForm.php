@@ -19,7 +19,6 @@ class TripTicketForm
                 TextInput::make('ticket_number')
                     ->label('Trip Ticket Number (TT No. Lal-lo)')
                     ->default(fn () => TripTicket::generateNextTicketNumber())
-                    ->unique('trip_tickets', 'ticket_number', ignoreRecord: true)
                     ->disabled()
                     ->dehydrated()
                     ->required(),

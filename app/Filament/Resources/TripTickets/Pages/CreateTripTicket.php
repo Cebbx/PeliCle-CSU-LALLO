@@ -24,6 +24,15 @@ class CreateTripTicket extends CreateRecord
             ->label('Approved Ticket');
     }
 
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        if (empty($data['ticket_number']) || \App\Models\TripTicket::withTrashed()->where('ticket_number', $data['ticket_number'])->exists()) {
+            $data['ticket_number'] = \App\Models\TripTicket::generateNextTicketNumber();
+        }
+
+        return $data;
+    }
+
     protected function afterCreate(): void
     {
         $record = $this->record;

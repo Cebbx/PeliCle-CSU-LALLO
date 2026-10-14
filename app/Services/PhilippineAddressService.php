@@ -5,6 +5,8 @@ namespace App\Services;
 class PhilippineAddressService
 {
     protected static ?array $regions = null;
+    protected static array $provincesByRegion = [];
+    protected static array $citiesByProvince = [];
 
     public static function getRegions(): array
     {
@@ -29,6 +31,9 @@ class PhilippineAddressService
         if (empty($regionCode)) {
             return [];
         }
+        if (isset(self::$provincesByRegion[$regionCode])) {
+            return self::$provincesByRegion[$regionCode];
+        }
         $path = storage_path('app/json/provinces.json');
         if (file_exists($path)) {
             $data = json_decode(file_get_contents($path), true);
@@ -39,6 +44,7 @@ class PhilippineAddressService
                 }
             }
             asort($provinces);
+            self::$provincesByRegion[$regionCode] = $provinces;
             return $provinces;
         }
         return [];
@@ -48,6 +54,9 @@ class PhilippineAddressService
     {
         if (empty($provinceCode)) {
             return [];
+        }
+        if (isset(self::$citiesByProvince[$provinceCode])) {
+            return self::$citiesByProvince[$provinceCode];
         }
         $path = storage_path('app/json/cities.json');
         if (file_exists($path)) {
@@ -59,15 +68,21 @@ class PhilippineAddressService
                 }
             }
             asort($cities);
+            self::$citiesByProvince[$provinceCode] = $cities;
             return $cities;
         }
         return [];
     }
 
+    protected static array $barangaysByCity = [];
+
     public static function getBarangays(?string $cityCode): array
     {
         if (empty($cityCode)) {
             return [];
+        }
+        if (isset(self::$barangaysByCity[$cityCode])) {
+            return self::$barangaysByCity[$cityCode];
         }
         $path = storage_path('app/json/barangays.json');
         if (file_exists($path)) {
@@ -79,6 +94,7 @@ class PhilippineAddressService
                 }
             }
             asort($barangays);
+            self::$barangaysByCity[$cityCode] = $barangays;
             return $barangays;
         }
         return [];
