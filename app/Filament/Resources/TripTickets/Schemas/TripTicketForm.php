@@ -76,7 +76,6 @@ class TripTicketForm
                             }
                         }
                     })
-                    ->disabled(fn (string $operation, ?TripTicket $record) => $operation === 'edit' || request()->has('vehicle_request_id'))
                     ->dehydrated()
                     ->required(),
 
@@ -86,7 +85,7 @@ class TripTicketForm
                     ->dehydrated(false)
                     ->placeholder('Select companion requests to consolidate into this trip...')
                     ->options(function (callable $get, ?TripTicket $record) {
-                        $primaryId = $get('vehicle_request_id');
+                        $primaryId = $get('vehicle_request_id') ?: ($record?->vehicle_request_id ?? request()->query('vehicle_request_id'));
                         $primaryReq = $primaryId ? VehicleRequest::find($primaryId) : null;
                         if (!$primaryReq) {
                             return [];
@@ -174,8 +173,8 @@ class TripTicketForm
                         return [];
                     })
                     ->live()
-                    ->afterStateUpdated(function (callable $get, callable $set) {
-                        $primaryId = $get('vehicle_request_id');
+                    ->afterStateUpdated(function (callable $get, callable $set, ?TripTicket $record) {
+                        $primaryId = $get('vehicle_request_id') ?: ($record?->vehicle_request_id ?? request()->query('vehicle_request_id'));
                         if (!$primaryId) return;
 
                         $companionIds = $get('companion_requests') ?? [];
@@ -203,8 +202,8 @@ class TripTicketForm
                             $set('vehicle', $v->plate_number);
                         }
                     })
-                    ->helperText(function (callable $get) {
-                        $primaryId = $get('vehicle_request_id');
+                    ->helperText(function (callable $get, ?TripTicket $record) {
+                        $primaryId = $get('vehicle_request_id') ?: ($record?->vehicle_request_id ?? request()->query('vehicle_request_id'));
                         $companionIds = $get('companion_requests') ?? [];
 
                         if (!$primaryId) {
@@ -558,7 +557,6 @@ class TripTicketForm
                     ])
                     ->required()
                     ->default('pending')
-                    ->disabled()
                     ->dehydrated()
                     ->hidden(fn (string $operation) => $operation === 'create'),
 

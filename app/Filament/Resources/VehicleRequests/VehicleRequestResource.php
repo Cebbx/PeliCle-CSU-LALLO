@@ -22,6 +22,13 @@ class VehicleRequestResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'request_number';
 
+    public static function getRecordTitle(?\Illuminate\Database\Eloquent\Model $record): string|\Illuminate\Contracts\Support\Htmlable|null
+    {
+        if (!$record) return null;
+        $reqNum = $record->formatted_request_number ?? $record->request_number;
+        return "VR-{$reqNum} ({$record->department})";
+    }
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema

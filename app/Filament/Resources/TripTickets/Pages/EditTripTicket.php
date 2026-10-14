@@ -15,6 +15,11 @@ class EditTripTicket extends EditRecord
 
     protected static string $resource = TripTicketResource::class;
 
+    public function getTitle(): string
+    {
+        return "Edit Trip Ticket: {$this->record->ticket_number}";
+    }
+
     protected function getHeaderActions(): array
     {
         return [

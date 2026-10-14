@@ -23,6 +23,11 @@ class TripTicketResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'ticket_number';
 
+    public static function getRecordTitle(?\Illuminate\Database\Eloquent\Model $record): string|\Illuminate\Contracts\Support\Htmlable|null
+    {
+        return $record?->ticket_number;
+    }
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema

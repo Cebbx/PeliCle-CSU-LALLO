@@ -16,9 +16,52 @@ use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use App\Models\VehicleRequest;
 
 class VehicleRequestForm
 {
+    public static function resolveAddressCodes(?string $destination): array
+    {
+        if (empty($destination)) {
+            return ['region_code' => null, 'province_code' => null, 'city_code' => null];
+        }
+
+        $parts = array_map('trim', explode(', ', $destination));
+        $regions = \App\Services\PhilippineAddressService::getRegions();
+
+        if (isset($parts[0]) && in_array($parts[0], $regions)) {
+            $regionName = $parts[0] ?? null;
+            $provinceName = $parts[1] ?? null;
+            $cityName = $parts[2] ?? null;
+            list($regionCode, $provinceCode, $cityCode) = \App\Services\PhilippineAddressService::getCodesFromNames(
+                $regionName, $provinceName, $cityName, null
+            );
+            return compact('regionCode', 'provinceCode', 'cityCode');
+        }
+
+        $cityName = $parts[0] ?? null;
+        $provinceName = $parts[1] ?? null;
+        $regionCode = null;
+        $provinceCode = null;
+        $cityCode = null;
+
+        if ($provinceName) {
+            foreach ($regions as $rCode => $rName) {
+                $provs = \App\Services\PhilippineAddressService::getProvinces($rCode);
+                $foundPCode = array_search($provinceName, $provs);
+                if ($foundPCode) {
+                    $regionCode = $rCode;
+                    $provinceCode = $foundPCode;
+                    $cities = \App\Services\PhilippineAddressService::getCities($provinceCode);
+                    $cityCode = array_search($cityName, $cities) ?: null;
+                    break;
+                }
+            }
+        }
+
+        return compact('regionCode', 'provinceCode', 'cityCode');
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -31,8 +74,11 @@ class VehicleRequestForm
                     ->required(),
                 Select::make('user_id')
                     ->relationship('user', 'name')
+                    ->searchable()
+                    ->preload()
                     ->required(),
                 TextInput::make('employee_name')
+                    ->label('Requester Name')
                     ->required(),
                 Select::make('department')
                     ->label('Offices')
@@ -60,6 +106,78 @@ class VehicleRequestForm
                     ])
                     ->searchable()
                     ->required(),
+                \Filament\Forms\Components\Placeholder::make('carpool_info')
+                    ->label('🚗 Destination Consolidation & Carpool Status')
+                    ->columnSpanFull()
+                    ->content(function (callable $get, ?\App\Models\VehicleRequest $record) {
+                        $travelDate = $get('date') ?? $record?->date;
+                        $dest = $get('destination') ?? $record?->destination;
+                        if (!$travelDate) {
+                            return null;
+                        }
+
+                        $cleanCity = function(?string $d): string {
+                            if (empty($d)) return '';
+                            $firstPart = explode(',', $d)[0] ?? '';
+                            $clean = strtolower(trim($firstPart));
+                            $clean = preg_replace('/\b(city of|city|municipality of|municipality|mun\.)\b/i', '', $clean);
+                            return trim(preg_replace('/\s+/', ' ', $clean));
+                        };
+
+                        $myCity = $cleanCity($dest);
+                        $recordId = $record?->id;
+
+                        $otherReqs = \App\Models\VehicleRequest::when($recordId, fn ($q) => $q->where('id', '!=', $recordId))
+                            ->where('date', $travelDate)
+                            ->whereIn('status', ['pending', 'approved', 'on_trip'])
+                            ->get();
+
+                        if ($otherReqs->isEmpty()) {
+                            return new \Illuminate\Support\HtmlString("
+                                <div class='p-3 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2'>
+                                    <span class='text-sm'>ℹ️</span>
+                                    <span><strong>Solo Trip Schedule:</strong> No other requests on " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . ". All fields below are fully editable by Admin.</span>
+                                </div>
+                            ");
+                        }
+
+                        $sameDestReqs = $otherReqs->filter(function ($r) use ($myCity, $cleanCity, $dest) {
+                            $otherCity = $cleanCity($r->destination);
+                            return ($myCity !== '' && $otherCity !== '') && (
+                                $myCity === $otherCity ||
+                                str_contains($myCity, $otherCity) ||
+                                str_contains($otherCity, $myCity) ||
+                                str_contains(strtolower($r->destination), $myCity) ||
+                                str_contains(strtolower($dest ?? ''), $otherCity)
+                            );
+                        });
+
+                        $html = "<div class='p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs space-y-2'>";
+                        if ($sameDestReqs->isNotEmpty()) {
+                            $html .= "<div class='text-amber-800 dark:text-amber-300 font-bold flex items-center gap-1.5 text-sm'>
+                                <span>⭐ Found " . $sameDestReqs->count() . " Other Request(s) to Same Destination on " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . "!</span>
+                            </div>";
+                            $html .= "<p class='text-slate-600 dark:text-slate-300'>You can consolidate these requests into one trip ticket using <strong>'Approve & Create Trip Ticket'</strong> in the header actions above:</p>";
+                            $html .= "<ul class='list-disc list-inside space-y-1 text-slate-700 dark:text-slate-200 font-medium'>";
+                            foreach ($sameDestReqs as $sr) {
+                                $pax = $sr->number_of_passengers ?: 1;
+                                $pWord = $pax > 1 ? 'persons' : 'person';
+                                $t = $sr->time ? \Carbon\Carbon::parse($sr->time)->format('g:i A') : 'No time';
+                                $html .= "<li><strong>{$sr->request_number}</strong> &mdash; {$sr->department} ({$sr->employee_name}) [{$pax} {$pWord}] [Leaves @ {$t}]</li>";
+                            }
+                            $html .= "</ul>";
+                        } else {
+                            $html .= "<div class='text-slate-700 dark:text-slate-300 font-semibold'>📅 Other requests scheduled on " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . ":</div>";
+                            $html .= "<ul class='list-disc list-inside space-y-1 text-slate-600 dark:text-slate-400'>";
+                            foreach ($otherReqs as $otr) {
+                                $html .= "<li><strong>{$otr->request_number}</strong> ({$otr->department}) &rarr; {$otr->destination}</li>";
+                            }
+                            $html .= "</ul>";
+                        }
+                        $html .= "</div>";
+
+                        return new \Illuminate\Support\HtmlString($html);
+                    }),
                 \Filament\Forms\Components\Checkbox::make('show_all_vehicles')
                     ->label('Do you want to see/request other cars currently on trip?')
                     ->live(),
@@ -194,6 +312,10 @@ class VehicleRequestForm
                     })
                     ->rules([
                         fn (callable $get, ?\App\Models\VehicleRequest $record): \Closure => function (string $attribute, $value, \Closure $fail) use ($get, $record) {
+                            if (empty($value)) {
+                                return;
+                            }
+
                             $onTripVehicles = \App\Models\TripTicket::where('status', 'active')
                                 ->when($record, function ($q) use ($record) {
                                     $ticketId = \App\Models\TripTicket::where('vehicle_request_id', $record->id)->value('id');
@@ -250,7 +372,8 @@ class VehicleRequestForm
                             }
                         },
                     ])
-                    ->required(),
+                    ->nullable()
+                    ->placeholder('Select vehicle (or leave unassigned for Trip Ticket)'),
                 Fieldset::make('Destination Address')
                     ->columnSpan(1)
                     ->schema([
@@ -259,82 +382,47 @@ class VehicleRequestForm
                             ->options(\App\Services\PhilippineAddressService::getRegions())
                             ->live()
                             ->dehydrated(false)
+                            ->default(fn (?VehicleRequest $record) => self::resolveAddressCodes($record?->destination)['region_code'] ?? null)
                             ->afterStateUpdated(function (Set $set) {
                                 $set('province_code', null);
                                 $set('city_code', null);
-                                $set('destination', null);
                             })
-                            ->required(),
+                            ->nullable(),
                         Select::make('province_code')
                             ->label('Province')
-                            ->options(fn (Get $get) => \App\Services\PhilippineAddressService::getProvinces($get('region_code')))
+                            ->options(fn (Get $get, ?VehicleRequest $record) => \App\Services\PhilippineAddressService::getProvinces($get('region_code') ?? (self::resolveAddressCodes($record?->destination)['region_code'] ?? null)))
                             ->live()
                             ->dehydrated(false)
+                            ->default(fn (?VehicleRequest $record) => self::resolveAddressCodes($record?->destination)['province_code'] ?? null)
                             ->afterStateUpdated(function (Set $set) {
                                 $set('city_code', null);
-                                $set('destination', null);
                             })
-                            ->disabled(fn (Get $get) => empty($get('region_code')))
-                            ->required(),
+                            ->nullable(),
                         Select::make('city_code')
                             ->label('City / Municipality')
-                            ->options(fn (Get $get) => \App\Services\PhilippineAddressService::getCities($get('province_code')))
+                            ->options(fn (Get $get, ?VehicleRequest $record) => \App\Services\PhilippineAddressService::getCities($get('province_code') ?? (self::resolveAddressCodes($record?->destination)['province_code'] ?? null)))
                             ->live()
                             ->dehydrated(false)
-                            ->afterStateUpdated(function (Get $get, Set $set, $state) {
-                                $cityName = \App\Services\PhilippineAddressService::getCities($get('province_code'))[$state] ?? '';
-                                $provinceName = \App\Services\PhilippineAddressService::getProvinces($get('region_code'))[$get('province_code')] ?? '';
+                            ->default(fn (?VehicleRequest $record) => self::resolveAddressCodes($record?->destination)['city_code'] ?? null)
+                            ->afterStateUpdated(function (Get $get, Set $set, $state, ?VehicleRequest $record) {
+                                $pCode = $get('province_code') ?? (self::resolveAddressCodes($record?->destination)['province_code'] ?? null);
+                                $rCode = $get('region_code') ?? (self::resolveAddressCodes($record?->destination)['region_code'] ?? null);
+                                $cityName = \App\Services\PhilippineAddressService::getCities($pCode)[$state] ?? '';
+                                $provinceName = \App\Services\PhilippineAddressService::getProvinces($rCode)[$pCode] ?? '';
                                 $addressParts = array_filter([$cityName, $provinceName]);
-                                $set('destination', implode(', ', $addressParts));
+                                if (!empty($addressParts)) {
+                                    $set('destination', implode(', ', $addressParts));
+                                }
                             })
-                            ->disabled(fn (Get $get) => empty($get('province_code')))
-                            ->required(),
+                            ->nullable(),
                         TextInput::make('destination')
-                            ->label('Destination Preview')
-                            ->placeholder('Auto-generated based on City & Province')
+                            ->label('Destination (City / Province / Landmark)')
+                            ->placeholder('e.g. Tuguegarao City, Cagayan')
                             ->suffixIcon('heroicon-m-map-pin')
-                            ->suffixIconColor('gray')
-                            ->disabled()
+                            ->suffixIconColor('primary')
                             ->dehydrated()
                             ->required()
-                            ->afterStateHydrated(function (Set $set, $state) {
-                                if (empty($state)) return;
-                                $parts = array_map('trim', explode(', ', $state));
-                                $regions = \App\Services\PhilippineAddressService::getRegions();
-
-                                if (isset($parts[0]) && in_array($parts[0], $regions)) {
-                                    $regionName = $parts[0] ?? null;
-                                    $provinceName = $parts[1] ?? null;
-                                    $cityName = $parts[2] ?? null;
-                                    list($regionCode, $provinceCode, $cityCode) = \App\Services\PhilippineAddressService::getCodesFromNames(
-                                        $regionName, $provinceName, $cityName, null
-                                    );
-                                } else {
-                                    $cityName = $parts[0] ?? null;
-                                    $provinceName = $parts[1] ?? null;
-                                    $regionCode = null;
-                                    $provinceCode = null;
-                                    $cityCode = null;
-
-                                    if ($provinceName) {
-                                        foreach ($regions as $rCode => $rName) {
-                                            $provs = \App\Services\PhilippineAddressService::getProvinces($rCode);
-                                            $foundPCode = array_search($provinceName, $provs);
-                                            if ($foundPCode) {
-                                                $regionCode = $rCode;
-                                                $provinceCode = $foundPCode;
-                                                $cities = \App\Services\PhilippineAddressService::getCities($provinceCode);
-                                                $cityCode = array_search($cityName, $cities) ?: null;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                $set('region_code', $regionCode);
-                                $set('province_code', $provinceCode);
-                                $set('city_code', $cityCode);
-                            }),
+                            ->helperText('Auto-updates when selecting City/Province, or type/edit custom route directly.'),
                     ])
                     ->columns(2),
 
@@ -448,9 +536,9 @@ class VehicleRequestForm
                     ->label('Total Passengers')
                     ->numeric()
                     ->default(1)
-                    ->disabled()
                     ->dehydrated()
-                    ->required(),
+                    ->required()
+                    ->helperText('Auto-calculated from passenger list, or adjust directly if needed.'),
                 Checkbox::make('has_other_passengers')
                     ->label('Others (Include Students / External Passengers)')
                     ->helperText('Check if the trip includes students, guests, or non-employee passengers.')

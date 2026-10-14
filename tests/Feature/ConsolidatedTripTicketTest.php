@@ -142,3 +142,70 @@ test('admin can consolidate multiple department requests into a single trip tick
     $response->assertSee('CTE (4 persons)');
     $response->assertSee('COA (2 persons)');
 });
+
+test('admin can access edit vehicle request page and fields are properly unlocked', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $user = User::factory()->create(['role' => 'employee', 'department' => 'Records Office']);
+
+    $req = VehicleRequest::create([
+        'request_number' => '2026-10-01',
+        'user_id' => $user->id,
+        'employee_name' => 'Marsden Herrera',
+        'department' => 'Records Office',
+        'destination' => 'Quirino (Angkaki), Ilocos Sur',
+        'purpose' => 'Official Business',
+        'date' => '2026-10-15',
+        'time' => '12:29:00',
+        'return_date' => '2026-10-15',
+        'return_time' => '20:33:00',
+        'number_of_passengers' => 1,
+        'passenger_names' => [['name' => 'Lydia Spears']],
+        'status' => 'pending',
+    ]);
+
+    $response = test()->actingAs($admin, 'admin')->get("/admin/vehicle-requests/{$req->id}/edit");
+    $response->assertStatus(200);
+    $response->assertSee('Edit Vehicle Request: VR-2026-10-01');
+    $response->assertSee('Approve &amp; Create Trip Ticket', false);
+});
+
+test('admin can access edit trip ticket page and fields are properly unlocked', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $user = User::factory()->create(['role' => 'employee']);
+    $driver = Driver::create([
+        'name' => 'Driver Dan',
+        'contact_number' => '09170000000',
+        'license_number' => 'D01-99-999999',
+        'status' => 'available',
+    ]);
+    $vehicle = Vehicle::create([
+        'brand' => 'FORTUNER',
+        'model' => 'GR-S',
+        'plate_number' => 'SBA1749',
+        'capacity' => 7,
+        'status' => 'available',
+    ]);
+    $req = VehicleRequest::create([
+        'request_number' => '2026-10-02',
+        'user_id' => $user->id,
+        'employee_name' => 'Test Employee',
+        'department' => 'CICS',
+        'destination' => 'Tuguegarao City',
+        'purpose' => 'Seminar',
+        'date' => '2026-10-20',
+        'time' => '08:00:00',
+        'status' => 'approved',
+    ]);
+    $ticket = TripTicket::create([
+        'ticket_number' => 'TT-2026-10-002',
+        'vehicle_request_id' => $req->id,
+        'driver_id' => $driver->id,
+        'vehicle' => 'FORTUNER - SBA1749',
+        'status' => 'pending',
+    ]);
+
+    $response = test()->actingAs($admin, 'admin')->get("/admin/trip-tickets/{$ticket->id}/edit");
+    $response->assertStatus(200);
+    $response->assertSee('Edit Trip Ticket: TT-2026-10-002');
+});
+

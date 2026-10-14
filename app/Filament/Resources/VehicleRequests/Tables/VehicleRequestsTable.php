@@ -167,6 +167,10 @@ class VehicleRequestsTable
             ->defaultSort('created_at', 'desc')
             ->recordActions([
                 ActionGroup::make([
+                    \Filament\Actions\EditAction::make()
+                        ->label('Edit Request Form')
+                        ->icon('heroicon-o-pencil-square')
+                        ->color('warning'),
                     Action::make('approve_and_ticket')
                         ->label('Approve & Ticket')
                         ->icon('heroicon-o-ticket')
