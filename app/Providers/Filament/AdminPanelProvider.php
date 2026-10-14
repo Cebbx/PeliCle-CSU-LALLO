@@ -40,7 +40,7 @@ class AdminPanelProvider extends PanelProvider
             ->favicon('/csu-logo-sm.png')
             ->font('Outfit')
             ->databaseNotifications()
-            ->databaseNotificationsPolling('5s')
+            ->databaseNotificationsPolling('30s')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

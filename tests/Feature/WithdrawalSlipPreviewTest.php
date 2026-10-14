@@ -53,6 +53,26 @@ test('admin can open view slip modal on withdrawal slips table without exception
     Livewire::actingAs($admin)
         ->test(ListWithdrawalSlips::class)
         ->assertSuccessful()
-        ->callTableAction('view_slip', $slip)
+        ->callTableAction('print', $slip)
         ->assertHasNoTableActionErrors();
+});
+
+test('admin can submit create withdrawal slip page without exception and notification succeeds', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+
+    Livewire::actingAs($admin)
+        ->test(\App\Filament\Resources\WithdrawalSlips\Pages\CreateWithdrawalSlip::class)
+        ->fillForm([
+            'vehicle_name' => 'Toyota HiAce (ABC 1234)',
+            'driver_name' => 'Juan Dela Cruz',
+            'requested_items' => [
+                ['item' => 'diesel', 'quantity' => 'Full Tank']
+            ],
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $latestSlip = WithdrawalSlip::latest('id')->first();
+    expect($latestSlip)->not->toBeNull();
+    expect($latestSlip->status)->toBe('approved');
 });

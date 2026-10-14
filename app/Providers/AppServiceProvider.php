@@ -41,10 +41,13 @@ class AppServiceProvider extends ServiceProvider
                 $host = trim(explode(',', $host)[0]);
                 $proto = 'http';
                 if (
-                    (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
-                    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+                    (isset($_SERVER['HTTPS']) && in_array(strtolower((string)$_SERVER['HTTPS']), ['on', '1'])) ||
+                    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') ||
+                    (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
+                    (str_contains($host, '.test')) ||
                     str_ends_with($host, '.onrender.com') ||
-                    app()->isProduction()
+                    app()->isProduction() ||
+                    str_starts_with((string)config('app.url'), 'https://')
                 ) {
                     $proto = 'https';
                 }
@@ -54,7 +57,7 @@ class AppServiceProvider extends ServiceProvider
                 if ($proto === 'https') {
                     \Illuminate\Support\Facades\URL::forceScheme('https');
                 }
-            } elseif (app()->isProduction()) {
+            } elseif (app()->isProduction() || str_starts_with((string)config('app.url'), 'https://')) {
                 \Illuminate\Support\Facades\URL::forceScheme('https');
             }
         } catch (\Throwable $e) {
@@ -125,9 +128,10 @@ class AppServiceProvider extends ServiceProvider
             };
         });
 
-        // Real-time trip status activation based on travel date and time
+        // Real-time trip status activation based on travel date and time (throttled to run at most once every 60 seconds)
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('trip_tickets')) {
+            if (!app()->runningInConsole() && \Illuminate\Support\Facades\Cache::add('cron_sync_trip_statuses_lock', true, 60)) {
+                if (\Illuminate\Support\Facades\Schema::hasTable('trip_tickets')) {
                 // 1. Activate trips with uploaded document whose departure time has arrived
                 $pendingReadyTrips = \App\Models\TripTicket::where('status', 'pending')
                     ->where(function ($query) {
@@ -231,6 +235,7 @@ class AppServiceProvider extends ServiceProvider
                         ]);
                     }
                 }
+            }
             }
         } catch (\Throwable $e) {
             // Silence exceptions during database setup/migrations

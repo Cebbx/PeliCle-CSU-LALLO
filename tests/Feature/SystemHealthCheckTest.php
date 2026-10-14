@@ -162,6 +162,27 @@ test('system functional test: guard scanner interface and PIN verification', fun
     // Incorrect PIN verification
     $this->postJson('/guard/verify-pin', ['pin' => '9999'])
         ->assertJson(['success' => false]);
+
+    // Edward Cabbat offline password login (1001) - no OTP / no email dispatch
+    $this->postJson('/guard/verify-pin', [
+        'guard_name' => 'Edward Cabbat',
+        'password' => '1001',
+    ])
+        ->assertSuccessful()
+        ->assertJson([
+            'success' => true,
+            'requires_otp' => false,
+            'guard_name' => 'Edward Cabbat',
+            'guard_id' => '1001',
+        ]);
+
+    // Edward Cabbat invalid password
+    $this->postJson('/guard/verify-pin', [
+        'guard_name' => 'Edward Cabbat',
+        'password' => 'wrongpass',
+    ])
+        ->assertSuccessful()
+        ->assertJson(['success' => false]);
 });
 
 test('system functional test: complete trip via QR handles departure and arrival', function () {

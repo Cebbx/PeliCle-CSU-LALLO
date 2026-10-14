@@ -20,8 +20,8 @@ class EditWithdrawalSlip extends EditRecord
         return [
             $this->getBackButtonAction(),
             Action::make('print')
-                ->label('Print Slip')
-                ->icon('heroicon-o-printer')
+                ->label('View Slip')
+                ->icon('heroicon-o-eye')
                 ->color('info')
                 ->url(fn () => route('withdrawal-slips.print', $this->record->id))
                 ->openUrlInNewTab(),

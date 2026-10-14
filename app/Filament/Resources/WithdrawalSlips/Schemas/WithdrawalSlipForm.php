@@ -224,7 +224,8 @@ class WithdrawalSlipForm
                         'rejected' => 'Cancelled / Void',
                     ])
                     ->default('approved')
-                    ->required(),
+                    ->required(fn (string $operation) => $operation !== 'create')
+                    ->hidden(fn (string $operation) => $operation === 'create'),
             ]);
     }
 }

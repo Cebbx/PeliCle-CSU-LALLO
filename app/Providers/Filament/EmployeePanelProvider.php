@@ -36,7 +36,7 @@ class EmployeePanelProvider extends PanelProvider
             ->favicon('/csu-logo-sm.png')
             ->font('Outfit')
             ->databaseNotifications()
-            ->databaseNotificationsPolling('5s')
+            ->databaseNotificationsPolling('30s')
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn () => new \Illuminate\Support\HtmlString('
@@ -415,7 +415,12 @@ class EmployeePanelProvider extends PanelProvider
             )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::BODY_END,
-                fn () => view('filament.components.admin-live-notifications'),
+                function () {
+                    if (! auth('employee')->check() && ! auth()->check()) {
+                        return '';
+                    }
+                    return view('filament.components.admin-live-notifications');
+                },
             )
             ->discoverResources(in: app_path('Filament/Employee/Resources'), for: 'App\Filament\Employee\Resources')
             ->discoverPages(in: app_path('Filament/Employee/Pages'), for: 'App\Filament\Employee\Pages')

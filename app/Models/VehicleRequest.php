@@ -110,7 +110,7 @@ class VehicleRequest extends Model
                         ->icon('heroicon-o-document-text')
                         ->iconColor($vehicleRequest->is_urgent ? 'danger' : 'warning')
                         ->actions([
-                            \Filament\Notifications\Actions\Action::make('view')
+                            \Filament\Actions\Action::make('view')
                                 ->label('Review Request')
                                 ->url('/admin/vehicle-requests'),
                         ])

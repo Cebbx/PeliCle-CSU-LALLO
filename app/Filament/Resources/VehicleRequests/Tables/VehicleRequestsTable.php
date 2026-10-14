@@ -598,6 +598,25 @@ class VehicleRequestsTable
                                 } catch (\Throwable $e) {}
                             }
 
+                            if ($record->tripTicket?->driver) {
+                                $driverUser = $record->tripTicket->driver->getUserAccount();
+                                if ($driverUser) {
+                                    try {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('⚠️ Assigned Trip Cancelled: ' . $record->tripTicket->ticket_number)
+                                            ->body("The trip for request {$record->request_number} to {$record->destination} has been cancelled by Admin. Reason: {$reason}")
+                                            ->icon('heroicon-o-x-mark')
+                                            ->iconColor('warning')
+                                            ->actions([
+                                                \Filament\Actions\Action::make('view')
+                                                    ->label('View Trips')
+                                                    ->url('/driver/trip-tickets'),
+                                            ])
+                                            ->sendToDatabase($driverUser);
+                                    } catch (\Throwable $e) {}
+                                }
+                            }
+
                             \Filament\Notifications\Notification::make()
                                 ->title('Request Cancelled')
                                 ->body("Approved request {$record->request_number} has been cancelled.")

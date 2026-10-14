@@ -180,49 +180,8 @@
 
         <form wire:submit.prevent="save">
             <!-- 2. Grid of Signatories -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
-                <!-- Campus Executive Officer (CEO) -->
-                <div class="signatory-card">
-                    <div class="card-header-bar">
-                        <span class="text-xl">🏛️</span>
-                        <div>
-                            <h3>Campus Executive Officer</h3>
-                            <p class="text-[11px] text-gray-400">Approving Authority (CEO)</p>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="field-label">CEO Full Name & Academic Titles</label>
-                            <input 
-                                type="text" 
-                                wire:model.defer="ceo_name" 
-                                class="custom-input"
-                                placeholder="e.g. ENGR. JAMES B. CABILDO, PHD" 
-                                required
-                            />
-                            @error('ceo_name') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div>
-                            <label class="field-label">Official Designation / Position</label>
-                            <input 
-                                type="text" 
-                                wire:model.defer="ceo_title" 
-                                class="custom-input"
-                                placeholder="Campus Executive Officer" 
-                                required
-                            />
-                            @error('ceo_title') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="pt-2 text-[11px] text-blue-400 bg-blue-950/40 p-2.5 rounded border border-blue-900/60">
-                            💡 Signs the <strong>Approved By</strong> box on Trip Tickets, Travel Orders, and Fuel Slips.
-                        </div>
-                    </div>
-                </div>
-
                 <!-- General Services Officer (GSO) -->
                 <div class="signatory-card">
                     <div class="card-header-bar">
@@ -264,43 +223,43 @@
                     </div>
                 </div>
 
-                <!-- Chief Administrative Officer (CAO) -->
+                <!-- Campus Executive Officer (CEO) -->
                 <div class="signatory-card">
                     <div class="card-header-bar">
-                        <span class="text-xl">📋</span>
+                        <span class="text-xl">🏛️</span>
                         <div>
-                            <h3>Chief Administrative Officer</h3>
-                            <p class="text-[11px] text-gray-400">Verifying Authority</p>
+                            <h3>Campus Executive Officer</h3>
+                            <p class="text-[11px] text-gray-400">Approving Authority (CEO)</p>
                         </div>
                     </div>
                     
                     <div class="space-y-4">
                         <div>
-                            <label class="field-label">CAO Officer Name</label>
+                            <label class="field-label">CEO Full Name & Academic Titles</label>
                             <input 
                                 type="text" 
-                                wire:model.defer="cao_name" 
+                                wire:model.defer="ceo_name" 
                                 class="custom-input"
-                                placeholder="e.g. DR. ARLENE D. TALAMAYAN" 
+                                placeholder="e.g. ENGR. JAMES B. CABILDO, PHD" 
                                 required
                             />
-                            @error('cao_name') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            @error('ceo_name') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
                             <label class="field-label">Official Designation / Position</label>
                             <input 
                                 type="text" 
-                                wire:model.defer="cao_title" 
+                                wire:model.defer="ceo_title" 
                                 class="custom-input"
-                                placeholder="Chief Administrative Officer" 
+                                placeholder="Campus Executive Officer" 
                                 required
                             />
-                            @error('cao_title') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            @error('ceo_title') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="pt-2 text-[11px] text-emerald-400 bg-emerald-950/40 p-2.5 rounded border border-emerald-900/60">
-                            💡 Signs the <strong>Verified By</strong> section on Executive Fleet Analytics &amp; Reports.
+                        <div class="pt-2 text-[11px] text-blue-400 bg-blue-950/40 p-2.5 rounded border border-blue-900/60">
+                            💡 Signs the <strong>Approved By</strong> box on Trip Tickets, Travel Orders, and Fuel Slips.
                         </div>
                     </div>
                 </div>
@@ -322,26 +281,15 @@
                         Cagayan State University Lal-lo Campus • Official Document Sign-Off
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                         <!-- GSO Box -->
                         <div class="text-left border-l-2 border-amber-500 pl-3">
-                            <span class="text-[10px] text-gray-500 font-semibold block uppercase">Prepared By:</span>
+                            <span class="text-[10px] text-gray-500 font-semibold block uppercase">Prepared By / Recommending:</span>
                             <span class="text-[13px] font-extrabold text-gray-900 uppercase block mt-1">
                                 {{ $gso_name ?: 'JOEL A. TUMAMAO' }}
                             </span>
                             <span class="text-[11px] text-gray-600 font-medium block">
                                 {{ $gso_title ?: 'General Services Officer' }}
-                            </span>
-                        </div>
-
-                        <!-- CAO Box -->
-                        <div class="text-left border-l-2 border-emerald-500 pl-3">
-                            <span class="text-[10px] text-gray-500 font-semibold block uppercase">Verified By:</span>
-                            <span class="text-[13px] font-extrabold text-gray-900 uppercase block mt-1">
-                                {{ $cao_name ?: 'DR. ARLENE D. TALAMAYAN' }}
-                            </span>
-                            <span class="text-[11px] text-gray-600 font-medium block">
-                                {{ $cao_title ?: 'Chief Administrative Officer' }}
                             </span>
                         </div>
 

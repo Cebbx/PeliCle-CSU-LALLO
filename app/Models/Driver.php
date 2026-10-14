@@ -46,4 +46,18 @@ class Driver extends Model
         $base = !empty($this->campus) ? $this->campus : 'CSU Lal-lo Campus';
         return "{$base} (Standby)";
     }
+
+    public function getUserAccount(): ?User
+    {
+        return User::where('role', 'driver')
+            ->where(function ($q) {
+                if (!empty($this->license_number)) {
+                    $q->where('email', $this->license_number);
+                }
+                if (!empty($this->name)) {
+                    $q->orWhere('name', $this->name);
+                }
+            })
+            ->first();
+    }
 }

@@ -4,7 +4,7 @@ namespace App\Filament\Resources\WithdrawalSlips\Pages;
 
 use App\Filament\Concerns\HasBackButton;
 use App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource;
-use Filament\Notifications\Actions\Action;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -40,6 +40,13 @@ class CreateWithdrawalSlip extends CreateRecord
         }
     }
 
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['status'] = $data['status'] ?? 'approved';
+
+        return $data;
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
@@ -53,8 +60,8 @@ class CreateWithdrawalSlip extends CreateRecord
             ->success()
             ->actions([
                 Action::make('print')
-                    ->label('Print Slip')
-                    ->icon('heroicon-o-printer')
+                    ->label('View Slip')
+                    ->icon('heroicon-o-eye')
                     ->url(route('withdrawal-slips.print', $this->record->id))
                     ->openUrlInNewTab(),
             ]);

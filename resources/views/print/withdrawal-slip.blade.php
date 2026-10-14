@@ -201,8 +201,8 @@
                 <div class="text-left w-full pl-2 sm:pl-4">
                     <p>Prepared by:</p>
                     <div class="pl-6 sm:pl-12 mt-3 sm:mt-4">
-                        <p class="font-bold uppercase tracking-wide">JOEL A. TUMAMAO</p>
-                        <p class="text-[11px] sm:text-[13px] text-gray-800">General Services Officer</p>
+                        <p class="font-bold uppercase tracking-wide">{{ \App\Models\User::getGsoName() }}</p>
+                        <p class="text-[11px] sm:text-[13px] text-gray-800">{{ \App\Models\User::getGsoTitle() }}</p>
                     </div>
                 </div>
 
@@ -210,8 +210,8 @@
                 <div class="text-left w-full pl-2 sm:pl-4">
                     <p>Approved by:</p>
                     <div class="pl-6 sm:pl-12 mt-3 sm:mt-4">
-                        <p class="font-bold uppercase tracking-wide">ENGR. JAMES B. CABILDO, ASEAN ENGR.</p>
-                        <p class="text-[11px] sm:text-[13px] text-gray-800">Campus Executive Officer</p>
+                        <p class="font-bold uppercase tracking-wide">{{ \App\Models\User::getCeoName() }}</p>
+                        <p class="text-[11px] sm:text-[13px] text-gray-800">{{ \App\Models\User::getCeoTitle() }}</p>
                     </div>
                 </div>
             </div>

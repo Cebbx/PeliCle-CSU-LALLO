@@ -306,6 +306,23 @@ class TripTicketsTable
                                 } catch (\Throwable $e) {}
                             }
 
+                            $driverUser = $record->driver?->getUserAccount();
+                            if ($driverUser) {
+                                try {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('⚠️ Trip Ticket Cancelled: ' . $record->ticket_number)
+                                        ->body("Trip ticket {$record->ticket_number} has been cancelled by Admin. Reason: {$reason}")
+                                        ->icon('heroicon-o-x-mark')
+                                        ->iconColor('danger')
+                                        ->actions([
+                                            \Filament\Actions\Action::make('view')
+                                                ->label('View Trips')
+                                                ->url('/driver/trip-tickets'),
+                                        ])
+                                        ->sendToDatabase($driverUser);
+                                } catch (\Throwable $e) {}
+                            }
+
                             \Filament\Notifications\Notification::make()
                                 ->title('Trip Cancelled')
                                 ->body("Trip {$record->ticket_number} has been cancelled.")

@@ -223,22 +223,22 @@
         <div class="mt-8 pt-4 border-t border-black text-xs">
             <div class="grid grid-cols-3 gap-6 text-center">
                 <div class="flex flex-col justify-end">
-                    <span class="font-bold text-black uppercase">JOEL A. TUMAMAO</span>
-                    <span class="text-[9px] uppercase text-gray-700 font-semibold">General Services Officer</span>
+                    <span class="font-bold text-black uppercase">{{ \App\Models\User::getGsoName() }}</span>
+                    <span class="text-[9px] uppercase text-gray-700 font-semibold">{{ \App\Models\User::getGsoTitle() }}</span>
                     <div class="border-t border-black pt-1 mt-1 font-bold text-[9px] uppercase">Prepared by:</div>
                     <span class="text-[8px] font-mono text-gray-600 mt-1">✓ Digital Record: {{ \Carbon\Carbon::now('Asia/Manila')->format('M d, Y') }}</span>
                 </div>
 
                 <div class="flex flex-col justify-end">
-                    <span class="font-bold text-black uppercase">DR. ARLENE D. TALAMAYAN</span>
+                    <span class="font-bold text-black uppercase">{{ \App\Models\User::getCaoName() }}</span>
                     <span class="text-[9px] uppercase text-gray-700 font-semibold">Chief Administrative Officer</span>
                     <div class="border-t border-black pt-1 mt-1 font-bold text-[9px] uppercase">Verified by:</div>
                     <span class="text-[8px] font-mono text-gray-600 mt-1">✓ Verified Record</span>
                 </div>
 
                 <div class="flex flex-col justify-end">
-                    <span class="font-bold text-black uppercase">ENGR. JAMES B. CABILDO, PHD</span>
-                    <span class="text-[9px] uppercase text-gray-700 font-semibold">Campus Executive Officer</span>
+                    <span class="font-bold text-black uppercase">{{ \App\Models\User::getCeoName() }}</span>
+                    <span class="text-[9px] uppercase text-gray-700 font-semibold">{{ \App\Models\User::getCeoTitle() }}</span>
                     <div class="border-t border-black pt-1 mt-1 font-bold text-[9px] uppercase">Approved by:</div>
                     <span class="text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-1 py-0.5 rounded mt-1 inline-block">
                         ✓ Certified Official Report

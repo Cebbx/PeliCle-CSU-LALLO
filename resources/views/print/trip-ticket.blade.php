@@ -256,15 +256,15 @@
                 <!-- Left: Prepared by Joel A. Tumamao -->
                 <div class="flex flex-col text-left">
                     <span class="text-[10px] sm:text-xs text-black font-semibold mb-6 sm:mb-7">Prepared by:</span>
-                    <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">JOEL A. TUMAMAO</span>
-                    <span class="text-[8px] sm:text-[10px] text-black font-semibold">General Services Officer</span>
+                    <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">{{ \App\Models\User::getGsoName() }}</span>
+                    <span class="text-[8px] sm:text-[10px] text-black font-semibold">{{ \App\Models\User::getGsoTitle() }}</span>
                 </div>
                 
                 <!-- Right: Approved by Engr. James B. Cabildo -->
                 <div class="flex flex-col text-center">
                     <span class="text-[10px] sm:text-xs text-black font-semibold mb-6 sm:mb-7 text-left pl-2 sm:pl-4">Approved by:</span>
-                    <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">ENGR. JAMES B. CABILDO, PHD, ASEAN ENGR.</span>
-                    <span class="text-[8px] sm:text-[10px] text-black font-semibold">Campus Executive Officer</span>
+                    <span class="text-[10px] sm:text-xs font-extrabold text-black uppercase">{{ \App\Models\User::getCeoName() }}</span>
+                    <span class="text-[8px] sm:text-[10px] text-black font-semibold">{{ \App\Models\User::getCeoTitle() }}</span>
                 </div>
             </div>
         </div>

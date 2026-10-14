@@ -235,7 +235,7 @@
                 <div class="w-full">
                     <p class="font-medium mb-3">Recommending Approval:</p>
                     <div class="text-right pr-4 sm:pr-8">
-                        <input type="text" value="JOEL A. TUMAMAO/GSO" class="font-bold text-[13px] text-right uppercase bg-transparent outline-none border-b border-transparent hover:border-gray-300 w-72" />
+                        <input type="text" value="{{ \App\Models\User::getGsoName() }}/GSO" class="font-bold text-[13px] text-right uppercase bg-transparent outline-none border-b border-transparent hover:border-gray-300 w-72" />
                         <p class="text-[12px] text-gray-800 font-normal">Immediate Supervisor</p>
                     </div>
                 </div>

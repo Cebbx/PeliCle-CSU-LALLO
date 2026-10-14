@@ -365,16 +365,19 @@ class VehicleRequestsTable
                                         ->sendToDatabase($admin);
                                 }
 
-                                if ($record->tripTicket && $record->tripTicket->driver && $record->tripTicket->driver->license_number) {
-                                    $driverUser = \App\Models\User::where('email', $record->tripTicket->driver->license_number)->first();
-                                    if ($driverUser) {
-                                        \Filament\Notifications\Notification::make()
-                                            ->title('📄 CEO Document Ready (' . $record->tripTicket->ticket_number . ')')
-                                            ->body("CEO signed document for trip to {$record->destination} has been uploaded. Your trip is cleared for scheduled departure.")
-                                            ->icon('heroicon-o-document-check')
-                                            ->iconColor('success')
-                                            ->sendToDatabase($driverUser);
-                                    }
+                                $driverUser = $record->tripTicket?->driver?->getUserAccount();
+                                if ($driverUser) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('📄 CEO Document Ready (' . $record->tripTicket->ticket_number . ')')
+                                        ->body("CEO signed document for trip to {$record->destination} has been uploaded. Your trip is cleared for scheduled departure.")
+                                        ->icon('heroicon-o-document-check')
+                                        ->iconColor('success')
+                                        ->actions([
+                                            \Filament\Actions\Action::make('view')
+                                                ->label('View Trip')
+                                                ->url('/driver/trip-tickets'),
+                                        ])
+                                        ->sendToDatabase($driverUser);
                                 }
                             } catch (\Throwable $e) {}
 
@@ -538,7 +541,29 @@ class VehicleRequestsTable
                                         ->body("{$record->employee_name} ({$record->department}) cancelled request to {$record->destination}. Reason: {$reason}")
                                         ->icon('heroicon-o-x-circle')
                                         ->iconColor('gray')
+                                        ->actions([
+                                            \Filament\Actions\Action::make('view')
+                                                ->label('View Requests')
+                                                ->url('/admin/vehicle-requests'),
+                                        ])
                                         ->sendToDatabase($admin);
+                                }
+
+                                if ($record->tripTicket?->driver) {
+                                    $driverUser = $record->tripTicket->driver->getUserAccount();
+                                    if ($driverUser) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('⚠️ Trip Cancelled by Employee: ' . $record->tripTicket->ticket_number)
+                                            ->body("{$record->employee_name} cancelled request for travel to {$record->destination}. Reason: {$reason}")
+                                            ->icon('heroicon-o-x-circle')
+                                            ->iconColor('gray')
+                                            ->actions([
+                                                \Filament\Actions\Action::make('view')
+                                                    ->label('View Trips')
+                                                    ->url('/driver/trip-tickets'),
+                                            ])
+                                            ->sendToDatabase($driverUser);
+                                    }
                                 }
                             } catch (\Throwable $e) {}
 

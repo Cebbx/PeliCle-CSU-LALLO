@@ -66,25 +66,12 @@ class WithdrawalSlipsTable
                     ->label('Archive Status'),
             ])
             ->recordActions([
-                Action::make('view_slip')
+                Action::make('print')
                     ->label('View Slip')
                     ->icon('heroicon-o-eye')
                     ->color('info')
-                    ->modalHeading(fn ($record) => "Gasoline Withdrawal Slip — Control No. {$record->slip_number}")
-                    ->modalWidth('5xl')
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Close')
-                    ->modalContent(fn ($record) => view('filament.resources.withdrawal-slips.preview-modal', [
-                        'record' => $record,
-                    ]))
-                    ->extraModalFooterActions([
-                        Action::make('printFromModal')
-                            ->label('Open in New Tab / Print')
-                            ->icon('heroicon-o-arrow-top-right-on-square')
-                            ->color('primary')
-                            ->url(fn ($record) => route('withdrawal-slips.print', $record->id))
-                            ->openUrlInNewTab(),
-                    ]),
+                    ->url(fn ($record) => route('withdrawal-slips.print', $record->id))
+                    ->openUrlInNewTab(),
                 Action::make('approve_slip')
                     ->label('Approve Slip')
                     ->icon('heroicon-o-check-badge')
@@ -106,12 +93,6 @@ class WithdrawalSlipsTable
                     ->label('Edit')
                     ->icon('heroicon-o-pencil-square')
                     ->color('primary'),
-                Action::make('print')
-                    ->label('Print Slip')
-                    ->icon('heroicon-o-printer')
-                    ->color('info')
-                    ->url(fn ($record) => route('withdrawal-slips.print', $record->id))
-                    ->openUrlInNewTab(),
                 DeleteAction::make()
                     ->label('Archive')
                     ->icon('heroicon-o-archive-box')

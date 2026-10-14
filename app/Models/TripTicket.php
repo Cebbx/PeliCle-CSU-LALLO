@@ -195,7 +195,7 @@ class TripTicket extends Model
                             ->icon('heroicon-o-check-circle')
                             ->iconColor('success')
                             ->actions([
-                                \Filament\Notifications\Actions\Action::make('view')
+                                \Filament\Actions\Action::make('view')
                                     ->label('View Status')
                                     ->url('/employee/vehicle-requests'),
                             ])
@@ -204,22 +204,20 @@ class TripTicket extends Model
                 }
 
                 // Also notify the assigned Driver's user account
-                if ($tripTicket->driver && $tripTicket->driver->license_number) {
-                    $driverUser = \App\Models\User::where('email', $tripTicket->driver->license_number)->first();
-                    if ($driverUser) {
-                        $dest = $tripTicket->vehicleRequest?->destination ?? 'Assigned Destination';
-                        \Filament\Notifications\Notification::make()
-                            ->title('🚐 New Trip Assigned: ' . $tripTicket->ticket_number)
-                            ->body("You have been assigned to drive {$tripTicket->vehicle} to {$dest}.")
-                            ->icon('heroicon-o-truck')
-                            ->iconColor('info')
-                            ->actions([
-                                \Filament\Notifications\Actions\Action::make('view')
-                                    ->label('View Trip Ticket')
-                                    ->url('/driver/trip-tickets'),
-                            ])
-                            ->sendToDatabase($driverUser);
-                    }
+                $driverUser = $tripTicket->driver?->getUserAccount();
+                if ($driverUser) {
+                    $dest = $tripTicket->vehicleRequest?->destination ?? 'Assigned Destination';
+                    \Filament\Notifications\Notification::make()
+                        ->title('🚐 New Trip Assigned: ' . $tripTicket->ticket_number)
+                        ->body("You have been assigned to drive {$tripTicket->vehicle} to {$dest}.")
+                        ->icon('heroicon-o-truck')
+                        ->iconColor('info')
+                        ->actions([
+                            \Filament\Actions\Action::make('view')
+                                ->label('View Trip Ticket')
+                                ->url('/driver/trip-tickets'),
+                        ])
+                        ->sendToDatabase($driverUser);
                 }
             } catch (\Throwable $e) {
                 // Ignore notification errors

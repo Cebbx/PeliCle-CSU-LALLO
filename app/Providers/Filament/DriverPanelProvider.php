@@ -38,7 +38,7 @@ class DriverPanelProvider extends PanelProvider
             ->favicon('/csu-logo-sm.png')
             ->font('Outfit')
             ->databaseNotifications()
-            ->databaseNotificationsPolling('5s')
+            ->databaseNotificationsPolling('30s')
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn () => new \Illuminate\Support\HtmlString('
@@ -243,18 +243,6 @@ class DriverPanelProvider extends PanelProvider
                     }
                     $user = auth('driver')->user();
                     if (! $user || $user->role !== 'driver') {
-                        return '';
-                    }
-                    $driver = $user->driver 
-                        ?? \App\Models\Driver::where('name', $user->name)->first()
-                        ?? ($user->email ? \App\Models\Driver::where('license_number', $user->email)->first() : null);
-                    if (! $driver) {
-                        return '';
-                    }
-                    $hasTrip = \App\Models\TripTicket::where('driver_id', $driver->id)
-                        ->whereIn('status', ['pending', 'active'])
-                        ->exists();
-                    if (! $hasTrip) {
                         return '';
                     }
                     return view('filament.components.admin-live-notifications');

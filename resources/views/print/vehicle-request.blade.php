@@ -234,9 +234,9 @@
                 <div class="flex flex-col items-center mt-5 sm:mt-7">
                     <div class="h-6 sm:h-8"></div>
                     <div class="w-full border-t border-black text-center pt-1">
-                        <span class="text-xs sm:text-sm font-extrabold text-black uppercase tracking-wide">JOEL A. TUMAMAO</span>
+                        <span class="text-xs sm:text-sm font-extrabold text-black uppercase tracking-wide">{{ \App\Models\User::getGsoName() }}</span>
                     </div>
-                    <span class="text-[9px] sm:text-[10px] text-black uppercase font-semibold">GSO</span>
+                    <span class="text-[9px] sm:text-[10px] text-black uppercase font-semibold">{{ \App\Models\User::getGsoTitle() }}</span>
                 </div>
             </div>
         </div>

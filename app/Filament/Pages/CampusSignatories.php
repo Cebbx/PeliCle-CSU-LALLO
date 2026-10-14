@@ -56,16 +56,18 @@ class CampusSignatories extends Page
             'ceo_title' => 'required|string|max:255',
             'gso_name' => 'required|string|max:255',
             'gso_title' => 'required|string|max:255',
-            'cao_name' => 'required|string|max:255',
-            'cao_title' => 'required|string|max:255',
         ]);
 
         CampusSetting::set('ceo_name', trim($this->ceo_name));
         CampusSetting::set('ceo_title', trim($this->ceo_title));
         CampusSetting::set('gso_name', trim($this->gso_name));
         CampusSetting::set('gso_title', trim($this->gso_title));
-        CampusSetting::set('cao_name', trim($this->cao_name));
-        CampusSetting::set('cao_title', trim($this->cao_title));
+        if (!empty($this->cao_name)) {
+            CampusSetting::set('cao_name', trim($this->cao_name));
+        }
+        if (!empty($this->cao_title)) {
+            CampusSetting::set('cao_title', trim($this->cao_title));
+        }
 
         Notification::make()
             ->title('Campus Signatories Updated')
