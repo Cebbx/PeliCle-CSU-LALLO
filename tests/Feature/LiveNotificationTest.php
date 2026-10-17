@@ -157,3 +157,39 @@ test('transaction trigger: issuing withdrawal slip notifies driver', function ()
 
     expect($driverUser->unreadNotifications()->count())->toBeGreaterThanOrEqual(1);
 });
+
+test('employee request creation is immediately received on admin live notification endpoint', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+        'email' => 'admin_live_' . uniqid() . '@csu.edu.ph',
+    ]);
+    $employee = User::factory()->create([
+        'role' => 'employee',
+        'name' => 'Kyla Sloan',
+        'department' => 'CICS',
+        'email' => 'cics_' . uniqid() . '@csu.edu.ph',
+    ]);
+
+    VehicleRequest::create([
+        'user_id' => $employee->id,
+        'employee_name' => $employee->name,
+        'department' => 'CICS',
+        'vehicle' => 'Toyota Hiace - SAA-1234',
+        'destination' => 'Santa Cruz, Occidental Mindoro',
+        'purpose' => 'Official Research Conference',
+        'passengers' => 2,
+        'date' => now()->addDays(3)->format('Y-m-d'),
+        'time' => '08:30:00',
+        'status' => 'pending',
+    ]);
+
+    $response = $this->actingAs($admin, 'admin')
+        ->getJson('/api/admin/live-notifications-check?panel=admin');
+
+    $response->assertSuccessful();
+    $data = $response->json();
+
+    expect($data['count'])->toBeGreaterThanOrEqual(1);
+    expect($data['latest']['title'])->toContain('New Vehicle Request');
+    expect($data['latest']['body'])->toContain('Kyla Sloan');
+});

@@ -275,7 +275,7 @@
                 }
             } catch (e) {}
         }
-        ['touchend', 'pointerup', 'click', 'keydown'].forEach(evt => {
+        ['touchend', 'pointerup', 'click', 'keydown', 'focus', 'mousemove'].forEach(evt => {
             window.addEventListener(evt, unlockAudio, { passive: true });
         });
 
@@ -316,9 +316,13 @@
             }
         }
 
+        function findBellButton() {
+            return document.querySelector('.fi-topbar-database-notifications-btn, button[wire\\:click*="openDatabaseNotifications"], [aria-label*="notification" i], [aria-label*="abiso" i]');
+        }
+
         // Option A (Ring & Settle): Rings 2-3 times on incoming event, then settles completely
         function ringBellIconBriefly() {
-            const bellBtn = document.querySelector('.fi-topbar-database-notifications-btn');
+            const bellBtn = findBellButton();
             if (!bellBtn) return;
             bellBtn.classList.remove('bell-ringing');
             void bellBtn.offsetWidth; // Force CSS reflow to replay animation cleanly
@@ -330,7 +334,7 @@
 
         // Immediately stop bell ringing if user clicks or opens the notification panel
         document.addEventListener('click', (e) => {
-            const bell = e.target.closest('.fi-topbar-database-notifications-btn');
+            const bell = e.target.closest('.fi-topbar-database-notifications-btn, button[wire\\:click*="openDatabaseNotifications"], [aria-label*="notification" i]');
             if (bell) {
                 bell.classList.remove('bell-ringing');
             }
@@ -379,7 +383,7 @@
         }
 
         function openNotificationsOrList() {
-            const bellBtn = document.querySelector('.fi-topbar-database-notifications-btn');
+            const bellBtn = findBellButton();
             if (bellBtn) {
                 bellBtn.click();
             } else {
@@ -446,19 +450,14 @@
 
         // 5. Update Topbar Bell Badge Indicator
         function updateTopbarBellBadge(count) {
-            const bellBtn = document.querySelector('.fi-topbar-database-notifications-btn');
+            const bellBtn = findBellButton();
             if (!bellBtn) return;
 
             let badgeSpan = bellBtn.querySelector('.fi-badge, .pelicle-unread-badge');
             if (count > 0) {
                 bellBtn.classList.add('has-unread-alerts');
                 if (!badgeSpan) {
-                    let badgeCtn = bellBtn.querySelector('.fi-icon-btn-badge-ctn');
-                    if (!badgeCtn) {
-                        badgeCtn = document.createElement('div');
-                        badgeCtn.className = 'fi-icon-btn-badge-ctn';
-                        bellBtn.appendChild(badgeCtn);
-                    }
+                    let badgeCtn = bellBtn.querySelector('.fi-icon-btn-badge-ctn') || bellBtn;
                     badgeSpan = document.createElement('span');
                     badgeSpan.className = 'fi-badge pelicle-unread-badge';
                     badgeCtn.appendChild(badgeSpan);
@@ -474,7 +473,7 @@
             }
         }
 
-        // 6. Polling & Event Loop (Foolproof Single-Alert System with Storage Sync & Cooldown)
+        // 6. Polling & Event Loop (Foolproof Real-Time Single-Alert System with Storage Sync)
         const originalTitle = document.title;
         const currentPath = window.location.pathname;
         const activePanel = currentPath.startsWith('/employee') ? 'employee' : (currentPath.startsWith('/driver') ? 'driver' : 'admin');
@@ -510,8 +509,8 @@
 
         function playChimeWithThrottle(isEmergency) {
             const now = Date.now();
-            if (now - lastChimeTime < 5000) {
-                // Throttle: Never ring audio multiple times within 5 seconds
+            if (now - lastChimeTime < 4000) {
+                // Throttle: Never ring audio multiple times within 4 seconds
                 return;
             }
             lastChimeTime = now;
@@ -519,7 +518,7 @@
         }
 
         async function checkLiveNotifications() {
-            if (isChecking || document.hidden) return;
+            if (isChecking) return;
             isChecking = true;
 
             try {
@@ -532,7 +531,7 @@
                 const currentCount = parseInt(data.count, 10) || 0;
                 const unreadList = Array.isArray(data.unread) ? data.unread : [];
 
-                // Update tab title
+                // Update tab title with unread count
                 if (currentCount > 0) {
                     document.title = '(' + currentCount + ') ' + originalTitle.replace(/^\(\d+\)\s*/, '');
                 } else {
@@ -542,35 +541,41 @@
                 // Update bell icon badge
                 updateTopbarBellBadge(currentCount);
 
-                // On initial page load: register all currently existing unread notifications as already seen
-                // This guarantees pre-existing unread notifications NEVER ring, chime, or pop up on refresh/load!
+                loadSeenNotifIds();
+                const nowSec = Math.floor(Date.now() / 1000);
+                const newUnseenList = [];
+
                 if (isFirstCheck) {
                     isFirstCheck = false;
                     unreadList.forEach(item => {
                         if (item && item.id) {
                             const s = String(item.id);
-                            if (!seenNotifIds.includes(s)) seenNotifIds.push(s);
+                            const ageSec = nowSec - (item.created_at_ts || 0);
+                            // If created within the last 180 seconds and not yet seen, trigger alert!
+                            if (!seenNotifIds.includes(s)) {
+                                if (ageSec <= 180) {
+                                    seenNotifIds.push(s);
+                                    newUnseenList.push(item);
+                                } else {
+                                    // Older historical notifications are quietly marked as seen
+                                    seenNotifIds.push(s);
+                                }
+                            }
                         }
                     });
-                    saveSeenNotifIds();
-                    return;
+                } else {
+                    unreadList.forEach(item => {
+                        if (item && item.id) {
+                            const s = String(item.id);
+                            if (!seenNotifIds.includes(s)) {
+                                seenNotifIds.push(s);
+                                newUnseenList.push(item);
+                            }
+                        }
+                    });
                 }
 
-                // Check for genuinely new, unseen notifications arrived in real-time
-                loadSeenNotifIds();
-                const newUnseenList = [];
-                unreadList.forEach(item => {
-                    if (item && item.id) {
-                        const s = String(item.id);
-                        if (!seenNotifIds.includes(s)) {
-                            seenNotifIds.push(s);
-                            newUnseenList.push(item);
-                        }
-                    }
-                });
-
                 if (newUnseenList.length > 0 && currentCount > 0) {
-                    // Mark as seen immediately in storage so subsequent polls NEVER alert again on these items
                     saveSeenNotifIds();
 
                     const alertItem = newUnseenList[0];
@@ -584,23 +589,27 @@
                     showDesktopNotification(alertItem.title, alertItem.body);
                     showFloatingToast(alertItem);
 
-                    // Safe Live Sync: NEVER refresh if a dropdown, action, form, or modal is currently open or focused
-                    const isTyping = Boolean(document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName));
-                    const hasOpenModal = Boolean(document.querySelector('.fi-modal-window:not([hidden])') || document.querySelector('[role="dialog"]:not([hidden])'));
-                    const hasOpenDropdown = Boolean(document.querySelector('.fi-dropdown-panel') || document.querySelector('[aria-expanded="true"]'));
-                    const isActionButtonActive = Boolean(document.activeElement && document.activeElement.closest('.fi-ta-actions, .fi-ac-action, .fi-btn'));
-                    const hasFormOnPage = Boolean(
-                        document.querySelector('.fi-form') ||
-                        document.querySelector('.fi-fo-field-wrp') ||
-                        window.location.pathname.includes('/create') ||
-                        window.location.pathname.includes('/edit')
-                    );
+                    // Safe Live Sync: only refresh Livewire if tab is currently visible
+                    if (!document.hidden) {
+                        const isTyping = Boolean(document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName));
+                        const hasOpenModal = Boolean(document.querySelector('.fi-modal-window:not([hidden])') || document.querySelector('[role="dialog"]:not([hidden])'));
+                        const hasOpenDropdown = Boolean(document.querySelector('.fi-dropdown-panel') || document.querySelector('[aria-expanded="true"]'));
+                        const isActionButtonActive = Boolean(document.activeElement && document.activeElement.closest('.fi-ta-actions, .fi-ac-action, .fi-btn'));
+                        const hasFormOnPage = Boolean(
+                            document.querySelector('.fi-form') ||
+                            document.querySelector('.fi-fo-field-wrp') ||
+                            window.location.pathname.includes('/create') ||
+                            window.location.pathname.includes('/edit')
+                        );
 
-                    if (window.Livewire && !isTyping && !hasOpenModal && !hasOpenDropdown && !isActionButtonActive && !hasFormOnPage && !window.location.pathname.includes('/login')) {
-                        try {
-                            Livewire.dispatch('$refresh');
-                        } catch (err) {}
+                        if (window.Livewire && !isTyping && !hasOpenModal && !hasOpenDropdown && !isActionButtonActive && !hasFormOnPage && !window.location.pathname.includes('/login')) {
+                            try {
+                                Livewire.dispatch('$refresh');
+                            } catch (err) {}
+                        }
                     }
+                } else {
+                    saveSeenNotifIds();
                 }
             } catch (err) {
                 // Ignore network errors
@@ -609,9 +618,9 @@
             }
         }
 
-        // Live notification polling every 8 seconds (fast for alerts, perfectly smooth without UI interruptions)
-        setTimeout(checkLiveNotifications, 1000);
-        setInterval(checkLiveNotifications, 8000);
+        // Live notification polling every 5 seconds (snappy, background-capable, zero UI lag)
+        setTimeout(checkLiveNotifications, 800);
+        setInterval(checkLiveNotifications, 5000);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) checkLiveNotifications();
         });

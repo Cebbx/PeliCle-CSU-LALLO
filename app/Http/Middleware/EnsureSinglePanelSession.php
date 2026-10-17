@@ -33,17 +33,9 @@ class EnsureSinglePanelSession
             return $next($request);
         }
 
-        $currentGuard = $panel->getAuthGuard();
-
-        // If currently authenticated in this panel, clean up any lingering sessions from other guards
-        if ($currentGuard && auth($currentGuard)->check()) {
-            foreach (array_keys($this->panelGuards) as $otherGuard) {
-                if ($otherGuard !== $currentGuard && auth($otherGuard)->check()) {
-                    auth($otherGuard)->logout();
-                }
-            }
-        }
-
+        // Independent panel sessions: each portal (admin, employee, driver) manages its own
+        // authenticatable guard via SetPanelAuthGuard without knocking out concurrent sessions
+        // in other tabs or portals.
         return $next($request);
     }
 }

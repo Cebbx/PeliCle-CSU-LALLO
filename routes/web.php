@@ -113,7 +113,7 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
             }
         }
 
-        if ($panel && in_array($panel, ['admin', 'driver', 'employee']) && auth($panel)->check()) {
+        if ($panel && in_array($panel, ['admin', 'driver', 'employee'])) {
             $user = auth($panel)->user();
         } else {
             $user = auth('admin')->user() 
