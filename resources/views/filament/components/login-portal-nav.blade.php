@@ -6,7 +6,43 @@
 @endphp
 
 @if (! $isAuthenticated)
-    {{-- 1. Floating Theme Switcher (Top Right Corner) --}}
+    {{-- 1. Floating "Back to Portals" Pill (Top Left Corner) --}}
+    <div id="login-back-btn-container" style="position: fixed; top: 1.25rem; left: 1.25rem; z-index: 9999;">
+        <a 
+            href="/" 
+            id="login-back-btn"
+            title="Return to Main Portal Selection"
+            style="
+                display: inline-flex;
+                align-items: center;
+                gap: 0.45rem;
+                padding: 0.5rem 0.95rem;
+                border-radius: 9999px;
+                font-size: 0.8125rem;
+                font-weight: 600;
+                font-family: 'Outfit', sans-serif;
+                cursor: pointer;
+                border: 1px solid rgba(148, 163, 184, 0.3);
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                color: #334155;
+                text-decoration: none;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            "
+            class="fi-login-back-btn"
+            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 16px rgba(0, 0, 0, 0.12)'; this.style.color='#0284c7'; this.style.borderColor='#38bdf8';"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.08)'; this.style.color='#334155'; this.style.borderColor='rgba(148, 163, 184, 0.3)';"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+            </svg>
+            <span>Back to Portals</span>
+        </a>
+    </div>
+
+    {{-- 2. Floating Theme Switcher (Top Right Corner) --}}
     <div id="login-theme-switcher-container" style="position: fixed; top: 1.25rem; right: 1.25rem; z-index: 9999;">
         <button 
             type="button" 
@@ -36,7 +72,7 @@
             {{-- Moon Icon (Shows in Light Mode) --}}
             <span id="login-theme-moon-icon" style="display: inline-flex; align-items: center;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #6366f1;">
-                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                    <path d="M12 3a6 6 0 0 0 9 9 9 0 1 1-9-9Z"/>
                 </svg>
             </span>
             {{-- Sun Icon (Shows in Dark Mode) --}}
@@ -49,40 +85,7 @@
         </button>
     </div>
 
-    {{-- 2. "Bumalik sa Main Portal" Link (Below the Login Card) --}}
-    <div style="margin-top: 1.5rem; text-align: center; width: 100%;">
-        <a 
-            href="/" 
-            style="
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.5rem;
-                padding: 0.625rem 1.25rem;
-                border-radius: 0.75rem;
-                font-size: 0.875rem;
-                font-weight: 600;
-                font-family: 'Outfit', sans-serif;
-                color: #475569;
-                text-decoration: none;
-                background: rgba(241, 245, 249, 0.85);
-                border: 1px solid rgba(203, 213, 225, 0.6);
-                backdrop-filter: blur(8px);
-                transition: all 0.2s ease;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-            "
-            class="fi-login-back-btn"
-            onmouseover="this.style.color='#0284c7'; this.style.borderColor='#38bdf8'; this.style.background='#ffffff'; this.style.transform='translateY(-1px)';"
-            onmouseout="this.style.color='#475569'; this.style.borderColor='rgba(203, 213, 225, 0.6)'; this.style.background='rgba(241, 245, 249, 0.85)'; this.style.transform='translateY(0)';"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m15 18-6-6 6-6"/>
-            </svg>
-            <span>Bumalik sa Main Portal</span>
-        </a>
-    </div>
-
-    {{-- Dark Mode Specific Styles & Toggle Script --}}
+    {{-- Dark Mode Specific Styles & Mobile Responsiveness --}}
     <style>
         html.dark #login-theme-toggle-btn {
             background: rgba(15, 23, 42, 0.85) !important;
@@ -91,14 +94,30 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
         }
         html.dark .fi-login-back-btn {
-            background: rgba(30, 41, 59, 0.75) !important;
-            border-color: rgba(255, 255, 255, 0.12) !important;
-            color: #94a3b8 !important;
+            background: rgba(15, 23, 42, 0.85) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            color: #f1f5f9 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
         }
         html.dark .fi-login-back-btn:hover {
-            background: rgba(30, 41, 59, 1) !important;
+            background: rgba(30, 41, 59, 0.95) !important;
             color: #38bdf8 !important;
             border-color: #38bdf8 !important;
+        }
+
+        @media (max-width: 640px) {
+            #login-back-btn-container {
+                top: 0.875rem !important;
+                left: 0.875rem !important;
+            }
+            #login-theme-switcher-container {
+                top: 0.875rem !important;
+                right: 0.875rem !important;
+            }
+            .fi-login-back-btn, #login-theme-toggle-btn {
+                padding: 0.45rem 0.75rem !important;
+                font-size: 0.75rem !important;
+            }
         }
     </style>
 
