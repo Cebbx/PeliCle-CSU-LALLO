@@ -388,9 +388,16 @@
                                     </td>
                                     <td style="text-align: center;">
                                         @if($req->status === 'approved' || $req->status === 'on_trip' || $req->status === 'completed')
-                                            <a href="{{ route('vehicle-requests.print', $req->id) }}" target="_blank" class="btn-action" style="background: #10b981;">
-                                                🖨️ Print
-                                            </a>
+                                            <div style="display: inline-flex; gap: 4px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                                                <a href="{{ route('vehicle-requests.print', $req->id) }}" target="_blank" class="btn-action" style="background: #10b981;">
+                                                    🖨️ Print
+                                                </a>
+                                                @if($req->status === 'completed')
+                                                    <a href="https://csu.edu.ph/feedback/public/survey?office_id=255" target="_blank" rel="noopener noreferrer" class="btn-action" style="background: #f59e0b; color: #0f172a; font-weight: 800;" title="Evaluate this completed trip">
+                                                        ⭐ Rate
+                                                    </a>
+                                                @endif
+                                            </div>
                                         @else
                                             <span style="font-size: 11px; color: #94a3b8; font-style: italic;">Pending Approval</span>
                                         @endif
@@ -447,6 +454,43 @@
                                 No current active trip assignments. Assignments will appear here once GSO approves your request.
                             </div>
                         @endforelse
+                    </div>
+                </div>
+
+                <!-- CSU Client Satisfaction Measurement Survey Card -->
+                <div class="card-panel" style="border: 1.5px solid #f59e0b; background: linear-gradient(180deg, rgba(245, 158, 11, 0.04) 0%, rgba(255, 255, 255, 1) 100%);">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; background: #fffbeb; border-bottom: 1px solid #fde68a;">
+                        <span style="display: flex; align-items: center; gap: 6px; color: #92400e; font-weight: 800;">
+                            <span>⭐</span> CSU Service Evaluation
+                        </span>
+                        <span style="font-size: 10px; font-weight: 800; background: #f59e0b; color: #0f172a; padding: 2px 8px; border-radius: 9999px;">
+                            OFFICE ID: 255
+                        </span>
+                    </div>
+                    <div class="card-body" style="text-align: center;">
+                        <p style="font-size: 12px; color: #475569; margin: 0 0 12px 0; line-height: 1.5;">
+                            Help us improve CSU Lal-lo motorpool & transportation service! Click the button or scan the QR code to evaluate:
+                        </p>
+                        
+                        <!-- Clickable / Scannable QR Code -->
+                        <div style="margin-bottom: 14px;">
+                            <a href="https://csu.edu.ph/feedback/public/survey?office_id=255" target="_blank" rel="noopener noreferrer" title="Click to open CSU Survey in a new tab" style="display: inline-block; padding: 10px; background: #ffffff; border-radius: 12px; border: 2px dashed #f59e0b; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+                                <img src="/csu-survey-qr.png" alt="CSU Client Satisfaction Survey QR Code" style="width: 130px; height: 130px; border-radius: 6px; display: block; margin: 0 auto;" />
+                                <span style="font-size: 10px; font-weight: 700; color: #b45309; display: block; margin-top: 6px;">
+                                    👆 Click to Open / 📷 Scan to Rate
+                                </span>
+                            </a>
+                        </div>
+
+                        <!-- Direct Clickable Button -->
+                        <a href="https://csu.edu.ph/feedback/public/survey?office_id=255" target="_blank" rel="noopener noreferrer" class="btn-new-req" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; text-align: center; padding: 10px 14px; background: #f59e0b; color: #0f172a; font-weight: 800; border-radius: 8px; text-decoration: none; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);">
+                            <span>⭐</span> Open CSU Survey Form ↗
+                        </a>
+
+                        <div style="font-size: 10px; color: #94a3b8; margin-top: 10px; line-height: 1.3;">
+                            Client Satisfaction Measurement Survey<br>
+                            Available Mon–Fri, 7:00 AM – 6:00 PM
+                        </div>
                     </div>
                 </div>
 

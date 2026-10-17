@@ -432,6 +432,14 @@ class EmployeePanelProvider extends PanelProvider
             ->pages([
                 \App\Filament\Employee\Pages\Dashboard::class,
             ])
+            ->navigationItems([
+                \Filament\Navigation\NavigationItem::make('csu_survey')
+                    ->label('CSU Service Survey')
+                    ->icon('heroicon-o-star')
+                    ->group('Feedback')
+                    ->url('https://csu.edu.ph/feedback/public/survey?office_id=255', shouldOpenInNewTab: true)
+                    ->sort(99),
+            ])
             ->discoverWidgets(in: app_path('Filament/Employee/Widgets'), for: 'App\Filament\Employee\Widgets')
             ->widgets([
                 \App\Filament\Employee\Widgets\EmployeeStatsOverview::class,

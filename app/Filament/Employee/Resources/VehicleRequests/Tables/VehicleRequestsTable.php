@@ -196,6 +196,13 @@ class VehicleRequestsTable
                         ->visible(fn ($record) => $record->tripTicket()->exists() && empty($record->document) && empty($record->tripTicket?->document))
                         ->url(fn ($record) => route('trip-tickets.print', $record->tripTicket->id))
                         ->openUrlInNewTab(),
+                    Action::make('csu_survey')
+                        ->label('⭐ Evaluate Service (CSU Survey)')
+                        ->icon('heroicon-o-star')
+                        ->color('warning')
+                        ->url('https://csu.edu.ph/feedback/public/survey?office_id=255')
+                        ->openUrlInNewTab()
+                        ->visible(fn ($record) => in_array($record->status, ['on_trip', 'completed'])),
                     Action::make('upload_document')
                         ->label('Upload or Scan Document')
                         ->icon('heroicon-o-camera')
