@@ -48,6 +48,17 @@ class Dashboard extends BaseDashboard
         ];
     }
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\Action::make('download_backup')
+                ->label('Backup Database')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('success')
+                ->url(route('admin.backup.download')),
+        ];
+    }
+
     public function getHeaderWidgets(): array
     {
         return [];

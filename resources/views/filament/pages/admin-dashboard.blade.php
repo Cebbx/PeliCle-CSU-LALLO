@@ -641,6 +641,10 @@
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
+                <a href="{{ route('admin.backup.download') }}" style="background: #047857; color: #ffffff; border: 1px solid #059669; padding: 7px 14px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#047857'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    <span>💾 Backup Database</span>
+                </a>
                 <button type="button" @click="showTransactionsModal = true" style="background: #1e293b; color: #f8fafc; border: 1px solid #334155; padding: 7px 14px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='#334155'" onmouseout="this.style.background='#1e293b'">
                     <span>📋 Live Transactions Feed</span>
                     <span style="background: #0284c7; color: #ffffff; padding: 1px 6px; border-radius: 9999px; font-size: 10px;">{{ count($latestTransactions ?? []) }}</span>
