@@ -27,6 +27,7 @@ class EmployeePanelProvider extends PanelProvider
             ->path('employee')
             ->login()
             ->authGuard('employee')
+            ->darkMode(true)
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -421,6 +422,10 @@ class EmployeePanelProvider extends PanelProvider
                     }
                     return view('filament.components.admin-live-notifications');
                 },
+            )
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::SIMPLE_PAGE_END,
+                fn () => view('filament.components.login-portal-nav'),
             )
             ->discoverResources(in: app_path('Filament/Employee/Resources'), for: 'App\Filament\Employee\Resources')
             ->discoverPages(in: app_path('Filament/Employee/Pages'), for: 'App\Filament\Employee\Pages')

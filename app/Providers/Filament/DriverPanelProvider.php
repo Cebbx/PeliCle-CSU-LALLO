@@ -29,6 +29,7 @@ class DriverPanelProvider extends PanelProvider
             ->path('driver')
             ->login(DriverLogin::class)
             ->authGuard('driver')
+            ->darkMode(true)
             ->colors([
                 'primary' => Color::Orange,
             ])
@@ -247,6 +248,10 @@ class DriverPanelProvider extends PanelProvider
                     }
                     return view('filament.components.admin-live-notifications');
                 },
+            )
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::SIMPLE_PAGE_END,
+                fn () => view('filament.components.login-portal-nav'),
             )
             ->discoverResources(in: app_path('Filament/Driver/Resources'), for: 'App\Filament\Driver\Resources')
             ->discoverPages(in: app_path('Filament/Driver/Pages'), for: 'App\Filament\Driver\Pages')

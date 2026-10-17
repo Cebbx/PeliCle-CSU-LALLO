@@ -792,6 +792,10 @@ class AdminPanelProvider extends PanelProvider
                     return view('filament.components.admin-live-notifications');
                 },
             )
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::SIMPLE_PAGE_END,
+                fn () => view('filament.components.login-portal-nav'),
+            )
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,

@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\VehicleRequests;
 
 use App\Filament\Resources\VehicleRequests\Pages\CreateVehicleRequest;
-use App\Filament\Resources\VehicleRequests\Pages\EditVehicleRequest;
 use App\Filament\Resources\VehicleRequests\Pages\ListVehicleRequests;
+use App\Filament\Resources\VehicleRequests\Pages\ViewVehicleRequest;
 use App\Filament\Resources\VehicleRequests\Schemas\VehicleRequestForm;
 use App\Filament\Resources\VehicleRequests\Tables\VehicleRequestsTable;
 use App\Models\VehicleRequest;
@@ -53,7 +53,7 @@ class VehicleRequestResource extends Resource
         return [
             'index' => ListVehicleRequests::route('/'),
             'create' => CreateVehicleRequest::route('/create'),
-            'edit' => EditVehicleRequest::route('/{record}/edit'),
+            'view' => ViewVehicleRequest::route('/{record}'),
         ];
     }
 }

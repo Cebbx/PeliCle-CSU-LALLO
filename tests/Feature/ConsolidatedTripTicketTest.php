@@ -143,7 +143,7 @@ test('admin can consolidate multiple department requests into a single trip tick
     $response->assertSee('COA (2 persons)');
 });
 
-test('admin can access edit vehicle request page and fields are properly unlocked', function () {
+test('admin can view vehicle request page in read-only mode and edit form is removed', function () {
     $admin = User::factory()->create(['role' => 'admin']);
     $user = User::factory()->create(['role' => 'employee', 'department' => 'Records Office']);
 
@@ -163,10 +163,14 @@ test('admin can access edit vehicle request page and fields are properly unlocke
         'status' => 'pending',
     ]);
 
-    $response = test()->actingAs($admin, 'admin')->get("/admin/vehicle-requests/{$req->id}/edit");
+    $response = test()->actingAs($admin, 'admin')->get("/admin/vehicle-requests/{$req->id}");
     $response->assertStatus(200);
-    $response->assertSee('Edit Vehicle Request: VR-2026-10-01');
+    $response->assertSee('View Vehicle Request: VR-2026-10-01');
     $response->assertSee('Approve &amp; Create Trip Ticket', false);
+
+    // Edit form route is successfully removed for admin
+    $editResponse = test()->actingAs($admin, 'admin')->get("/admin/vehicle-requests/{$req->id}/edit");
+    $editResponse->assertStatus(404);
 });
 
 test('admin can access edit trip ticket page and fields are properly unlocked', function () {
