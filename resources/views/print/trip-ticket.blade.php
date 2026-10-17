@@ -384,7 +384,17 @@
                     </label>
                 </div>
                 
-                <div class="flex flex-col items-center w-48 sm:w-64">
+                <!-- Passenger / Client Satisfaction Survey QR -->
+                <div class="flex items-center gap-2 border border-black px-2 py-1 bg-white rounded flex-shrink-0">
+                    <img src="{{ asset('csu-survey-qr.png') }}" alt="CSU Survey QR" class="w-10 h-10 sm:w-11 sm:h-11 object-contain" />
+                    <div class="text-[7.5px] sm:text-[8.5px] leading-tight">
+                        <span class="font-extrabold uppercase text-black block">Passenger Evaluation</span>
+                        <span class="text-gray-800 block">Scan to rate service & driver</span>
+                        <span class="text-[7px] font-mono text-gray-500 block">CSU Survey (Office ID: 255)</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center w-40 sm:w-56">
                     <div class="h-6 sm:h-7 w-11/12 mx-auto mb-0.5 flex items-end justify-center">
                         @if($ticket->status === 'completed')
                             <span class="text-[9px] sm:text-[10px] font-bold text-black uppercase tracking-wider pb-0.5">{{ $ticket->driver?->name }}</span>
