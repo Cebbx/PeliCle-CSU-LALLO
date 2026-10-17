@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 use Illuminate\Http\Request;
 
 class EnsureSinglePanelSession
@@ -12,7 +13,7 @@ class EnsureSinglePanelSession
      * Registered panel guards and their human-readable labels.
      */
     protected array $panelGuards = [
-        'admin' => 'Admin',
+        'admin' => 'Admin / GSO',
         'employee' => 'Employee',
         'driver' => 'Driver',
     ];
@@ -28,14 +29,44 @@ class EnsureSinglePanelSession
             return $next($request);
         }
 
-        // Always allow login and logout requests through so users can freely authenticate or terminate sessions
-        if ($request->is('*/logout') || $request->routeIs('*.logout') || $request->is('*/login') || $request->routeIs('*.login')) {
+        $currentGuard = $panel->getAuthGuard();
+
+        // 1. Always allow logout requests through so users can freely terminate sessions
+        if ($request->is('*/logout') || $request->routeIs('*.logout')) {
             return $next($request);
         }
 
-        // Independent panel sessions: each portal (admin, employee, driver) manages its own
-        // authenticatable guard via SetPanelAuthGuard without knocking out concurrent sessions
-        // in other tabs or portals.
+        // 2. Check if currently authenticated in this panel
+        if ($currentGuard && auth($currentGuard)->check()) {
+            // Clean up any lingering or stale sessions from other panel guards in this browser session
+            foreach (array_keys($this->panelGuards) as $otherGuard) {
+                if ($otherGuard !== $currentGuard && auth($otherGuard)->check()) {
+                    auth($otherGuard)->logout();
+                }
+            }
+
+            return $next($request);
+        }
+
+        // 3. User is NOT authenticated in the current panel.
+        // Check if user already has an active session in another panel in this browser:
+        foreach ($this->panelGuards as $otherGuard => $otherRoleLabel) {
+            if ($otherGuard !== $currentGuard && auth($otherGuard)->check()) {
+                $user = auth($otherGuard)->user();
+                $userName = $user ? $user->name : $otherRoleLabel;
+                $currentPanelLabel = $this->panelGuards[$currentGuard] ?? ucfirst($currentGuard);
+
+                Notification::make()
+                    ->title("Active {$otherRoleLabel} Session Detected")
+                    ->body("Naka-login ka pa bilang {$userName} ({$otherRoleLabel}). Paki-log out muna ang iyong account bago mag-login o pumasok sa {$currentPanelLabel} portal.")
+                    ->warning()
+                    ->persistent()
+                    ->send();
+
+                return redirect()->to('/' . $otherGuard);
+            }
+        }
+
         return $next($request);
     }
 }
