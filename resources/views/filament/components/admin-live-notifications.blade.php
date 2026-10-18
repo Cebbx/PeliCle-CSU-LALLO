@@ -23,34 +23,80 @@
        ======================================================== */
     .fi-topbar-database-notifications-btn {
         position: relative !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: visible !important;
     }
 
-    /* Glowing Crimson Red Unread Badge on Topbar Bell */
+    .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn {
+        position: absolute !important;
+        top: 2px !important;
+        right: 4px !important;
+        pointer-events: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 30 !important;
+    }
+
+    /* Crisp Crimson Red Unread Badge on Topbar Bell */
     .fi-topbar-database-notifications-btn .fi-badge,
     .fi-topbar-database-notifications-btn .fi-badge-color-primary,
     .fi-topbar-database-notifications-btn .fi-badge-color-danger,
     .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn .fi-badge,
     .pelicle-unread-badge {
+        position: relative !important;
         background-color: #ef4444 !important;
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
         color: #ffffff !important;
         font-weight: 800 !important;
-        font-size: 10px !important;
-        padding: 2px 6px !important;
-        min-width: 18px !important;
-        height: 18px !important;
+        font-size: 9.5px !important;
+        padding: 0 3.5px !important;
+        min-width: 16px !important;
+        height: 16px !important;
+        line-height: 16px !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         border: 1.5px solid #ffffff !important;
         border-radius: 9999px !important;
-        box-shadow: 0 0 6px rgba(239, 68, 68, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
+        pointer-events: none !important;
+        text-shadow: none !important;
+    }
+
+    .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
+        position: absolute !important;
+        top: 2px !important;
+        right: 4px !important;
+        z-index: 30 !important;
     }
 
     html.dark .fi-topbar-database-notifications-btn .fi-badge,
     html.dark .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn .fi-badge,
     html.dark .pelicle-unread-badge {
-        border-color: #0f172a !important;
+        border-color: #070a11 !important;
+    }
+
+    @media (max-width: 768px) {
+        .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
+        .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
+            top: 2px !important;
+            right: 3px !important;
+        }
+
+        .fi-topbar-database-notifications-btn .fi-badge,
+        .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn .fi-badge,
+        .pelicle-unread-badge {
+            min-width: 14px !important;
+            height: 14px !important;
+            line-height: 14px !important;
+            font-size: 8.5px !important;
+            padding: 0 2px !important;
+            border-width: 1px !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
     }
 
     /* Option A (Ring & Settle): Bell icon color highlight when unread (Steady settled icon) */
@@ -457,18 +503,29 @@
             if (count > 0) {
                 bellBtn.classList.add('has-unread-alerts');
                 if (!badgeSpan) {
-                    let badgeCtn = bellBtn.querySelector('.fi-icon-btn-badge-ctn') || bellBtn;
+                    let badgeCtn = bellBtn.querySelector('.fi-icon-btn-badge-ctn');
+                    if (!badgeCtn) {
+                        badgeCtn = document.createElement('div');
+                        badgeCtn.className = 'fi-icon-btn-badge-ctn';
+                        bellBtn.appendChild(badgeCtn);
+                    }
                     badgeSpan = document.createElement('span');
                     badgeSpan.className = 'fi-badge pelicle-unread-badge';
                     badgeCtn.appendChild(badgeSpan);
                 }
                 badgeSpan.textContent = count;
                 badgeSpan.style.display = 'inline-flex';
+                if (badgeSpan.parentElement) {
+                    badgeSpan.parentElement.style.display = 'inline-flex';
+                }
             } else {
                 bellBtn.classList.remove('has-unread-alerts');
                 bellBtn.classList.remove('bell-ringing');
                 if (badgeSpan) {
                     badgeSpan.style.display = 'none';
+                    if (badgeSpan.parentElement && badgeSpan.parentElement.classList.contains('fi-icon-btn-badge-ctn')) {
+                        badgeSpan.parentElement.style.display = 'none';
+                    }
                 }
             }
         }
