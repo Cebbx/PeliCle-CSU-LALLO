@@ -61,6 +61,8 @@ class WithdrawalSlipsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
+            ->recordUrl(null)
+            ->recordAction(null)
             ->filters([
                 TrashedFilter::make()
                     ->label('Archive Status'),

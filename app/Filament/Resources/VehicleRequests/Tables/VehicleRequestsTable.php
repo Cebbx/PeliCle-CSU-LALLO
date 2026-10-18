@@ -165,6 +165,8 @@ class VehicleRequestsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
+            ->recordUrl(null)
+            ->recordAction(null)
             ->recordActions([
                 ActionGroup::make([
                     Action::make('approve_and_ticket')

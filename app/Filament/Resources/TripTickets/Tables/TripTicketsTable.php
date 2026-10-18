@@ -67,6 +67,8 @@ class TripTicketsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
+            ->recordUrl(null)
+            ->recordAction(null)
             ->filters([
                 \Filament\Tables\Filters\TrashedFilter::make()
                     ->label('Archive Status'),

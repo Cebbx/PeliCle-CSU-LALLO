@@ -136,7 +136,7 @@ class VehicleRequestForm
                             return new \Illuminate\Support\HtmlString("
                                 <div class='p-3 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2'>
                                     <span class='text-sm'>ℹ️</span>
-                                    <span><strong>Solo Trip Schedule:</strong> No other requests on " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . ". All fields below are fully editable by Admin.</span>
+                                    <span><strong>Solo Trip Schedule:</strong> No other requests on " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . ".</span>
                                 </div>
                             ");
                         }
