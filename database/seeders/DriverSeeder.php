@@ -15,13 +15,13 @@ class DriverSeeder extends Seeder
             [
                 'name' => 'Joel Tumamao',
                 'license_number' => 'N01-27-556983',
-                'contact_number' => '09275569838',
+                'contact_number' => '09683440163',
                 'status' => 'available',
             ],
             [
                 'name' => 'Lucio Collado',
                 'license_number' => 'N01-53-113537',
-                'contact_number' => '09531135376',
+                'contact_number' => '09982610555',
                 'status' => 'available',
             ],
             [
@@ -33,13 +33,13 @@ class DriverSeeder extends Seeder
             [
                 'name' => 'Rey Tolentino',
                 'license_number' => 'N01-17-896348',
-                'contact_number' => '09178963483',
+                'contact_number' => '09682333960',
                 'status' => 'available',
             ],
             [
                 'name' => 'Norman Cristobal',
                 'license_number' => 'N01-05-075043',
-                'contact_number' => '09050750435',
+                'contact_number' => '09496534358',
                 'status' => 'available',
             ],
         ];

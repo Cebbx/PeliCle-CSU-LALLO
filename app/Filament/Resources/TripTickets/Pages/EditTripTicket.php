@@ -20,6 +20,11 @@ class EditTripTicket extends EditRecord
         return "Edit Trip Ticket: {$this->record->ticket_number}";
     }
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     protected function getHeaderActions(): array
     {
         return [

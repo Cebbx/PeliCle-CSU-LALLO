@@ -24,6 +24,11 @@ class CreateTripTicket extends CreateRecord
             ->label('Approved Ticket');
     }
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         if (empty($data['ticket_number']) || \App\Models\TripTicket::withTrashed()->where('ticket_number', $data['ticket_number'])->exists()) {
