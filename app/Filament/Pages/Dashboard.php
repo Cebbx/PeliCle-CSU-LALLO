@@ -86,9 +86,12 @@ class Dashboard extends BaseDashboard
             ->whereNotIn('id', $allBusyIds)
             ->count();
 
+        $availablePct = $total > 0 ? round(($available / $total) * 100, 1) : 0;
+
         return [
             'total' => $total,
             'available' => $available,
+            'available_pct' => $availablePct,
             'on_trip' => $onTripCount,
             'unavailable' => $offDutyCount,
             'off_duty' => $offDutyCount,
@@ -111,9 +114,12 @@ class Dashboard extends BaseDashboard
             ->whereNotIn('plate_number', $activePlates)
             ->count();
 
+        $availablePct = $total > 0 ? round(($available / $total) * 100, 1) : 0;
+
         return [
             'total' => $total,
             'available' => $available,
+            'available_pct' => $availablePct,
             'on_trip' => $onTripCount,
             'maintenance' => $maintenanceCount,
         ];
@@ -157,6 +163,7 @@ class Dashboard extends BaseDashboard
             $dates[] = $currentDay->format('M d');
         }
 
+        $totalSum = array_sum($counts);
         $maxVal = max(1, max($counts));
         $chartMax = max(4, $maxVal + 1);
 
@@ -172,10 +179,12 @@ class Dashboard extends BaseDashboard
             $x = round($padX + ($i * ($usableWidth / 6)), 1);
             $val = $counts[$i];
             $y = round($bottomY - (($val / $chartMax) * $usableHeight), 1);
+            $pct = $totalSum > 0 ? round(($val / $totalSum) * 100, 1) : 0;
             $coords[] = [
                 'x' => $x,
                 'y' => $y,
                 'count' => $val,
+                'percentage' => $pct,
                 'day' => $days[$i],
                 'date' => $dates[$i],
             ];
@@ -194,7 +203,7 @@ class Dashboard extends BaseDashboard
         return [
             'labels' => $days,
             'data' => $counts,
-            'total' => array_sum($counts),
+            'total' => $totalSum,
             'max' => $chartMax,
             'points' => $coords,
             'linePath' => $linePath,

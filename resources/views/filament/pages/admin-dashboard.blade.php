@@ -711,7 +711,9 @@
         <div class="row-grid-4">
             
             <!-- 1. Driver Availability (Links to Drivers) -->
-            <a href="{{ \App\Filament\Resources\Drivers\DriverResource::getUrl('index', ['tab' => 'available']) }}" class="dash-card dash-card-link">
+            <a href="{{ \App\Filament\Resources\Drivers\DriverResource::getUrl('index', ['tab' => 'available']) }}"
+               class="dash-card dash-card-link"
+               title="Driver Availability: {{ $driverStats['available'] }} of {{ $driverStats['total'] }} Drivers Available ({{ $driverStats['available_pct'] }}%)">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-green">
@@ -726,18 +728,24 @@
                     <div class="card-number-bold">
                         {{ $driverStats['available'] }} / {{ $driverStats['total'] }} <span class="card-unit-label">Available</span>
                     </div>
-                    <div class="card-subtitle-note color-green">Drivers ready for dispatch</div>
+                    <div class="card-subtitle-note color-green" style="display: flex; justify-content: space-between;">
+                        <span>Drivers ready for dispatch</span>
+                        <strong style="color: #34d399;">{{ $driverStats['available_pct'] }}%</strong>
+                    </div>
                 </div>
                 <!-- Smooth Neon Green Wave -->
                 <div class="card-wave-box">
                     <svg viewBox="0 0 300 35" class="card-wave-svg" preserveAspectRatio="none">
+                        <title>Driver Availability Rate: {{ $driverStats['available_pct'] }}%</title>
                         <path d="M0,30 C70,28 120,6 180,10 C240,14 270,26 300,30" fill="none" stroke="#10b981" stroke-width="2" />
                     </svg>
                 </div>
             </a>
 
             <!-- 2. Vehicle Availability (Links to Vehicles) -->
-            <a href="{{ \App\Filament\Resources\Vehicles\VehicleResource::getUrl('index', ['tab' => 'available']) }}" class="dash-card dash-card-link">
+            <a href="{{ \App\Filament\Resources\Vehicles\VehicleResource::getUrl('index', ['tab' => 'available']) }}"
+               class="dash-card dash-card-link"
+               title="Vehicle Availability: {{ $vehicleStats['available'] }} of {{ $vehicleStats['total'] }} Vehicles Available ({{ $vehicleStats['available_pct'] }}%)">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-green">
@@ -752,18 +760,24 @@
                     <div class="card-number-bold">
                         {{ $vehicleStats['available'] }} / {{ $vehicleStats['total'] }} <span class="card-unit-label">Available</span>
                     </div>
-                    <div class="card-subtitle-note color-green">Vehicles ready for dispatch</div>
+                    <div class="card-subtitle-note color-green" style="display: flex; justify-content: space-between;">
+                        <span>Vehicles ready for dispatch</span>
+                        <strong style="color: #34d399;">{{ $vehicleStats['available_pct'] }}%</strong>
+                    </div>
                 </div>
                 <!-- Smooth Neon Green Wave -->
                 <div class="card-wave-box">
                     <svg viewBox="0 0 300 35" class="card-wave-svg" preserveAspectRatio="none">
+                        <title>Vehicle Availability Rate: {{ $vehicleStats['available_pct'] }}%</title>
                         <path d="M0,28 C60,30 120,4 180,10 C240,16 270,6 300,4" fill="none" stroke="#10b981" stroke-width="2" />
                     </svg>
                 </div>
             </a>
 
             <!-- 3. Pending Vehicle Requests (Links to Requests) -->
-            <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'pending']) }}" class="dash-card dash-card-link">
+            <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'pending']) }}"
+               class="dash-card dash-card-link"
+               title="Pending Requests: {{ $pendingRequests }} ({{ $statusBreakdown['pending_pct'] }}% of all requests)">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-blue">
@@ -776,18 +790,24 @@
                 </div>
                 <div class="card-mid-section">
                     <div class="card-number-bold">{{ $pendingRequests }}</div>
-                    <div class="card-subtitle-note color-slate">Requests awaiting admin review</div>
+                    <div class="card-subtitle-note color-slate" style="display: flex; justify-content: space-between;">
+                        <span>Requests awaiting admin review</span>
+                        <strong style="color: #94a3b8;">{{ $statusBreakdown['pending_pct'] }}%</strong>
+                    </div>
                 </div>
                 <!-- Smooth Gray Wave -->
                 <div class="card-wave-box">
                     <svg viewBox="0 0 300 35" class="card-wave-svg" preserveAspectRatio="none">
+                        <title>Pending Requests Share: {{ $statusBreakdown['pending_pct'] }}%</title>
                         <path d="M0,30 C80,26 160,14 220,18 C260,22 280,28 300,30" fill="none" stroke="#475569" stroke-width="1.8" />
                     </svg>
                 </div>
             </a>
 
             <!-- 4. Approved Vehicle Requests (Links to Requests) -->
-            <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'approved']) }}" class="dash-card dash-card-link">
+            <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'approved']) }}"
+               class="dash-card dash-card-link"
+               title="Approved Requests: {{ $approvedRequests }} ({{ $statusBreakdown['approved_pct'] }}% of all requests)">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-green">
@@ -800,11 +820,15 @@
                 </div>
                 <div class="card-mid-section">
                     <div class="card-number-bold">{{ $approvedRequests }}</div>
-                    <div class="card-subtitle-note color-green">Requests approved and ticketed</div>
+                    <div class="card-subtitle-note color-green" style="display: flex; justify-content: space-between;">
+                        <span>Requests approved and ticketed</span>
+                        <strong style="color: #34d399;">{{ $statusBreakdown['approved_pct'] }}%</strong>
+                    </div>
                 </div>
                 <!-- Smooth Green Wave -->
                 <div class="card-wave-box">
                     <svg viewBox="0 0 300 35" class="card-wave-svg" preserveAspectRatio="none">
+                        <title>Approved Requests Share: {{ $statusBreakdown['approved_pct'] }}%</title>
                         <path d="M0,30 C70,22 120,4 180,8 C240,12 270,26 300,30" fill="none" stroke="#10b981" stroke-width="2" />
                     </svg>
                 </div>
@@ -904,7 +928,12 @@
         <div class="row-grid-bottom">
             
             <!-- Column 1: Trip Activity Area Chart -->
-            <div class="dash-card dash-card-pad">
+            <div class="dash-card dash-card-pad"
+                 x-data="{
+                     hoveredIndex: null,
+                     points: @js($tripActivity['points'] ?? []),
+                     totalTrips: {{ (int)($tripActivity['total'] ?? 0) }}
+                 }">
                 <div class="panel-top-bar">
                     <div class="panel-title-text">
                         <span style="color: #0284c7;">📈</span>
@@ -915,17 +944,20 @@
                     </a>
                 </div>
 
-                <!-- Custom Area Chart with Grid & Values -->
+                <!-- Custom Area Chart with Grid, Values, and Interactive Hover Percentage -->
                 <div style="position: relative; width: 100%; height: 110px; display: flex; flex-direction: column; justify-content: space-between;">
                     
-                    <!-- SVG Area Line with Grid -->
-                    <div style="position: relative; width: 100%; height: 85px;">
-                        <svg viewBox="0 0 350 140" style="width: 100%; height: 100%; display: block;" preserveAspectRatio="none">
+                    <!-- SVG Area Line with Grid and Hover Tracking -->
+                    <div style="position: relative; width: 100%; height: 85px;" @mouseleave="hoveredIndex = null">
+                        <svg viewBox="0 0 350 140" style="width: 100%; height: 100%; display: block; overflow: visible;" preserveAspectRatio="none">
                             <defs>
                                 <linearGradient id="chartAreaGradientHD3" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stop-color="#0284c7" stop-opacity="0.35" />
                                     <stop offset="100%" stop-color="#0284c7" stop-opacity="0.0" />
                                 </linearGradient>
+                                <filter id="glowDropShadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.6"/>
+                                </filter>
                             </defs>
                             
                             <!-- Grid Lines -->
@@ -937,37 +969,129 @@
                             <!-- Area Gradient Fill -->
                             <path d="{{ $tripActivity['areaPath'] ?? 'M 20,120 L 330,120 Z' }}" fill="url(#chartAreaGradientHD3)" />
                             
-                            <!-- Blue Curved Line -->
+                            <!-- Blue Curved Line with responsive hover state -->
                             <path d="{{ $tripActivity['linePath'] ?? 'M 20,120 L 330,120' }}" fill="none" stroke="#0284c7" stroke-width="2.5" />
                             
-                            <!-- Dynamic Data Point Circles & Tooltips -->
-                            @foreach($tripActivity['points'] ?? [] as $pt)
+                            <!-- Static Data Point Circles -->
+                            @foreach($tripActivity['points'] ?? [] as $idx => $pt)
                                 <g>
-                                    <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}" r="{{ $pt['count'] > 0 ? 4 : 2.5 }}" fill="#ffffff" stroke="#0284c7" stroke-width="{{ $pt['count'] > 0 ? 2.5 : 1.5 }}" style="cursor: pointer;">
-                                        <title>{{ $pt['day'] }} ({{ $pt['date'] }}): {{ $pt['count'] }} {{ Str::plural('trip', $pt['count']) }}</title>
+                                    <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}" r="{{ $pt['count'] > 0 ? 3.5 : 2 }}" fill="#ffffff" stroke="#0284c7" stroke-width="{{ $pt['count'] > 0 ? 2 : 1.5 }}">
                                     </circle>
                                     @if($pt['count'] > 0)
-                                        <text x="{{ $pt['x'] }}" y="{{ $pt['y'] - 7 }}" fill="#38bdf8" font-size="10.5" font-weight="800" text-anchor="middle">
+                                        <text x="{{ $pt['x'] }}" y="{{ $pt['y'] - 7 }}" fill="#38bdf8" font-size="10" font-weight="700" text-anchor="middle">
                                             {{ $pt['count'] }}
                                         </text>
                                     @endif
                                 </g>
+                            @endforeach
+
+                            <!-- Dynamic Hover Guideline, Halo, & Floating Percentage Tooltip -->
+                            <template x-if="hoveredIndex !== null && points[hoveredIndex]">
+                                <g style="pointer-events: none;">
+                                    <!-- Vertical guideline down to base -->
+                                    <line
+                                        :x1="points[hoveredIndex].x"
+                                        y1="15"
+                                        :x2="points[hoveredIndex].x"
+                                        y2="125"
+                                        stroke="#38bdf8"
+                                        stroke-width="1.5"
+                                        stroke-dasharray="3,3"
+                                        opacity="0.85"
+                                    />
+                                    
+                                    <!-- Glowing Halo on the active point -->
+                                    <circle
+                                        :cx="points[hoveredIndex].x"
+                                        :cy="points[hoveredIndex].y"
+                                        r="9"
+                                        fill="#0284c7"
+                                        fill-opacity="0.35"
+                                    />
+                                    <circle
+                                        :cx="points[hoveredIndex].x"
+                                        :cy="points[hoveredIndex].y"
+                                        r="4.5"
+                                        fill="#ffffff"
+                                        stroke="#38bdf8"
+                                        stroke-width="2.5"
+                                    />
+
+                                    <!-- Floating Tooltip Box (Automatic horizontal centering with edge padding) -->
+                                    <g :transform="`translate(${Math.max(48, Math.min(302, points[hoveredIndex].x))}, ${Math.max(26, points[hoveredIndex].y - 20)})`">
+                                        <!-- Tooltip Background Card -->
+                                        <rect
+                                            x="-46"
+                                            y="-22"
+                                            width="92"
+                                            height="26"
+                                            rx="6"
+                                            fill="#070c16"
+                                            stroke="#38bdf8"
+                                            stroke-width="1.2"
+                                            filter="url(#glowDropShadow)"
+                                        />
+                                        <!-- Percentage & Count -->
+                                        <text x="0" y="-8" text-anchor="middle" font-family="system-ui, sans-serif">
+                                            <tspan fill="#38bdf8" font-size="10.5" font-weight="900" x-text="`${points[hoveredIndex].percentage}%`"></tspan>
+                                            <tspan fill="#cbd5e1" font-size="9" font-weight="600" x-text="` (${points[hoveredIndex].count} ${points[hoveredIndex].count === 1 ? 'trip' : 'trips'})`"></tspan>
+                                        </text>
+                                        <!-- Day & Date Label -->
+                                        <text x="0" y="0.5" text-anchor="middle" fill="#94a3b8" font-size="7.5" font-weight="500" font-family="system-ui, sans-serif" x-text="`${points[hoveredIndex].day} • ${points[hoveredIndex].date}`"></text>
+                                    </g>
+                                </g>
+                            </template>
+
+                            <!-- 7 Interactive Transparent Hover Slices (Smooth cursor tracking across the entire chart line) -->
+                            @foreach($tripActivity['points'] ?? [] as $idx => $pt)
+                                @php
+                                    $sliceWidth = 350 / 7;
+                                    $sliceX = $idx * $sliceWidth;
+                                @endphp
+                                <rect
+                                    x="{{ $sliceX }}"
+                                    y="0"
+                                    width="{{ $sliceWidth }}"
+                                    height="140"
+                                    fill="transparent"
+                                    style="cursor: pointer;"
+                                    @mouseenter="hoveredIndex = {{ $idx }}"
+                                    @mousemove="hoveredIndex = {{ $idx }}"
+                                    @touchstart.passive="hoveredIndex = {{ $idx }}"
+                                >
+                                    <title>{{ $pt['day'] }} ({{ $pt['date'] }}): {{ $pt['count'] }} {{ Str::plural('trip', $pt['count']) }} ({{ $pt['percentage'] }}% of weekly total)</title>
+                                </rect>
                             @endforeach
                         </svg>
                     </div>
 
                     <!-- Day Labels -->
                     <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; padding: 2px 14px 0 14px;">
-                        @foreach($tripActivity['labels'] ?? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as $lbl)
-                            <span style="width: 25px; text-align: center;">{{ $lbl }}</span>
+                        @foreach($tripActivity['labels'] ?? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as $idx => $lbl)
+                            <span
+                                style="width: 25px; text-align: center; transition: color 0.15s ease;"
+                                :style="hoveredIndex === {{ $idx }} ? 'color: #38bdf8; font-weight: 800;' : ''"
+                            >
+                                {{ $lbl }}
+                            </span>
                         @endforeach
                     </div>
                 </div>
 
+                <!-- Footer Summary with Dynamic Hover Status -->
                 <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: #94a3b8; margin-top: 4px;">
                     <div style="display: flex; align-items: center; gap: 5px;">
                         <span style="width: 7px; height: 7px; border-radius: 2px; background: #0284c7; display: inline-block;"></span>
-                        <span>Weekly Trips</span>
+                        <template x-if="hoveredIndex === null">
+                            <span>Weekly Trips</span>
+                        </template>
+                        <template x-if="hoveredIndex !== null && points[hoveredIndex]">
+                            <span style="color: #cbd5e1; font-weight: 600;">
+                                <span style="color: #38bdf8; font-weight: 800;" x-text="points[hoveredIndex].day + ' (' + points[hoveredIndex].date + '): '"></span>
+                                <span style="color: #ffffff; font-weight: 700;" x-text="points[hoveredIndex].count + (points[hoveredIndex].count === 1 ? ' trip' : ' trips')"></span>
+                                <span style="color: #fbbf24; font-weight: 800;" x-text="' — ' + points[hoveredIndex].percentage + '%'"></span>
+                            </span>
+                        </template>
                     </div>
                     <span style="color: #cbd5e1; font-weight: 600;">Total: <strong style="color: #38bdf8;">{{ $tripActivity['total'] ?? 0 }}</strong> {{ Str::plural('trip', $tripActivity['total'] ?? 0) }}</span>
                 </div>
@@ -997,31 +1121,56 @@
                             <!-- Completed Segment (Orange) -->
                             <circle cx="50" cy="50" r="38" fill="none" stroke="#f59e0b" stroke-width="13"
                                 stroke-dasharray="238.76"
-                                stroke-dashoffset="{{ 238.76 - (238.76 * max(0.08, $statusBreakdown['completed_pct'] / 100)) }}" />
+                                stroke-dashoffset="{{ 238.76 - (238.76 * max(0.08, $statusBreakdown['completed_pct'] / 100)) }}"
+                                style="cursor: pointer; transition: stroke-width 0.2s ease, opacity 0.2s ease;"
+                                onmouseover="this.setAttribute('stroke-width', '15.5'); this.style.opacity = '0.9';"
+                                onmouseout="this.setAttribute('stroke-width', '13'); this.style.opacity = '1';">
+                                <title>Completed: {{ $statusBreakdown['completed'] }} requests ({{ $statusBreakdown['completed_pct'] }}%)</title>
+                            </circle>
                             
                             <!-- Approved Segment (Sky Blue) -->
                             <circle cx="50" cy="50" r="38" fill="none" stroke="#0284c7" stroke-width="13"
                                 stroke-dasharray="238.76"
                                 stroke-dashoffset="{{ 238.76 - (238.76 * max(0.06, $statusBreakdown['approved_pct'] / 100)) }}"
-                                transform="rotate({{ ($statusBreakdown['completed_pct'] / 100) * 360 }} 50 50)" />
+                                transform="rotate({{ ($statusBreakdown['completed_pct'] / 100) * 360 }} 50 50)"
+                                style="cursor: pointer; transition: stroke-width 0.2s ease, opacity 0.2s ease;"
+                                onmouseover="this.setAttribute('stroke-width', '15.5'); this.style.opacity = '0.9';"
+                                onmouseout="this.setAttribute('stroke-width', '13'); this.style.opacity = '1';">
+                                <title>Approved: {{ $statusBreakdown['approved'] }} requests ({{ $statusBreakdown['approved_pct'] }}%)</title>
+                            </circle>
                             
                             <!-- Pending Segment (Green) -->
                             <circle cx="50" cy="50" r="38" fill="none" stroke="#10b981" stroke-width="13"
                                 stroke-dasharray="238.76"
                                 stroke-dashoffset="{{ 238.76 - (238.76 * max(0.05, $statusBreakdown['pending_pct'] / 100)) }}"
-                                transform="rotate({{ (($statusBreakdown['completed_pct'] + $statusBreakdown['approved_pct']) / 100) * 360 }} 50 50)" />
+                                transform="rotate({{ (($statusBreakdown['completed_pct'] + $statusBreakdown['approved_pct']) / 100) * 360 }} 50 50)"
+                                style="cursor: pointer; transition: stroke-width 0.2s ease, opacity 0.2s ease;"
+                                onmouseover="this.setAttribute('stroke-width', '15.5'); this.style.opacity = '0.9';"
+                                onmouseout="this.setAttribute('stroke-width', '13'); this.style.opacity = '1';">
+                                <title>Pending: {{ $statusBreakdown['pending'] }} requests ({{ $statusBreakdown['pending_pct'] }}%)</title>
+                            </circle>
                             
                             <!-- Rejected Segment (Red) -->
                             <circle cx="50" cy="50" r="38" fill="none" stroke="#ef4444" stroke-width="13"
                                 stroke-dasharray="238.76"
                                 stroke-dashoffset="{{ 238.76 - (238.76 * max(0.04, $statusBreakdown['rejected_pct'] / 100)) }}"
-                                transform="rotate({{ (($statusBreakdown['completed_pct'] + $statusBreakdown['approved_pct'] + $statusBreakdown['pending_pct']) / 100) * 360 }} 50 50)" />
+                                transform="rotate({{ (($statusBreakdown['completed_pct'] + $statusBreakdown['approved_pct'] + $statusBreakdown['pending_pct']) / 100) * 360 }} 50 50)"
+                                style="cursor: pointer; transition: stroke-width 0.2s ease, opacity 0.2s ease;"
+                                onmouseover="this.setAttribute('stroke-width', '15.5'); this.style.opacity = '0.9';"
+                                onmouseout="this.setAttribute('stroke-width', '13'); this.style.opacity = '1';">
+                                <title>Disapproved: {{ $statusBreakdown['rejected'] }} requests ({{ $statusBreakdown['rejected_pct'] }}%)</title>
+                            </circle>
                             
                             <!-- Expired Segment (Slate) -->
                             <circle cx="50" cy="50" r="38" fill="none" stroke="#64748b" stroke-width="13"
                                 stroke-dasharray="238.76"
                                 stroke-dashoffset="{{ 238.76 - (238.76 * max(0.03, ($statusBreakdown['expired_pct'] ?? 0) / 100)) }}"
-                                transform="rotate({{ (($statusBreakdown['completed_pct'] + $statusBreakdown['approved_pct'] + $statusBreakdown['pending_pct'] + $statusBreakdown['rejected_pct']) / 100) * 360 }} 50 50)" />
+                                transform="rotate({{ (($statusBreakdown['completed_pct'] + $statusBreakdown['approved_pct'] + $statusBreakdown['pending_pct'] + $statusBreakdown['rejected_pct']) / 100) * 360 }} 50 50)"
+                                style="cursor: pointer; transition: stroke-width 0.2s ease, opacity 0.2s ease;"
+                                onmouseover="this.setAttribute('stroke-width', '15.5'); this.style.opacity = '0.9';"
+                                onmouseout="this.setAttribute('stroke-width', '13'); this.style.opacity = '1';">
+                                <title>Expired: {{ $statusBreakdown['expired'] ?? 0 }} requests ({{ $statusBreakdown['expired_pct'] ?? 0 }}%)</title>
+                            </circle>
                         </svg>
 
                         <!-- Center Total Count -->
