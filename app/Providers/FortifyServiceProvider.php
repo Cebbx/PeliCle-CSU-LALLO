@@ -29,35 +29,6 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
-
-        Fortify::authenticateUsing(function (Request $request) {
-            $login = trim($request->input('email') ?? $request->input('login') ?? '');
-            $password = (string) $request->input('password');
-
-            $user = \App\Filament\Pages\Auth\EmployeeLogin::resolveUserFromInput($login)
-                ?? \App\Filament\Pages\Auth\AdminLogin::resolveAdminUser($login);
-
-            if (! $user && str_contains($login, '@')) {
-                $user = \App\Models\User::where('email', strtolower($login))->first();
-            }
-
-            if ($user) {
-                $code = strtolower(explode('@', $user->email)[0] ?? '');
-                $isValid = \Illuminate\Support\Facades\Hash::check($password, $user->password)
-                    || ($user->plain_password && $password === $user->plain_password)
-                    || ($code && strtolower($password) === $code)
-                    || ($password === 'password');
-
-                if ($isValid) {
-                    if (! \Illuminate\Support\Facades\Hash::check($password, $user->password)) {
-                        $user->update(['password' => \Illuminate\Support\Facades\Hash::make($password)]);
-                    }
-                    return $user;
-                }
-            }
-
-            return null;
-        });
     }
 
     /**
