@@ -80,6 +80,14 @@
     }
 
     @media (max-width: 768px) {
+        .fi-topbar-end {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            flex-shrink: 0 !important;
+            margin-right: 6px !important;
+        }
+
         .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
         .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
             top: 2px !important;
@@ -96,6 +104,13 @@
             padding: 0 2px !important;
             border-width: 1px !important;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .fi-topbar-end {
+            gap: 10px !important;
+            margin-right: 4px !important;
         }
     }
 
