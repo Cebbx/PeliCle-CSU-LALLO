@@ -29,15 +29,26 @@
         overflow: visible !important;
     }
 
-    .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn {
+    .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
+    .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
         position: absolute !important;
-        top: 2px !important;
-        right: 4px !important;
+        top: 0px !important;
+        right: 8px !important;
+        left: auto !important;
+        bottom: auto !important;
+        inset-inline-start: auto !important;
+        inset-inline-end: 8px !important;
+        transform: none !important;
+        --tw-translate-x: 0 !important;
+        --tw-translate-y: 0 !important;
         pointer-events: none !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         z-index: 30 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
     }
 
     /* Crisp Crimson Red Unread Badge on Topbar Bell */
@@ -47,6 +58,11 @@
     .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn .fi-badge,
     .pelicle-unread-badge {
         position: relative !important;
+        top: 0 !important;
+        right: 0 !important;
+        left: auto !important;
+        inset-inline-start: auto !important;
+        transform: none !important;
         background-color: #ef4444 !important;
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
         color: #ffffff !important;
@@ -68,8 +84,12 @@
 
     .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
         position: absolute !important;
-        top: 2px !important;
-        right: 4px !important;
+        top: 0px !important;
+        right: 8px !important;
+        left: auto !important;
+        inset-inline-start: auto !important;
+        inset-inline-end: 8px !important;
+        transform: none !important;
         z-index: 30 !important;
     }
 
@@ -88,10 +108,18 @@
             margin-right: 6px !important;
         }
 
+        /* Compact & Responsive Bell Badge on Mobile (Snugly hugging top-right shoulder of bell) */
         .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
         .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
-            top: 2px !important;
-            right: 3px !important;
+            top: 0px !important;
+            right: 9px !important;
+            left: auto !important;
+            bottom: auto !important;
+            inset-inline-start: auto !important;
+            inset-inline-end: 9px !important;
+            transform: none !important;
+            --tw-translate-x: 0 !important;
+            --tw-translate-y: 0 !important;
         }
 
         .fi-topbar-database-notifications-btn .fi-badge,
@@ -111,6 +139,19 @@
         .fi-topbar-end {
             gap: 10px !important;
             margin-right: 4px !important;
+        }
+
+        .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
+        .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
+            top: 0px !important;
+            right: 9px !important;
+            left: auto !important;
+            bottom: auto !important;
+            inset-inline-start: auto !important;
+            inset-inline-end: 9px !important;
+            transform: none !important;
+            --tw-translate-x: 0 !important;
+            --tw-translate-y: 0 !important;
         }
     }
 
@@ -509,7 +550,39 @@
             }, 4500);
         }
 
-        // 5. Update Topbar Bell Badge Indicator
+        // 5. Update Topbar Bell Badge Indicator & Ensure Pixel-Perfect Positioning on Phone & Desktop
+        function ensureBadgePosition() {
+            const bellBtn = findBellButton();
+            if (!bellBtn) return;
+            const badgeCtn = bellBtn.querySelector('.fi-icon-btn-badge-ctn');
+            if (badgeCtn) {
+                const isMobile = window.innerWidth <= 768;
+                const offset = isMobile ? '9px' : '8px';
+                badgeCtn.style.setProperty('position', 'absolute', 'important');
+                badgeCtn.style.setProperty('left', 'auto', 'important');
+                badgeCtn.style.setProperty('inset-inline-start', 'auto', 'important');
+                badgeCtn.style.setProperty('right', offset, 'important');
+                badgeCtn.style.setProperty('inset-inline-end', offset, 'important');
+                badgeCtn.style.setProperty('top', '0px', 'important');
+                badgeCtn.style.setProperty('bottom', 'auto', 'important');
+                badgeCtn.style.setProperty('transform', 'none', 'important');
+                badgeCtn.style.setProperty('--tw-translate-x', '0px', 'important');
+                badgeCtn.style.setProperty('--tw-translate-y', '0px', 'important');
+                badgeCtn.style.setProperty('background', 'transparent', 'important');
+                badgeCtn.style.setProperty('border', 'none', 'important');
+                badgeCtn.style.setProperty('box-shadow', 'none', 'important');
+            }
+            const badgeSpan = bellBtn.querySelector('.fi-badge, .pelicle-unread-badge');
+            if (badgeSpan) {
+                badgeSpan.style.setProperty('position', 'relative', 'important');
+                badgeSpan.style.setProperty('top', '0px', 'important');
+                badgeSpan.style.setProperty('right', '0px', 'important');
+                badgeSpan.style.setProperty('left', 'auto', 'important');
+                badgeSpan.style.setProperty('inset-inline-start', 'auto', 'important');
+                badgeSpan.style.setProperty('transform', 'none', 'important');
+            }
+        }
+
         function updateTopbarBellBadge(count) {
             const bellBtn = findBellButton();
             if (!bellBtn) return;
@@ -517,8 +590,8 @@
             let badgeSpan = bellBtn.querySelector('.fi-badge, .pelicle-unread-badge');
             if (count > 0) {
                 bellBtn.classList.add('has-unread-alerts');
+                let badgeCtn = bellBtn.querySelector('.fi-icon-btn-badge-ctn');
                 if (!badgeSpan) {
-                    let badgeCtn = bellBtn.querySelector('.fi-icon-btn-badge-ctn');
                     if (!badgeCtn) {
                         badgeCtn = document.createElement('div');
                         badgeCtn.className = 'fi-icon-btn-badge-ctn';
@@ -528,6 +601,7 @@
                     badgeSpan.className = 'fi-badge pelicle-unread-badge';
                     badgeCtn.appendChild(badgeSpan);
                 }
+                ensureBadgePosition();
                 badgeSpan.textContent = count;
                 badgeSpan.style.display = 'inline-flex';
                 if (badgeSpan.parentElement) {
@@ -690,11 +764,21 @@
             }
         }
 
+        // Initial badge positioning & listeners so badge is snugly anchored immediately
+        ensureBadgePosition();
+        setTimeout(ensureBadgePosition, 300);
+        setTimeout(ensureBadgePosition, 1000);
+        window.addEventListener('resize', ensureBadgePosition, { passive: true });
+        document.addEventListener('livewire:navigated', ensureBadgePosition);
+
         // Live notification polling every 5 seconds (snappy, background-capable, zero UI lag)
         setTimeout(checkLiveNotifications, 800);
         setInterval(checkLiveNotifications, 5000);
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) checkLiveNotifications();
+            if (!document.hidden) {
+                ensureBadgePosition();
+                checkLiveNotifications();
+            }
         });
     })();
 </script>

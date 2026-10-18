@@ -590,15 +590,26 @@ class AdminPanelProvider extends PanelProvider
                             overflow: visible !important;
                         }
 
-                        .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn {
+                        .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
+                        .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
                             position: absolute !important;
-                            top: 2px !important;
-                            right: 4px !important;
+                            top: 0px !important;
+                            right: 8px !important;
+                            left: auto !important;
+                            bottom: auto !important;
+                            inset-inline-start: auto !important;
+                            inset-inline-end: 8px !important;
+                            transform: none !important;
+                            --tw-translate-x: 0 !important;
+                            --tw-translate-y: 0 !important;
                             pointer-events: none !important;
                             display: inline-flex !important;
                             align-items: center !important;
                             justify-content: center !important;
                             z-index: 30 !important;
+                            background: transparent !important;
+                            border: none !important;
+                            box-shadow: none !important;
                         }
 
                         /* Crisp Crimson Red Unread Badge on Topbar Bell */
@@ -609,6 +620,11 @@ class AdminPanelProvider extends PanelProvider
                         .fi-no-database .fi-badge,
                         .pelicle-unread-badge {
                             position: relative !important;
+                            top: 0 !important;
+                            right: 0 !important;
+                            left: auto !important;
+                            inset-inline-start: auto !important;
+                            transform: none !important;
                             background-color: #ef4444 !important;
                             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
                             color: #ffffff !important;
@@ -631,8 +647,12 @@ class AdminPanelProvider extends PanelProvider
 
                         .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
                             position: absolute !important;
-                            top: 2px !important;
-                            right: 4px !important;
+                            top: 0px !important;
+                            right: 8px !important;
+                            left: auto !important;
+                            inset-inline-start: auto !important;
+                            inset-inline-end: 8px !important;
+                            transform: none !important;
                             z-index: 30 !important;
                         }
 
@@ -758,11 +778,18 @@ class AdminPanelProvider extends PanelProvider
                                 margin-right: 6px !important;
                             }
 
-                            /* Compact & Responsive Bell Badge on Mobile */
+                            /* Compact & Responsive Bell Badge on Mobile (Snugly hugging top-right shoulder of bell) */
                             .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
                             .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
-                                top: 2px !important;
-                                right: 3px !important;
+                                top: 0px !important;
+                                right: 9px !important;
+                                left: auto !important;
+                                bottom: auto !important;
+                                inset-inline-start: auto !important;
+                                inset-inline-end: 9px !important;
+                                transform: none !important;
+                                --tw-translate-x: 0 !important;
+                                --tw-translate-y: 0 !important;
                             }
 
                             .fi-topbar-database-notifications-btn .fi-badge,
@@ -815,6 +842,18 @@ class AdminPanelProvider extends PanelProvider
                             .fi-topbar-end {
                                 gap: 10px !important;
                                 margin-right: 4px !important;
+                            }
+                            .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
+                            .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
+                                top: 0px !important;
+                                right: 9px !important;
+                                left: auto !important;
+                                bottom: auto !important;
+                                inset-inline-start: auto !important;
+                                inset-inline-end: 9px !important;
+                                transform: none !important;
+                                --tw-translate-x: 0 !important;
+                                --tw-translate-y: 0 !important;
                             }
                         }
                     </style>
