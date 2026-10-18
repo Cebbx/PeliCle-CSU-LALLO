@@ -17,21 +17,21 @@ class UserSeeder extends Seeder
         $users = [
             [
                 'email' => 'admin@example.com',
-                'name' => 'JOEL A. TUMAMAO',
+                'name' => 'Joel Tumamao',
                 'password' => Hash::make('password'),
                 'plain_password' => 'password',
                 'role' => 'admin',
             ],
             [
                 'email' => 'thrishiabaletbet@gmail.com',
-                'name' => 'Admin (Trishia)',
+                'name' => 'Joel Tumamao',
                 'password' => Hash::make('password'),
                 'plain_password' => 'password',
                 'role' => 'admin',
             ],
             [
                 'email' => 'trishiabaletbet@gmail.com',
-                'name' => 'Admin (Trishia)',
+                'name' => 'Joel Tumamao',
                 'password' => Hash::make('password'),
                 'plain_password' => 'password',
                 'role' => 'admin',
@@ -42,6 +42,13 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'plain_password' => 'password',
                 'role' => 'employee',
+            ],
+            [
+                'email' => 'edwarddufale3@gmail.com',
+                'name' => 'Edward Cabbat',
+                'password' => Hash::make('password'),
+                'plain_password' => 'password',
+                'role' => 'guard',
             ],
         ];
 
