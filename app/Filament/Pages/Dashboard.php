@@ -146,6 +146,7 @@ class Dashboard extends BaseDashboard
     {
         $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         $counts = [];
+        $dates = [];
 
         $startOfWeek = Carbon::now('Asia/Manila')->startOfWeek();
 
@@ -153,26 +154,51 @@ class Dashboard extends BaseDashboard
             $currentDay = $startOfWeek->copy()->addDays($i);
             $count = TripTicket::whereDate('created_at', $currentDay->toDateString())->count();
             $counts[] = $count;
+            $dates[] = $currentDay->format('M d');
         }
 
-        // If no trips this week in dev, provide representative active flow based on all tickets
-        if (array_sum($counts) === 0) {
-            $allCount = TripTicket::count();
-            $counts = [
-                max(1, (int)($allCount * 0.1)),
-                max(2, (int)($allCount * 0.2)),
-                max(4, (int)($allCount * 0.35)),
-                max(3, (int)($allCount * 0.25)),
-                max(2, (int)($allCount * 0.15)),
-                max(1, (int)($allCount * 0.08)),
-                0
+        $maxVal = max(1, max($counts));
+        $chartMax = max(4, $maxVal + 1);
+
+        $coords = [];
+        $width = 350;
+        $padX = 20;
+        $usableWidth = $width - ($padX * 2);
+        $topY = 25;
+        $bottomY = 120;
+        $usableHeight = $bottomY - $topY;
+
+        for ($i = 0; $i < 7; $i++) {
+            $x = round($padX + ($i * ($usableWidth / 6)), 1);
+            $val = $counts[$i];
+            $y = round($bottomY - (($val / $chartMax) * $usableHeight), 1);
+            $coords[] = [
+                'x' => $x,
+                'y' => $y,
+                'count' => $val,
+                'day' => $days[$i],
+                'date' => $dates[$i],
             ];
         }
+
+        $linePath = "M " . $coords[0]['x'] . "," . $coords[0]['y'];
+        for ($i = 1; $i < count($coords); $i++) {
+            $prev = $coords[$i - 1];
+            $curr = $coords[$i];
+            $midX = ($prev['x'] + $curr['x']) / 2;
+            $linePath .= " C {$midX},{$prev['y']} {$midX},{$curr['y']} {$curr['x']},{$curr['y']}";
+        }
+
+        $areaPath = $linePath . " L {$coords[6]['x']},{$bottomY} L {$coords[0]['x']},{$bottomY} Z";
 
         return [
             'labels' => $days,
             'data' => $counts,
-            'max' => max(5, max($counts) + 3),
+            'total' => array_sum($counts),
+            'max' => $chartMax,
+            'points' => $coords,
+            'linePath' => $linePath,
+            'areaPath' => $areaPath,
         ];
     }
 

@@ -929,43 +929,47 @@
                             </defs>
                             
                             <!-- Grid Lines -->
-                            <line x1="0" y1="20" x2="350" y2="20" stroke="#161f30" stroke-width="1" />
+                            <line x1="0" y1="25" x2="350" y2="25" stroke="#161f30" stroke-width="1" />
                             <line x1="0" y1="55" x2="350" y2="55" stroke="#161f30" stroke-width="1" />
-                            <line x1="0" y1="90" x2="350" y2="90" stroke="#161f30" stroke-width="1" />
-                            <line x1="0" y1="125" x2="350" y2="125" stroke="#161f30" stroke-width="1" />
+                            <line x1="0" y1="85" x2="350" y2="85" stroke="#161f30" stroke-width="1" />
+                            <line x1="0" y1="120" x2="350" y2="120" stroke="#161f30" stroke-width="1" />
                             
                             <!-- Area Gradient Fill -->
-                            <path d="M 0,130 Q 30,110 60,95 T 120,25 T 175,35 T 235,75 T 295,95 T 350,130 L 350,140 L 0,140 Z" fill="url(#chartAreaGradientHD3)" />
+                            <path d="{{ $tripActivity['areaPath'] ?? 'M 20,120 L 330,120 Z' }}" fill="url(#chartAreaGradientHD3)" />
                             
                             <!-- Blue Curved Line -->
-                            <path d="M 0,130 Q 30,110 60,95 T 120,25 T 175,35 T 235,75 T 295,95 T 350,130" fill="none" stroke="#0284c7" stroke-width="2.5" />
+                            <path d="{{ $tripActivity['linePath'] ?? 'M 20,120 L 330,120' }}" fill="none" stroke="#0284c7" stroke-width="2.5" />
                             
-                            <!-- Data Point Circles -->
-                            <circle cx="0" cy="130" r="2.5" fill="#ffffff" stroke="#0284c7" stroke-width="1.8" />
-                            <circle cx="60" cy="95" r="3" fill="#ffffff" stroke="#0284c7" stroke-width="1.8" />
-                            <circle cx="120" cy="25" r="3.5" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
-                            <circle cx="175" cy="35" r="3.5" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
-                            <circle cx="235" cy="75" r="3" fill="#ffffff" stroke="#0284c7" stroke-width="1.8" />
-                            <circle cx="295" cy="95" r="2.5" fill="#ffffff" stroke="#0284c7" stroke-width="1.8" />
-                            <circle cx="350" cy="130" r="2.5" fill="#ffffff" stroke="#0284c7" stroke-width="1.8" />
+                            <!-- Dynamic Data Point Circles & Tooltips -->
+                            @foreach($tripActivity['points'] ?? [] as $pt)
+                                <g>
+                                    <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}" r="{{ $pt['count'] > 0 ? 4 : 2.5 }}" fill="#ffffff" stroke="#0284c7" stroke-width="{{ $pt['count'] > 0 ? 2.5 : 1.5 }}" style="cursor: pointer;">
+                                        <title>{{ $pt['day'] }} ({{ $pt['date'] }}): {{ $pt['count'] }} {{ Str::plural('trip', $pt['count']) }}</title>
+                                    </circle>
+                                    @if($pt['count'] > 0)
+                                        <text x="{{ $pt['x'] }}" y="{{ $pt['y'] - 7 }}" fill="#38bdf8" font-size="10.5" font-weight="800" text-anchor="middle">
+                                            {{ $pt['count'] }}
+                                        </text>
+                                    @endif
+                                </g>
+                            @endforeach
                         </svg>
                     </div>
 
                     <!-- Day Labels -->
-                    <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; padding-top: 2px;">
-                        <span>Mon</span>
-                        <span>Tue</span>
-                        <span>Wed</span>
-                        <span>Thu</span>
-                        <span>Fri</span>
-                        <span>Sat</span>
-                        <span>Sun</span>
+                    <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; padding: 2px 14px 0 14px;">
+                        @foreach($tripActivity['labels'] ?? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as $lbl)
+                            <span style="width: 25px; text-align: center;">{{ $lbl }}</span>
+                        @endforeach
                     </div>
                 </div>
 
-                <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 10px; color: #94a3b8; margin-top: 4px;">
-                    <span style="width: 7px; height: 7px; border-radius: 2px; background: #0284c7; display: inline-block;"></span>
-                    <span>Trips</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: #94a3b8; margin-top: 4px;">
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span style="width: 7px; height: 7px; border-radius: 2px; background: #0284c7; display: inline-block;"></span>
+                        <span>Weekly Trips</span>
+                    </div>
+                    <span style="color: #cbd5e1; font-weight: 600;">Total: <strong style="color: #38bdf8;">{{ $tripActivity['total'] ?? 0 }}</strong> {{ Str::plural('trip', $tripActivity['total'] ?? 0) }}</span>
                 </div>
             </div>
 
