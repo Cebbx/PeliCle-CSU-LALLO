@@ -7,7 +7,7 @@
         <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">
-                    Welcome back, {{ auth()->user()->name }}! 👋
+                    Welcome back, Administrator! 👋
                 </h1>
                 <p class="mt-1 text-sm text-blue-100/90 max-w-xl">
                     Here is the current operational status of the CSU Lal-lo Campus Vehicle & Trip Management System. Manage requests, track active trips, and review gas expenses.

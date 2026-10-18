@@ -634,7 +634,7 @@
             <div>
                 <h1 class="dash-title">Dashboard</h1>
                 <div class="dash-welcome">
-                    Welcome back, {{ auth()->user()->name ?? 'Admin User' }}! 👋
+                    Welcome back, Administrator! 👋
                 </div>
                 <div class="dash-desc">
                     Here is the current operational status of the CSU Lal-lo Campus Vehicle & Trip Management System.
