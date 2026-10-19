@@ -50,7 +50,7 @@ class TripTicketForm
                                 }
                             });
                     })
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->request_number} - {$record->employee_name} ({$record->department} | {$record->destination})")
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->request_number} - {$record->employee_name} ({$record->destination})")
                     ->label('Lead Vehicle Request Number')
                     ->placeholder('Select approved & signed request number')
                     ->disabled(fn (string $operation) => $operation === 'edit')
@@ -120,6 +120,13 @@ class TripTicketForm
                                 $personWord = $paxCount > 1 ? 'persons' : 'person';
                                 $timeStr = $r->time ? \Carbon\Carbon::parse($r->time)->format('g:i A') : 'No time';
 
+                                $passengers = $r->passenger_names ?? [];
+                                if (is_string($passengers)) {
+                                    $passengers = json_decode($passengers, true) ?? [];
+                                }
+                                $pNames = collect($passengers)->map(fn ($p) => trim(is_array($p) ? ($p['name'] ?? '') : (string) $p))->filter()->join(', ');
+                                $displayPax = $pNames ?: $r->employee_name;
+
                                 if ($matchType === 'same_municipality') {
                                     $destTag = "⭐ SAME DESTINATION: {$r->destination}";
                                 } else {
@@ -143,7 +150,7 @@ class TripTicketForm
                                     $timeBadge = " (@ {$timeStr})";
                                 }
 
-                                $label = "{$r->request_number} - {$r->department} ({$r->employee_name}) [{$paxCount} {$personWord}] [{$destTag}]{$timeBadge}";
+                                $label = "{$r->request_number} - {$displayPax} [{$paxCount} {$personWord}] [{$destTag}]{$timeBadge}";
                                 return [$r->id => $label];
                             });
                     })
@@ -214,12 +221,20 @@ class TripTicketForm
                         $allReqs = VehicleRequest::whereIn('id', $allIds)->get();
 
                         $totalPax = 0;
-                        $deptBreakdown = [];
+                        $paxBreakdown = [];
                         foreach ($allReqs as $r) {
                             $pax = $r->number_of_passengers ?: 1;
                             $totalPax += $pax;
                             $pWord = $pax > 1 ? 'persons' : 'person';
-                            $deptBreakdown[] = "{$r->department} ({$pax} {$pWord})";
+
+                            $passengers = $r->passenger_names ?? [];
+                            if (is_string($passengers)) {
+                                $passengers = json_decode($passengers, true) ?? [];
+                            }
+                            $pNames = collect($passengers)->map(fn ($p) => trim(is_array($p) ? ($p['name'] ?? '') : (string) $p))->filter()->join(', ');
+                            $displayPax = $pNames ?: $r->employee_name;
+
+                            $paxBreakdown[] = "{$displayPax} ({$pax} {$pWord})";
                         }
 
                         $carpoolCount = count($allReqs);
@@ -245,9 +260,9 @@ class TripTicketForm
                         }
 
                         $html = "<div class='text-xs space-y-1.5 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700'>";
-                        $html .= "<div><strong>👥 Total Passengers:</strong> <span class='text-primary-600 dark:text-primary-400 font-bold'>{$totalPax} {$totalPersonWord}</span> &mdash; " . implode(' + ', $deptBreakdown) . "</div>";
+                        $html .= "<div><strong>👥 Total Passengers:</strong> <span class='text-primary-600 dark:text-primary-400 font-bold'>{$totalPax} {$totalPersonWord}</span> &mdash; " . implode(' + ', $paxBreakdown) . "</div>";
                         if ($carpoolCount > 1) {
-                            $html .= "<div><strong>🚐 Consolidated Carpool:</strong> <span class='text-emerald-600 dark:text-emerald-400 font-semibold'>{$carpoolCount} Departments</span> are consolidated into this single trip.</div>";
+                            $html .= "<div><strong>🚐 Consolidated Carpool:</strong> <span class='text-emerald-600 dark:text-emerald-400 font-semibold'>{$carpoolCount} Requests</span> are consolidated into this single trip.</div>";
                         }
                         $html .= "<div><strong>💡 Recommended Available Vehicle:</strong> <span class='font-semibold'>{$recVehicle}</span> <span class='text-slate-500 text-[11px]'>(Dispatcher can modify below if needed)</span></div>";
                         if ($hasLargeTimeGap) {
