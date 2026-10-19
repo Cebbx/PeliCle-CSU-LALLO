@@ -118,7 +118,10 @@ class VehicleRequestsTable
                     })
                     ->formatStateUsing(function (string $state, $record) {
                         if ($state === 'approved') {
-                            return !empty($record->document) ? 'Ready (Waiting)' : 'Approved';
+                            if (!empty($record->document)) {
+                                return $record->trip_ticket_id ? 'Ready (Waiting)' : 'Signed (For Ticket)';
+                            }
+                            return 'Approved (GSO)';
                         }
                         return match ($state) {
                             'pending' => 'Pending',
@@ -131,16 +134,19 @@ class VehicleRequestsTable
                         };
                     })
                     ->description(function ($record) {
-                        if ($record->status === 'pending' && !empty($record->document)) {
-                            return '✅ Doc Attached';
+                        if ($record->status === 'pending') {
+                            return '⏳ For GSO Approval';
                         }
                         if ($record->status === 'approved') {
                             if (!empty($record->document)) {
-                                return $record->time 
-                                    ? '⏳ Departs ' . \Carbon\Carbon::parse($record->time)->format('g:i A')
-                                    : '✅ Doc Attached';
+                                if ($record->trip_ticket_id) {
+                                    return $record->time 
+                                        ? '⏳ Departs ' . \Carbon\Carbon::parse($record->time)->format('g:i A')
+                                        : '✅ Ticket Assigned';
+                                }
+                                return '🎫 For Trip Ticket';
                             }
-                            return '📄 Awaiting CEO Doc';
+                            return '📄 Upload Signed Form';
                         }
                         return null;
                     })
@@ -196,7 +202,7 @@ class VehicleRequestsTable
                         ->label('Print Trip Ticket (QR Code)')
                         ->icon('heroicon-o-ticket')
                         ->color('success')
-                        ->visible(fn ($record) => $record->tripTicket()->exists() && empty($record->document) && empty($record->tripTicket?->document))
+                        ->visible(fn ($record) => $record->tripTicket()->exists())
                         ->url(fn ($record) => route('trip-tickets.print', $record->tripTicket->id))
                         ->openUrlInNewTab(),
                     Action::make('csu_survey')
@@ -210,8 +216,8 @@ class VehicleRequestsTable
                         ->label('Upload or Scan Document')
                         ->icon('heroicon-o-camera')
                         ->color('success')
-                        ->modalHeading('📄 Upload or Scan CEO Signed Document')
-                        ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
+                        ->modalHeading('📄 Upload or Scan Signed Vehicle Request Form')
+                        ->modalDescription('Choose whether to scan using the camera or upload the signed Vehicle Request Form from your device.')
                         ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Save Document')
                         ->visible(fn ($record) => !$record->trashed() && $record->status === 'approved' && empty($record->document) && empty($record->tripTicket?->document))

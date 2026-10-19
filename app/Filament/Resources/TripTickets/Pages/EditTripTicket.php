@@ -24,21 +24,10 @@ class EditTripTicket extends EditRecord
     {
         parent::mount($record);
 
-        if ($this->record->hasSignedDocument()) {
-            \Filament\Notifications\Notification::make()
-                ->title('Trip Ticket Locked')
-                ->body('This Trip Ticket can no longer be edited because the CEO signed document has already been uploaded.')
-                ->warning()
-                ->send();
-
-            $this->redirect($this->getResource()::getUrl('index'));
-            return;
-        }
-
         if (!$this->record->canConsolidateOrEdit()) {
             \Filament\Notifications\Notification::make()
                 ->title('Edit Not Available')
-                ->body('Trip Ticket can only be edited when pending, before CEO signed document upload, and when a same-date compatible destination/route request exists.')
+                ->body('Trip Ticket can only be edited when pending and when a same-date approved & signed compatible destination/route request exists.')
                 ->warning()
                 ->send();
 
@@ -79,12 +68,12 @@ class EditTripTicket extends EditRecord
         $allIds = array_unique(array_filter(array_merge([$primaryId], is_array($companionIds) ? $companionIds : [])));
         $status = $record->status === 'active' ? 'on_trip' : ($record->status === 'completed' ? 'completed' : 'approved');
 
-        // Unlink any requests that were removed from this ticket
+        // Unlink any requests that were removed from this ticket (keep them 'approved' since GSO already approved & signed them)
         VehicleRequest::where('trip_ticket_id', $record->id)
             ->whereNotIn('id', $allIds)
             ->update([
                 'trip_ticket_id' => null,
-                'status' => 'pending',
+                'status' => 'approved',
             ]);
 
         foreach ($allIds as $reqId) {

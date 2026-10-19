@@ -123,7 +123,10 @@ class VehicleRequestsTable
                     })
                     ->formatStateUsing(function (string $state, $record) {
                         if ($state === 'approved') {
-                            return !empty($record->document) ? 'Ready (Waiting)' : 'Approved';
+                            if (!empty($record->document)) {
+                                return $record->trip_ticket_id ? 'Ready (Waiting)' : 'Signed (For Ticket)';
+                            }
+                            return 'Approved (GSO)';
                         }
                         return match ($state) {
                             'pending' => 'Pending',
@@ -136,16 +139,19 @@ class VehicleRequestsTable
                         };
                     })
                     ->description(function ($record) {
-                        if ($record->status === 'pending' && !empty($record->document)) {
-                            return '✅ Doc Attached';
+                        if ($record->status === 'pending') {
+                            return '⏳ For GSO Approval';
                         }
                         if ($record->status === 'approved') {
                             if (!empty($record->document)) {
-                                return $record->time 
-                                    ? '⏳ Departs ' . \Carbon\Carbon::parse($record->time)->format('g:i A')
-                                    : '✅ Doc Attached';
+                                if ($record->trip_ticket_id) {
+                                    return $record->time 
+                                        ? '⏳ Departs ' . \Carbon\Carbon::parse($record->time)->format('g:i A')
+                                        : '✅ Ticket Assigned';
+                                }
+                                return '🎫 Ready for Trip Ticket';
                             }
-                            return '📄 Awaiting CEO Doc';
+                            return '📄 Upload Signed Form';
                         }
                         return null;
                     })
@@ -177,6 +183,38 @@ class VehicleRequestsTable
             ->recordAction(null)
             ->recordActions([
                 ActionGroup::make([
+                    Action::make('approve_gso')
+                        ->label('Approve Request (GSO)')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->visible(fn ($record) => !$record->trashed() && $record->status === 'pending')
+                        ->action(function ($record) {
+                            $record->update(['status' => 'approved']);
+
+                            \App\Models\ActivityLog::log('Approved Request (GSO)', $record, "GSO Admin approved vehicle request {$record->request_number}.");
+
+                            if ($record->user) {
+                                try {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('✅ Request Approved by GSO: ' . $record->request_number)
+                                        ->body("Your vehicle request {$record->request_number} to {$record->destination} has been approved by GSO. Please print the Requisition Form and upload/scan the signed document.")
+                                        ->icon('heroicon-o-check-circle')
+                                        ->iconColor('success')
+                                        ->actions([
+                                            \Filament\Actions\Action::make('view')
+                                                ->label('Upload Signed Form')
+                                                ->url('/employee/vehicle-requests'),
+                                        ])
+                                        ->sendToDatabase($record->user);
+                                } catch (\Throwable $e) {}
+                            }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Approved by GSO')
+                                ->body("Vehicle Request {$record->request_number} is now Approved! Next step: Upload or Scan the Signed Vehicle Request Form.")
+                                ->success()
+                                ->send();
+                        }),
                     Action::make('consolidate_to_existing_ticket')
                         ->label(function ($record) {
                             $ticket = \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record);
@@ -184,7 +222,7 @@ class VehicleRequestsTable
                         })
                         ->icon('heroicon-o-user-group')
                         ->color('primary')
-                        ->visible(fn ($record) => !$record->trashed() && !$record->tripTicket()->exists() && in_array($record->status, ['pending', 'approved']) && \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record) !== null)
+                        ->visible(fn ($record) => !$record->trashed() && !$record->tripTicket()->exists() && $record->status === 'approved' && !empty($record->document) && \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record) !== null)
                         ->url(function ($record) {
                             $ticket = \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record);
                             if (!$ticket) {
@@ -196,13 +234,10 @@ class VehicleRequestsTable
                             ]);
                         }),
                     Action::make('approve_and_ticket')
-                        ->label('Approve & Ticket')
+                        ->label('Create Trip Ticket')
                         ->icon('heroicon-o-ticket')
                         ->color('success')
-                        ->visible(fn ($record) => !$record->trashed() && !$record->tripTicket()->exists() && ($record->status === 'pending' || $record->status === 'approved'))
-                        ->action(function ($record) {
-                            $record->update(['status' => 'approved']);
-                        })
+                        ->visible(fn ($record) => !$record->trashed() && !$record->tripTicket()->exists() && $record->status === 'approved' && !empty($record->document))
                         ->url(fn ($record) => \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('create', [
                             'vehicle_request_id' => $record->id,
                         ])),
@@ -230,8 +265,8 @@ class VehicleRequestsTable
                         ->label('Upload or Scan Document')
                         ->icon('heroicon-o-camera')
                         ->color('success')
-                        ->modalHeading('📄 Upload or Scan CEO Signed Document')
-                        ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
+                        ->modalHeading('📄 Upload or Scan Signed Vehicle Request Form')
+                        ->modalDescription('Choose whether to scan using the camera or upload the signed Vehicle Request Form from your device.')
                         ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Save Document')
                         ->visible(fn ($record) => !$record->trashed() && $record->status === 'approved' && empty($record->document) && empty($record->tripTicket?->document))
@@ -328,14 +363,20 @@ class VehicleRequestsTable
                                 $tripTicket->sendSmsNotification();
                             }
 
-                            $msg = $record->tripTicket
-                                ? ($timeArrived
-                                    ? 'CEO Signed Document uploaded! Scheduled travel time has arrived — Trip is now ON TRIP and SMS sent to driver!'
-                                    : 'CEO Signed Document uploaded and SMS sent to driver! Request is now Ready (Waiting for departure at ' . ($record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time') . ').')
-                                : 'CEO Signed Document uploaded! You can now click Approve & Ticket to assign a driver and vehicle.';
+                            $compatibleTicket = !$record->tripTicket ? \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record) : null;
+
+                            if ($record->tripTicket) {
+                                $msg = $timeArrived
+                                    ? 'Signed Document uploaded! Scheduled travel time has arrived — Trip is now ON TRIP and SMS sent to driver!'
+                                    : 'Signed Document uploaded and SMS sent to driver! Request is now Ready (Waiting for departure at ' . ($record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time') . ').';
+                            } elseif ($compatibleTicket) {
+                                $msg = "Signed Vehicle Request Form uploaded! Compatible Trip Ticket ({$compatibleTicket->ticket_number}) found on the same date & route — you can now click 'Edit / Join Trip Ticket ({$compatibleTicket->ticket_number})' or 'Create Trip Ticket'.";
+                            } else {
+                                $msg = "Signed Vehicle Request Form uploaded! You can now click 'Create Trip Ticket' in the Action menu to assign a driver and vehicle.";
+                            }
 
                             \Filament\Notifications\Notification::make()
-                                ->title('Document Uploaded')
+                                ->title('Signed Document Uploaded')
                                 ->body($msg)
                                 ->success()
                                 ->send();

@@ -35,6 +35,13 @@ class CreateTripTicket extends CreateRecord
             $data['ticket_number'] = \App\Models\TripTicket::generateNextTicketNumber();
         }
 
+        if (!empty($data['vehicle_request_id']) && empty($data['document'])) {
+            $leadReq = VehicleRequest::find($data['vehicle_request_id']);
+            if ($leadReq && !empty($leadReq->document)) {
+                $data['document'] = $leadReq->document;
+            }
+        }
+
         return $data;
     }
 
@@ -50,6 +57,10 @@ class CreateTripTicket extends CreateRecord
         foreach ($allIds as $reqId) {
             $req = VehicleRequest::find($reqId);
             if ($req) {
+                if (empty($record->document) && !empty($req->document)) {
+                    $record->updateQuietly(['document' => $req->document]);
+                }
+
                 $updateData = [
                     'trip_ticket_id' => $record->id,
                     'status' => $status,
@@ -62,6 +73,12 @@ class CreateTripTicket extends CreateRecord
                 }
                 $req->updateQuietly($updateData);
             }
+        }
+
+        if ($record->driver_id && !empty($record->document)) {
+            try {
+                $record->sendSmsNotification();
+            } catch (\Throwable $e) {}
         }
     }
 }
