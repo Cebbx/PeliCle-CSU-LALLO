@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Request Form - {{ $request->request_number }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{ asset('js/tailwindcss.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
@@ -13,6 +13,12 @@
             color: black;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+        }
+        .esign-crisp {
+            filter: brightness(0) contrast(400%) drop-shadow(0px 0px 0.45px #000000) drop-shadow(0px 0px 0.35px #000000);
+            -webkit-filter: brightness(0) contrast(400%) drop-shadow(0px 0px 0.45px #000000) drop-shadow(0px 0px 0.35px #000000);
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
         @media print {
             body {
@@ -178,17 +184,18 @@
 
         <!-- Footer approvals section (2 Columns - Mobile Responsive) -->
         <div class="grid grid-cols-2 gap-3 sm:gap-8 mt-3 sm:mt-5 mb-3">
-            <!-- Left: Client's Signature and Received by -->
+            <!-- Left: Client's Signature (E-Sign above Requester Name) and Received by -->
             <div class="flex flex-col justify-between pr-1.5 sm:pr-4">
                 <!-- Client's Signature -->
                 <div class="flex flex-col items-center">
                     @if(!empty($request->signature_url))
-                        <img src="{{ $request->signature_url }}" alt="Client Signature" class="h-10 sm:h-12 max-h-12 object-contain mb-1" />
+                        <img id="client-signature-img" src="{{ $request->signature_url }}" crossorigin="anonymous" alt="Client Signature" class="esign-crisp h-14 sm:h-16 max-h-16 w-auto max-w-[240px] object-contain -mb-1.5 z-10 pointer-events-none select-none" />
                     @else
-                        <div class="h-10 sm:h-12"></div>
+                        <div class="h-12 sm:h-14"></div>
                     @endif
                     <div class="w-full border-t border-black text-center pt-1">
-                        <span class="text-[10px] sm:text-xs font-bold text-black uppercase">Client's Signature</span>
+                        <span class="text-xs sm:text-sm font-extrabold text-black uppercase tracking-wide block leading-tight">{{ $request->employee_name }}</span>
+                        <span class="text-[9px] sm:text-[10px] font-semibold text-black uppercase block mt-0.5">Client's Signature</span>
                     </div>
                 </div>
 
@@ -250,6 +257,121 @@
 
     <!-- Mobile & PC Optimized 1-Page PDF Download & Print Scripts -->
     <script>
+        // Automatically auto-crop empty canvas whitespace and thicken/darken signature strokes for crystal-clear printing & PDF export
+        (function enhanceClientSignature() {
+            const sigImg = document.getElementById('client-signature-img');
+            if (!sigImg || !sigImg.src) return;
+
+            const processImage = () => {
+                if (sigImg.dataset.enhanced === '1') return;
+                const nw = sigImg.naturalWidth;
+                const nh = sigImg.naturalHeight;
+                if (!nw || !nh) return;
+
+                try {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = nw;
+                    tempCanvas.height = nh;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.drawImage(sigImg, 0, 0);
+
+                    const imgData = tempCtx.getImageData(0, 0, nw, nh);
+                    const data = imgData.data;
+
+                    // Detect if image has a solid white/light background (uploaded photo) vs transparent canvas
+                    let cornerOpaqueCount = 0;
+                    const corners = [0, (nw - 1) * 4, (nh - 1) * nw * 4, ((nh - 1) * nw + (nw - 1)) * 4];
+                    for (const idx of corners) {
+                        if (data[idx + 3] > 200 && data[idx] > 200 && data[idx + 1] > 200 && data[idx + 2] > 200) {
+                            cornerOpaqueCount++;
+                        }
+                    }
+                    const isOpaqueBg = cornerOpaqueCount >= 3;
+
+                    let minX = nw, minY = nh, maxX = 0, maxY = 0, found = false;
+
+                    for (let y = 0; y < nh; y++) {
+                        for (let x = 0; x < nw; x++) {
+                            const i = (y * nw + x) * 4;
+                            const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+                            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+                            let isInk = false;
+                            if (isOpaqueBg) {
+                                // Dark ink on light paper
+                                if (a > 40 && lum < 200) {
+                                    isInk = true;
+                                    const strength = Math.min(255, Math.round((220 - lum) * 2.5));
+                                    data[i] = 0; data[i + 1] = 0; data[i + 2] = 0; data[i + 3] = strength;
+                                } else {
+                                    data[i + 3] = 0;
+                                }
+                            } else {
+                                // Transparent canvas signature
+                                if (a > 18) {
+                                    isInk = true;
+                                    data[i] = 0; data[i + 1] = 0; data[i + 2] = 0;
+                                    data[i + 3] = Math.min(255, Math.round(a * 2.8));
+                                } else {
+                                    data[i + 3] = 0;
+                                }
+                            }
+
+                            if (isInk) {
+                                found = true;
+                                if (x < minX) minX = x;
+                                if (x > maxX) maxX = x;
+                                if (y < minY) minY = y;
+                                if (y > maxY) maxY = y;
+                            }
+                        }
+                    }
+
+                    if (!found) return;
+                    tempCtx.putImageData(imgData, 0, 0);
+
+                    const pad = Math.max(8, Math.round(Math.max(maxX - minX, maxY - minY) * 0.04));
+                    const cropX = Math.max(0, minX - pad);
+                    const cropY = Math.max(0, minY - pad);
+                    const cropW = Math.min(nw - cropX, (maxX - minX) + pad * 2);
+                    const cropH = Math.min(nh - cropY, (maxY - minY) + pad * 2);
+
+                    // Target high-resolution output height (240px) so strokes are uniformly bold and sharp
+                    const targetH = 240;
+                    const scale = targetH / Math.max(cropH, 1);
+                    const targetW = Math.max(1, Math.min(900, Math.round(cropW * scale)));
+
+                    const outCanvas = document.createElement('canvas');
+                    outCanvas.width = targetW;
+                    outCanvas.height = targetH;
+                    const outCtx = outCanvas.getContext('2d');
+                    outCtx.imageSmoothingEnabled = true;
+                    outCtx.imageSmoothingQuality = 'high';
+
+                    // Multi-pass stroke thickening so thin high-DPI lines become bold, crisp ink on print
+                    const offsets = [
+                        [0, 0], [-0.85, 0], [0.85, 0], [0, -0.85], [0, 0.85],
+                        [-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]
+                    ];
+                    for (const [dx, dy] of offsets) {
+                        outCtx.drawImage(tempCanvas, cropX, cropY, cropW, cropH, dx, dy, targetW, targetH);
+                    }
+
+                    sigImg.dataset.enhanced = '1';
+                    sigImg.classList.remove('esign-crisp');
+                    sigImg.src = outCanvas.toDataURL('image/png');
+                } catch (e) {
+                    // Keep CSS .esign-crisp filter fallback if canvas is tainted
+                }
+            };
+
+            if (sigImg.complete && sigImg.naturalWidth > 0) {
+                processImage();
+            } else {
+                sigImg.addEventListener('load', processImage, { once: true });
+            }
+        })();
+
         async function downloadPDF(btn) {
             const btnEl = btn || document.querySelector('#btnDownloadPdf');
             const originalHtml = btnEl ? btnEl.innerHTML : '';

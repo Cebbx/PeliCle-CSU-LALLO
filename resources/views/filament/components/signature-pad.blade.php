@@ -69,10 +69,10 @@
             this.canvas.height = rect.height * dpr;
             this.ctx.scale(dpr, dpr);
 
-            this.ctx.lineWidth = 2.5;
+            this.ctx.lineWidth = 3.8;
             this.ctx.lineCap = 'round';
             this.ctx.lineJoin = 'round';
-            this.ctx.strokeStyle = '#0f172a';
+            this.ctx.strokeStyle = '#000000';
         },
 
         getPointerPos(e) {
@@ -99,8 +99,8 @@
             this.lastY = pos.y;
 
             this.ctx.beginPath();
-            this.ctx.arc(this.lastX, this.lastY, 1.25, 0, Math.PI * 2);
-            this.ctx.fillStyle = '#0f172a';
+            this.ctx.arc(this.lastX, this.lastY, 1.9, 0, Math.PI * 2);
+            this.ctx.fillStyle = '#000000';
             this.ctx.fill();
 
             this.ctx.beginPath();
@@ -283,10 +283,10 @@
             this.fsCanvas.height = rect.height * dpr;
             this.fsCtx.scale(dpr, dpr);
 
-            this.fsCtx.lineWidth = 3.2;
+            this.fsCtx.lineWidth = 5.5;
             this.fsCtx.lineCap = 'round';
             this.fsCtx.lineJoin = 'round';
-            this.fsCtx.strokeStyle = '#0f172a';
+            this.fsCtx.strokeStyle = '#000000';
         },
 
         getFsPointerPos(e) {
@@ -313,8 +313,8 @@
             this.lastFsY = pos.y;
 
             this.fsCtx.beginPath();
-            this.fsCtx.arc(this.lastFsX, this.lastFsY, 1.6, 0, Math.PI * 2);
-            this.fsCtx.fillStyle = '#0f172a';
+            this.fsCtx.arc(this.lastFsX, this.lastFsY, 2.75, 0, Math.PI * 2);
+            this.fsCtx.fillStyle = '#000000';
             this.fsCtx.fill();
 
             this.fsCtx.beginPath();
