@@ -17,7 +17,7 @@ class VehicleRequestsTable
     {
         return $table
             ->poll('10s')
-            ->modifyQueryUsing(fn ($query) => $query->with(['tripTicket.vehicleRequest', 'tripTicket.vehicleRequests']))
+            ->modifyQueryUsing(fn ($query) => $query->with(['tripTicket.vehicleRequest', 'tripTicket.vehicleRequests', 'tripTicket.driver']))
             ->columns([
                 TextColumn::make('request_number')
                     ->label('Vehicle Request')
@@ -110,6 +110,57 @@ class VehicleRequestsTable
                     ->description(fn ($record) => $record->return_time ? \Carbon\Carbon::parse($record->return_time)->format('h:i A') : null)
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('travel_timeline')
+                    ->label('Departure & Arrival')
+                    ->width('170px')
+                    ->state(function ($record) {
+                        $ticket = $record->tripTicket;
+                        if ($ticket?->gate_out_at) {
+                            return '🛫 ' . \Carbon\Carbon::parse($ticket->gate_out_at)->timezone('Asia/Manila')->format('M d · g:i A');
+                        }
+                        if ($record->date) {
+                            $t = $record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : '';
+                            return '🛫 ' . \Carbon\Carbon::parse($record->date)->format('M d') . ($t ? " · {$t}" : '');
+                        }
+                        return '🛫 Sched Pending';
+                    })
+                    ->description(function ($record) {
+                        $ticket = $record->tripTicket;
+                        if ($ticket?->gate_in_at) {
+                            return '🛬 ' . \Carbon\Carbon::parse($ticket->gate_in_at)->timezone('Asia/Manila')->format('M d · g:i A');
+                        }
+                        if ($record->status === 'on_trip' || ($ticket && $ticket->status === 'active')) {
+                            $ret = $record->return_date ? \Carbon\Carbon::parse($record->return_date)->format('M d') : null;
+                            return '🚗 In Transit' . ($ret ? " (Due {$ret})" : '');
+                        }
+                        if ($record->return_date) {
+                            $rt = $record->return_time ? \Carbon\Carbon::parse($record->return_time)->format('g:i A') : '';
+                            return '🛬 Est. ' . \Carbon\Carbon::parse($record->return_date)->format('M d') . ($rt ? " · {$rt}" : '');
+                        }
+                        return '🛬 CSU Return Pending';
+                    })
+                    ->tooltip(function ($record) {
+                        $ticket = $record->tripTicket;
+                        $lines = [];
+                        $lines[] = '🧭 Travel Timeline Overview';
+                        if ($ticket?->gate_out_at) {
+                            $lines[] = '🛫 Actual Gate Out: ' . \Carbon\Carbon::parse($ticket->gate_out_at)->timezone('Asia/Manila')->format('M d, Y · g:i A');
+                            if ($ticket->scanned_by) {
+                                $lines[] = '   Gate Officer: ' . $ticket->scanned_by;
+                            }
+                        } elseif ($record->date) {
+                            $lines[] = '🛫 Sched Departure: ' . \Carbon\Carbon::parse($record->date)->format('M d, Y') . ($record->time ? ' · ' . \Carbon\Carbon::parse($record->time)->format('g:i A') : '');
+                        }
+
+                        if ($ticket?->gate_in_at) {
+                            $lines[] = '🛬 Actual Gate In: ' . \Carbon\Carbon::parse($ticket->gate_in_at)->timezone('Asia/Manila')->format('M d, Y · g:i A');
+                        } elseif ($record->return_date) {
+                            $lines[] = '🛬 Target Return: ' . \Carbon\Carbon::parse($record->return_date)->format('M d, Y') . ($record->return_time ? ' · ' . \Carbon\Carbon::parse($record->return_time)->format('g:i A') : '');
+                        }
+
+                        $lines[] = '💡 Click row to open complete Travel Timeline tracker';
+                        return implode("\n", $lines);
+                    }),
                 TextColumn::make('status')
                     ->width('130px')
                     ->badge()
@@ -176,9 +227,22 @@ class VehicleRequestsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordUrl(null)
-            ->recordAction(null)
+            ->recordAction('view_timeline')
             ->recordActions([
                 ActionGroup::make([
+                    Action::make('view_timeline')
+                        ->label('View Travel Timeline')
+                        ->icon('heroicon-o-clock')
+                        ->color('info')
+                        ->modalHeading(fn ($record) => '🧭 Travel Timeline & Tracking: ' . ($record->formatted_request_number ?? ('#' . $record->id)))
+                        ->modalDescription(fn ($record) => 'Complete departure & arrival timeline tracker for official travel to ' . ($record->destination ?? 'Destination') . '.')
+                        ->modalWidth('3xl')
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Close')
+                        ->modalContent(fn ($record) => view('filament.resources.vehicle-requests.travel-timeline-modal', [
+                            'record' => $record,
+                            'tripTicket' => $record->tripTicket,
+                        ])),
                     Action::make('consolidate_to_existing_ticket')
                         ->label(function ($record) {
                             $ticket = \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record);
