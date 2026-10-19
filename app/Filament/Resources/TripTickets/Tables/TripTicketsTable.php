@@ -23,6 +23,9 @@ class TripTicketsTable
                     ->formatStateUsing(fn ($state) => preg_replace('/^VR-(?=\d{4}-)/', '', $state))
                     ->searchable(),
                 TextColumn::make('driver.name')
+                    ->label('Driver')
+                    ->default('Unassigned')
+                    ->placeholder('Unassigned')
                     ->searchable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
@@ -159,6 +162,16 @@ class TripTicketsTable
                                 \Filament\Notifications\Notification::make()
                                     ->title('Upload Required')
                                     ->body('CEO Signed Document is required to start the trip.')
+                                    ->danger()
+                                    ->send();
+                                $action->halt();
+                                return;
+                            }
+
+                            if (!$record->driver_id) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Driver Required')
+                                    ->body('Please assign a driver to this trip ticket before starting the trip.')
                                     ->danger()
                                     ->send();
                                 $action->halt();
@@ -341,6 +354,15 @@ class TripTicketsTable
                         ->color('warning')
                         ->visible(fn ($record) => in_array($record->status, ['pending', 'active']))
                         ->action(function ($record) {
+                            if (!$record->driver) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Walang Driver na Naka-assign')
+                                    ->body('Hindi maipapadala ang SMS: Wala pang driver na naka-assign sa trip ticket na ito. Paki-edit ang trip ticket upang mag-assign ng driver.')
+                                    ->warning()
+                                    ->send();
+                                return;
+                            }
+
                             $record->sendSmsNotification();
                             \Filament\Notifications\Notification::make()
                                 ->title('SMS Sent')
@@ -348,7 +370,7 @@ class TripTicketsTable
                                 ->success()
                                 ->send();
                         })
-                        ->requiresConfirmation(),
+                        ->requiresConfirmation(fn ($record) => (bool) $record->driver),
                     Action::make('view_signed_document')
                         ->label('View Signed Document')
                         ->icon('heroicon-o-document-check')

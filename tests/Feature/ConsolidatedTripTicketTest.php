@@ -213,3 +213,41 @@ test('admin can access edit trip ticket page and fields are properly unlocked', 
     $response->assertSee('Edit Trip Ticket: TT-2026-10-002');
 });
 
+it('allows admin to edit and save a trip ticket without an assigned driver and handles resend sms safely', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $req = VehicleRequest::create([
+        'request_number' => 'VR-2026-10-003',
+        'employee_name' => 'Test Employee 2',
+        'department' => 'CICS',
+        'destination' => 'Aparri',
+        'purpose' => 'Inspection',
+        'date' => '2026-10-21',
+        'time' => '09:00:00',
+        'status' => 'approved',
+    ]);
+
+    // Trip ticket without an assigned driver (driver_id = null)
+    $ticket = TripTicket::create([
+        'ticket_number' => 'TT-2026-10-003',
+        'vehicle_request_id' => $req->id,
+        'driver_id' => null,
+        'vehicle' => 'FORTUNER - SBA1749',
+        'status' => 'pending',
+    ]);
+
+    expect($ticket->driver_id)->toBeNull();
+
+    // Verify Admin can access edit page even without an assigned driver
+    $response = test()->actingAs($admin, 'admin')->get("/admin/trip-tickets/{$ticket->id}/edit");
+    $response->assertStatus(200);
+    $response->assertSee('Edit Trip Ticket: TT-2026-10-003');
+
+    // Test Livewire table render & Resend SMS action without driver
+    \Livewire\Livewire::actingAs($admin, 'admin')
+        ->test(\App\Filament\Resources\TripTickets\Pages\ListTripTickets::class)
+        ->assertCanSeeTableRecords([$ticket])
+        ->callTableAction('resendSms', $ticket)
+        ->assertNotified('Walang Driver na Naka-assign');
+});
+
+

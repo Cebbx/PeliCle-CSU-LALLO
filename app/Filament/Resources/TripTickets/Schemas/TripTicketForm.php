@@ -546,7 +546,8 @@ class TripTicketForm
                             }
                         }
                     ])
-                    ->required(),
+                    ->nullable()
+                    ->placeholder('Select a driver (Optional - can be assigned later)'),
 
                 Select::make('status')
                     ->options([
