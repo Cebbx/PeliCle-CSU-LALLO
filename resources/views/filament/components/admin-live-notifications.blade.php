@@ -103,9 +103,11 @@
         .fi-topbar-end {
             display: flex !important;
             align-items: center !important;
-            gap: 12px !important;
-            flex-shrink: 0 !important;
-            margin-right: 6px !important;
+            justify-content: flex-end !important;
+            gap: 8px !important;
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            margin-right: 4px !important;
         }
 
         /* Compact & Responsive Bell Badge on Mobile (Snugly hugging top-right shoulder of bell) */
@@ -137,8 +139,8 @@
 
     @media (max-width: 420px) {
         .fi-topbar-end {
-            gap: 10px !important;
-            margin-right: 4px !important;
+            gap: 6px !important;
+            margin-right: 2px !important;
         }
 
         .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,

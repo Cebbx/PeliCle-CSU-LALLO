@@ -24,8 +24,8 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
         
-        <!-- Tailwind CSS -->
-        <script src="https://cdn.tailwindcss.com"></script>
+        <!-- Tailwind CSS (Local Offline Asset) -->
+        <script src="{{ asset('js/tailwindcss.js') }}"></script>
         
         <script>
             tailwind.config = {

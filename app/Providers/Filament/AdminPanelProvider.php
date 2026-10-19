@@ -733,17 +733,70 @@ class AdminPanelProvider extends PanelProvider
                         @media (max-width: 768px) {
                             /* Ensure topbar header does not overflow horizontally */
                             header.fi-topbar,
+                            nav.fi-topbar,
                             .fi-topbar,
+                            .fi-topbar-ctn,
                             .fi-topbar-header,
                             header.fi-topbar > div,
                             .fi-topbar-nav {
-                                padding-left: 6px !important;
-                                padding-right: 14px !important;
+                                padding-left: 8px !important;
+                                padding-right: 12px !important;
                                 max-width: 100vw !important;
                                 box-sizing: border-box !important;
                             }
 
-                            /* Compact Global Search on mobile to leave plenty of room for bell & profile */
+                            /* End items container (Search + Bell + Avatar Profile): fits within viewport, never clips */
+                            .fi-topbar-end {
+                                display: flex !important;
+                                align-items: center !important;
+                                justify-content: flex-end !important;
+                                gap: 8px !important;
+                                flex: 1 1 auto !important;
+                                min-width: 0 !important;
+                                margin-right: 4px !important;
+                            }
+
+                            /* Global search container shrinks flexibly and removes excess horizontal margin */
+                            .fi-global-search-ctn,
+                            .fi-global-search,
+                            .fi-global-search-field {
+                                margin-inline: 0 !important;
+                                margin-left: 0 !important;
+                                margin-right: 0 !important;
+                                flex: 0 1 140px !important;
+                                max-width: 140px !important;
+                                min-width: 0 !important;
+                                width: 100% !important;
+                            }
+
+                            .fi-global-search-field .fi-input-wrp {
+                                max-width: 140px !important;
+                                min-width: 0 !important;
+                                width: 100% !important;
+                                height: 32px !important;
+                                display: flex !important;
+                                align-items: center !important;
+                                overflow: hidden !important;
+                            }
+
+                            .fi-global-search-field .fi-input-wrp-prefix {
+                                padding-left: 8px !important;
+                                padding-right: 4px !important;
+                                padding-inline: 8px 4px !important;
+                                flex-shrink: 0 !important;
+                            }
+
+                            .fi-global-search-field .fi-input-wrp-prefix svg {
+                                width: 15px !important;
+                                height: 15px !important;
+                            }
+
+                            .fi-global-search-field .fi-input-wrp-content-ctn {
+                                min-width: 0 !important;
+                                flex: 1 1 auto !important;
+                            }
+
+                            /* Compact Global Search input on mobile to leave plenty of room for bell & profile */
                             html.dark .fi-global-search-field input,
                             html.dark .fi-topbar input, 
                             html.dark .fi-global-search-input, 
@@ -753,29 +806,13 @@ class AdminPanelProvider extends PanelProvider
                             html:not(.dark) .fi-global-search-input, 
                             html:not(.dark) .fi-global-search-input-field {
                                 width: 100% !important;
-                                max-width: 130px !important;
-                                min-width: 65px !important;
-                                font-size: 11px !important;
-                                height: 28px !important;
-                                padding-left: 24px !important;
-                                padding-right: 6px !important;
-                            }
-
-                            /* Global search container shrinks flexibly */
-                            .fi-global-search,
-                            .fi-global-search-field {
-                                flex: 1 1 auto !important;
+                                max-width: 100% !important;
                                 min-width: 0 !important;
-                                max-width: 140px !important;
-                            }
-
-                            /* End items container (Bell + Avatar Profile): ample spacing, never overlaps */
-                            .fi-topbar-end {
-                                display: flex !important;
-                                align-items: center !important;
-                                gap: 12px !important;
-                                flex-shrink: 0 !important;
-                                margin-right: 6px !important;
+                                font-size: 12px !important;
+                                height: 30px !important;
+                                padding-left: 2px !important;
+                                padding-right: 6px !important;
+                                padding-inline: 2px 6px !important;
                             }
 
                             /* Compact & Responsive Bell Badge on Mobile (Snugly hugging top-right shoulder of bell) */
@@ -812,6 +849,7 @@ class AdminPanelProvider extends PanelProvider
                                 margin-right: 4px !important;
                                 display: inline-flex !important;
                                 align-items: center !important;
+                                justify-content: center !important;
                             }
 
                             /* Profile Avatar circle */
@@ -829,19 +867,16 @@ class AdminPanelProvider extends PanelProvider
                         }
 
                         @media (max-width: 420px) {
-                            html.dark .fi-global-search-field input,
-                            html.dark .fi-topbar input, 
-                            html.dark .fi-global-search-input, 
-                            html.dark .fi-global-search-input-field,
-                            html:not(.dark) .fi-global-search-field input,
-                            html:not(.dark) .fi-topbar input, 
-                            html:not(.dark) .fi-global-search-input, 
-                            html:not(.dark) .fi-global-search-input-field {
-                                max-width: 85px !important;
+                            .fi-global-search-ctn,
+                            .fi-global-search,
+                            .fi-global-search-field,
+                            .fi-global-search-field .fi-input-wrp {
+                                flex: 0 1 115px !important;
+                                max-width: 115px !important;
                             }
                             .fi-topbar-end {
-                                gap: 10px !important;
-                                margin-right: 4px !important;
+                                gap: 6px !important;
+                                margin-right: 2px !important;
                             }
                             .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
                             .fi-topbar-database-notifications-btn > .pelicle-unread-badge {

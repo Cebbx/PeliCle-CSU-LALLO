@@ -467,7 +467,84 @@ class EmployeePanelProvider extends PanelProvider
                             color: #f59e0b !important;
                         }
 
+                        /* ========================================================
+                           MOBILE RESPONSIVE TOPBAR & AVATAR PROFILE LOGOUT FIX
+                           ======================================================== */
                         @media (max-width: 768px) {
+                            header.fi-topbar,
+                            nav.fi-topbar,
+                            .fi-topbar,
+                            .fi-topbar-ctn,
+                            .fi-topbar-header,
+                            .fi-topbar-nav {
+                                padding-left: 8px !important;
+                                padding-right: 12px !important;
+                                max-width: 100vw !important;
+                                box-sizing: border-box !important;
+                            }
+
+                            .fi-topbar-end {
+                                display: flex !important;
+                                align-items: center !important;
+                                justify-content: flex-end !important;
+                                gap: 8px !important;
+                                flex: 1 1 auto !important;
+                                min-width: 0 !important;
+                                margin-right: 4px !important;
+                            }
+
+                            .fi-global-search-ctn,
+                            .fi-global-search,
+                            .fi-global-search-field {
+                                margin-inline: 0 !important;
+                                margin-left: 0 !important;
+                                margin-right: 0 !important;
+                                flex: 0 1 140px !important;
+                                max-width: 140px !important;
+                                min-width: 0 !important;
+                                width: 100% !important;
+                            }
+
+                            .fi-global-search-field .fi-input-wrp {
+                                max-width: 140px !important;
+                                min-width: 0 !important;
+                                width: 100% !important;
+                                height: 32px !important;
+                                display: flex !important;
+                                align-items: center !important;
+                                overflow: hidden !important;
+                            }
+
+                            .fi-global-search-field .fi-input-wrp-prefix {
+                                padding-left: 8px !important;
+                                padding-right: 4px !important;
+                                padding-inline: 8px 4px !important;
+                                flex-shrink: 0 !important;
+                            }
+
+                            .fi-global-search-field .fi-input-wrp-prefix svg {
+                                width: 15px !important;
+                                height: 15px !important;
+                            }
+
+                            .fi-global-search-field .fi-input-wrp-content-ctn {
+                                min-width: 0 !important;
+                                flex: 1 1 auto !important;
+                            }
+
+                            html.dark .fi-global-search-field input,
+                            html:not(.dark) .fi-global-search-field input,
+                            .fi-global-search-field input.fi-input {
+                                width: 100% !important;
+                                min-width: 0 !important;
+                                max-width: 100% !important;
+                                font-size: 12px !important;
+                                height: 30px !important;
+                                padding-left: 2px !important;
+                                padding-right: 6px !important;
+                                padding-inline: 2px 6px !important;
+                            }
+
                             .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
                             .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
                                 top: 0px !important;
@@ -492,9 +569,44 @@ class EmployeePanelProvider extends PanelProvider
                                 border-width: 1px !important;
                                 box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
                             }
+
+                            .fi-user-menu,
+                            .fi-user-menu-trigger,
+                            .fi-topbar-end > div:last-child {
+                                flex-shrink: 0 !important;
+                                margin-right: 4px !important;
+                                display: inline-flex !important;
+                                align-items: center !important;
+                                justify-content: center !important;
+                            }
+
+                            .fi-user-avatar,
+                            html.dark .fi-user-avatar,
+                            html:not(.dark) .fi-user-avatar {
+                                width: 32px !important;
+                                height: 32px !important;
+                                min-width: 32px !important;
+                                min-height: 32px !important;
+                                flex-shrink: 0 !important;
+                                border-radius: 9999px !important;
+                                border: 1.5px solid #3b82f6 !important;
+                            }
                         }
 
                         @media (max-width: 420px) {
+                            .fi-global-search-ctn,
+                            .fi-global-search,
+                            .fi-global-search-field,
+                            .fi-global-search-field .fi-input-wrp {
+                                flex: 0 1 115px !important;
+                                max-width: 115px !important;
+                            }
+
+                            .fi-topbar-end {
+                                gap: 6px !important;
+                                margin-right: 2px !important;
+                            }
+
                             .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
                             .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
                                 top: 0px !important;
