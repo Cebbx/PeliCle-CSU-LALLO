@@ -11,4 +11,16 @@ class CreateVehicle extends CreateRecord
     use HasBackButton;
 
     protected static string $resource = VehicleResource::class;
+
+    protected static bool $canCreateAnother = false;
+
+    public function canCreateAnother(): bool
+    {
+        return false;
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
