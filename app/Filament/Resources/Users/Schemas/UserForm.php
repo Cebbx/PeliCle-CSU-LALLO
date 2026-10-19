@@ -58,14 +58,6 @@ class UserForm
                     ->placeholder('Select an office')
                     ->label('Offices')
                     ->searchable(),
-                TextInput::make('position')
-                    ->label('Official Position / Designation')
-                    ->placeholder('e.g. Campus Executive Officer / General Services Officer')
-                    ->maxLength(255),
-                ViewField::make('signature')
-                    ->label('Official Signature (E-Sign)')
-                    ->view('filament.components.signature-pad')
-                    ->columnSpanFull(),
                 TextInput::make('password')
                     ->password()
                     ->dehydrateStateUsing(fn ($state) => \Hash::make($state))

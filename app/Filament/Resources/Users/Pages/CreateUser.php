@@ -11,4 +11,16 @@ class CreateUser extends CreateRecord
     use HasBackButton;
 
     protected static string $resource = UserResource::class;
+
+    protected static bool $canCreateAnother = false;
+
+    public function canCreateAnother(): bool
+    {
+        return false;
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
