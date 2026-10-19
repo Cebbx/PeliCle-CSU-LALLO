@@ -20,14 +20,15 @@ class PrintController extends Controller
 
     public function viewSignedDocument($id)
     {
-        $request = VehicleRequest::findOrFail($id);
-        
-        if (!$request->document) {
+        $request = VehicleRequest::with('tripTicket')->findOrFail($id);
+        $doc = $request->document ?: $request->tripTicket?->document;
+
+        if (!$doc) {
             abort(404, 'No signed document has been uploaded for this request yet.');
         }
 
-        $fileUrl = asset('storage/' . $request->document);
-        $extension = strtolower(pathinfo($request->document, PATHINFO_EXTENSION));
+        $fileUrl = asset('storage/' . $doc);
+        $extension = strtolower(pathinfo($doc, PATHINFO_EXTENSION));
         $downloadFilename = 'CEO-Signed-Document-' . $request->request_number . '.' . $extension;
 
         return view('print.signed-document', [
@@ -37,22 +38,23 @@ class PrintController extends Controller
             'subtitle' => 'Requester: ' . $request->employee_name . ' (' . $request->department . ') | Date: ' . \Carbon\Carbon::parse($request->date)->format('M d, Y'),
             'fileUrl' => $fileUrl,
             'extension' => $extension,
-            'fileName' => basename($request->document),
+            'fileName' => basename($doc),
             'downloadFilename' => $downloadFilename,
         ]);
     }
 
     public function downloadSignedDocument($id)
     {
-        $request = VehicleRequest::findOrFail($id);
+        $request = VehicleRequest::with('tripTicket')->findOrFail($id);
+        $doc = $request->document ?: $request->tripTicket?->document;
 
-        if (!$request->document) {
+        if (!$doc) {
             abort(404, 'No signed document has been uploaded for this request yet.');
         }
 
-        $filePath = storage_path('app/public/' . $request->document);
+        $filePath = storage_path('app/public/' . $doc);
         if (!file_exists($filePath)) {
-            $fallback = public_path('storage/' . $request->document);
+            $fallback = public_path('storage/' . $doc);
             if (file_exists($fallback)) {
                 $filePath = $fallback;
             } else {
@@ -60,7 +62,7 @@ class PrintController extends Controller
             }
         }
 
-        $extension = strtolower(pathinfo($request->document, PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo($doc, PATHINFO_EXTENSION));
         $downloadFilename = 'CEO-Signed-Document-' . ($request->request_number ?: $request->id) . '.' . $extension;
 
         return response()->download($filePath, $downloadFilename);

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Trip Ticket - {{ $ticket->ticket_number }}</title>
     <script src="{{ asset('js/tailwindcss.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
     <style>
         body {
             font-family: 'Arial', 'Calibri', sans-serif;
