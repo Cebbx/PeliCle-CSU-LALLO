@@ -20,7 +20,27 @@ class TripTicketsTable
                     ->searchable(),
                 TextColumn::make('vehicleRequest.request_number')
                     ->label('Vehicle Request')
-                    ->formatStateUsing(fn ($state) => preg_replace('/^VR-(?=\d{4}-)/', '', $state))
+                    ->formatStateUsing(function ($state, $record) {
+                        $allReqs = $record->all_vehicle_requests;
+                        if ($allReqs->count() > 1) {
+                            return $allReqs
+                                ->map(fn ($r) => preg_replace('/^VR-(?=\d{4}-)/', '', $r->request_number ?? ''))
+                                ->filter()
+                                ->join(', ');
+                        }
+                        return preg_replace('/^VR-(?=\d{4}-)/', '', $state ?? '');
+                    })
+                    ->description(function ($record) {
+                        $allReqs = $record->all_vehicle_requests;
+                        if ($allReqs->count() > 1) {
+                            $depts = $allReqs->pluck('department')->filter()->unique()->join(' + ');
+                            return '🚐 Consolidated (' . $allReqs->count() . ' Requests' . ($depts ? ": {$depts}" : '') . ')';
+                        }
+                        if ($record->canConsolidateOrEdit()) {
+                            return '💡 Same Date & Route Match (Edit to Consolidate)';
+                        }
+                        return null;
+                    })
                     ->searchable(),
                 TextColumn::make('driver.name')
                     ->label('Driver')
@@ -78,6 +98,11 @@ class TripTicketsTable
             ])
             ->recordActions([
                 ActionGroup::make([
+                    EditAction::make('edit')
+                        ->label('Edit Trip Ticket (Consolidate / Carpool)')
+                        ->icon('heroicon-o-pencil-square')
+                        ->color('primary')
+                        ->visible(fn ($record) => $record->canConsolidateOrEdit()),
                     Action::make('upload_document')
                         ->label('Upload or Scan Document')
                         ->icon('heroicon-o-camera')
@@ -86,7 +111,7 @@ class TripTicketsTable
                         ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
                         ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Save Document')
-                        ->visible(fn ($record) => !$record->trashed() && in_array($record->status, ['pending', 'active']) && empty($record->document) && empty($record->vehicleRequest?->document))
+                        ->visible(fn ($record) => !$record->trashed() && in_array($record->status, ['pending', 'active']) && !$record->hasSignedDocument())
                         ->form([
                             \Filament\Schemas\Components\Tabs::make('document_source')
                                 ->tabs([
@@ -154,8 +179,8 @@ class TripTicketsTable
                                 'document' => $finalPath,
                             ]);
 
-                            if ($record->vehicleRequest) {
-                                $record->vehicleRequest->updateQuietly([
+                            foreach ($record->all_vehicle_requests as $req) {
+                                $req->updateQuietly([
                                     'document' => $finalPath,
                                     'status' => $record->status === 'active' ? 'on_trip' : 'approved',
                                 ]);
@@ -194,7 +219,7 @@ class TripTicketsTable
                         ->visible(fn ($record) => $record->status === 'pending')
                         ->modalWidth('2xl')
                         ->form(function ($record) {
-                            if ($record->document || $record->vehicleRequest?->document) {
+                            if ($record->hasSignedDocument()) {
                                 return [];
                             }
                             return [
@@ -255,15 +280,15 @@ class TripTicketsTable
                                 $record->update([
                                     'document' => $finalPath,
                                 ]);
-                                if ($record->vehicleRequest) {
-                                    $record->vehicleRequest->update([
+                                foreach ($record->all_vehicle_requests as $req) {
+                                    $req->update([
                                         'document' => $finalPath,
                                         'status' => 'approved',
                                     ]);
                                 }
                             }
                             
-                            if (!$record->document && !$record->vehicleRequest?->document) {
+                            if (!$record->hasSignedDocument()) {
                                 \Filament\Notifications\Notification::make()
                                     ->title('Upload Required')
                                     ->body('CEO Signed Document is required to start the trip.')
@@ -291,7 +316,7 @@ class TripTicketsTable
                                 ->success()
                                 ->send();
                         })
-                        ->requiresConfirmation(fn ($record) => $record->document || $record->vehicleRequest?->document),
+                        ->requiresConfirmation(fn ($record) => $record->hasSignedDocument()),
                     Action::make('complete')
                         ->label('Complete Trip')
                         ->icon('heroicon-o-check-circle')
@@ -325,8 +350,8 @@ class TripTicketsTable
                             if ($record->driver) {
                                 $record->driver->update(['status' => 'available']);
                             }
-                            if ($record->vehicleRequest) {
-                                $record->vehicleRequest->update(['status' => 'completed']);
+                            foreach ($record->all_vehicle_requests as $req) {
+                                $req->update(['status' => 'completed']);
                             }
 
                             if ($record->withdrawalSlips()->exists()) {
@@ -396,8 +421,8 @@ class TripTicketsTable
                                 'cancellation_reason' => $reason,
                             ]);
 
-                            if ($record->vehicleRequest) {
-                                $record->vehicleRequest->update([
+                            foreach ($record->all_vehicle_requests as $req) {
+                                $req->update([
                                     'status' => 'cancelled',
                                     'cancellation_reason' => $reason,
                                 ]);
@@ -418,16 +443,18 @@ class TripTicketsTable
 
                             \App\Models\ActivityLog::log('Cancelled Trip', $record, "Admin cancelled trip ticket {$record->ticket_number}. Reason: {$reason}");
                             
-                            $requesterUser = $record->vehicleRequest?->user;
-                            if ($requesterUser) {
-                                try {
-                                    \Filament\Notifications\Notification::make()
-                                        ->title('⚠️ Trip Ticket Cancelled: ' . $record->ticket_number)
-                                        ->body("Your approved trip ticket has been cancelled by Admin. Reason: {$reason}")
-                                        ->icon('heroicon-o-x-mark')
-                                        ->iconColor('danger')
-                                        ->sendToDatabase($requesterUser);
-                                } catch (\Throwable $e) {}
+                            foreach ($record->all_vehicle_requests as $req) {
+                                $requesterUser = $req->user;
+                                if ($requesterUser) {
+                                    try {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('⚠️ Trip Ticket Cancelled: ' . $record->ticket_number)
+                                            ->body("Your approved trip ticket has been cancelled by Admin. Reason: {$reason}")
+                                            ->icon('heroicon-o-x-mark')
+                                            ->iconColor('danger')
+                                            ->sendToDatabase($requesterUser);
+                                    } catch (\Throwable $e) {}
+                                }
                             }
 
                             $driverUser = $record->driver?->getUserAccount();
@@ -457,7 +484,7 @@ class TripTicketsTable
                         ->label('Resend SMS')
                         ->icon('heroicon-o-paper-airplane')
                         ->color('warning')
-                        ->visible(fn ($record) => in_array($record->status, ['pending', 'active']) && (!empty($record->document) || !empty($record->vehicleRequest?->document)))
+                        ->visible(fn ($record) => in_array($record->status, ['pending', 'active']) && $record->hasSignedDocument())
                         ->action(function ($record) {
                             if (!$record->driver) {
                                 \Filament\Notifications\Notification::make()
@@ -480,14 +507,14 @@ class TripTicketsTable
                         ->label('View Signed Document')
                         ->icon('heroicon-o-document-check')
                         ->color('success')
-                        ->visible(fn ($record) => !empty($record->document) || !empty($record->vehicleRequest?->document))
+                        ->visible(fn ($record) => $record->hasSignedDocument())
                         ->url(fn ($record) => route('trip-tickets.view-signed-document', $record->id))
                         ->openUrlInNewTab(),
                     Action::make('download_signed_document')
                         ->label('Download Signed Document')
                         ->icon('heroicon-o-arrow-down-tray')
                         ->color('success')
-                        ->visible(fn ($record) => !empty($record->document) || !empty($record->vehicleRequest?->document))
+                        ->visible(fn ($record) => $record->hasSignedDocument())
                         ->url(fn ($record) => route('trip-tickets.download-signed-document', $record->id)),
                     Action::make('print')
                         ->label('Print Trip Ticket')

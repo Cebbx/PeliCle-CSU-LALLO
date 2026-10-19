@@ -461,7 +461,8 @@ class TripTicket extends Model
             $driverPhone = $this->driver->contact_number ?? '+63 917 000 0000';
             $driverLicense = $this->driver->license_number;
             
-            $destination = $this->vehicleRequest?->destination ?? 'N/A';
+            $allRequests = $this->all_vehicle_requests;
+            $destination = $allRequests->pluck('destination')->filter()->unique()->join(' / ') ?: ($this->vehicleRequest?->destination ?? 'N/A');
             $date = $this->vehicleRequest?->date 
                 ? \Carbon\Carbon::parse($this->vehicleRequest->date)->format('F d, Y') 
                 : 'N/A';
@@ -471,10 +472,13 @@ class TripTicket extends Model
             
             $vehicleInfo = $this->formatted_vehicle;
             
-            $allRequests = $this->all_vehicle_requests;
             $passengerLines = [];
             foreach ($allRequests as $r) {
-                $names = collect($r->passenger_names ?? [])->pluck('name')->filter()->join(', ');
+                $rawNames = $r->passenger_names ?? [];
+                if (is_string($rawNames)) {
+                    $rawNames = json_decode($rawNames, true) ?? [];
+                }
+                $names = collect($rawNames)->map(fn ($p) => is_array($p) ? ($p['name'] ?? '') : $p)->filter()->join(', ');
                 $pList = $names ?: $r->employee_name;
                 $dept = $r->department ?: 'Dept';
                 $passengerLines[] = "{$dept}: {$pList}";
@@ -548,6 +552,301 @@ class TripTicket extends Model
             $requests->prepend($this->vehicleRequest);
         }
         return $requests;
+    }
+
+    /**
+     * Extract normalized municipality/city name from a destination string.
+     */
+    public static function extractMunicipality(?string $dest): string
+    {
+        if (empty($dest)) {
+            return '';
+        }
+
+        $lower = strtolower(trim($dest));
+
+        $knownMunicipalities = [
+            'tuguegarao' => ['tuguegarao'],
+            'lal-lo' => ['lal-lo', 'lallo'],
+            'gattaran' => ['gattaran'],
+            'lasam' => ['lasam'],
+            'santo nino' => ['santo nino', 'sto. nino', 'sto nino', 'santo niño', 'sto. niño'],
+            'alcala' => ['alcala'],
+            'baggao' => ['baggao'],
+            'amulung' => ['amulung'],
+            'iguig' => ['iguig'],
+            'piat' => ['piat'],
+            'tuao' => ['tuao'],
+            'rizal' => ['rizal'],
+            'solana' => ['solana'],
+            'penablanca' => ['penablanca', 'peñablanca'],
+            'enrile' => ['enrile'],
+            'camalaniugan' => ['camalaniugan'],
+            'aparri' => ['aparri'],
+            'buguey' => ['buguey'],
+            'santa teresita' => ['santa teresita', 'sta. teresita', 'sta teresita'],
+            'gonzaga' => ['gonzaga'],
+            'santa ana' => ['santa ana', 'sta. ana', 'sta ana'],
+            'allacapan' => ['allacapan'],
+            'ballesteros' => ['ballesteros'],
+            'abulug' => ['abulug'],
+            'pamplona' => ['pamplona'],
+            'sanchez mira' => ['sanchez mira', 'sanchez-mira'],
+            'claveria' => ['claveria'],
+            'santa praxedes' => ['santa praxedes', 'sta. praxedes', 'sta praxedes'],
+            'santa maria' => ['santa maria', 'sta. maria', 'sta maria'],
+            'san pablo' => ['san pablo'],
+            'cabagan' => ['cabagan'],
+            'tumauini' => ['tumauini'],
+            'ilagan' => ['ilagan'],
+            'cauayan' => ['cauayan'],
+            'santiago' => ['santiago'],
+            'alicia' => ['alicia'],
+            'echague' => ['echague'],
+            'roxas' => ['roxas'],
+            'san mateo' => ['san mateo'],
+            'cordon' => ['cordon'],
+            'solano' => ['solano'],
+            'bayombong' => ['bayombong'],
+            'bambang' => ['bambang'],
+            'baguio' => ['baguio', 'la trinidad'],
+            'manila' => ['manila', 'quezon city', 'makati', 'pasay', 'taguig', 'pasig', 'mandaluyong', 'caloocan', 'paranaque', 'parañaque'],
+            'laoag' => ['laoag'],
+            'pagudpud' => ['pagudpud'],
+            'batac' => ['batac'],
+            'vigan' => ['vigan'],
+            'luna' => ['luna'],
+            'kabugao' => ['kabugao'],
+            'conner' => ['conner'],
+            'tabuk' => ['tabuk'],
+        ];
+
+        foreach ($knownMunicipalities as $canonical => $aliases) {
+            foreach ($aliases as $alias) {
+                if (preg_match('/\b' . preg_quote($alias, '/') . '\b/u', $lower)) {
+                    return $canonical;
+                }
+            }
+        }
+
+        $parts = array_values(array_filter(array_map('trim', explode(',', $lower))));
+        $ignoredProvincesOrRegions = [
+            'cagayan', 'isabela', 'nueva vizcaya', 'quirino', 'batanes',
+            'ilocos norte', 'ilocos sur', 'la union', 'pangasinan',
+            'apayao', 'kalinga', 'abra', 'benguet', 'ifugao', 'mountain province',
+            'philippines',
+        ];
+
+        foreach ($parts as $part) {
+            if (str_contains($part, 'region ')) {
+                continue;
+            }
+            $cleaned = preg_replace('/\b(city of|city|municipality of|municipality|mun\.|province of|province|capital)\b/i', '', $part);
+            $cleaned = trim(preg_replace('/[\(\)\s]+/', ' ', $cleaned));
+            if ($cleaned !== '' && !in_array($cleaned, $ignoredProvincesOrRegions, true)) {
+                return $cleaned;
+            }
+        }
+
+        $firstPart = $parts[0] ?? $lower;
+        $cleaned = preg_replace('/\b(city of|city|municipality of|municipality|mun\.)\b/i', '', $firstPart);
+        return trim(preg_replace('/\s+/', ' ', $cleaned));
+    }
+
+    /**
+     * Get the highway route corridor from CSU Lal-lo for pass-through ("pwede idagas") matching.
+     */
+    public static function getRouteCorridor(?string $dest): ?string
+    {
+        $mun = static::extractMunicipality($dest);
+        if ($mun === '') {
+            return null;
+        }
+
+        $southbound = [
+            'gattaran', 'lasam', 'santo nino', 'alcala', 'baggao', 'amulung', 'iguig',
+            'piat', 'tuao', 'rizal', 'solana', 'penablanca', 'tuguegarao', 'enrile',
+            'santa maria', 'san pablo', 'cabagan', 'tumauini', 'ilagan', 'cauayan',
+            'santiago', 'alicia', 'echague', 'roxas', 'san mateo', 'cordon',
+            'solano', 'bayombong', 'bambang', 'baguio', 'manila', 'tabuk',
+        ];
+
+        $northEast = [
+            'camalaniugan', 'aparri', 'buguey', 'santa teresita', 'gonzaga', 'santa ana',
+        ];
+
+        $westbound = [
+            'allacapan', 'ballesteros', 'abulug', 'pamplona', 'sanchez mira', 'claveria',
+            'santa praxedes', 'pagudpud', 'laoag', 'batac', 'vigan', 'luna', 'kabugao', 'conner',
+        ];
+
+        if (in_array($mun, $southbound, true)) {
+            return 'southbound';
+        }
+        if (in_array($mun, $northEast, true)) {
+            return 'north_east';
+        }
+        if (in_array($mun, $westbound, true)) {
+            return 'westbound';
+        }
+        if ($mun === 'lal-lo') {
+            return 'local_lallo';
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine if two destinations match by same municipality ('same_municipality')
+     * or are along the same highway route from CSU Lal-lo ('along_route' / "pwede idagas").
+     */
+    public static function getDestinationMatchType(?string $destA, ?string $destB): ?string
+    {
+        if (empty($destA) || empty($destB)) {
+            return null;
+        }
+
+        $munA = static::extractMunicipality($destA);
+        $munB = static::extractMunicipality($destB);
+
+        if ($munA !== '' && $munB !== '') {
+            if (
+                $munA === $munB ||
+                str_contains($munA, $munB) ||
+                str_contains($munB, $munA)
+            ) {
+                return 'same_municipality';
+            }
+        }
+
+        $corridorA = static::getRouteCorridor($destA);
+        $corridorB = static::getRouteCorridor($destB);
+
+        if ($corridorA && $corridorB && $corridorA === $corridorB) {
+            return 'along_route';
+        }
+
+        if (($corridorA === 'local_lallo' && $corridorB !== null) || ($corridorB === 'local_lallo' && $corridorA !== null)) {
+            return 'along_route';
+        }
+
+        return null;
+    }
+
+    /**
+     * Check whether the CEO signed document has already been uploaded on this ticket or any linked request.
+     */
+    public function hasSignedDocument(): bool
+    {
+        if (!empty($this->document) || !empty($this->vehicleRequest?->document)) {
+            return true;
+        }
+
+        if ($this->id) {
+            return $this->vehicleRequests()
+                ->whereNotNull('document')
+                ->where('document', '!=', '')
+                ->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Get all VehicleRequest candidates on the same travel date that have the
+     * same destination municipality or are along the same route ("pwede idagas").
+     */
+    public function getCompatibleCompanionCandidates(): \Illuminate\Support\Collection
+    {
+        $primaryReq = $this->vehicleRequest ?? ($this->id ? $this->vehicleRequests()->first() : null);
+        if (!$primaryReq || empty($primaryReq->date)) {
+            return collect();
+        }
+
+        $candidates = VehicleRequest::whereIn('status', ['pending', 'approved'])
+            ->where('id', '!=', $primaryReq->id)
+            ->whereDate('date', $primaryReq->date)
+            ->where(function ($q) {
+                $q->whereNull('trip_ticket_id');
+                if ($this->id) {
+                    $q->orWhere('trip_ticket_id', $this->id);
+                }
+            })
+            ->latest('id')
+            ->get();
+
+        return $candidates->filter(function (VehicleRequest $candidate) use ($primaryReq) {
+            if ($this->id && (int) $candidate->trip_ticket_id === (int) $this->id) {
+                return true;
+            }
+            return static::getDestinationMatchType($primaryReq->destination, $candidate->destination) !== null;
+        })->values();
+    }
+
+    public function hasCompatibleCarpoolRequests(): bool
+    {
+        if ($this->id && $this->vehicleRequests()->where('id', '!=', $this->vehicle_request_id)->exists()) {
+            return true;
+        }
+
+        return $this->getCompatibleCompanionCandidates()->isNotEmpty();
+    }
+
+    /**
+     * Trip Ticket can ONLY be edited/consolidated when:
+     * 1. Not archived (trashed)
+     * 2. Status is still 'pending' (not active/on_trip, completed, or cancelled)
+     * 3. CEO signed document has NOT been uploaded yet
+     * 4. There is at least one compatible companion request (same date + same municipality or along the route / "pwede idagas")
+     */
+    public function canConsolidateOrEdit(): bool
+    {
+        if ($this->trashed() || $this->status !== 'pending' || $this->hasSignedDocument()) {
+            return false;
+        }
+
+        return $this->hasCompatibleCarpoolRequests();
+    }
+
+    /**
+     * Find an existing pending TripTicket (without CEO signed document yet) on the same date
+     * that matches this VehicleRequest's destination municipality or route corridor.
+     */
+    public static function findCompatibleOpenTicketForRequest(VehicleRequest $request): ?self
+    {
+        if (empty($request->date) || empty($request->destination)) {
+            return null;
+        }
+
+        $openTickets = static::with(['vehicleRequest', 'vehicleRequests'])
+            ->where('status', 'pending')
+            ->where(function ($q) {
+                $q->whereNull('document')->orWhere('document', '');
+            })
+            ->latest('id')
+            ->get();
+
+        foreach ($openTickets as $ticket) {
+            if ($ticket->hasSignedDocument()) {
+                continue;
+            }
+            $primaryReq = $ticket->vehicleRequest ?? $ticket->vehicleRequests->first();
+            if (!$primaryReq || (int) $primaryReq->id === (int) $request->id || empty($primaryReq->date)) {
+                continue;
+            }
+
+            $dateA = \Carbon\Carbon::parse($primaryReq->date)->format('Y-m-d');
+            $dateB = \Carbon\Carbon::parse($request->date)->format('Y-m-d');
+            if ($dateA !== $dateB) {
+                continue;
+            }
+
+            if (static::getDestinationMatchType($primaryReq->destination, $request->destination) !== null) {
+                return $ticket;
+            }
+        }
+
+        return null;
     }
 
     public function driver(): BelongsTo

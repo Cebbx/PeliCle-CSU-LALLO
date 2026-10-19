@@ -59,9 +59,14 @@ class VehicleRequestsTable
                     ->color(fn ($state, $record) => empty($record->vehicle) && (!$record->tripTicket || empty($record->tripTicket->vehicle)) ? 'gray' : 'info')
                     ->description(function ($record) {
                         if ($record->tripTicket) {
-                            $otherCount = $record->tripTicket->vehicleRequests()->where('id', '!=', $record->id)->count();
+                            $otherCount = $record->tripTicket->all_vehicle_requests->count() - 1;
                             if ($otherCount > 0) {
                                 return '🚐 Carpool (' . ($otherCount + 1) . ' Depts)';
+                            }
+                        } elseif (in_array($record->status, ['pending', 'approved'])) {
+                            $openTicket = \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record);
+                            if ($openTicket) {
+                                return '💡 Join ' . $openTicket->ticket_number;
                             }
                         }
                         return null;
@@ -73,7 +78,7 @@ class VehicleRequestsTable
 
                         $carpoolNote = '';
                         if ($record->tripTicket) {
-                            $otherDepts = $record->tripTicket->vehicleRequests()->pluck('department')->filter()->unique()->join(', ');
+                            $otherDepts = $record->tripTicket->all_vehicle_requests->pluck('department')->filter()->unique()->join(', ');
                             if ($otherDepts) {
                                 $carpoolNote = " | Carpool with: {$otherDepts}";
                             }
@@ -172,6 +177,24 @@ class VehicleRequestsTable
             ->recordAction(null)
             ->recordActions([
                 ActionGroup::make([
+                    Action::make('consolidate_to_existing_ticket')
+                        ->label(function ($record) {
+                            $ticket = \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record);
+                            return $ticket ? "Edit / Join Trip Ticket ({$ticket->ticket_number})" : 'Edit / Join Trip Ticket';
+                        })
+                        ->icon('heroicon-o-user-group')
+                        ->color('primary')
+                        ->visible(fn ($record) => !$record->trashed() && !$record->tripTicket()->exists() && in_array($record->status, ['pending', 'approved']) && \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record) !== null)
+                        ->url(function ($record) {
+                            $ticket = \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record);
+                            if (!$ticket) {
+                                return null;
+                            }
+                            return \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('edit', [
+                                'record' => $ticket->id,
+                                'add_companion_id' => $record->id,
+                            ]);
+                        }),
                     Action::make('approve_and_ticket')
                         ->label('Approve & Ticket')
                         ->icon('heroicon-o-ticket')

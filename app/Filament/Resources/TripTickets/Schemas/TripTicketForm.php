@@ -80,33 +80,23 @@ class TripTicketForm
                     ->required(),
 
                 Select::make('companion_requests')
-                    ->label('Companion Requests (Carpool / Same Destination & Date)')
+                    ->label('Companion Requests (Carpool / Same Destination or Along Route & Same Date)')
                     ->multiple()
                     ->dehydrated(false)
-                    ->placeholder('Select companion requests to consolidate into this trip...')
+                    ->placeholder('Select compatible same-date requests (Same Destination / Pwede Idagas)...')
                     ->options(function (callable $get, ?TripTicket $record) {
                         $primaryId = $get('vehicle_request_id') ?: ($record?->vehicle_request_id ?? request()->query('vehicle_request_id'));
                         $primaryReq = $primaryId ? VehicleRequest::find($primaryId) : null;
-                        if (!$primaryReq) {
+                        if (!$primaryReq || empty($primaryReq->date)) {
                             return [];
                         }
 
                         $primaryDate = $primaryReq->date;
                         $primaryTime = $primaryReq->time;
 
-                        $cleanCity = function(?string $dest): string {
-                            if (empty($dest)) return '';
-                            $firstPart = explode(',', $dest)[0] ?? '';
-                            $clean = strtolower(trim($firstPart));
-                            $clean = preg_replace('/\b(city of|city|municipality of|municipality|mun\.)\b/i', '', $clean);
-                            return trim(preg_replace('/\s+/', ' ', $clean));
-                        };
-
-                        $primaryCityClean = $cleanCity($primaryReq->destination);
-
                         $candidates = VehicleRequest::whereIn('status', ['pending', 'approved'])
                             ->where('id', '!=', $primaryId)
-                            ->where('date', $primaryDate)
+                            ->whereDate('date', $primaryDate)
                             ->where(function ($q) use ($record) {
                                 $q->whereNull('trip_ticket_id');
                                 if ($record) {
@@ -114,36 +104,31 @@ class TripTicketForm
                                 }
                             })
                             ->latest('id')
-                            ->get();
+                            ->get()
+                            ->filter(function (VehicleRequest $r) use ($primaryReq, $record) {
+                                if ($record && (int) $r->trip_ticket_id === (int) $record->id) {
+                                    return true;
+                                }
+                                return TripTicket::getDestinationMatchType($primaryReq->destination, $r->destination) !== null;
+                            });
 
                         return $candidates
-                            ->sortByDesc(function ($r) use ($primaryCityClean, $cleanCity, $primaryReq) {
-                                $rCityClean = $cleanCity($r->destination);
-                                $isSameCity = ($primaryCityClean !== '' && $rCityClean !== '') && (
-                                    $primaryCityClean === $rCityClean ||
-                                    str_contains($primaryCityClean, $rCityClean) ||
-                                    str_contains($rCityClean, $primaryCityClean) ||
-                                    str_contains(strtolower($r->destination), $primaryCityClean) ||
-                                    str_contains(strtolower($primaryReq->destination), $rCityClean)
-                                );
-                                return $isSameCity ? 1 : 0;
+                            ->sortByDesc(function ($r) use ($primaryReq) {
+                                $matchType = TripTicket::getDestinationMatchType($primaryReq->destination, $r->destination);
+                                return $matchType === 'same_municipality' ? 2 : ($matchType === 'along_route' ? 1 : 0);
                             })
-                            ->mapWithKeys(function ($r) use ($primaryTime, $primaryCityClean, $cleanCity, $primaryReq) {
-                                $rCityClean = $cleanCity($r->destination);
-                                $isSameCity = ($primaryCityClean !== '' && $rCityClean !== '') && (
-                                    $primaryCityClean === $rCityClean ||
-                                    str_contains($primaryCityClean, $rCityClean) ||
-                                    str_contains($rCityClean, $primaryCityClean) ||
-                                    str_contains(strtolower($r->destination), $primaryCityClean) ||
-                                    str_contains(strtolower($primaryReq->destination), $rCityClean)
-                                );
+                            ->mapWithKeys(function ($r) use ($primaryTime, $primaryReq) {
+                                $matchType = TripTicket::getDestinationMatchType($primaryReq->destination, $r->destination);
 
                                 $paxCount = $r->number_of_passengers ?: 1;
                                 $personWord = $paxCount > 1 ? 'persons' : 'person';
                                 $timeStr = $r->time ? \Carbon\Carbon::parse($r->time)->format('g:i A') : 'No time';
-                                $primaryTimeStr = $primaryTime ? \Carbon\Carbon::parse($primaryTime)->format('g:i A') : 'No time';
 
-                                $destTag = $isSameCity ? '⭐ SAME DESTINATION' : "📍 {$r->destination}";
+                                if ($matchType === 'same_municipality') {
+                                    $destTag = "⭐ SAME DESTINATION: {$r->destination}";
+                                } else {
+                                    $destTag = "🛣️ PWEDE IDAGAS (ALONG ROUTE): {$r->destination}";
+                                }
 
                                 $timeBadge = '';
                                 if ($primaryTime && $r->time) {
@@ -167,10 +152,31 @@ class TripTicketForm
                             });
                     })
                     ->default(function (?TripTicket $record) {
+                        $ids = [];
                         if ($record) {
-                            return $record->vehicleRequests()->where('id', '!=', $record->vehicle_request_id)->pluck('id')->toArray();
+                            $ids = $record->vehicleRequests()->where('id', '!=', $record->vehicle_request_id)->pluck('id')->toArray();
                         }
-                        return [];
+                        $addId = request()->query('add_companion_id');
+                        if ($addId && !in_array((int) $addId, $ids, true)) {
+                            $ids[] = (int) $addId;
+                        }
+                        return $ids;
+                    })
+                    ->afterStateHydrated(function (Select $component, ?TripTicket $record) {
+                        if ($record) {
+                            $ids = $record->vehicleRequests()->where('id', '!=', $record->vehicle_request_id)->pluck('id')->toArray();
+                            $addId = request()->query('add_companion_id');
+                            if ($addId && !in_array((int) $addId, $ids, true)) {
+                                $ids[] = (int) $addId;
+                            }
+                            if (empty($ids)) {
+                                $compatibleIds = $record->getCompatibleCompanionCandidates()->pluck('id')->toArray();
+                                if (count($compatibleIds) === 1) {
+                                    $ids = $compatibleIds;
+                                }
+                            }
+                            $component->state($ids);
+                        }
                     })
                     ->live()
                     ->afterStateUpdated(function (callable $get, callable $set, ?TripTicket $record) {

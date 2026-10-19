@@ -17,7 +17,34 @@ class EditTripTicket extends EditRecord
 
     public function getTitle(): string
     {
-        return "Edit Trip Ticket: {$this->record->ticket_number}";
+        return "Edit / Consolidate Trip Ticket: {$this->record->ticket_number}";
+    }
+
+    public function mount(int | string $record): void
+    {
+        parent::mount($record);
+
+        if ($this->record->hasSignedDocument()) {
+            \Filament\Notifications\Notification::make()
+                ->title('Trip Ticket Locked')
+                ->body('This Trip Ticket can no longer be edited because the CEO signed document has already been uploaded.')
+                ->warning()
+                ->send();
+
+            $this->redirect($this->getResource()::getUrl('index'));
+            return;
+        }
+
+        if (!$this->record->canConsolidateOrEdit()) {
+            \Filament\Notifications\Notification::make()
+                ->title('Edit Not Available')
+                ->body('Trip Ticket can only be edited when pending, before CEO signed document upload, and when a same-date compatible destination/route request exists.')
+                ->warning()
+                ->send();
+
+            $this->redirect($this->getResource()::getUrl('index'));
+            return;
+        }
     }
 
     protected function getRedirectUrl(): string
@@ -63,6 +90,7 @@ class EditTripTicket extends EditRecord
         foreach ($allIds as $reqId) {
             $req = VehicleRequest::find($reqId);
             if ($req) {
+                $wasUnassigned = (int) $req->trip_ticket_id !== (int) $record->id;
                 $updateData = [
                     'trip_ticket_id' => $record->id,
                     'status' => $status,
@@ -74,6 +102,23 @@ class EditTripTicket extends EditRecord
                     $updateData['document'] = $record->document;
                 }
                 $req->updateQuietly($updateData);
+
+                if ($wasUnassigned && $req->user) {
+                    try {
+                        $driverName = $record->driver?->name ?? 'Assigned Driver';
+                        \Filament\Notifications\Notification::make()
+                            ->title('🚐 Request Consolidated into Trip Ticket')
+                            ->body("Your request {$req->request_number} to {$req->destination} was approved and consolidated into Trip Ticket {$record->ticket_number} (Driver: {$driverName}, Vehicle: {$record->vehicle}).")
+                            ->icon('heroicon-o-check-circle')
+                            ->iconColor('success')
+                            ->actions([
+                                \Filament\Actions\Action::make('view')
+                                    ->label('View Status')
+                                    ->url('/employee/vehicle-requests'),
+                            ])
+                            ->sendToDatabase($req->user);
+                    } catch (\Throwable $e) {}
+                }
             }
         }
     }

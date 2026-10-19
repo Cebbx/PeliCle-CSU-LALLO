@@ -124,6 +124,11 @@
                 <div>
                     <h1 class="text-xs sm:text-sm font-extrabold tracking-wide uppercase border-b border-black inline-block pb-0.5">Vehicle Trip Ticket</h1>
                     <div class="text-[11px] sm:text-xs font-bold text-black mt-1 font-mono">{{ $ticket->formatted_ticket_number }}</div>
+                    @if($isCarpool)
+                        <div class="text-[9.5px] sm:text-[10.5px] font-semibold text-gray-800 mt-0.5">
+                            Consolidated Request No/s: {{ $allRequests->map(fn ($r) => $r->formatted_request_number ?: $r->request_number)->filter()->join(', ') }}
+                        </div>
+                    @endif
                     @if($hasAnyUrgent)
                         <div class="mt-1 flex flex-wrap items-center gap-1.5">
                             <span class="inline-block px-1.5 py-0.5 border border-red-600 text-red-600 font-extrabold text-[8px] sm:text-[9px] tracking-widest uppercase rounded">🚨 URGENT DISPATCH</span>
@@ -169,12 +174,12 @@
                                         if (is_string($passengers)) {
                                             $passengers = json_decode($passengers, true) ?? [];
                                         }
-                                        $pNames = collect($passengers)->pluck('name')->join(', ');
+                                        $pNames = collect($passengers)->map(fn ($p) => is_array($p) ? ($p['name'] ?? '') : $p)->filter()->join(', ');
                                     @endphp
                                     <div class="pb-1 last:pb-0">
                                         <div class="flex items-center gap-1.5">
                                             <span class="font-bold text-black uppercase text-[9px] bg-white px-1 py-0.2 rounded border border-black">
-                                                {{ $req->department ?: 'N/A' }} ({{ $req->number_of_passengers }} {{ ($req->number_of_passengers ?: 1) > 1 ? 'persons' : 'person' }})
+                                                {{ $req->department ?: 'N/A' }} ({{ $req->number_of_passengers ?: 1 }} {{ ($req->number_of_passengers ?: 1) > 1 ? 'persons' : 'person' }})
                                             </span>
                                             <span class="font-semibold text-black text-[10px] sm:text-xs">
                                                 {{ $pNames ?: $req->employee_name }}
@@ -194,7 +199,7 @@
                                 if (is_string($passengers)) {
                                     $passengers = json_decode($passengers, true) ?? [];
                                 }
-                                $passengerNames = collect($passengers)->pluck('name')->join(', ');
+                                $passengerNames = collect($passengers)->map(fn ($p) => is_array($p) ? ($p['name'] ?? '') : $p)->filter()->join(', ');
                             @endphp
                             <span class="font-semibold text-black">{{ $passengerNames ?: $ticket->vehicleRequest?->employee_name ?? 'N/A' }}</span>
                             @if($ticket->vehicleRequest?->has_other_passengers && $ticket->vehicleRequest?->other_passengers)
