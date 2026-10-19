@@ -20,7 +20,6 @@ class ViewTripTicket extends ViewRecord
     {
         return [
             $this->getBackButtonAction(),
-            EditAction::make(),
             Action::make('print')
                 ->label('Print Trip Ticket')
                 ->icon('heroicon-o-printer')

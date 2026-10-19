@@ -78,10 +78,6 @@ class TripTicketsTable
             ])
             ->recordActions([
                 ActionGroup::make([
-                    \Filament\Actions\EditAction::make()
-                        ->label('Edit Trip Ticket')
-                        ->icon('heroicon-o-pencil-square')
-                        ->color('warning'),
                     Action::make('start_trip')
                         ->label('Start Trip')
                         ->icon('heroicon-o-play')
