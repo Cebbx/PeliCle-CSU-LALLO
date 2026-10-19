@@ -299,6 +299,7 @@ class VehicleRequestsTable
                                     $tripTicket->save();
                                     $record->update(['status' => 'approved']);
                                 }
+                                $tripTicket->sendSmsNotification();
                             } elseif ($timeArrived) {
                                 $record->update(['status' => 'on_trip']);
                             }

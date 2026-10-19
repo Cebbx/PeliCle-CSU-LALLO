@@ -341,10 +341,13 @@ class VehicleRequestsTable
                             if ($record->tripTicket) {
                                 $tripTicket = $record->tripTicket;
                                 $tripTicket->document = $finalPath;
-                                $tripTicket->status = 'pending';
+                                if ($tripTicket->status !== 'active') {
+                                    $tripTicket->status = 'pending';
+                                }
                                 $tripTicket->saveQuietly();
+                                $tripTicket->sendSmsNotification();
 
-                                if ($tripTicket->driver_id) {
+                                if ($tripTicket->driver_id && $tripTicket->status !== 'active') {
                                     $driver = \App\Models\Driver::find($tripTicket->driver_id);
                                     if ($driver) {
                                         $hasActive = \App\Models\TripTicket::where('driver_id', $driver->id)

@@ -176,6 +176,8 @@ class TripTicket extends Model
         return "TT No. Lal-lo - {$clean}";
     }
 
+    protected static array $smsDispatchedTicketIds = [];
+
     protected static function booted(): void
     {
         static::created(function ($tripTicket) {
@@ -203,21 +205,24 @@ class TripTicket extends Model
                     }
                 }
 
-                // Also notify the assigned Driver's user account
-                $driverUser = $tripTicket->driver?->getUserAccount();
-                if ($driverUser) {
-                    $dest = $tripTicket->vehicleRequest?->destination ?? 'Assigned Destination';
-                    \Filament\Notifications\Notification::make()
-                        ->title('🚐 New Trip Assigned: ' . $tripTicket->ticket_number)
-                        ->body("You have been assigned to drive {$tripTicket->vehicle} to {$dest}.")
-                        ->icon('heroicon-o-truck')
-                        ->iconColor('info')
-                        ->actions([
-                            \Filament\Actions\Action::make('view')
-                                ->label('View Trip Ticket')
-                                ->url('/driver/trip-tickets'),
-                        ])
-                        ->sendToDatabase($driverUser);
+                // Only notify Driver and send SMS upon creation if CEO signed document is already attached
+                if (!empty($tripTicket->document) || !empty($tripTicket->vehicleRequest?->document)) {
+                    $driverUser = $tripTicket->driver?->getUserAccount();
+                    if ($driverUser) {
+                        $dest = $tripTicket->vehicleRequest?->destination ?? 'Assigned Destination';
+                        \Filament\Notifications\Notification::make()
+                            ->title('🚐 New Trip Assigned: ' . $tripTicket->ticket_number)
+                            ->body("CEO signed document is ready. You have been assigned to drive {$tripTicket->vehicle} to {$dest}.")
+                            ->icon('heroicon-o-truck')
+                            ->iconColor('info')
+                            ->actions([
+                                \Filament\Actions\Action::make('view')
+                                    ->label('View Trip Ticket')
+                                    ->url('/driver/trip-tickets'),
+                            ])
+                            ->sendToDatabase($driverUser);
+                    }
+                    $tripTicket->sendSmsNotification();
                 }
             } catch (\Throwable $e) {
                 // Ignore notification errors
@@ -346,8 +351,8 @@ class TripTicket extends Model
             // Sync Vehicle status in vehicles table
             self::syncVehicleStatus($tripTicket->vehicle);
 
-            // If document was just added and it is active, send SMS notification
-            if ($tripTicket->wasChanged('document') && $tripTicket->document && $tripTicket->status === 'active') {
+            // As soon as CEO signed document is uploaded on the trip ticket (whether pending or active), send SMS to driver
+            if ($tripTicket->wasChanged('document') && $tripTicket->document && $tripTicket->status !== 'cancelled') {
                 $tripTicket->sendSmsNotification();
             }
         });
@@ -428,11 +433,36 @@ class TripTicket extends Model
         return $name;
     }
 
-    public function sendSmsNotification(): void
+    public function sendSmsNotification(bool $forceResend = false): void
     {
         $this->loadMissing(['driver', 'vehicleRequest', 'vehicleRequests']);
 
+        // Do not send automatic SMS if CEO signed document is not uploaded yet
+        if (!$forceResend && empty($this->document) && empty($this->vehicleRequest?->document)) {
+            return;
+        }
+
         if ($this->driver) {
+            if (!$forceResend) {
+                if ($this->id && in_array($this->id, static::$smsDispatchedTicketIds, true)) {
+                    return;
+                }
+                $alreadySent = \App\Models\SmsLog::where('driver_id', $this->driver->id)
+                    ->where('message', 'like', "%Trip ID: {$this->ticket_number}%")
+                    ->where('message', 'like', '%NEW TRIP ASSIGNED%')
+                    ->exists();
+                if ($alreadySent) {
+                    if ($this->id) {
+                        static::$smsDispatchedTicketIds[] = $this->id;
+                    }
+                    return;
+                }
+            }
+
+            if ($this->id && !in_array($this->id, static::$smsDispatchedTicketIds, true)) {
+                static::$smsDispatchedTicketIds[] = $this->id;
+            }
+
             $driverName = $this->driver->name;
             $driverPhone = $this->driver->contact_number ?? '+63 917 000 0000';
             $driverLicense = $this->driver->license_number;

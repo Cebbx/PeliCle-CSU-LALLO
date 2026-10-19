@@ -348,18 +348,18 @@ class TripTicketsTable
                         ->label('Resend SMS')
                         ->icon('heroicon-o-paper-airplane')
                         ->color('warning')
-                        ->visible(fn ($record) => in_array($record->status, ['pending', 'active']))
+                        ->visible(fn ($record) => in_array($record->status, ['pending', 'active']) && (!empty($record->document) || !empty($record->vehicleRequest?->document)))
                         ->action(function ($record) {
                             if (!$record->driver) {
                                 \Filament\Notifications\Notification::make()
                                     ->title('Walang Driver na Naka-assign')
-                                    ->body('Hindi maipapadala ang SMS: Wala pang driver na naka-assign sa trip ticket na ito. Paki-edit ang trip ticket upang mag-assign ng driver.')
+                                    ->body('Hindi maipapadala ang SMS: Wala pang driver na naka-assign sa trip ticket na ito.')
                                     ->warning()
                                     ->send();
                                 return;
                             }
 
-                            $record->sendSmsNotification();
+                            $record->sendSmsNotification(true);
                             \Filament\Notifications\Notification::make()
                                 ->title('SMS Sent')
                                 ->body("SMS notification resent to driver {$record->driver?->name}.")

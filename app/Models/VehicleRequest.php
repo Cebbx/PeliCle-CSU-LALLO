@@ -164,15 +164,18 @@ class VehicleRequest extends Model
                     return;
                 }
 
-                // 2. On-time upload (future departure): Keep request approved and ticket pending
+                // 2. On-time upload (future departure): Keep request approved and ticket pending, and send SMS to driver
                 $tripTicket = $vehicleRequest->tripTicket;
                 if ($tripTicket) {
                     $tripTicket->document = $vehicleRequest->document;
-                    $tripTicket->status = 'pending';
+                    if ($tripTicket->status !== 'active') {
+                        $tripTicket->status = 'pending';
+                    }
                     $tripTicket->saveQuietly();
+                    $tripTicket->sendSmsNotification();
 
-                    // Ensure driver remains available
-                    if ($tripTicket->driver_id) {
+                    // Ensure driver remains available if not active
+                    if ($tripTicket->driver_id && $tripTicket->status !== 'active') {
                         $driver = Driver::find($tripTicket->driver_id);
                         if ($driver) {
                             $hasActive = TripTicket::where('driver_id', $driver->id)
@@ -185,7 +188,7 @@ class VehicleRequest extends Model
                         }
                     }
 
-                    $vehicleRequest->status = 'approved';
+                    $vehicleRequest->status = $tripTicket->status === 'active' ? 'on_trip' : 'approved';
                     $vehicleRequest->saveQuietly();
                 } else {
                     $vehicleRequest->status = 'approved';
