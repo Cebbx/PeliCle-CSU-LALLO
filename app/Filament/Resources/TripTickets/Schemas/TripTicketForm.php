@@ -28,11 +28,7 @@ class TripTicketForm
                     ->relationship('vehicleRequest', 'request_number', function (Builder $query, ?TripTicket $record) {
                         $reqId = request()->query('vehicle_request_id');
                         return $query->where(function ($q) use ($reqId, $record) {
-                                $q->where(function ($sub) {
-                                    $sub->where('status', 'approved')
-                                        ->whereNotNull('document')
-                                        ->where('document', '!=', '');
-                                });
+                                $q->whereIn('status', ['pending', 'approved']);
                                 if ($reqId) {
                                     $q->orWhere('id', $reqId);
                                 }
@@ -50,18 +46,30 @@ class TripTicketForm
                                 }
                             });
                     })
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->request_number} - {$record->employee_name} ({$record->destination})")
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->request_number} - {$record->employee_name} ({$record->department} | {$record->destination})")
                     ->label('Lead Vehicle Request Number')
-                    ->placeholder('Select approved & signed request number')
-                    ->disabled(fn (string $operation) => $operation === 'edit')
+                    ->placeholder('Select lead request number')
                     ->live()
-                    ->afterStateUpdated(function ($state, callable $get, callable $set, ?TripTicket $record) {
+                    ->afterStateUpdated(function ($state, callable $get, callable $set) {
                         $set('companion_requests', []);
                         if ($state) {
                             $primaryReq = VehicleRequest::find($state);
                             if ($primaryReq) {
                                 $totalPax = $primaryReq->number_of_passengers ?: 1;
-                                $v = static::pickRecommendedAvailableVehicle($totalPax, $primaryReq->date, $record?->id);
+
+                                $availableVehicles = \App\Models\Vehicle::where('status', 'available')->get();
+                                if ($availableVehicles->isEmpty()) {
+                                    $availableVehicles = \App\Models\Vehicle::all();
+                                }
+
+                                if ($totalPax <= 4) {
+                                    $v = $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'FORTUNER') !== false || stripos($veh->model, 'Fortuner') !== false)
+                                        ?? $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'MULTICAB') !== false || stripos($veh->model, 'Multicab') !== false);
+                                } else {
+                                    $v = $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'HIACE') !== false || stripos($veh->model, 'Hiace') !== false)
+                                        ?? $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'PTIA') !== false || stripos($veh->model, 'Jeep') !== false);
+                                }
+
                                 if ($v) {
                                     $set('vehicle', $v->plate_number);
                                 }
@@ -75,7 +83,7 @@ class TripTicketForm
                     ->label('Companion Requests (Carpool / Same Destination or Along Route & Same Date)')
                     ->multiple()
                     ->dehydrated(false)
-                    ->placeholder('Select approved & signed same-date requests (Same Destination / Pwede Idagas)...')
+                    ->placeholder('Select compatible same-date requests (Same Destination / Pwede Idagas)...')
                     ->options(function (callable $get, ?TripTicket $record) {
                         $primaryId = $get('vehicle_request_id') ?: ($record?->vehicle_request_id ?? request()->query('vehicle_request_id'));
                         $primaryReq = $primaryId ? VehicleRequest::find($primaryId) : null;
@@ -86,15 +94,11 @@ class TripTicketForm
                         $primaryDate = $primaryReq->date;
                         $primaryTime = $primaryReq->time;
 
-                        $candidates = VehicleRequest::where('status', 'approved')
+                        $candidates = VehicleRequest::whereIn('status', ['pending', 'approved'])
                             ->where('id', '!=', $primaryId)
                             ->whereDate('date', $primaryDate)
                             ->where(function ($q) use ($record) {
-                                $q->where(function ($sub) {
-                                    $sub->whereNull('trip_ticket_id')
-                                        ->whereNotNull('document')
-                                        ->where('document', '!=', '');
-                                });
+                                $q->whereNull('trip_ticket_id');
                                 if ($record) {
                                     $q->orWhere('trip_ticket_id', $record->id);
                                 }
@@ -120,13 +124,6 @@ class TripTicketForm
                                 $personWord = $paxCount > 1 ? 'persons' : 'person';
                                 $timeStr = $r->time ? \Carbon\Carbon::parse($r->time)->format('g:i A') : 'No time';
 
-                                $passengers = $r->passenger_names ?? [];
-                                if (is_string($passengers)) {
-                                    $passengers = json_decode($passengers, true) ?? [];
-                                }
-                                $pNames = collect($passengers)->map(fn ($p) => trim(is_array($p) ? ($p['name'] ?? '') : (string) $p))->filter()->join(', ');
-                                $displayPax = $pNames ?: $r->employee_name;
-
                                 if ($matchType === 'same_municipality') {
                                     $destTag = "⭐ SAME DESTINATION: {$r->destination}";
                                 } else {
@@ -150,7 +147,7 @@ class TripTicketForm
                                     $timeBadge = " (@ {$timeStr})";
                                 }
 
-                                $label = "{$r->request_number} - {$displayPax} [{$paxCount} {$personWord}] [{$destTag}]{$timeBadge}";
+                                $label = "{$r->request_number} - {$r->department} ({$r->employee_name}) [{$paxCount} {$personWord}] [{$destTag}]{$timeBadge}";
                                 return [$r->id => $label];
                             });
                     })
@@ -161,10 +158,7 @@ class TripTicketForm
                         }
                         $addId = request()->query('add_companion_id');
                         if ($addId && !in_array((int) $addId, $ids, true)) {
-                            $addReq = VehicleRequest::find($addId);
-                            if ($addReq && $addReq->status === 'approved' && !empty($addReq->document)) {
-                                $ids[] = (int) $addId;
-                            }
+                            $ids[] = (int) $addId;
                         }
                         return $ids;
                     })
@@ -173,10 +167,7 @@ class TripTicketForm
                             $ids = $record->vehicleRequests()->where('id', '!=', $record->vehicle_request_id)->pluck('id')->toArray();
                             $addId = request()->query('add_companion_id');
                             if ($addId && !in_array((int) $addId, $ids, true)) {
-                                $addReq = VehicleRequest::find($addId);
-                                if ($addReq && $addReq->status === 'approved' && !empty($addReq->document)) {
-                                    $ids[] = (int) $addId;
-                                }
+                                $ids[] = (int) $addId;
                             }
                             if (empty($ids)) {
                                 $compatibleIds = $record->getCompatibleCompanionCandidates()->pluck('id')->toArray();
@@ -192,7 +183,6 @@ class TripTicketForm
                         $primaryId = $get('vehicle_request_id') ?: ($record?->vehicle_request_id ?? request()->query('vehicle_request_id'));
                         if (!$primaryId) return;
 
-                        $primaryReq = VehicleRequest::find($primaryId);
                         $companionIds = $get('companion_requests') ?? [];
                         $allIds = array_unique(array_merge([$primaryId], is_array($companionIds) ? $companionIds : []));
                         $allReqs = VehicleRequest::whereIn('id', $allIds)->get();
@@ -201,7 +191,19 @@ class TripTicketForm
                             $totalPax += ($r->number_of_passengers ?: 1);
                         }
 
-                        $v = static::pickRecommendedAvailableVehicle($totalPax, $primaryReq?->date, $record?->id);
+                        $availableVehicles = \App\Models\Vehicle::where('status', 'available')->get();
+                        if ($availableVehicles->isEmpty()) {
+                            $availableVehicles = \App\Models\Vehicle::all();
+                        }
+
+                        if ($totalPax <= 4) {
+                            $v = $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'FORTUNER') !== false || stripos($veh->model, 'Fortuner') !== false)
+                                ?? $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'MULTICAB') !== false || stripos($veh->model, 'Multicab') !== false);
+                        } else {
+                            $v = $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'HIACE') !== false || stripos($veh->model, 'Hiace') !== false)
+                                ?? $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'PTIA') !== false || stripos($veh->model, 'Jeep') !== false);
+                        }
+
                         if ($v) {
                             $set('vehicle', $v->plate_number);
                         }
@@ -211,7 +213,7 @@ class TripTicketForm
                         $companionIds = $get('companion_requests') ?? [];
 
                         if (!$primaryId) {
-                            return 'Select an approved & signed lead vehicle request above to view compatible trips.';
+                            return 'Select a lead vehicle request above to view compatible trips.';
                         }
 
                         $primaryReq = VehicleRequest::find($primaryId);
@@ -221,27 +223,16 @@ class TripTicketForm
                         $allReqs = VehicleRequest::whereIn('id', $allIds)->get();
 
                         $totalPax = 0;
-                        $paxBreakdown = [];
+                        $deptBreakdown = [];
                         foreach ($allReqs as $r) {
                             $pax = $r->number_of_passengers ?: 1;
                             $totalPax += $pax;
                             $pWord = $pax > 1 ? 'persons' : 'person';
-
-                            $passengers = $r->passenger_names ?? [];
-                            if (is_string($passengers)) {
-                                $passengers = json_decode($passengers, true) ?? [];
-                            }
-                            $pNames = collect($passengers)->map(fn ($p) => trim(is_array($p) ? ($p['name'] ?? '') : (string) $p))->filter()->join(', ');
-                            $displayPax = $pNames ?: $r->employee_name;
-
-                            $paxBreakdown[] = "{$displayPax} ({$pax} {$pWord})";
+                            $deptBreakdown[] = "{$r->department} ({$pax} {$pWord})";
                         }
 
                         $carpoolCount = count($allReqs);
-                        $recommendedObj = static::pickRecommendedAvailableVehicle($totalPax, $primaryReq->date, $record?->id);
-                        $recVehicle = $recommendedObj
-                            ? "{$recommendedObj->brand} - {$recommendedObj->plate_number}"
-                            : ($totalPax > 4 ? 'HIACE VAN (14-seater) or PTIA JEEP' : 'FORTUNER or MULTICAB');
+                        $recVehicle = $totalPax > 4 ? 'HIACE VAN (14-seater) or PTIA JEEP' : 'FORTUNER or MULTICAB';
                         $totalPersonWord = $totalPax > 1 ? 'persons' : 'person';
 
                         // Check if any selected companion has large time gap (> 2 hours)
@@ -260,11 +251,11 @@ class TripTicketForm
                         }
 
                         $html = "<div class='text-xs space-y-1.5 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700'>";
-                        $html .= "<div><strong>👥 Total Passengers:</strong> <span class='text-primary-600 dark:text-primary-400 font-bold'>{$totalPax} {$totalPersonWord}</span> &mdash; " . implode(' + ', $paxBreakdown) . "</div>";
+                        $html .= "<div><strong>👥 Total Passengers:</strong> <span class='text-primary-600 dark:text-primary-400 font-bold'>{$totalPax} {$totalPersonWord}</span> &mdash; " . implode(' + ', $deptBreakdown) . "</div>";
                         if ($carpoolCount > 1) {
-                            $html .= "<div><strong>🚐 Consolidated Carpool:</strong> <span class='text-emerald-600 dark:text-emerald-400 font-semibold'>{$carpoolCount} Requests</span> are consolidated into this single trip.</div>";
+                            $html .= "<div><strong>🚐 Consolidated Carpool:</strong> <span class='text-emerald-600 dark:text-emerald-400 font-semibold'>{$carpoolCount} Departments</span> are consolidated into this single trip.</div>";
                         }
-                        $html .= "<div><strong>💡 Recommended Available Vehicle:</strong> <span class='font-semibold'>{$recVehicle}</span> <span class='text-slate-500 text-[11px]'>(Dispatcher can modify below if needed)</span></div>";
+                        $html .= "<div><strong>💡 Recommended Vehicle:</strong> <span class='font-semibold'>{$recVehicle}</span> <span class='text-slate-500 text-[11px]'>(Auto-selected below; Dispatcher can modify if needed)</span></div>";
                         if ($hasLargeTimeGap) {
                             $html .= "<div class='text-amber-700 dark:text-amber-400 text-[11px] pt-1.5 border-t border-amber-200 dark:border-amber-900/40'><strong>⚠️ Paalala sa Oras:</strong> May napiling biyahe na higit 2 oras ang pagitan ng alis mula sa Lead Request. Siguraduhing napagkasunduan ang oras ng pagsakay.</div>";
                         }
@@ -280,8 +271,20 @@ class TripTicketForm
                             $request = \App\Models\VehicleRequest::find($reqId);
                             if ($request) {
                                 $totalPax = $request->number_of_passengers ?: 1;
-                                $v = static::pickRecommendedAvailableVehicle($totalPax, $request->date, null);
-                                return $v?->plate_number;
+                                $availableVehicles = \App\Models\Vehicle::where('status', 'available')->get();
+                                if ($availableVehicles->isEmpty()) {
+                                    $availableVehicles = \App\Models\Vehicle::all();
+                                }
+
+                                if ($totalPax <= 4) {
+                                    $v = $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'FORTUNER') !== false || stripos($veh->model, 'Fortuner') !== false)
+                                        ?? $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'MULTICAB') !== false || stripos($veh->model, 'Multicab') !== false);
+                                } else {
+                                    $v = $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'HIACE') !== false || stripos($veh->model, 'Hiace') !== false)
+                                        ?? $availableVehicles->first(fn ($veh) => stripos($veh->brand, 'PTIA') !== false || stripos($veh->model, 'Jeep') !== false);
+                                }
+
+                                return $v?->plate_number ?? $availableVehicles->first()?->plate_number;
                             }
                         }
                         return null;
@@ -561,7 +564,6 @@ class TripTicketForm
                     ])
                     ->required()
                     ->default('pending')
-                    ->disabled(fn (string $operation) => $operation === 'edit')
                     ->dehydrated()
                     ->hidden(fn (string $operation) => $operation === 'create'),
 
@@ -589,60 +591,5 @@ class TripTicketForm
                     })
                     ->visible(fn (string $operation, ?TripTicket $record) => $operation !== 'create' && $record && $record->status === 'active'),
             ]);
-    }
-
-    public static function pickRecommendedAvailableVehicle(int $totalPax, $travelDate = null, $excludeTicketId = null): ?\App\Models\Vehicle
-    {
-        $activeVehicles = TripTicket::where('status', 'active')
-            ->when($excludeTicketId, fn ($q) => $q->where('id', '!=', $excludeTicketId))
-            ->pluck('vehicle')
-            ->filter()
-            ->map(function ($v) {
-                if (str_contains($v, ' - ')) {
-                    $parts = explode(' - ', $v);
-                    return trim(end($parts));
-                }
-                return trim($v);
-            })
-            ->toArray();
-
-        $scheduledVehicles = [];
-        if ($travelDate) {
-            $scheduledVehicles = TripTicket::whereHas('vehicleRequest', fn ($q) => $q->whereDate('date', $travelDate))
-                ->whereIn('status', ['pending', 'active'])
-                ->when($excludeTicketId, fn ($q) => $q->where('id', '!=', $excludeTicketId))
-                ->pluck('vehicle')
-                ->filter()
-                ->toArray();
-        }
-
-        $freeVehicles = \App\Models\Vehicle::where('status', 'available')
-            ->get()
-            ->filter(function ($veh) use ($activeVehicles, $scheduledVehicles) {
-                if (in_array($veh->plate_number, $activeVehicles, true)) {
-                    return false;
-                }
-                foreach ($scheduledVehicles as $sV) {
-                    if (str_contains($sV, $veh->plate_number) || str_contains($sV, $veh->brand)) {
-                        return false;
-                    }
-                }
-                return true;
-            })
-            ->values();
-
-        if ($freeVehicles->isEmpty()) {
-            return null;
-        }
-
-        if ($totalPax <= 4) {
-            return $freeVehicles->first(fn ($veh) => stripos($veh->brand, 'FORTUNER') !== false || stripos($veh->model, 'Fortuner') !== false)
-                ?? $freeVehicles->first(fn ($veh) => stripos($veh->brand, 'MULTICAB') !== false || stripos($veh->model, 'Multicab') !== false)
-                ?? $freeVehicles->first();
-        }
-
-        return $freeVehicles->first(fn ($veh) => stripos($veh->brand, 'HIACE') !== false || stripos($veh->model, 'Hiace') !== false)
-            ?? $freeVehicles->first(fn ($veh) => stripos($veh->brand, 'PTIA') !== false || stripos($veh->model, 'Jeep') !== false)
-            ?? $freeVehicles->first();
     }
 }

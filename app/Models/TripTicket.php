@@ -753,10 +753,8 @@ class TripTicket extends Model
     }
 
     /**
-     * Get all VehicleRequest candidates on the same travel date that:
-     * 1. Are already approved by GSO ('status' === 'approved')
-     * 2. Have their Signed Vehicle Request Form uploaded ('document' is not empty)
-     * 3. Have the same destination municipality or are along the same route ("pwede idagas").
+     * Get all VehicleRequest candidates on the same travel date that have the
+     * same destination municipality or are along the same route ("pwede idagas").
      */
     public function getCompatibleCompanionCandidates(): \Illuminate\Support\Collection
     {
@@ -765,15 +763,11 @@ class TripTicket extends Model
             return collect();
         }
 
-        $candidates = VehicleRequest::where('status', 'approved')
+        $candidates = VehicleRequest::whereIn('status', ['pending', 'approved'])
             ->where('id', '!=', $primaryReq->id)
             ->whereDate('date', $primaryReq->date)
             ->where(function ($q) {
-                $q->where(function ($sub) {
-                    $sub->whereNull('trip_ticket_id')
-                        ->whereNotNull('document')
-                        ->where('document', '!=', '');
-                });
+                $q->whereNull('trip_ticket_id');
                 if ($this->id) {
                     $q->orWhere('trip_ticket_id', $this->id);
                 }
@@ -802,11 +796,12 @@ class TripTicket extends Model
      * Trip Ticket can ONLY be edited/consolidated when:
      * 1. Not archived (trashed)
      * 2. Status is still 'pending' (not active/on_trip, completed, or cancelled)
-     * 3. There is at least one compatible approved + signed companion request (same date + same municipality or along the route / "pwede idagas")
+     * 3. CEO signed document has NOT been uploaded yet
+     * 4. There is at least one compatible companion request (same date + same municipality or along the route / "pwede idagas")
      */
     public function canConsolidateOrEdit(): bool
     {
-        if ($this->trashed() || $this->status !== 'pending') {
+        if ($this->trashed() || $this->status !== 'pending' || $this->hasSignedDocument()) {
             return false;
         }
 
@@ -814,21 +809,27 @@ class TripTicket extends Model
     }
 
     /**
-     * Find an existing pending TripTicket on the same date
-     * that matches this approved + signed VehicleRequest's destination municipality or route corridor.
+     * Find an existing pending TripTicket (without CEO signed document yet) on the same date
+     * that matches this VehicleRequest's destination municipality or route corridor.
      */
     public static function findCompatibleOpenTicketForRequest(VehicleRequest $request): ?self
     {
-        if ($request->status !== 'approved' || empty($request->document) || empty($request->date) || empty($request->destination)) {
+        if (empty($request->date) || empty($request->destination)) {
             return null;
         }
 
         $openTickets = static::with(['vehicleRequest', 'vehicleRequests'])
             ->where('status', 'pending')
+            ->where(function ($q) {
+                $q->whereNull('document')->orWhere('document', '');
+            })
             ->latest('id')
             ->get();
 
         foreach ($openTickets as $ticket) {
+            if ($ticket->hasSignedDocument()) {
+                continue;
+            }
             $primaryReq = $ticket->vehicleRequest ?? $ticket->vehicleRequests->first();
             if (!$primaryReq || (int) $primaryReq->id === (int) $request->id || empty($primaryReq->date)) {
                 continue;
