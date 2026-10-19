@@ -191,7 +191,9 @@ class VehicleRequest extends Model
                     $vehicleRequest->status = $tripTicket->status === 'active' ? 'on_trip' : 'approved';
                     $vehicleRequest->saveQuietly();
                 } else {
-                    $vehicleRequest->status = 'approved';
+                    if ($vehicleRequest->status !== 'pending') {
+                        $vehicleRequest->status = 'approved';
+                    }
                     $vehicleRequest->saveQuietly();
                 }
             }

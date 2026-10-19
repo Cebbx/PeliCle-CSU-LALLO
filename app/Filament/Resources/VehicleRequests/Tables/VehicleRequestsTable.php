@@ -131,6 +131,9 @@ class VehicleRequestsTable
                         };
                     })
                     ->description(function ($record) {
+                        if ($record->status === 'pending' && !empty($record->document)) {
+                            return '✅ Doc Attached';
+                        }
                         if ($record->status === 'approved') {
                             if (!empty($record->document)) {
                                 return $record->time 
@@ -201,14 +204,14 @@ class VehicleRequestsTable
                         ->url(fn ($record) => route('trip-tickets.print', $record->tripTicket->id))
                         ->openUrlInNewTab(),
                     Action::make('upload_document')
-                        ->label('Upload / Scan Document')
+                        ->label('Upload or Scan Document')
                         ->icon('heroicon-o-camera')
                         ->color('success')
                         ->modalHeading('📄 Upload or Scan CEO Signed Document')
                         ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
                         ->modalWidth('2xl')
-                        ->modalSubmitActionLabel('Save & Activate Trip')
-                        ->visible(fn ($record) => !$record->trashed() && $record->status === 'approved' && !$record->document)
+                        ->modalSubmitActionLabel('Save Document')
+                        ->visible(fn ($record) => !$record->trashed() && in_array($record->status, ['pending', 'approved']) && !$record->document)
                         ->form([
                             \Filament\Schemas\Components\Tabs::make('document_source')
                                 ->tabs([
@@ -300,13 +303,13 @@ class VehicleRequestsTable
                                     $record->update(['status' => 'approved']);
                                 }
                                 $tripTicket->sendSmsNotification();
-                            } elseif ($timeArrived) {
-                                $record->update(['status' => 'on_trip']);
                             }
 
-                            $msg = $timeArrived 
-                                ? 'CEO Signed Document uploaded! Scheduled travel time has arrived — Trip is now ON TRIP!'
-                                : 'CEO Signed Document uploaded! Request is now Ready (Waiting for departure at ' . ($record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time') . ').';
+                            $msg = $record->tripTicket
+                                ? ($timeArrived
+                                    ? 'CEO Signed Document uploaded! Scheduled travel time has arrived — Trip is now ON TRIP and SMS sent to driver!'
+                                    : 'CEO Signed Document uploaded and SMS sent to driver! Request is now Ready (Waiting for departure at ' . ($record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time') . ').')
+                                : 'CEO Signed Document uploaded! You can now click Approve & Ticket to assign a driver and vehicle.';
 
                             \Filament\Notifications\Notification::make()
                                 ->title('Document Uploaded')

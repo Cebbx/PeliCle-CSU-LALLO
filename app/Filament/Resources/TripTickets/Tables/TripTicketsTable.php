@@ -78,6 +78,115 @@ class TripTicketsTable
             ])
             ->recordActions([
                 ActionGroup::make([
+                    Action::make('upload_document')
+                        ->label('Upload or Scan Document')
+                        ->icon('heroicon-o-camera')
+                        ->color('success')
+                        ->modalHeading('📄 Upload or Scan CEO Signed Document')
+                        ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
+                        ->modalWidth('2xl')
+                        ->modalSubmitActionLabel('Save Document')
+                        ->visible(fn ($record) => !$record->trashed() && in_array($record->status, ['pending', 'active']) && empty($record->document) && empty($record->vehicleRequest?->document))
+                        ->form([
+                            \Filament\Schemas\Components\Tabs::make('document_source')
+                                ->tabs([
+                                    \Filament\Schemas\Components\Tabs\Tab::make('camera_scan')
+                                        ->label('Camera Scanner')
+                                        ->icon('heroicon-o-camera')
+                                        ->schema([
+                                            \Filament\Forms\Components\ViewField::make('captured_image')
+                                                ->view('filament.components.camera-scanner')
+                                                ->columnSpanFull(),
+                                        ]),
+                                    \Filament\Schemas\Components\Tabs\Tab::make('file_upload')
+                                        ->label('Upload Document')
+                                        ->icon('heroicon-o-arrow-up-tray')
+                                        ->schema([
+                                            \Filament\Forms\Components\FileUpload::make('document')
+                                                ->label('Attach Signed Document (Photo or PDF)')
+                                                ->disk('public')
+                                                ->directory('request-documents')
+                                                ->visibility('public')
+                                                ->imagePreviewHeight('250')
+                                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                                                ->helperText('Select the scanned document or photo from your computer or phone.')
+                                                ->columnSpanFull(),
+                                        ]),
+                                ]),
+                        ])
+                        ->action(function ($record, array $data, $action) {
+                            $finalPath = null;
+
+                            if (!empty($data['captured_image']) && str_starts_with($data['captured_image'], 'data:image/')) {
+                                $imageData = $data['captured_image'];
+                                $type = 'jpg';
+                                if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
+                                    $type = strtolower($matches[1]);
+                                    if (!in_array($type, ['jpg', 'jpeg', 'png', 'webp'])) {
+                                        $type = 'jpg';
+                                    }
+                                    $imageData = substr($imageData, strpos($imageData, ',') + 1);
+                                }
+                                $decoded = base64_decode($imageData);
+                                if ($decoded !== false) {
+                                    $fileName = 'scan_' . ($record->ticket_number ?? $record->id) . '_' . time() . '.' . $type;
+                                    $path = 'request-documents/' . $fileName;
+                                    \Illuminate\Support\Facades\Storage::disk('public')->put($path, $decoded);
+                                    $finalPath = $path;
+                                }
+                            }
+
+                            if (!$finalPath && !empty($data['document'])) {
+                                $finalPath = $data['document'];
+                            }
+
+                            if (!$finalPath) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Document Required')
+                                    ->body('Please capture a scan using the camera or upload a document before saving.')
+                                    ->danger()
+                                    ->send();
+                                $action->halt();
+                                return;
+                            }
+
+                            $record->update([
+                                'document' => $finalPath,
+                            ]);
+
+                            if ($record->vehicleRequest) {
+                                $record->vehicleRequest->updateQuietly([
+                                    'document' => $finalPath,
+                                    'status' => $record->status === 'active' ? 'on_trip' : 'approved',
+                                ]);
+                            }
+
+                            $record->sendSmsNotification();
+
+                            $driverUser = $record->driver?->getUserAccount();
+                            if ($driverUser) {
+                                try {
+                                    $dest = $record->vehicleRequest?->destination ?? 'Assigned Destination';
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('📄 CEO Document Ready (' . $record->ticket_number . ')')
+                                        ->body("CEO signed document for trip to {$dest} has been uploaded. Your trip is cleared for scheduled departure.")
+                                        ->icon('heroicon-o-document-check')
+                                        ->iconColor('success')
+                                        ->actions([
+                                            \Filament\Actions\Action::make('view')
+                                                ->label('View Trip')
+                                                ->url('/driver/trip-tickets'),
+                                        ])
+                                        ->sendToDatabase($driverUser);
+                                } catch (\Throwable $e) {}
+                            }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Document Uploaded & Driver Notified')
+                                ->body("CEO Signed Document uploaded for {$record->ticket_number}. SMS notification has been sent to {$record->driver?->name}.")
+                                ->success()
+                                ->send();
+                        }),
                     Action::make('start_trip')
                         ->label('Start Trip')
                         ->icon('heroicon-o-play')
@@ -371,14 +480,14 @@ class TripTicketsTable
                         ->label('View Signed Document')
                         ->icon('heroicon-o-document-check')
                         ->color('success')
-                        ->visible(fn ($record) => !empty($record->document))
+                        ->visible(fn ($record) => !empty($record->document) || !empty($record->vehicleRequest?->document))
                         ->url(fn ($record) => route('trip-tickets.view-signed-document', $record->id))
                         ->openUrlInNewTab(),
                     Action::make('download_signed_document')
                         ->label('Download Signed Document')
                         ->icon('heroicon-o-arrow-down-tray')
                         ->color('success')
-                        ->visible(fn ($record) => !empty($record->document))
+                        ->visible(fn ($record) => !empty($record->document) || !empty($record->vehicleRequest?->document))
                         ->url(fn ($record) => route('trip-tickets.download-signed-document', $record->id)),
                     Action::make('print')
                         ->label('Print Trip Ticket')

@@ -131,6 +131,9 @@ class VehicleRequestsTable
                         };
                     })
                     ->description(function ($record) {
+                        if ($record->status === 'pending' && !empty($record->document)) {
+                            return '✅ Doc Attached';
+                        }
                         if ($record->status === 'approved') {
                             if (!empty($record->document)) {
                                 return $record->time 
@@ -211,7 +214,7 @@ class VehicleRequestsTable
                         ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
                         ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Save Document')
-                        ->visible(fn ($record) => !$record->trashed() && $record->status === 'approved' && !$record->document)
+                        ->visible(fn ($record) => !$record->trashed() && in_array($record->status, ['pending', 'approved']) && !$record->document)
                         ->form([
                             \Filament\Schemas\Components\Tabs::make('document_source')
                                 ->tabs([
@@ -335,7 +338,7 @@ class VehicleRequestsTable
                             // 2. On-time upload (future departure)
                             $record->update([
                                 'document' => $finalPath,
-                                'status' => 'approved',
+                                'status' => $record->tripTicket ? 'approved' : $record->status,
                             ]);
 
                             if ($record->tripTicket) {
