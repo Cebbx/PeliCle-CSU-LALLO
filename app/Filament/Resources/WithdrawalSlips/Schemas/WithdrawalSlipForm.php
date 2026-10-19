@@ -19,7 +19,7 @@ class WithdrawalSlipForm
                     ->placeholder(fn () => 'WS-' . date('Y') . '-01')
                     ->default(fn () => \App\Models\WithdrawalSlip::generateNextSlipNumber())
                     ->unique('withdrawal_slips', 'slip_number', ignoreRecord: true)
-                    ->helperText('Halimbawa: WS-' . date('Y') . '-01. Auto-generated at editable.')
+                    ->helperText('e.g. WS-' . date('Y') . '-01. Auto-generated and editable.')
                     ->required(),
                 Hidden::make('trip_ticket_id')
                     ->default(fn () => request()->query('trip_ticket_id'))
@@ -56,7 +56,7 @@ class WithdrawalSlipForm
                         }
                         return null;
                     })
-                    ->helperText('Piliin ang nakatalagang sasakyan o i-type ang sariling detalye.')
+                    ->helperText('Select the assigned vehicle or enter custom vehicle details.')
                     ->dehydrated()
                     ->required(),
                 Select::make('driver_name')
@@ -72,7 +72,7 @@ class WithdrawalSlipForm
                     ->searchable()
                     ->preload()
                     ->createOptionUsing(fn (string $custom) => trim($custom))
-                    ->helperText('Piliin ang nakatalagang driver na awtorisadong kumuha ng fuel.')
+                    ->helperText('Select the assigned driver authorized to withdraw fuel.')
                     ->default(function (callable $get, ?\App\Models\WithdrawalSlip $record) {
                         if ($record && $record->driver_name) {
                             return $record->driver_name;
@@ -88,7 +88,7 @@ class WithdrawalSlipForm
                     ->dehydrated(),
                 Repeater::make('requested_items')
                     ->label('Requested Items (Drag to reorder or add items)')
-                    ->helperText('Select fuel or oil type and amount. Pwedeng pumili ng Full Tank o dami ng litro.')
+                    ->helperText('Specify fuel, lubricant, or oil type and enter the requested quantity.')
                     ->reorderableWithDragAndDrop(true)
                     ->reorderable(true)
                     ->collapsible()
@@ -155,30 +155,9 @@ class WithdrawalSlipForm
                             ->searchable(),
                         TextInput::make('quantity')
                             ->label('Quantity (Liters / Amount)')
-                            ->placeholder('Hal. 20, 35, 50, o Full Tank')
+                            ->placeholder('e.g. 20, 35, 50, or Full Tank')
                             ->default('Full Tank')
-                            ->datalist([
-                                'Full Tank',
-                                '5',
-                                '10',
-                                '15',
-                                '20',
-                                '25',
-                                '30',
-                                '35',
-                                '40',
-                                '45',
-                                '50',
-                                '60',
-                                '70',
-                                '80',
-                                '90',
-                                '100',
-                                '120',
-                                '150',
-                                '200',
-                            ])
-                            ->helperText('Maaaring i-type nang direkta ang bilang ng litro (Hal. 25, 40) o i-type ang Full Tank.')
+                            ->helperText('Type the number of liters or quantity needed (e.g. 25, 40, Full Tank).')
                             ->required(),
                     ])
                     ->columns(2)
