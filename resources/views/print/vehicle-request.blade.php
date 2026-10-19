@@ -110,15 +110,27 @@
         <div class="border border-black mb-3 sm:mb-4 text-xs sm:text-sm">
             <!-- Row 1 -->
             <div class="grid grid-cols-12 border-b border-black">
-                <div class="col-span-8 p-2 sm:p-2.5 border-r border-black flex flex-col justify-between" style="min-height: 56px;">
+                <div class="col-span-7 sm:col-span-7 p-2 sm:p-2.5 border-r border-black flex flex-col justify-between" style="min-height: 68px;">
                     <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Client:</span>
-                    <span class="text-xs sm:text-sm font-bold text-black text-center mt-0.5 w-11/12 mx-auto">{{ $request->employee_name }}</span>
+                    <span class="text-xs sm:text-sm font-bold text-black text-center mt-1 w-11/12 mx-auto">{{ $request->employee_name }}</span>
                     <span class="text-[8px] sm:text-[9px] text-black text-center mt-0.5">Name</span>
                 </div>
-                <div class="col-span-4 p-2 sm:p-2.5 flex flex-col justify-between" style="min-height: 56px;">
-                    <span class="text-[9px] sm:text-[10px] uppercase font-bold text-black">Date:</span>
-                    <span class="text-xs sm:text-sm font-bold text-black text-center mt-0.5 w-11/12 mx-auto">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</span>
-                    <span class="text-[8px] sm:text-[9px] text-black text-center mt-0.5 truncate">Office: <span class="font-bold text-black">{{ $request->department }}</span></span>
+                <div class="col-span-5 sm:col-span-5 flex flex-col justify-between p-0" style="min-height: 68px;">
+                    <!-- Top Sub-Row: Date | Value -->
+                    <div class="grid grid-cols-12 border-b border-black">
+                        <div class="col-span-4 border-r border-black px-1.5 py-1 sm:py-1.5 flex items-center justify-center">
+                            <span class="text-[10px] sm:text-xs font-bold text-black">Date</span>
+                        </div>
+                        <div class="col-span-8 px-2 py-1 sm:py-1.5 flex items-center justify-center">
+                            <span class="text-[11px] sm:text-xs font-bold text-black text-center">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</span>
+                        </div>
+                    </div>
+                    <!-- Bottom Sub-Row: Office Value above line + Office label below line -->
+                    <div class="px-2 pt-1.5 pb-1 flex flex-col items-center justify-end flex-1">
+                        <span class="text-[9px] sm:text-[10px] font-bold text-black text-center leading-tight w-11/12 mx-auto break-words">{{ $request->department }}</span>
+                        <div class="w-4/5 mx-auto border-b border-black mt-0.5"></div>
+                        <span class="text-[9px] sm:text-[11px] font-semibold text-black text-center mt-0.5 leading-none">Office</span>
+                    </div>
                 </div>
             </div>
 
