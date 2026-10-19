@@ -350,7 +350,6 @@ class VehicleRequestsTable
                                     $tripTicket->status = 'pending';
                                 }
                                 $tripTicket->saveQuietly();
-                                $tripTicket->sendSmsNotification();
 
                                 if ($tripTicket->driver_id && $tripTicket->status !== 'active') {
                                     $driver = \App\Models\Driver::find($tripTicket->driver_id);
@@ -369,37 +368,28 @@ class VehicleRequestsTable
                             $formattedTime = $record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time';
                             $formattedDate = $record->date ? \Carbon\Carbon::parse($record->date)->format('M d, Y') : 'scheduled date';
 
-                            // Notify Admins and Assigned Driver in real-time
+                            // Notify Admins in real-time that CEO document awaits verification & dispatch
                             try {
                                 $admins = \App\Models\User::where('role', 'admin')->get();
                                 foreach ($admins as $admin) {
                                     \Filament\Notifications\Notification::make()
                                         ->title('📄 CEO Document Uploaded: ' . $record->request_number)
-                                        ->body("{$record->employee_name} uploaded CEO signed document for request {$record->request_number}.")
+                                        ->body("{$record->employee_name} ({$record->department}) uploaded CEO signed document for request {$record->request_number}. Ready for Admin / GSO review & SMS dispatch.")
                                         ->icon('heroicon-o-document-check')
-                                        ->iconColor('success')
-                                        ->sendToDatabase($admin);
-                                }
-
-                                $driverUser = $record->tripTicket?->driver?->getUserAccount();
-                                if ($driverUser) {
-                                    \Filament\Notifications\Notification::make()
-                                        ->title('📄 CEO Document Ready (' . $record->tripTicket->ticket_number . ')')
-                                        ->body("CEO signed document for trip to {$record->destination} has been uploaded. Your trip is cleared for scheduled departure.")
-                                        ->icon('heroicon-o-document-check')
-                                        ->iconColor('success')
+                                        ->iconColor('warning')
                                         ->actions([
-                                            \Filament\Actions\Action::make('view')
-                                                ->label('View Trip')
-                                                ->url('/driver/trip-tickets'),
+                                            \Filament\Actions\Action::make('view_doc')
+                                                ->label('Review Document')
+                                                ->url(route('vehicle-requests.view-signed-document', $record->id))
+                                                ->openUrlInNewTab(),
                                         ])
-                                        ->sendToDatabase($driverUser);
+                                        ->sendToDatabase($admin);
                                 }
                             } catch (\Throwable $e) {}
 
                             \Filament\Notifications\Notification::make()
                                 ->title('Document Uploaded Successfully')
-                                ->body("CEO Signed Document has been saved! The trip is scheduled for {$formattedDate} at {$formattedTime}. Status remains 'Approved' and will automatically activate to 'On Trip' when departure time arrives.")
+                                ->body("CEO Signed Document has been submitted! Your request is now queued for Admin / GSO verification. The assigned driver will receive an SMS dispatch notification once verified by Admin.")
                                 ->success()
                                 ->send();
                         }),

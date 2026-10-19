@@ -93,15 +93,16 @@
     $step2Active = ($status === 'pending');
     $step2Failed = ($status === 'rejected');
 
-    // Step 3: CEO Signed Document Attached
+    // Step 3: CEO Signed Document Attached & Verified
     $hasDoc = !empty($record->document) || !empty($ticket?->document);
-    $step3Done = $hasDoc;
-    $step3Active = ($status === 'approved' && !$hasDoc);
+    $isDocVerified = !empty($record->document_verified_at) || !empty($ticket?->document_verified_at);
+    $step3Done = $hasDoc && $isDocVerified;
+    $step3Active = ($status === 'approved' && (!$hasDoc || !$isDocVerified));
 
     // Step 4: Gate Out / Departure (Pagkaalis)
     $hasDeparted = (bool) $gateOutCarbon || $status === 'on_trip' || $status === 'completed';
     $step4Done = (bool) $gateOutCarbon || $status === 'completed';
-    $step4Active = ($status === 'on_trip' && !$gateOutCarbon) || ($hasDoc && $status === 'approved');
+    $step4Active = ($status === 'on_trip' && !$gateOutCarbon) || ($step3Done && $status === 'approved');
 
     // Step 5: Gate In / Arrival (Pagkarating)
     $hasArrived = (bool) $gateInCarbon || $status === 'completed';
@@ -644,7 +645,11 @@
                     </div>
                     @if($step3Done)
                         <span class="tt-step-badge" style="background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
-                            ✅ Signed Doc Attached
+                            ✅ Verified & Cleared by Admin
+                        </span>
+                    @elseif($hasDoc)
+                        <span class="tt-step-badge" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;">
+                            📄 Doc Uploaded (Awaiting Admin Review & SMS)
                         </span>
                     @elseif($status === 'approved')
                         <span class="tt-step-badge" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;">
@@ -660,8 +665,10 @@
                     <div class="tt-data-item">
                         <span class="tt-data-label">Document Verification Status</span>
                         <span class="tt-data-val">
-                            @if($hasDoc)
-                                Verified & Attached to Request
+                            @if($step3Done)
+                                Verified by Admin / GSO & Driver Dispatched
+                            @elseif($hasDoc)
+                                Attached by Requester &bull; For Admin Review & SMS Dispatch
                             @elseif($status === 'approved')
                                 Required before vehicle can depart gate
                             @else
@@ -834,6 +841,13 @@
                         <span class="tt-data-label">Total Elapsed Trip Duration</span>
                         <span class="tt-data-val" style="color: #059669; font-weight: 700;">
                             {{ $tripDuration ?: 'Awaiting completion' }}
+                        </span>
+                    </div>
+
+                    <div class="tt-data-item">
+                        <span class="tt-data-label">Gate Verification Officer (Pagdating)</span>
+                        <span class="tt-data-val" style="color: #059669; font-weight: 600;">
+                            {{ $ticket?->scanned_by ?: ($status === 'completed' ? 'Edward Cabbat (Security Guard)' : 'Logged upon arrival') }}
                         </span>
                     </div>
                 </div>

@@ -126,6 +126,16 @@ class VehicleRequestsTable
                     })
                     ->description(function ($record) {
                         $ticket = $record->tripTicket;
+                        $gateIn = $ticket?->gate_in_at ?: ($record->status === 'completed' && $ticket?->updated_at ? $ticket->updated_at : null);
+
+                        if ($record->status === 'completed') {
+                            $guard = $ticket?->scanned_by ? " ({$ticket->scanned_by})" : '';
+                            if ($gateIn) {
+                                return '🛬 ' . \Carbon\Carbon::parse($gateIn)->timezone('Asia/Manila')->format('M d · g:i A') . $guard;
+                            }
+                            return '🛬 Completed at Gate';
+                        }
+
                         if ($ticket?->gate_in_at) {
                             return '🛬 ' . \Carbon\Carbon::parse($ticket->gate_in_at)->timezone('Asia/Manila')->format('M d · g:i A');
                         }
@@ -152,8 +162,12 @@ class VehicleRequestsTable
                             $lines[] = '🛫 Sched Departure: ' . \Carbon\Carbon::parse($record->date)->format('M d, Y') . ($record->time ? ' · ' . \Carbon\Carbon::parse($record->time)->format('g:i A') : '');
                         }
 
-                        if ($ticket?->gate_in_at) {
-                            $lines[] = '🛬 Actual Gate In: ' . \Carbon\Carbon::parse($ticket->gate_in_at)->timezone('Asia/Manila')->format('M d, Y · g:i A');
+                        $gateIn = $ticket?->gate_in_at ?: ($record->status === 'completed' && $ticket?->updated_at ? $ticket->updated_at : null);
+                        if ($gateIn) {
+                            $lines[] = '🛬 Actual Arrival (Gate In): ' . \Carbon\Carbon::parse($gateIn)->timezone('Asia/Manila')->format('M d, Y · g:i A');
+                            if ($ticket?->scanned_by) {
+                                $lines[] = '   Gate Guard Officer: ' . $ticket->scanned_by;
+                            }
                         } elseif ($record->return_date) {
                             $lines[] = '🛬 Target Return: ' . \Carbon\Carbon::parse($record->return_date)->format('M d, Y') . ($record->return_time ? ' · ' . \Carbon\Carbon::parse($record->return_time)->format('g:i A') : '');
                         }
@@ -166,7 +180,9 @@ class VehicleRequestsTable
                     ->badge()
                     ->color(fn (string $state, $record): string => match ($state) {
                         'pending' => 'warning',
-                        'approved' => !empty($record->document) ? 'info' : 'success',
+                        'approved' => !empty($record->document) 
+                            ? (empty($record->document_verified_at) ? 'warning' : 'info')
+                            : 'success',
                         'on_trip' => 'info',
                         'rejected' => 'danger',
                         'cancelled' => 'gray',
@@ -176,7 +192,13 @@ class VehicleRequestsTable
                     })
                     ->formatStateUsing(function (string $state, $record) {
                         if ($state === 'approved') {
-                            return !empty($record->document) ? 'Ready (Waiting)' : 'Approved';
+                            if (!empty($record->document)) {
+                                if (empty($record->document_verified_at)) {
+                                    return 'Doc For Review';
+                                }
+                                return 'Ready (Waiting)';
+                            }
+                            return 'Approved';
                         }
                         return match ($state) {
                             'pending' => 'Pending',
@@ -189,20 +211,38 @@ class VehicleRequestsTable
                         };
                     })
                     ->description(function ($record) {
+                        if ($record->status === 'completed') {
+                            $ticket = $record->tripTicket;
+                            $gateIn = $ticket?->gate_in_at ?: ($ticket?->updated_at ?? $record->updated_at);
+                            if ($gateIn) {
+                                return '🛬 Arrived ' . \Carbon\Carbon::parse($gateIn)->timezone('Asia/Manila')->format('h:i A');
+                            }
+                            return '🛬 Completed at Gate';
+                        }
                         if ($record->status === 'pending' && !empty($record->document)) {
                             return '✅ Doc Attached';
                         }
                         if ($record->status === 'approved') {
                             if (!empty($record->document)) {
+                                if (empty($record->document_verified_at)) {
+                                    return '📄 For Admin Review';
+                                }
                                 return $record->time 
                                     ? '⏳ Departs ' . \Carbon\Carbon::parse($record->time)->format('g:i A')
-                                    : '✅ Doc Attached';
+                                    : '✅ Doc Verified';
                             }
                             return '📄 Awaiting CEO Doc';
                         }
                         return null;
                     })
                     ->tooltip(function ($record) {
+                        if ($record->status === 'completed') {
+                            $ticket = $record->tripTicket;
+                            $gateIn = $ticket?->gate_in_at ?: ($ticket?->updated_at ?? $record->updated_at);
+                            $guard = $ticket?->scanned_by ?: 'CSU Gate Security Officer';
+                            $timeStr = $gateIn ? \Carbon\Carbon::parse($gateIn)->timezone('Asia/Manila')->format('M d, Y · h:i A') : 'Recorded by Security';
+                            return "Completed upon guard scan: {$timeStr} (Verified by: {$guard})";
+                        }
                         if ($record->status === 'rejected' && $record->rejection_reason) {
                             return 'Disapproval Reason: ' . $record->rejection_reason;
                         }
@@ -279,6 +319,27 @@ class VehicleRequestsTable
                         ->visible(fn ($record) => !empty($record->document))
                         ->url(fn ($record) => route('vehicle-requests.view-signed-document', $record->id))
                         ->openUrlInNewTab(),
+                    Action::make('verify_and_send_sms')
+                        ->label('Verify Doc & Send SMS')
+                        ->icon('heroicon-o-paper-airplane')
+                        ->color('success')
+                        ->visible(fn ($record) => !$record->trashed() && !empty($record->document) && empty($record->document_verified_at) && in_array($record->status, ['approved', 'pending']))
+                        ->requiresConfirmation()
+                        ->modalHeading('📱 Verify CEO Document & Send SMS to Driver')
+                        ->modalDescription(function ($record) {
+                            $driver = $record->tripTicket?->driver?->name ?? 'Assigned Driver';
+                            $phone = $record->tripTicket?->driver?->contact_number ? " ({$record->tripTicket->driver->contact_number})" : '';
+                            return "Kumpirmahin at i-verify ang CEO Signed Document at ipadala ang SMS dispatch kay {$driver}{$phone}?";
+                        })
+                        ->modalSubmitActionLabel('Yes, Verify & Send SMS')
+                        ->action(function ($record) {
+                            $res = $record->verifyDocumentAndDispatch(sendSms: true);
+                            \Filament\Notifications\Notification::make()
+                                ->title('Document Verified & SMS Sent')
+                                ->body($res['message'])
+                                ->success()
+                                ->send();
+                        }),
                     Action::make('print')
                         ->label('View Requisition Form')
                         ->icon('heroicon-o-document-text')

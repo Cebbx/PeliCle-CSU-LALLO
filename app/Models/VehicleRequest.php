@@ -37,6 +37,7 @@ class VehicleRequest extends Model
         'rejection_reason',
         'cancellation_reason',
         'document',
+        'document_verified_at',
         'trip_ticket_id',
     ];
 
@@ -45,6 +46,7 @@ class VehicleRequest extends Model
         'has_other_passengers' => 'boolean',
         'is_urgent' => 'boolean',
         'is_manual_encoding' => 'boolean',
+        'document_verified_at' => 'datetime',
     ];
 
     public static function generateNextRequestNumber(?\Carbon\Carbon $date = null): string
@@ -164,17 +166,16 @@ class VehicleRequest extends Model
                     return;
                 }
 
-                // 2. On-time upload (future departure): Keep request approved and ticket pending, and send SMS to driver
+                // 2. On-time upload (future departure): Sync document, keep for Admin verification, DO NOT send SMS yet
                 $tripTicket = $vehicleRequest->tripTicket ?: TripTicket::where('vehicle_request_id', $vehicleRequest->id)->first();
                 if ($tripTicket) {
                     $tripTicket->document = $vehicleRequest->document;
-                    if ($tripTicket->status !== 'active') {
+                    if ($tripTicket->status !== 'active' && empty($vehicleRequest->document_verified_at)) {
                         $tripTicket->status = 'pending';
                     }
                     $tripTicket->saveQuietly();
-                    $tripTicket->sendSmsNotification();
 
-                    // Ensure driver remains available if not active
+                    // Ensure driver remains available until trip is actually verified & active
                     if ($tripTicket->driver_id && $tripTicket->status !== 'active') {
                         $driver = Driver::find($tripTicket->driver_id);
                         if ($driver) {
@@ -188,7 +189,7 @@ class VehicleRequest extends Model
                         }
                     }
 
-                    $targetStatus = $tripTicket->status === 'active' ? 'on_trip' : 'approved';
+                    $targetStatus = (!empty($vehicleRequest->document_verified_at) && $tripTicket->status === 'active') ? 'on_trip' : 'approved';
                     $vehicleRequest->status = $targetStatus;
                     $vehicleRequest->saveQuietly();
 
@@ -206,8 +207,140 @@ class VehicleRequest extends Model
                     }
                     $vehicleRequest->saveQuietly();
                 }
+
+                // Notify Admins that CEO document was uploaded and awaits Admin / GSO verification
+                if (empty($vehicleRequest->document_verified_at)) {
+                    try {
+                        $admins = User::where('role', 'admin')->get();
+                        foreach ($admins as $admin) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('📄 CEO Document Uploaded: ' . $vehicleRequest->request_number)
+                                ->body("{$vehicleRequest->employee_name} uploaded CEO signed document for request {$vehicleRequest->request_number}. Ready for Admin / GSO verification & driver SMS dispatch.")
+                                ->icon('heroicon-o-document-check')
+                                ->iconColor('warning')
+                                ->actions([
+                                    \Filament\Actions\Action::make('view_doc')
+                                        ->label('Review Document')
+                                        ->url(route('vehicle-requests.view-signed-document', $vehicleRequest->id))
+                                        ->openUrlInNewTab(),
+                                ])
+                                ->sendToDatabase($admin);
+                        }
+                    } catch (\Throwable $e) {}
+                }
             }
         });
+    }
+
+    public function isDocumentVerified(): bool
+    {
+        return !empty($this->document_verified_at);
+    }
+
+    public function verifyDocumentAndDispatch(bool $sendSms = true): array
+    {
+        if (empty($this->document)) {
+            return ['success' => false, 'message' => 'Walang naka-attach na CEO signed document para sa request na ito.'];
+        }
+
+        $now = \Illuminate\Support\Carbon::now('Asia/Manila');
+        $this->document_verified_at = $now;
+
+        $depDateTime = $this->getScheduledDepartureDateTime();
+        $isDepartureArrived = $depDateTime ? $now->greaterThanOrEqualTo($depDateTime) : false;
+
+        $tripTicket = $this->tripTicket ?: TripTicket::where('vehicle_request_id', $this->id)->first();
+
+        if ($tripTicket) {
+            $tripTicket->document = $this->document;
+            $tripTicket->document_verified_at = $now;
+
+            if ($isDepartureArrived) {
+                $tripTicket->status = 'active';
+                $this->status = 'on_trip';
+                if ($tripTicket->driver) {
+                    $tripTicket->driver->update(['status' => 'on_trip']);
+                }
+            } else {
+                if ($tripTicket->status !== 'active') {
+                    $tripTicket->status = 'pending';
+                }
+                $this->status = 'approved';
+            }
+
+            $tripTicket->saveQuietly();
+            TripTicket::syncVehicleStatus($tripTicket->vehicle);
+
+            if ($sendSms) {
+                $tripTicket->sendSmsNotification(forceResend: true);
+            }
+
+            // Sync siblings if carpool
+            foreach ($tripTicket->all_vehicle_requests as $siblingReq) {
+                if ($siblingReq->id !== $this->id) {
+                    $siblingReq->updateQuietly([
+                        'document' => $this->document,
+                        'document_verified_at' => $now,
+                        'status' => $this->status,
+                    ]);
+                }
+            }
+        } else {
+            $this->status = 'approved';
+        }
+
+        $this->saveQuietly();
+
+        $statusLabel = $this->status === 'on_trip' ? 'On Trip' : 'Ready (Waiting)';
+
+        \App\Models\ActivityLog::create([
+            'user_id' => auth()->id(),
+            'user_name' => auth()->user()?->name ?? 'Admin',
+            'action' => 'Verified CEO Document & Dispatched',
+            'model_type' => self::class,
+            'model_id' => $this->id,
+            'details' => "Admin verified CEO signed document for request {$this->request_number}. Status updated to {$statusLabel}. SMS dispatched to driver.",
+            'ip_address' => request()->ip() ?? '127.0.0.1',
+        ]);
+
+        // Notify Requester
+        if ($this->user) {
+            try {
+                \Filament\Notifications\Notification::make()
+                    ->title('✅ CEO Document Verified: ' . $this->request_number)
+                    ->body("Your CEO signed document has been verified by Admin / GSO. Status: {$statusLabel}. Driver has been notified.")
+                    ->icon('heroicon-o-check-circle')
+                    ->iconColor('success')
+                    ->sendToDatabase($this->user);
+            } catch (\Throwable $e) {}
+        }
+
+        // Notify Driver
+        if ($tripTicket?->driver) {
+            $driverUser = $tripTicket->driver->getUserAccount();
+            if ($driverUser) {
+                try {
+                    \Filament\Notifications\Notification::make()
+                        ->title('🚐 Trip Dispatched: ' . $tripTicket->ticket_number)
+                        ->body("CEO signed document verified by Admin. Status: {$statusLabel}. Destination: {$this->destination}.")
+                        ->icon('heroicon-o-truck')
+                        ->iconColor('info')
+                        ->actions([
+                            \Filament\Actions\Action::make('view')
+                                ->label('View Trip Ticket')
+                                ->url('/driver/trip-tickets'),
+                        ])
+                        ->sendToDatabase($driverUser);
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        return [
+            'success' => true,
+            'status' => $this->status,
+            'status_label' => $statusLabel,
+            'message' => "CEO signed document verified! SMS dispatched to driver. Status is now {$statusLabel}.",
+        ];
     }
 
     public function getScheduledDepartureDateTime(): ?\Carbon\Carbon

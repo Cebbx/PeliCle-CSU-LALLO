@@ -20,6 +20,7 @@ class TripTicket extends Model
         'status',
         'cancellation_reason',
         'document',
+        'document_verified_at',
         'start_odometer',
         'end_odometer',
         'gate_out_at',
@@ -30,6 +31,7 @@ class TripTicket extends Model
     protected $casts = [
         'gate_out_at' => 'datetime',
         'gate_in_at' => 'datetime',
+        'document_verified_at' => 'datetime',
     ];
 
     public function getDisplayGateOutAttribute()
@@ -205,8 +207,8 @@ class TripTicket extends Model
                     }
                 }
 
-                // Only notify Driver and send SMS upon creation if CEO signed document is already attached
-                if (!empty($tripTicket->document) || !empty($tripTicket->vehicleRequest?->document)) {
+                // Only notify Driver and send SMS upon creation if CEO signed document is already attached AND verified
+                if (!empty($tripTicket->document_verified_at) && (!empty($tripTicket->document) || !empty($tripTicket->vehicleRequest?->document))) {
                     $driverUser = $tripTicket->driver?->getUserAccount();
                     if ($driverUser) {
                         $dest = $tripTicket->vehicleRequest?->destination ?? 'Assigned Destination';
@@ -234,9 +236,12 @@ class TripTicket extends Model
             if ($tripTicket->vehicleRequest?->document && !$tripTicket->document) {
                 $tripTicket->document = $tripTicket->vehicleRequest->document;
             }
+            if ($tripTicket->vehicleRequest?->document_verified_at && !$tripTicket->document_verified_at) {
+                $tripTicket->document_verified_at = $tripTicket->vehicleRequest->document_verified_at;
+            }
 
-            // Only set to active if document exists AND scheduled departure time has already arrived
-            if ($tripTicket->document && $tripTicket->isDepartureTimeArrived()) {
+            // Only set to active if document exists AND is verified AND scheduled departure time has already arrived
+            if ($tripTicket->document && $tripTicket->document_verified_at && $tripTicket->isDepartureTimeArrived()) {
                 $tripTicket->status = 'active';
             } else {
                 $tripTicket->status = 'pending';
@@ -351,9 +356,11 @@ class TripTicket extends Model
             // Sync Vehicle status in vehicles table
             self::syncVehicleStatus($tripTicket->vehicle);
 
-            // As soon as CEO signed document is uploaded on the trip ticket (whether pending or active), send SMS to driver
+            // As soon as CEO signed document is verified on the trip ticket, send SMS to driver
             if ($tripTicket->wasChanged('document') && $tripTicket->document && $tripTicket->status !== 'cancelled') {
-                $tripTicket->sendSmsNotification();
+                if (!empty($tripTicket->document_verified_at)) {
+                    $tripTicket->sendSmsNotification();
+                }
             }
         });
 
@@ -414,6 +421,47 @@ class TripTicket extends Model
 
             $vehicle->update(['status' => $hasActiveTrip ? 'on_trip' : 'available']);
         }
+    }
+
+    public function verifyDocumentAndDispatch(bool $sendSms = true): array
+    {
+        $primaryReq = $this->vehicleRequest ?? $this->vehicleRequests()->first();
+        if ($primaryReq) {
+            return $primaryReq->verifyDocumentAndDispatch($sendSms);
+        }
+
+        $now = \Illuminate\Support\Carbon::now('Asia/Manila');
+        $this->document_verified_at = $now;
+
+        $depDateTime = $this->getScheduledDepartureDateTime();
+        $isDepartureArrived = $depDateTime ? $now->greaterThanOrEqualTo($depDateTime) : false;
+
+        if ($isDepartureArrived) {
+            $this->status = 'active';
+            if ($this->driver) {
+                $this->driver->update(['status' => 'on_trip']);
+            }
+        } else {
+            if ($this->status !== 'active') {
+                $this->status = 'pending';
+            }
+        }
+
+        $this->saveQuietly();
+        self::syncVehicleStatus($this->vehicle);
+
+        if ($sendSms) {
+            $this->sendSmsNotification(forceResend: true);
+        }
+
+        $statusLabel = $this->status === 'active' ? 'On Trip' : 'Ready (Waiting)';
+
+        return [
+            'success' => true,
+            'status' => $this->status,
+            'status_label' => $statusLabel,
+            'message' => "CEO signed document verified! SMS dispatched to driver. Status is now {$statusLabel}.",
+        ];
     }
 
     public function getFormattedVehicleAttribute(): string

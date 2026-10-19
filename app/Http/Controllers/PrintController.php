@@ -68,6 +68,52 @@ class PrintController extends Controller
         return response()->download($filePath, $downloadFilename);
     }
 
+    public function verifyDocumentAndSendSms($id)
+    {
+        $request = VehicleRequest::with(['tripTicket.driver', 'tripTicket.vehicleRequests'])->findOrFail($id);
+
+        if (empty($request->document) && empty($request->tripTicket?->document)) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No signed document uploaded yet.',
+                ], 422);
+            }
+            return back()->with('error', 'Walang naka-attach na dokumento.');
+        }
+
+        $result = $request->verifyDocumentAndDispatch(sendSms: true);
+
+        if (request()->wantsJson()) {
+            return response()->json($result);
+        }
+
+        return back()->with('success', $result['message']);
+    }
+
+    public function verifyTripTicketDocumentAndSendSms($id)
+    {
+        $ticket = TripTicket::with(['vehicleRequest', 'driver', 'all_vehicle_requests'])->findOrFail($id);
+
+        if (empty($ticket->document) && empty($ticket->vehicleRequest?->document)) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No signed document uploaded yet.',
+                ], 422);
+            }
+            return back()->with('error', 'Walang naka-attach na dokumento.');
+        }
+
+        $result = $ticket->verifyDocumentAndDispatch(sendSms: true);
+
+        if (request()->wantsJson()) {
+            return response()->json($result);
+        }
+
+        return back()->with('success', $result['message']);
+    }
+
     public function viewTripTicketSignedDocument($id)
     {
         $ticket = TripTicket::with('vehicleRequest')->findOrFail($id);

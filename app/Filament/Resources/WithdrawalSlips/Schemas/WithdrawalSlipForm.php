@@ -153,43 +153,32 @@ class WithdrawalSlipForm
                             ->default('diesel')
                             ->required()
                             ->searchable(),
-                        Select::make('quantity')
-                            ->label('Quantity (Liters)')
-                            ->options(function ($state) {
-                                $options = [
-                                    'Full Tank' => '⛽ Full Tank',
-                                    '5' => '5 Liters',
-                                    '10' => '10 Liters',
-                                    '15' => '15 Liters',
-                                    '20' => '20 Liters',
-                                    '25' => '25 Liters',
-                                    '30' => '30 Liters',
-                                    '35' => '35 Liters',
-                                    '40' => '40 Liters',
-                                    '45' => '45 Liters',
-                                    '50' => '50 Liters',
-                                    '60' => '60 Liters',
-                                    '70' => '70 Liters',
-                                    '80' => '80 Liters',
-                                    '90' => '90 Liters',
-                                    '100' => '100 Liters',
-                                    '120' => '120 Liters',
-                                    '150' => '150 Liters',
-                                    '200' => '200 Liters',
-                                    '250' => '250 Liters',
-                                    '300' => '300 Liters',
-                                ];
-
-                                if (!empty($state) && !is_array($state) && !isset($options[(string)$state])) {
-                                    $options[(string)$state] = is_numeric($state) ? "{$state} Liters" : (string)$state;
-                                }
-
-                                return $options;
-                            })
-                            ->searchable()
-                            ->createOptionUsing(fn (string $custom) => trim($custom))
+                        TextInput::make('quantity')
+                            ->label('Quantity (Liters / Amount)')
+                            ->placeholder('Hal. 20, 35, 50, o Full Tank')
                             ->default('Full Tank')
-                            ->helperText('Pumili ng Full Tank o dami ng litro, o mag-type ng sariling numero.')
+                            ->datalist([
+                                'Full Tank',
+                                '5',
+                                '10',
+                                '15',
+                                '20',
+                                '25',
+                                '30',
+                                '35',
+                                '40',
+                                '45',
+                                '50',
+                                '60',
+                                '70',
+                                '80',
+                                '90',
+                                '100',
+                                '120',
+                                '150',
+                                '200',
+                            ])
+                            ->helperText('Maaaring i-type nang direkta ang bilang ng litro (Hal. 25, 40) o i-type ang Full Tank.')
                             ->required(),
                     ])
                     ->columns(2)

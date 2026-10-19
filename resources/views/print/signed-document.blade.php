@@ -84,7 +84,58 @@
                 </svg>
                 <span>Print Document</span>
             </button>
+
+            @php
+                $currentUser = auth('admin')->user() ?? auth()->user();
+                $isAdminOrGso = auth('admin')->check() || ($currentUser && in_array(strtolower($currentUser->role ?? ''), ['admin', 'gso', 'staff', 'motorpool']));
+                
+                $isVerified = !empty($record->document_verified_at);
+                $driverName = $record instanceof \App\Models\TripTicket 
+                    ? ($record->driver?->name ?? 'Assigned Driver') 
+                    : ($record->tripTicket?->driver?->name ?? 'Assigned Driver');
+                $driverPhone = $record instanceof \App\Models\TripTicket 
+                    ? ($record->driver?->contact_number ?? '') 
+                    : ($record->tripTicket?->driver?->contact_number ?? '');
+                $verifyRoute = $type === 'trip-ticket' 
+                    ? route('trip-tickets.verify-document-and-send-sms', $record->id)
+                    : route('vehicle-requests.verify-document-and-send-sms', $record->id);
+            @endphp
+
+            @if($isAdminOrGso)
+                <!-- Verify Document & Send SMS to Driver Button (Admin / GSO) -->
+                <button id="verifySmsBtn" 
+                        type="button" 
+                        data-verified="{{ $isVerified ? '1' : '0' }}" 
+                        onclick="verifyAndSendSms(this, '{{ $verifyRoute }}', '{{ addslashes($driverName) }}', '{{ addslashes($driverPhone) }}')" 
+                        class="flex-1 sm:flex-initial {{ $isVerified ? 'bg-emerald-700 hover:bg-emerald-800' : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 ring-2 ring-emerald-300' }} active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        @if($isVerified)
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        @else
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                        @endif
+                    </svg>
+                    <span>{{ $isVerified ? '✅ Verified (Resend SMS)' : '📱 Verify & Send SMS to Driver' }}</span>
+                </button>
+            @endif
         </div>
+    </div>
+
+    <!-- Status Banner Alert Box -->
+    <div id="statusAlertBox" class="no-print max-w-[8.5in] w-full mx-auto mb-3 p-3 rounded-xl border flex items-center justify-between text-xs sm:text-sm font-semibold shadow-sm {{ $isVerified ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-amber-50 border-amber-300 text-amber-900' }}">
+        <div class="flex items-center gap-2">
+            <span class="text-base">{{ $isVerified ? '✅' : '⏳' }}</span>
+            <div id="statusAlertText">
+                @if($isVerified)
+                    <strong>Verified CEO Document:</strong> Na-verify na ng Admin/GSO ang dokumentong ito at na-dispatch ang SMS sa driver ({{ $driverName }}). Status: <strong>{{ ($record->status === 'on_trip' || $record->status === 'active') ? 'On Trip' : 'Ready (Waiting)' }}</strong>.
+                @else
+                    <strong>Awaiting Admin Verification:</strong> Na-upload ang CEO Signed Document. Pindutin ang <strong>"Verify & Send SMS to Driver"</strong> sa itaas para opisyal na mai-dispatch ang driver at maging Ready / On Trip ang biyahe.
+                @endif
+            </div>
+        </div>
+        <span class="text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full {{ $isVerified ? 'bg-emerald-200 text-emerald-800' : 'bg-amber-200 text-amber-800' }}">
+            {{ $isVerified ? (($record->status === 'on_trip' || $record->status === 'active') ? 'On Trip' : 'Ready (Waiting)') : 'For Admin Review' }}
+        </span>
     </div>
 
     <!-- Document Viewer Container -->
@@ -205,6 +256,76 @@
                 }
             @endif
             window.print();
+        }
+
+        async function verifyAndSendSms(btn, url, driverName, driverPhone) {
+            const isCurrentlyVerified = btn.getAttribute('data-verified') === '1';
+            const confirmMsg = isCurrentlyVerified 
+                ? `Ipadala muli ang SMS dispatch notification kay Driver ${driverName}${driverPhone ? ' (' + driverPhone + ')' : ''}?`
+                : `Kumpirmahin at i-verify ang CEO Signed Document at ipadala ang SMS dispatch kay Driver ${driverName}${driverPhone ? ' (' + driverPhone + ')' : ''}?`;
+
+            if (!confirm(confirmMsg)) return;
+
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `
+                <svg class="animate-spin h-4 w-4 text-white inline-block flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Verifying & Sending SMS...</span>
+            `;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    btn.setAttribute('data-verified', '1');
+                    btn.className = "flex-1 sm:flex-initial bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md cursor-pointer select-none";
+                    btn.innerHTML = `
+                        <svg class="w-4 h-4 flex-shrink-0 text-emerald-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>✅ Verified (Resend SMS)</span>
+                    `;
+                    btn.disabled = false;
+
+                    const alertBox = document.getElementById('statusAlertBox');
+                    if (alertBox) {
+                        alertBox.className = "no-print max-w-[8.5in] w-full mx-auto mb-3 p-3 rounded-xl border flex items-center justify-between text-xs sm:text-sm font-semibold shadow-sm bg-emerald-50 border-emerald-300 text-emerald-900";
+                        alertBox.innerHTML = `
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">✅</span>
+                                <div id="statusAlertText">
+                                    <strong>Verified CEO Document:</strong> Na-verify na ng Admin/GSO ang dokumentong ito at na-dispatch ang SMS sa driver (${driverName}). Status: <strong>${data.status_label}</strong>.
+                                </div>
+                            </div>
+                            <span class="text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-800">
+                                ${data.status_label}
+                            </span>
+                        `;
+                    }
+
+                    alert(`✅ ${data.message}`);
+                } else {
+                    alert('⚠️ ' + (data.message || 'May naganap na error.'));
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Network error: Hindi maipadala ang verification request.');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
         }
     </script>
 

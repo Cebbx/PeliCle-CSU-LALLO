@@ -161,10 +161,41 @@ class TestDataSeeder extends Seeder
                     'status' => $ttStatus,
                 ]);
 
-                // Ensure correct status if completed
+                // Ensure realistic gate tracking and verification
                 if ($status === 'completed') {
-                    $ticket->update(['status' => 'completed']);
-                    $request->update(['status' => 'completed']);
+                    $outTime = Carbon::parse($date . ' 08:15:00');
+                    $inTime = Carbon::parse($date . ' 17:35:00');
+                    $startOdo = rand(42000, 50000);
+                    $endOdo = $startOdo + rand(60, 220);
+
+                    $ticket->update([
+                        'status' => 'completed',
+                        'gate_out_at' => $outTime,
+                        'gate_in_at' => $inTime,
+                        'scanned_by' => 'Edward Cabbat (Security Guard)',
+                        'start_odometer' => $startOdo,
+                        'end_odometer' => $endOdo,
+                        'document_verified_at' => $outTime,
+                    ]);
+                    $request->update([
+                        'status' => 'completed',
+                        'document_verified_at' => $outTime,
+                    ]);
+                } elseif ($status === 'on_trip') {
+                    $outTime = Carbon::parse($date . ' 08:20:00');
+                    $startOdo = rand(42000, 50000);
+
+                    $ticket->update([
+                        'status' => 'active',
+                        'gate_out_at' => $outTime,
+                        'scanned_by' => 'Edward Cabbat (Security Guard)',
+                        'start_odometer' => $startOdo,
+                        'document_verified_at' => $outTime,
+                    ]);
+                    $request->update([
+                        'status' => 'on_trip',
+                        'document_verified_at' => $outTime,
+                    ]);
                 }
 
                 // Note: Withdrawal slips are not seeded automatically to keep transactions clean until created by users.
