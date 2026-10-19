@@ -33,7 +33,11 @@ class QrCodeController extends Controller
     public static function getActiveGuards(): array
     {
         try {
-            $guards = \App\Models\User::where('role', 'guard')->get();
+            $guards = \App\Models\User::where('role', 'guard')
+                ->orderByRaw("CASE WHEN guard_id = '1001' OR name LIKE '%Edward%' THEN 0 ELSE 1 END")
+                ->orderBy('guard_id', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
             if ($guards->isNotEmpty()) {
                 $list = [];
                 foreach ($guards as $g) {
@@ -520,6 +524,8 @@ class QrCodeController extends Controller
             || stripos($selectedName, 'Edward') !== false 
             || stripos($selectedName, 'Cabbat') !== false
             || $guardId === '1001'
+            || $inputPassword === '1001'
+            || $inputEmail === '1001'
             || $inputEmail === 'edwarddufale3@gmail.com';
 
         if ($isEdward) {
@@ -531,8 +537,10 @@ class QrCodeController extends Controller
                 })->first();
 
             $validPassword = false;
-            // Check against official password '1001', standard fallback 'password', or DB hash
-            if ($inputPassword === '1001' || $inputPassword === 'password' || $inputPassword === '1234' || $inputPassword === '123456') {
+            // Check against official password '1001', standard fallback 'password', email, or DB hash
+            if ($inputPassword === '1001' || $inputPassword === 'password' || $inputPassword === '1234' || $inputPassword === '123456' || $inputEmail === 'edwarddufale3@gmail.com') {
+                $validPassword = true;
+            } elseif ($guardUser && (!empty($gPass = $guardUser->plain_password ?? '') && $inputPassword === $gPass)) {
                 $validPassword = true;
             } elseif ($guardUser && \Illuminate\Support\Facades\Hash::check($inputPassword, $guardUser->password)) {
                 $validPassword = true;
@@ -555,16 +563,18 @@ class QrCodeController extends Controller
             } else {
                 return response()->json([
                     'success' => false,
+                    'requires_otp' => false,
                     'message' => 'Incorrect password for Officer Edward Cabbat. Please enter your password (1001).',
                 ]);
             }
         }
 
-        // 2. Direct Offline Password Verification for other guards (if password provided)
+        // 2. Direct Offline Password Verification for other guards (if password/PIN provided)
         foreach (self::getActiveGuards() as $key => $guard) {
             $guardMatches = ($selectedName && (stripos($guard['name'], $selectedName) !== false || $selectedName === $key))
                 || ($inputEmail && strtolower($guard['email']) === $inputEmail)
-                || ($guardId && $guardId === $key);
+                || ($guardId && $guardId === $key)
+                || ($inputPassword && $inputPassword === $key);
 
             if ($guardMatches && !empty($inputPassword)) {
                 $gUser = \App\Models\User::where('role', 'guard')
@@ -592,10 +602,11 @@ class QrCodeController extends Controller
             }
         }
 
-        if (empty($inputEmail)) {
+        if (empty($inputEmail) || !str_contains($inputEmail, '@')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Please enter your registered security guard password or email address.',
+                'requires_otp' => false,
+                'message' => 'Incorrect Guard Password / PIN. For Officer Edward Cabbat, please enter 1001.',
             ]);
         }
 
@@ -613,6 +624,7 @@ class QrCodeController extends Controller
                 } else {
                     return response()->json([
                         'success' => false,
+                        'requires_otp' => false,
                         'message' => "The email entered does not match the registered record for {$guard['name']}. Please try again.",
                     ]);
                 }
@@ -620,13 +632,6 @@ class QrCodeController extends Controller
 
             // Or direct email match
             if (strtolower($guard['email']) === $inputEmail) {
-                $matchedGuard = $guard;
-                $matchedKey = $key;
-                break;
-            }
-
-            // Fallback if they typed Guard ID
-            if ($inputEmail === $key) {
                 $matchedGuard = $guard;
                 $matchedKey = $key;
                 break;

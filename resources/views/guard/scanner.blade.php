@@ -114,6 +114,11 @@
                         <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2 text-left">Select Officer on Duty:</span>
                         @php
                             $guardsList = $activeGuards ?? \App\Http\Controllers\QrCodeController::getActiveGuards();
+                            uksort($guardsList, function ($a, $b) use ($guardsList) {
+                                $aEd = ($a == '1001' || stripos($guardsList[$a]['name'] ?? '', 'Edward') !== false) ? 0 : 1;
+                                $bEd = ($b == '1001' || stripos($guardsList[$b]['name'] ?? '', 'Edward') !== false) ? 0 : 1;
+                                return $aEd <=> $bEd ?: strcmp((string) $a, (string) $b);
+                            });
                             $firstGuard = reset($guardsList);
                             $firstGuardName = $firstGuard['name'] ?? 'Edward Cabbat';
                             $firstGuardEmail = $firstGuard['email'] ?? 'edwarddufale3@gmail.com';
