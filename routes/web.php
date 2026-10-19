@@ -142,10 +142,22 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
                 ];
             });
 
+        $unreadCount = $user->unreadNotifications()->count();
+
+        $stateParts = [
+            'vr:' . \App\Models\VehicleRequest::count() . ':' . (\App\Models\VehicleRequest::max('updated_at') ?? '0'),
+            'tt:' . \App\Models\TripTicket::count() . ':' . (\App\Models\TripTicket::max('updated_at') ?? '0'),
+            'ws:' . \App\Models\WithdrawalSlip::count() . ':' . (\App\Models\WithdrawalSlip::max('updated_at') ?? '0'),
+            'dr:' . \App\Models\Driver::count() . ':' . (\App\Models\Driver::max('updated_at') ?? '0'),
+            'vh:' . \App\Models\Vehicle::count() . ':' . (\App\Models\Vehicle::max('updated_at') ?? '0'),
+            'un:' . $unreadCount,
+        ];
+
         return response()->json([
             'user_id' => $user->id,
             'role' => $user->role,
-            'count' => $user->unreadNotifications()->count(),
+            'count' => $unreadCount,
+            'state_hash' => md5(implode('|', $stateParts)),
             'latest' => $unread->first(),
             'unread' => $unread,
         ]);

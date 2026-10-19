@@ -654,6 +654,54 @@
         let isFirstCheck = true;
         let isChecking = false;
         let lastChimeTime = 0;
+        let lastStateHash = null;
+        let pendingLivewireRefresh = false;
+
+        function isElementVisible(el) {
+            if (!el) return false;
+            const style = window.getComputedStyle(el);
+            if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0) {
+                return false;
+            }
+            const rect = el.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0;
+        }
+
+        function canSafelyRefreshLivewire() {
+            if (document.hidden || !window.Livewire) return false;
+
+            const path = window.location.pathname;
+            if (path.includes('/login') || path.includes('/create') || path.includes('/edit')) {
+                return false;
+            }
+
+            const activeEl = document.activeElement;
+            const isTyping = Boolean(activeEl && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName));
+            if (isTyping) return false;
+
+            const hasOpenModal = Array.from(
+                document.querySelectorAll('.fi-modal-window, .fi-modal.fi-modal-open, [role="dialog"]')
+            ).some(isElementVisible);
+            if (hasOpenModal) return false;
+
+            const hasOpenDropdown = Array.from(
+                document.querySelectorAll('.fi-dropdown-panel')
+            ).some(isElementVisible);
+            if (hasOpenDropdown) return false;
+
+            return true;
+        }
+
+        function triggerSafeLivewireRefresh() {
+            if (canSafelyRefreshLivewire()) {
+                try {
+                    Livewire.dispatch('$refresh');
+                    pendingLivewireRefresh = false;
+                } catch (err) {}
+            } else {
+                pendingLivewireRefresh = true;
+            }
+        }
 
         function playChimeWithThrottle(isEmergency) {
             const now = Date.now();
@@ -678,6 +726,15 @@
                 const data = await res.json();
                 const currentCount = parseInt(data.count, 10) || 0;
                 const unreadList = Array.isArray(data.unread) ? data.unread : [];
+                const incomingHash = data.state_hash || null;
+
+                // Track database state hash for automatic table & widget refresh
+                if (incomingHash) {
+                    if (lastStateHash !== null && lastStateHash !== incomingHash) {
+                        pendingLivewireRefresh = true;
+                    }
+                    lastStateHash = incomingHash;
+                }
 
                 // Update tab title with unread count
                 if (currentCount > 0) {
@@ -737,27 +794,13 @@
                     showDesktopNotification(alertItem.title, alertItem.body);
                     showFloatingToast(alertItem);
 
-                    // Safe Live Sync: only refresh Livewire if tab is currently visible
-                    if (!document.hidden) {
-                        const isTyping = Boolean(document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName));
-                        const hasOpenModal = Boolean(document.querySelector('.fi-modal-window:not([hidden])') || document.querySelector('[role="dialog"]:not([hidden])'));
-                        const hasOpenDropdown = Boolean(document.querySelector('.fi-dropdown-panel') || document.querySelector('[aria-expanded="true"]'));
-                        const isActionButtonActive = Boolean(document.activeElement && document.activeElement.closest('.fi-ta-actions, .fi-ac-action, .fi-btn'));
-                        const hasFormOnPage = Boolean(
-                            document.querySelector('.fi-form') ||
-                            document.querySelector('.fi-fo-field-wrp') ||
-                            window.location.pathname.includes('/create') ||
-                            window.location.pathname.includes('/edit')
-                        );
-
-                        if (window.Livewire && !isTyping && !hasOpenModal && !hasOpenDropdown && !isActionButtonActive && !hasFormOnPage && !window.location.pathname.includes('/login')) {
-                            try {
-                                Livewire.dispatch('$refresh');
-                            } catch (err) {}
-                        }
-                    }
+                    pendingLivewireRefresh = true;
                 } else {
                     saveSeenNotifIds();
+                }
+
+                if (pendingLivewireRefresh) {
+                    triggerSafeLivewireRefresh();
                 }
             } catch (err) {
                 // Ignore network errors
@@ -773,9 +816,9 @@
         window.addEventListener('resize', ensureBadgePosition, { passive: true });
         document.addEventListener('livewire:navigated', ensureBadgePosition);
 
-        // Live notification polling every 5 seconds (snappy, background-capable, zero UI lag)
+        // Live notification & table state polling every 3.5 seconds (snappy, background-capable, zero UI lag)
         setTimeout(checkLiveNotifications, 800);
-        setInterval(checkLiveNotifications, 5000);
+        setInterval(checkLiveNotifications, 3500);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 ensureBadgePosition();
