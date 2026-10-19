@@ -447,20 +447,14 @@ class TripTicket extends Model
                 if ($this->id && in_array($this->id, static::$smsDispatchedTicketIds, true)) {
                     return;
                 }
-                $alreadySent = \App\Models\SmsLog::where('driver_id', $this->driver->id)
+                $recentlySent = \App\Models\SmsLog::where('driver_id', $this->driver->id)
                     ->where('message', 'like', "%Trip ID: {$this->ticket_number}%")
                     ->where('message', 'like', '%NEW TRIP ASSIGNED%')
+                    ->where('created_at', '>=', now()->subSeconds(15))
                     ->exists();
-                if ($alreadySent) {
-                    if ($this->id) {
-                        static::$smsDispatchedTicketIds[] = $this->id;
-                    }
+                if ($recentlySent) {
                     return;
                 }
-            }
-
-            if ($this->id && !in_array($this->id, static::$smsDispatchedTicketIds, true)) {
-                static::$smsDispatchedTicketIds[] = $this->id;
             }
 
             $driverName = $this->driver->name;
@@ -498,8 +492,11 @@ class TripTicket extends Model
                         . "Please check PeliCle portal\n"
                         . "using License ID: {$driverLicense}";
 
-            // Send SMS via our SMS Service (handles Semaphore API and database logs)
-            \App\Services\SmsService::send($this->driver, $smsMessage);
+            // Send SMS via our SMS Service (handles TextBee / Semaphore API and database logs)
+            $dispatched = \App\Services\SmsService::send($this->driver, $smsMessage);
+            if ($dispatched && $this->id && !in_array($this->id, static::$smsDispatchedTicketIds, true)) {
+                static::$smsDispatchedTicketIds[] = $this->id;
+            }
         }
     }
 
