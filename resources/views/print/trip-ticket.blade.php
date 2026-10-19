@@ -217,7 +217,27 @@
                     <td class="p-1.5 sm:p-2 font-bold">Purpose/s:</td>
                     <td class="p-1.5 sm:p-2" colspan="3">
                         @php
-                            $purposes = $allRequests->pluck('purpose')->filter()->unique()->values();
+                            $deptShortMap = [
+                                'college of agriculture' => 'COA',
+                                'college of hospitality management' => 'CHM',
+                                'college of information and computing sciences' => 'CICS',
+                                'college of teacher education' => 'CTE',
+                                'human resource management office' => 'HRMO',
+                                'management information system office' => 'MIS',
+                                'department of military science and tactics office' => 'DMST',
+                            ];
+                            $purposes = $allRequests->map(function ($req) use ($deptShortMap) {
+                                $p = trim($req->purpose ?? '');
+                                if ($p === '') {
+                                    return null;
+                                }
+                                $rawDept = trim($req->department ?? '');
+                                $dept = $deptShortMap[strtolower($rawDept)] ?? $rawDept;
+                                if ($dept !== '' && stripos($p, $dept) !== 0) {
+                                    return "{$dept} {$p}";
+                                }
+                                return $p;
+                            })->filter()->unique()->values();
                         @endphp
                         <span class="text-black font-medium">
                             {{ $purposes->isNotEmpty() ? $purposes->join('; ') : ($ticket->vehicleRequest?->purpose ?? 'N/A') }}
