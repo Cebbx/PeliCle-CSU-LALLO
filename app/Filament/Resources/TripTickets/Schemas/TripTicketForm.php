@@ -555,17 +555,9 @@ class TripTicketForm
                     ->nullable()
                     ->placeholder('Select a driver (Optional - can be assigned later)'),
 
-                Select::make('status')
-                    ->options([
-                        'pending' => 'Pending',
-                        'active' => 'On Trip',
-                        'completed' => 'Completed',
-                        'cancelled' => 'Cancelled',
-                    ])
-                    ->required()
+                Hidden::make('status')
                     ->default('pending')
-                    ->dehydrated()
-                    ->hidden(fn (string $operation) => $operation === 'create'),
+                    ->dehydrated(),
 
                 \Filament\Forms\Components\Placeholder::make('qr_code')
                     ->label('Trip Completion QR Code')
