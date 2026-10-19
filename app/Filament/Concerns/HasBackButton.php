@@ -12,7 +12,8 @@ trait HasBackButton
             ->label('Back')
             ->icon('heroicon-m-arrow-left')
             ->color('gray')
-            ->url(fn () => static::getResource()::getUrl('index'));
+            ->url(fn () => static::getResource()::getUrl('index'))
+            ->visible(fn () => $this instanceof \Filament\Resources\Pages\ViewRecord);
     }
 
     protected function getCancelFormAction(): Action
