@@ -301,7 +301,7 @@
         }
     </style>
 
-    <div class="employee-dashboard-container" wire:poll.15s>
+    <div class="employee-dashboard-container" wire:poll.5s>
         
         <!-- Welcome banner -->
         <div class="welcome-banner">

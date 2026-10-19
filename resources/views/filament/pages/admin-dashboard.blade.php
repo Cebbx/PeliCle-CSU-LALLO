@@ -627,7 +627,7 @@
         }
     </style>
 
-    <div class="dashboard-wrapper" wire:poll.15s x-data="{ showTravelersModal: false, showTransactionsModal: false }">
+    <div class="dashboard-wrapper" wire:poll.5s x-data="{ showTravelersModal: false, showTransactionsModal: false }">
 
         <!-- Top Greeting Header with Quick Actions -->
         <div class="dash-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;">

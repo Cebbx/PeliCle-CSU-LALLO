@@ -150,6 +150,8 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
             'ws:' . \App\Models\WithdrawalSlip::count() . ':' . (\App\Models\WithdrawalSlip::max('updated_at') ?? '0'),
             'dr:' . \App\Models\Driver::count() . ':' . (\App\Models\Driver::max('updated_at') ?? '0'),
             'vh:' . \App\Models\Vehicle::count() . ':' . (\App\Models\Vehicle::max('updated_at') ?? '0'),
+            'al:' . \App\Models\ActivityLog::count() . ':' . (\App\Models\ActivityLog::max('id') ?? '0'),
+            'sm:' . \App\Models\SmsLog::count() . ':' . (\App\Models\SmsLog::max('id') ?? '0'),
             'un:' . $unreadCount,
         ];
 

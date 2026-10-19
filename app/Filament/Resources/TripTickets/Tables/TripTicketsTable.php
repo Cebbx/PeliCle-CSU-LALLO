@@ -15,6 +15,7 @@ class TripTicketsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->poll('5s')
             ->columns([
                 TextColumn::make('ticket_number')
                     ->searchable(),

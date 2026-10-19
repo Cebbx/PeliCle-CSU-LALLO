@@ -695,7 +695,20 @@
         function triggerSafeLivewireRefresh() {
             if (canSafelyRefreshLivewire()) {
                 try {
-                    Livewire.dispatch('$refresh');
+                    if (window.Livewire && typeof window.Livewire.all === 'function') {
+                        window.Livewire.all().forEach(comp => {
+                            try {
+                                if (comp && comp.$wire && typeof comp.$wire.$refresh === 'function') {
+                                    comp.$wire.$refresh();
+                                } else if (typeof window.Livewire.fireAction === 'function' && comp) {
+                                    window.Livewire.fireAction(comp, '$refresh');
+                                }
+                            } catch (e) {}
+                        });
+                    }
+                    if (window.Livewire && typeof window.Livewire.dispatch === 'function') {
+                        window.Livewire.dispatch('$refresh');
+                    }
                     pendingLivewireRefresh = false;
                 } catch (err) {}
             } else {
@@ -816,9 +829,9 @@
         window.addEventListener('resize', ensureBadgePosition, { passive: true });
         document.addEventListener('livewire:navigated', ensureBadgePosition);
 
-        // Live notification & table state polling every 3.5 seconds (snappy, background-capable, zero UI lag)
+        // Live notification & table state polling every 2.5 seconds (snappy, background-capable, zero UI lag)
         setTimeout(checkLiveNotifications, 800);
-        setInterval(checkLiveNotifications, 3500);
+        setInterval(checkLiveNotifications, 2500);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 ensureBadgePosition();

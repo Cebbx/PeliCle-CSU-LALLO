@@ -514,7 +514,7 @@
         }
     </style>
 
-    <div class="driver-dashboard-container">
+    <div class="driver-dashboard-container" wire:poll.5s>
         
         <!-- Welcome Hero Banner -->
         <div class="hero-banner">

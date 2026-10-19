@@ -20,6 +20,7 @@ class DriversTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->poll('5s')
             ->modifyQueryUsing(fn ($query) => $query->with([
                 'tripTickets' => fn ($tq) => $tq->where('status', 'active')->with(['vehicleRequest', 'vehicleRequests']),
             ]))
