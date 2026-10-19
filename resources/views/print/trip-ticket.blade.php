@@ -226,25 +226,29 @@
                                 'management information system office' => 'MIS',
                                 'department of military science and tactics office' => 'DMST',
                             ];
-                            $purposes = $allRequests->map(function ($req) use ($deptShortMap) {
-                                $p = trim($req->purpose ?? '');
-                                if ($p === '') {
-                                    return null;
-                                }
-                                $rawDept = trim($req->department ?? '');
-                                $dept = $deptShortMap[strtolower($rawDept)] ?? $rawDept;
-                                if ($dept !== '' && stripos($p, $dept) !== 0) {
-                                    return "{$dept} {$p}";
-                                }
-                                return $p;
-                            })->filter()->unique()->values();
                         @endphp
-                        <span class="text-black font-medium">
-                            {{ $purposes->isNotEmpty() ? $purposes->join('; ') : ($ticket->vehicleRequest?->purpose ?? 'N/A') }}
-                        </span>
-                        @if($hasAnyUrgent)
-                            <span class="ml-1.5 px-1 py-0.2 text-[8px] sm:text-[9px] font-bold text-red-600 border border-red-500 rounded uppercase">Priority: Urgent</span>
-                        @endif
+                        <div class="space-y-1">
+                            @foreach($allRequests as $req)
+                                @php
+                                    $rawDept = trim($req->department ?? '');
+                                    $dept = $deptShortMap[strtolower($rawDept)] ?? ($rawDept ?: 'N/A');
+                                    if (preg_match('/^([A-Z0-9\-]+)\s*\(/i', $dept, $m)) {
+                                        $dept = strtoupper($m[1]);
+                                    }
+                                @endphp
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-bold text-black uppercase text-[9px] bg-white px-1.5 py-0.2 rounded border border-black">
+                                        {{ $dept }}
+                                    </span>
+                                    <span class="font-semibold text-black text-[10px] sm:text-xs">
+                                        {{ $req->purpose ?: 'N/A' }}
+                                    </span>
+                                    @if($req->is_urgent)
+                                        <span class="ml-1 px-1 py-0.2 text-[7px] sm:text-[8px] font-bold text-red-600 border border-red-500 rounded uppercase">Urgent</span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
                     </td>
                 </tr>
             </tbody>
