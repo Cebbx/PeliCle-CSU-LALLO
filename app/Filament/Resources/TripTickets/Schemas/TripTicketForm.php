@@ -345,36 +345,48 @@ class TripTicketForm
                     })
                     ->label('Vehicle')
                     ->disableOptionWhen(function (string $value, callable $get, ?TripTicket $record) {
-                        $activeVehicles = TripTicket::where('status', 'active')
-                            ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
-                            ->pluck('vehicle')
-                            ->filter()
-                            ->map(function ($v) {
-                                if (str_contains($v, ' - ')) {
-                                    $parts = explode(' - ', $v);
-                                    return trim(end($parts));
-                                }
-                                return trim($v);
-                            })
-                            ->toArray();
+                        static $vehStateCache = [];
+                        $requestId = $get('vehicle_request_id') ?: 'none';
+                        $recId = $record?->id ?? 0;
+                        $cacheKey = "{$requestId}_{$recId}";
 
-                        $requestId = $get('vehicle_request_id');
-                        $travelDate = $requestId ? VehicleRequest::where('id', $requestId)->value('date') : null;
-
-                        $isScheduled = false;
-                        if ($travelDate) {
-                            $isScheduled = TripTicket::where(function ($q) use ($value) {
-                                    $q->where('vehicle', 'like', '%' . $value . '%');
-                                })
-                                ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                ->whereIn('status', ['pending', 'active'])
+                        if (!isset($vehStateCache[$cacheKey])) {
+                            $travelDate = $requestId !== 'none' ? VehicleRequest::where('id', $requestId)->value('date') : null;
+                            $activeVehicles = TripTicket::where('status', 'active')
                                 ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
-                                ->exists();
+                                ->pluck('vehicle')
+                                ->filter()
+                                ->map(fn ($v) => str_contains($v, ' - ') ? trim(end(explode(' - ', $v))) : trim($v))
+                                ->toArray();
+
+                            $scheduledVehicles = [];
+                            if ($travelDate) {
+                                $scheduledVehicles = TripTicket::whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
+                                    ->whereIn('status', ['pending', 'active'])
+                                    ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                                    ->pluck('vehicle')
+                                    ->filter()
+                                    ->toArray();
+                            }
+
+                            $vehStateCache[$cacheKey] = [
+                                'vehicles' => \App\Models\Vehicle::all()->keyBy('plate_number'),
+                                'active' => $activeVehicles,
+                                'scheduled' => $scheduledVehicles,
+                            ];
                         }
 
-                        $dbVehicle = \App\Models\Vehicle::where('plate_number', $value)->first();
+                        $state = $vehStateCache[$cacheKey];
+                        $dbVehicle = $state['vehicles'][$value] ?? null;
                         $isMaintenance = $dbVehicle && $dbVehicle->status === 'maintenance';
-                        $isOnTrip = ($dbVehicle && $dbVehicle->status === 'on_trip') || in_array($value, $activeVehicles);
+                        $isOnTrip = ($dbVehicle && $dbVehicle->status === 'on_trip') || in_array($value, $state['active']);
+                        $isScheduled = false;
+                        foreach ($state['scheduled'] as $sV) {
+                            if (str_contains($sV, $value)) {
+                                $isScheduled = true;
+                                break;
+                            }
+                        }
 
                         return $isOnTrip || $isMaintenance || $isScheduled;
                     })
@@ -432,17 +444,27 @@ class TripTicketForm
                         return $query;
                     })
                     ->getOptionLabelFromRecordUsing(function ($record, callable $get, ?TripTicket $ticketRecord) {
-                        $requestId = $get('vehicle_request_id');
-                        $travelDate = $requestId ? VehicleRequest::where('id', $requestId)->value('date') : null;
+                        static $drvLabelCache = [];
+                        $requestId = $get('vehicle_request_id') ?: 'none';
+                        $recId = $ticketRecord?->id ?? 0;
+                        $cacheKey = "{$requestId}_{$recId}";
 
-                        $isScheduled = false;
-                        if ($travelDate) {
-                            $isScheduled = TripTicket::where('driver_id', $record->id)
-                                ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                ->whereIn('status', ['pending', 'active'])
-                                ->when($ticketRecord, fn ($q) => $q->where('id', '!=', $ticketRecord->id))
-                                ->exists();
+                        if (!isset($drvLabelCache[$cacheKey])) {
+                            $travelDate = $requestId !== 'none' ? VehicleRequest::where('id', $requestId)->value('date') : null;
+                            $scheduledIds = [];
+                            if ($travelDate) {
+                                $scheduledIds = TripTicket::whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
+                                    ->whereIn('status', ['pending', 'active'])
+                                    ->when($ticketRecord, fn ($q) => $q->where('id', '!=', $ticketRecord->id))
+                                    ->pluck('driver_id')
+                                    ->filter()
+                                    ->map(fn ($id) => (int) $id)
+                                    ->toArray();
+                            }
+                            $drvLabelCache[$cacheKey] = $scheduledIds;
                         }
+
+                        $isScheduled = in_array((int) $record->id, $drvLabelCache[$cacheKey], true);
 
                         if (in_array($record->status, ['off_duty', 'unavailable'])) {
                             return "{$record->name} (Off Duty)";
@@ -454,21 +476,34 @@ class TripTicketForm
                         return $record->name;
                     })
                     ->disableOptionWhen(function (string $value, callable $get, ?TripTicket $record) {
-                        $requestId = $get('vehicle_request_id');
-                        $travelDate = $requestId ? VehicleRequest::where('id', $requestId)->value('date') : null;
+                        static $drvDisableCache = [];
+                        $requestId = $get('vehicle_request_id') ?: 'none';
+                        $recId = $record?->id ?? 0;
+                        $cacheKey = "{$requestId}_{$recId}";
 
-                        $isScheduled = false;
-                        if ($travelDate) {
-                            $isScheduled = TripTicket::where('driver_id', $value)
-                                ->whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
-                                ->whereIn('status', ['pending', 'active'])
-                                ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
-                                ->exists();
+                        if (!isset($drvDisableCache[$cacheKey])) {
+                            $travelDate = $requestId !== 'none' ? VehicleRequest::where('id', $requestId)->value('date') : null;
+                            $scheduledIds = [];
+                            if ($travelDate) {
+                                $scheduledIds = TripTicket::whereHas('vehicleRequest', fn ($q) => $q->where('date', $travelDate))
+                                    ->whereIn('status', ['pending', 'active'])
+                                    ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                                    ->pluck('driver_id')
+                                    ->filter()
+                                    ->map(fn ($id) => (int) $id)
+                                    ->toArray();
+                            }
+                            $drvDisableCache[$cacheKey] = [
+                                'drivers' => \App\Models\Driver::all()->keyBy('id'),
+                                'scheduled' => $scheduledIds,
+                            ];
                         }
 
-                        $isOffDuty = \App\Models\Driver::where('id', $value)->whereIn('status', ['off_duty', 'unavailable'])->exists();
-                        $isOnTrip = \App\Models\Driver::where('id', $value)->where('status', 'on_trip')->exists() 
-                            && (!$record || $record->driver_id != $value);
+                        $state = $drvDisableCache[$cacheKey];
+                        $drv = $state['drivers'][(int) $value] ?? null;
+                        $isScheduled = in_array((int) $value, $state['scheduled'], true);
+                        $isOffDuty = $drv && in_array($drv->status, ['off_duty', 'unavailable']);
+                        $isOnTrip = $drv && $drv->status === 'on_trip' && (!$record || (int) $record->driver_id !== (int) $value);
 
                         return $isScheduled || $isOnTrip || $isOffDuty;
                     })

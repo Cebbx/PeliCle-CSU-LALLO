@@ -19,7 +19,8 @@ class WithdrawalSlipsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('5s')
+            ->poll('10s')
+            ->modifyQueryUsing(fn ($query) => $query->with(['tripTicket.driver']))
             ->columns([
                 TextColumn::make('slip_number')
                     ->searchable()

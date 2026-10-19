@@ -14,7 +14,7 @@ class VehiclesTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('5s')
+            ->poll('10s')
             ->columns([
                 TextColumn::make('plate_number')
                     ->searchable()

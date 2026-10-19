@@ -16,7 +16,8 @@ class VehicleRequestsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('5s')
+            ->poll('10s')
+            ->modifyQueryUsing(fn ($query) => $query->with(['tripTicket.vehicleRequest', 'tripTicket.vehicleRequests']))
             ->columns([
                 TextColumn::make('request_number')
                     ->label('Vehicle Request')
@@ -185,7 +186,7 @@ class VehicleRequestsTable
                         })
                         ->icon('heroicon-o-user-group')
                         ->color('primary')
-                        ->visible(fn ($record) => !$record->trashed() && !$record->tripTicket()->exists() && in_array($record->status, ['pending', 'approved']) && \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record) !== null)
+                        ->visible(fn ($record) => !$record->trashed() && $record->tripTicket === null && in_array($record->status, ['pending', 'approved']) && \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record) !== null)
                         ->url(function ($record) {
                             $ticket = \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record);
                             if (!$ticket) {
@@ -200,7 +201,7 @@ class VehicleRequestsTable
                         ->label('Approve & Ticket')
                         ->icon('heroicon-o-ticket')
                         ->color('success')
-                        ->visible(fn ($record) => !$record->trashed() && !$record->tripTicket()->exists() && ($record->status === 'pending' || $record->status === 'approved'))
+                        ->visible(fn ($record) => !$record->trashed() && $record->tripTicket === null && ($record->status === 'pending' || $record->status === 'approved'))
                         ->action(function ($record) {
                             $record->update(['status' => 'approved']);
                         })
@@ -224,7 +225,7 @@ class VehicleRequestsTable
                         ->label('Print Trip Ticket (QR Code)')
                         ->icon('heroicon-o-ticket')
                         ->color('success')
-                        ->visible(fn ($record) => $record->tripTicket()->exists())
+                        ->visible(fn ($record) => $record->tripTicket !== null)
                         ->url(fn ($record) => route('trip-tickets.print', $record->tripTicket->id))
                         ->openUrlInNewTab(),
                     Action::make('upload_document')

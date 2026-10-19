@@ -679,6 +679,11 @@
             const isTyping = Boolean(activeEl && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName));
             if (isTyping) return false;
 
+            const isBusy = Boolean(
+                document.querySelector('form[data-loading], button[data-loading], [aria-busy="true"]')
+            );
+            if (isBusy) return false;
+
             const hasOpenModal = Array.from(
                 document.querySelectorAll('.fi-modal-window, .fi-modal.fi-modal-open, [role="dialog"]')
             ).some(isElementVisible);
@@ -698,6 +703,10 @@
                     if (window.Livewire && typeof window.Livewire.all === 'function') {
                         window.Livewire.all().forEach(comp => {
                             try {
+                                const name = String(comp?.name || '');
+                                if (name.includes('database-notifications') || name.includes('global-search')) {
+                                    return;
+                                }
                                 if (comp && comp.$wire && typeof comp.$wire.$refresh === 'function') {
                                     comp.$wire.$refresh();
                                 } else if (typeof window.Livewire.fireAction === 'function' && comp) {
@@ -705,9 +714,6 @@
                                 }
                             } catch (e) {}
                         });
-                    }
-                    if (window.Livewire && typeof window.Livewire.dispatch === 'function') {
-                        window.Livewire.dispatch('$refresh');
                     }
                     pendingLivewireRefresh = false;
                 } catch (err) {}
@@ -727,7 +733,8 @@
         }
 
         async function checkLiveNotifications() {
-            if (isChecking) return;
+            if (isChecking || document.hidden) return;
+            if (document.querySelector('form[data-loading], button[data-loading], [aria-busy="true"]')) return;
             isChecking = true;
 
             try {

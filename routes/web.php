@@ -144,14 +144,30 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
 
         $unreadCount = $user->unreadNotifications()->count();
 
+        $stateRow = \Illuminate\Support\Facades\DB::selectOne("
+            SELECT
+                (SELECT COUNT(*) FROM vehicle_requests) AS vr_c,
+                (SELECT MAX(updated_at) FROM vehicle_requests) AS vr_u,
+                (SELECT COUNT(*) FROM trip_tickets) AS tt_c,
+                (SELECT MAX(updated_at) FROM trip_tickets) AS tt_u,
+                (SELECT COUNT(*) FROM withdrawal_slips) AS ws_c,
+                (SELECT MAX(updated_at) FROM withdrawal_slips) AS ws_u,
+                (SELECT COUNT(*) FROM drivers) AS dr_c,
+                (SELECT MAX(updated_at) FROM drivers) AS dr_u,
+                (SELECT COUNT(*) FROM vehicles) AS vh_c,
+                (SELECT MAX(updated_at) FROM vehicles) AS vh_u,
+                (SELECT MAX(id) FROM activity_logs) AS al_m,
+                (SELECT MAX(id) FROM sms_logs) AS sm_m
+        ");
+
         $stateParts = [
-            'vr:' . \App\Models\VehicleRequest::count() . ':' . (\App\Models\VehicleRequest::max('updated_at') ?? '0'),
-            'tt:' . \App\Models\TripTicket::count() . ':' . (\App\Models\TripTicket::max('updated_at') ?? '0'),
-            'ws:' . \App\Models\WithdrawalSlip::count() . ':' . (\App\Models\WithdrawalSlip::max('updated_at') ?? '0'),
-            'dr:' . \App\Models\Driver::count() . ':' . (\App\Models\Driver::max('updated_at') ?? '0'),
-            'vh:' . \App\Models\Vehicle::count() . ':' . (\App\Models\Vehicle::max('updated_at') ?? '0'),
-            'al:' . \App\Models\ActivityLog::count() . ':' . (\App\Models\ActivityLog::max('id') ?? '0'),
-            'sm:' . \App\Models\SmsLog::count() . ':' . (\App\Models\SmsLog::max('id') ?? '0'),
+            'vr:' . ($stateRow->vr_c ?? 0) . ':' . ($stateRow->vr_u ?? '0'),
+            'tt:' . ($stateRow->tt_c ?? 0) . ':' . ($stateRow->tt_u ?? '0'),
+            'ws:' . ($stateRow->ws_c ?? 0) . ':' . ($stateRow->ws_u ?? '0'),
+            'dr:' . ($stateRow->dr_c ?? 0) . ':' . ($stateRow->dr_u ?? '0'),
+            'vh:' . ($stateRow->vh_c ?? 0) . ':' . ($stateRow->vh_u ?? '0'),
+            'al:' . ($stateRow->al_m ?? '0'),
+            'sm:' . ($stateRow->sm_m ?? '0'),
             'un:' . $unreadCount,
         ];
 

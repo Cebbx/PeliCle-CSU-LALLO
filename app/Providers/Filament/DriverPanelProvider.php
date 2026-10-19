@@ -39,7 +39,7 @@ class DriverPanelProvider extends PanelProvider
             ->favicon('/csu-logo-sm.png')
             ->font('Outfit')
             ->databaseNotifications()
-            ->databaseNotificationsPolling('30s')
+            ->databaseNotificationsPolling(null)
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn () => new \Illuminate\Support\HtmlString('

@@ -19,7 +19,8 @@ class SmsLogsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('5s')
+            ->poll('10s')
+            ->modifyQueryUsing(fn ($query) => $query->with(['driver']))
             ->columns([
                 TextColumn::make('driver.name')
                     ->label('Recipient Driver')

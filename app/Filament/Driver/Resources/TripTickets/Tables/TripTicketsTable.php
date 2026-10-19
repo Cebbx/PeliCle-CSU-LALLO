@@ -13,7 +13,8 @@ class TripTicketsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('5s')
+            ->poll('10s')
+            ->modifyQueryUsing(fn ($query) => $query->with(['vehicleRequest', 'vehicleRequests', 'driver']))
             ->columns([
                 TextColumn::make('ticket_number')
                     ->label('Trip ID')

@@ -16,7 +16,7 @@ class ActivityLogsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('5s')
+            ->poll('10s')
             ->columns([
                 TextColumn::make('user_name')
                     ->label('User')

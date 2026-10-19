@@ -18,7 +18,7 @@ class SecurityGuardsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('5s')
+            ->poll('10s')
             ->columns([
                 TextColumn::make('guard_id')
                     ->label('Badge ID')

@@ -17,7 +17,8 @@ class VehicleRequestsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('5s')
+            ->poll('10s')
+            ->modifyQueryUsing(fn ($query) => $query->with(['tripTicket.vehicleRequest', 'tripTicket.vehicleRequests', 'tripTicket.driver']))
             ->columns([
                 TextColumn::make('request_number')
                     ->label('Control No.')
@@ -197,7 +198,7 @@ class VehicleRequestsTable
                         ->label('Print Trip Ticket (QR Code)')
                         ->icon('heroicon-o-ticket')
                         ->color('success')
-                        ->visible(fn ($record) => $record->tripTicket()->exists() && empty($record->document) && empty($record->tripTicket?->document))
+                        ->visible(fn ($record) => $record->tripTicket !== null && empty($record->document) && empty($record->tripTicket?->document))
                         ->url(fn ($record) => route('trip-tickets.print', $record->tripTicket->id))
                         ->openUrlInNewTab(),
                     Action::make('csu_survey')

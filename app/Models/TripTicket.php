@@ -542,9 +542,20 @@ class TripTicket extends Model
         return $this->hasMany(VehicleRequest::class, 'trip_ticket_id');
     }
 
+    protected static ?\Illuminate\Support\Collection $cachedOpenTickets = null;
+    protected static ?\Illuminate\Support\Collection $cachedActiveCandidateRequests = null;
+
+    public static function clearRequestCache(): void
+    {
+        static::$cachedOpenTickets = null;
+        static::$cachedActiveCandidateRequests = null;
+    }
+
     public function getAllVehicleRequestsAttribute()
     {
-        $requests = $this->vehicleRequests()->get();
+        $requests = $this->relationLoaded('vehicleRequests')
+            ? clone $this->vehicleRequests
+            : $this->vehicleRequests()->get();
         if ($requests->isEmpty() && $this->vehicleRequest) {
             return collect([$this->vehicleRequest]);
         }
@@ -743,6 +754,9 @@ class TripTicket extends Model
         }
 
         if ($this->id) {
+            if ($this->relationLoaded('vehicleRequests')) {
+                return $this->vehicleRequests->contains(fn ($r) => !empty($r->document));
+            }
             return $this->vehicleRequests()
                 ->whereNotNull('document')
                 ->where('document', '!=', '')
@@ -758,26 +772,31 @@ class TripTicket extends Model
      */
     public function getCompatibleCompanionCandidates(): \Illuminate\Support\Collection
     {
-        $primaryReq = $this->vehicleRequest ?? ($this->id ? $this->vehicleRequests()->first() : null);
+        $primaryReq = $this->vehicleRequest ?? ($this->relationLoaded('vehicleRequests') ? $this->vehicleRequests->first() : ($this->id ? $this->vehicleRequests()->first() : null));
         if (!$primaryReq || empty($primaryReq->date)) {
             return collect();
         }
 
-        $candidates = VehicleRequest::whereIn('status', ['pending', 'approved'])
-            ->where('id', '!=', $primaryReq->id)
-            ->whereDate('date', $primaryReq->date)
-            ->where(function ($q) {
-                $q->whereNull('trip_ticket_id');
-                if ($this->id) {
-                    $q->orWhere('trip_ticket_id', $this->id);
-                }
-            })
-            ->latest('id')
-            ->get();
+        if (static::$cachedActiveCandidateRequests === null) {
+            static::$cachedActiveCandidateRequests = VehicleRequest::whereIn('status', ['pending', 'approved'])
+                ->latest('id')
+                ->get();
+        }
 
-        return $candidates->filter(function (VehicleRequest $candidate) use ($primaryReq) {
+        $targetDate = \Carbon\Carbon::parse($primaryReq->date)->format('Y-m-d');
+
+        return static::$cachedActiveCandidateRequests->filter(function (VehicleRequest $candidate) use ($primaryReq, $targetDate) {
+            if ((int) $candidate->id === (int) $primaryReq->id || empty($candidate->date)) {
+                return false;
+            }
+            if (\Carbon\Carbon::parse($candidate->date)->format('Y-m-d') !== $targetDate) {
+                return false;
+            }
             if ($this->id && (int) $candidate->trip_ticket_id === (int) $this->id) {
                 return true;
+            }
+            if (!empty($candidate->trip_ticket_id)) {
+                return false;
             }
             return static::getDestinationMatchType($primaryReq->destination, $candidate->destination) !== null;
         })->values();
@@ -785,8 +804,14 @@ class TripTicket extends Model
 
     public function hasCompatibleCarpoolRequests(): bool
     {
-        if ($this->id && $this->vehicleRequests()->where('id', '!=', $this->vehicle_request_id)->exists()) {
-            return true;
+        if ($this->id) {
+            if ($this->relationLoaded('vehicleRequests')) {
+                if ($this->vehicleRequests->contains(fn ($r) => (int) $r->id !== (int) $this->vehicle_request_id)) {
+                    return true;
+                }
+            } elseif ($this->vehicleRequests()->where('id', '!=', $this->vehicle_request_id)->exists()) {
+                return true;
+            }
         }
 
         return $this->getCompatibleCompanionCandidates()->isNotEmpty();
@@ -818,15 +843,19 @@ class TripTicket extends Model
             return null;
         }
 
-        $openTickets = static::with(['vehicleRequest', 'vehicleRequests'])
-            ->where('status', 'pending')
-            ->where(function ($q) {
-                $q->whereNull('document')->orWhere('document', '');
-            })
-            ->latest('id')
-            ->get();
+        if (static::$cachedOpenTickets === null) {
+            static::$cachedOpenTickets = static::with(['vehicleRequest', 'vehicleRequests'])
+                ->where('status', 'pending')
+                ->where(function ($q) {
+                    $q->whereNull('document')->orWhere('document', '');
+                })
+                ->latest('id')
+                ->get();
+        }
 
-        foreach ($openTickets as $ticket) {
+        $dateB = \Carbon\Carbon::parse($request->date)->format('Y-m-d');
+
+        foreach (static::$cachedOpenTickets as $ticket) {
             if ($ticket->hasSignedDocument()) {
                 continue;
             }
@@ -836,7 +865,6 @@ class TripTicket extends Model
             }
 
             $dateA = \Carbon\Carbon::parse($primaryReq->date)->format('Y-m-d');
-            $dateB = \Carbon\Carbon::parse($request->date)->format('Y-m-d');
             if ($dateA !== $dateB) {
                 continue;
             }
