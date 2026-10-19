@@ -234,7 +234,7 @@ class VehicleRequestsTable
                         ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
                         ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Save Document')
-                        ->visible(fn ($record) => !$record->trashed() && in_array($record->status, ['pending', 'approved']) && !$record->document)
+                        ->visible(fn ($record) => !$record->trashed() && $record->status === 'approved' && empty($record->document) && empty($record->tripTicket?->document))
                         ->form([
                             \Filament\Schemas\Components\Tabs::make('document_source')
                                 ->tabs([

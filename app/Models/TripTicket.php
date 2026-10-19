@@ -435,10 +435,10 @@ class TripTicket extends Model
 
     public function sendSmsNotification(bool $forceResend = false): void
     {
-        $this->loadMissing(['driver', 'vehicleRequest', 'vehicleRequests']);
+        $this->load(['driver', 'vehicleRequest', 'vehicleRequests']);
 
         // Do not send automatic SMS if CEO signed document is not uploaded yet
-        if (!$forceResend && empty($this->document) && empty($this->vehicleRequest?->document)) {
+        if (!$forceResend && !$this->hasSignedDocument()) {
             return;
         }
 
