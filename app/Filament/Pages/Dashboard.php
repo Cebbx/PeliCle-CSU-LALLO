@@ -138,7 +138,7 @@ class Dashboard extends BaseDashboard
 
     public function getActiveTripsCount(): int
     {
-        return TripTicket::where('status', 'active')->count();
+        return VehicleRequest::where('status', 'on_trip')->count();
     }
 
     public function getPendingWithdrawalSlipsCount(): int

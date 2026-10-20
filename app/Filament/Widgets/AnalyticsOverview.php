@@ -101,7 +101,8 @@ class AnalyticsOverview extends StatsOverviewWidget
                 ->description("{$completedCount} of {$approvedCount} approved trips finished")
                 ->descriptionIcon('heroicon-m-check-badge')
                 ->chart($completedSparkline)
-                ->color('primary'),
+                ->color('primary')
+                ->url(\App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'completed'])),
         ];
     }
 }

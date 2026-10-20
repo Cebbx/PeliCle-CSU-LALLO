@@ -839,8 +839,8 @@
         <!-- ROW 2: Three Executive Cards (Clickable Links) -->
         <div class="row-grid-3">
             
-            <!-- 1. Active Trips (Links to Trip Tickets) -->
-            <a href="{{ \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('index', ['tab' => 'active']) }}" class="dash-card dash-card-link">
+            <!-- 1. Active Trips (Links to Vehicle Requests On Trip) -->
+            <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'on_trip']) }}" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
                         <div class="card-icon-round bg-icon-blue" style="font-weight: 800; font-size: 11px;">A</div>
@@ -939,7 +939,7 @@
                         <span style="color: #0284c7;">📈</span>
                         <span>Trip Activity (This Week)</span>
                     </div>
-                    <a href="{{ \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('index', ['tab' => 'active']) }}" class="panel-filter-btn">
+                    <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'on_trip']) }}" class="panel-filter-btn">
                         View Trips
                     </a>
                 </div>

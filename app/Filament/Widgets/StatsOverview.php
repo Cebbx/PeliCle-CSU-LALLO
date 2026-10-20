@@ -85,17 +85,13 @@ class StatsOverview extends StatsOverviewWidget
         }
         $approvedRequests = $approvedQuery->count();
 
-        // 3. Active Trips
-        $activeTripsQuery = TripTicket::where('status', 'active');
+        // 3. Active Trips (On Trip)
+        $activeTripsQuery = VehicleRequest::where('status', 'on_trip');
         if ($startDate) {
-            $activeTripsQuery->whereHas('vehicleRequest', function ($q) use ($startDate) {
-                $q->where('date', '>=', $startDate);
-            });
+            $activeTripsQuery->where('date', '>=', $startDate);
         }
         if ($endDate) {
-            $activeTripsQuery->whereHas('vehicleRequest', function ($q) use ($endDate) {
-                $q->where('date', '<=', $endDate);
-            });
+            $activeTripsQuery->where('date', '<=', $endDate);
         }
         if ($filterVehicle) {
             $activeTripsQuery->where('vehicle', 'like', '%' . $filterVehicle . '%');
@@ -155,7 +151,7 @@ class StatsOverview extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-truck')
                 ->chart([1, 2, $activeTrips + 1, $activeTrips])
                 ->color('info')
-                ->url(\App\Filament\Resources\TripTickets\TripTicketResource::getUrl('index', ['tab' => 'active'])),
+                ->url(\App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'on_trip'])),
                 
             Stat::make('Pending Slips', $pendingSlips)
                 ->description('Fuel slips awaiting approval')
