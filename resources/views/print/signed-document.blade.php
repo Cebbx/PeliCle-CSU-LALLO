@@ -127,9 +127,9 @@
             <span class="text-base">{{ $isVerified ? '✅' : '⏳' }}</span>
             <div id="statusAlertText">
                 @if($isVerified)
-                    <strong>Verified CEO Document:</strong> Na-verify na ng Admin/GSO ang dokumentong ito at na-dispatch ang SMS sa driver ({{ $driverName }}). Status: <strong>{{ ($record->status === 'on_trip' || $record->status === 'active') ? 'On Trip' : 'Ready (Waiting)' }}</strong>.
+                    <strong>Verified CEO Document:</strong> This document has been verified by Admin/GSO and SMS dispatch has been sent to Driver ({{ $driverName }}). Trip Status: <strong>{{ ($record->status === 'on_trip' || $record->status === 'active') ? 'On Trip' : 'Ready (Waiting)' }}</strong>.
                 @else
-                    <strong>Awaiting Admin Verification:</strong> Na-upload ang CEO Signed Document. Pindutin ang <strong>"Verify & Send SMS to Driver"</strong> sa itaas para opisyal na mai-dispatch ang driver at maging Ready / On Trip ang biyahe.
+                    <strong>Awaiting Admin Verification:</strong> The CEO-signed document has been uploaded. Click <strong>"Verify & Send SMS to Driver"</strong> above to officially verify the document, dispatch the driver via SMS, and update the trip status.
                 @endif
             </div>
         </div>
@@ -261,8 +261,8 @@
         async function verifyAndSendSms(btn, url, driverName, driverPhone) {
             const isCurrentlyVerified = btn.getAttribute('data-verified') === '1';
             const confirmMsg = isCurrentlyVerified 
-                ? `Ipadala muli ang SMS dispatch notification kay Driver ${driverName}${driverPhone ? ' (' + driverPhone + ')' : ''}?`
-                : `Kumpirmahin at i-verify ang CEO Signed Document at ipadala ang SMS dispatch kay Driver ${driverName}${driverPhone ? ' (' + driverPhone + ')' : ''}?`;
+                ? `Resend the SMS dispatch notification to Driver ${driverName}${driverPhone ? ' (' + driverPhone + ')' : ''}?`
+                : `Confirm and verify this CEO-signed document and dispatch the SMS notification to Driver ${driverName}${driverPhone ? ' (' + driverPhone + ')' : ''}?`;
 
             if (!confirm(confirmMsg)) return;
 
@@ -305,7 +305,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="text-base">✅</span>
                                 <div id="statusAlertText">
-                                    <strong>Verified CEO Document:</strong> Na-verify na ng Admin/GSO ang dokumentong ito at na-dispatch ang SMS sa driver (${driverName}). Status: <strong>${data.status_label}</strong>.
+                                    <strong>Verified CEO Document:</strong> This document has been verified by Admin/GSO and SMS dispatch has been sent to Driver (${driverName}). Trip Status: <strong>${data.status_label}</strong>.
                                 </div>
                             </div>
                             <span class="text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-800">
@@ -316,13 +316,13 @@
 
                     alert(`✅ ${data.message}`);
                 } else {
-                    alert('⚠️ ' + (data.message || 'May naganap na error.'));
+                    alert('⚠️ ' + (data.message || 'An error occurred.'));
                     btn.innerHTML = originalHtml;
                     btn.disabled = false;
                 }
             } catch (err) {
                 console.error(err);
-                alert('Network error: Hindi maipadala ang verification request.');
+                alert('Network error: Unable to submit verification request.');
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
             }
