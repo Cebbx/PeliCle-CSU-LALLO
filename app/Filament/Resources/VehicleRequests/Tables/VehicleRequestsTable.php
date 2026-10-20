@@ -34,20 +34,20 @@ class VehicleRequestsTable
                     ->description(fn ($record) => $record->is_urgent ? '🚨 URGENT' : null),
                 TextColumn::make('employee_name')
                     ->label('Requester')
-                    ->width('105px')
-                    ->limit(13)
+                    ->width('115px')
+                    ->limit(18)
                     ->tooltip(fn ($record) => $record->employee_name)
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('department')
                     ->label('Offices')
-                    ->width('85px')
+                    ->width('80px')
                     ->limit(8)
                     ->tooltip(fn ($record) => $record->department)
                     ->searchable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
-                    ->width('135px')
+                    ->width('105px')
                     ->placeholder('To be assigned')
                     ->default('To be assigned')
                     ->formatStateUsing(function ($state, $record) {
@@ -93,8 +93,9 @@ class VehicleRequestsTable
                     })
                     ->searchable(),
                 TextColumn::make('destination')
-                    ->width('125px')
-                    ->limit(18)
+                    ->label('Destination')
+                    ->width('190px')
+                    ->limit(35)
                     ->tooltip(fn ($record) => $record->destination)
                     ->searchable(),
                 TextColumn::make('date')
