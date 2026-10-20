@@ -23,3 +23,13 @@ services:
         value: file
       - key: QUEUE_CONNECTION
         value: sync
+      - key: LOG_CHANNEL
+        value: daily
+      - key: LOG_DAILY_DAYS
+        value: "7"
+      - key: DB_BUSY_TIMEOUT
+        value: "5000"
+      - key: DB_JOURNAL_MODE
+        value: "wal"
+      - key: DB_SYNCHRONOUS
+        value: "NORMAL"

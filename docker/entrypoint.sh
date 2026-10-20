@@ -47,6 +47,11 @@ mkdir -p /var/www/html/storage/framework/cache/data \
          /var/www/html/storage/logs \
          /var/www/html/database
 
+# Auto-purge old logs and sessions older than 7 days to prevent disk exhaustion
+find /var/www/html/storage/logs -type f -name "*.log" -mtime +7 -delete 2>/dev/null || true
+find /var/www/html/storage/framework/sessions -type f -mtime +7 -delete 2>/dev/null || true
+find /var/www/html/storage/framework/views -type f -mtime +7 -delete 2>/dev/null || true
+
 if [ ! -f /var/www/html/database/database.sqlite ]; then
     touch /var/www/html/database/database.sqlite
 fi
