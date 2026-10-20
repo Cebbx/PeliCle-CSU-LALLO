@@ -92,11 +92,6 @@ class VehicleRequestsTable
                         return $name ? "{$name}{$carpoolNote}" : 'Assigned by GSO Motorpool upon approval';
                     })
                     ->searchable(),
-                TextColumn::make('destination')
-                    ->width('120px')
-                    ->limit(15)
-                    ->tooltip(fn ($record) => $record->destination)
-                    ->searchable(),
                 TextColumn::make('date')
                     ->label('Schedule')
                     ->width('110px')
@@ -113,6 +108,7 @@ class VehicleRequestsTable
                 TextColumn::make('travel_timeline')
                     ->label('Departure & Arrival')
                     ->width('170px')
+                    ->searchable(query: fn ($query, string $search) => $query->where('destination', 'like', "%{$search}%"))
                     ->state(function ($record) {
                         $ticket = $record->tripTicket;
                         if ($ticket?->gate_out_at) {
@@ -153,6 +149,9 @@ class VehicleRequestsTable
                         $ticket = $record->tripTicket;
                         $lines = [];
                         $lines[] = '🧭 Travel Timeline Overview';
+                        if (!empty($record->destination)) {
+                            $lines[] = '📍 Destination: ' . $record->destination;
+                        }
                         if ($ticket?->gate_out_at) {
                             $lines[] = '🛫 Actual Gate Out: ' . \Carbon\Carbon::parse($ticket->gate_out_at)->timezone('Asia/Manila')->format('M d, Y · g:i A');
                             if ($ticket->scanned_by) {
