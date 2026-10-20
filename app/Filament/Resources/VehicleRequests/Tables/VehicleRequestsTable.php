@@ -153,46 +153,7 @@ class VehicleRequestsTable
                         }
                         return '🛬 CSU Return Pending';
                     })
-                    ->tooltip(function ($record) {
-                        $ticket = $record->tripTicket;
-                        $lines = [];
-                        $lines[] = '🧭 Travel Timeline Overview';
-                        if (!empty($record->destination)) {
-                            $lines[] = '📍 Destination: ' . $record->destination;
-                        }
-                        if ($ticket?->gate_out_at) {
-                            $lines[] = '🛫 Actual Gate Out: ' . \Carbon\Carbon::parse($ticket->gate_out_at)->timezone('Asia/Manila')->format('M d, Y · g:i A');
-                            if ($ticket->scanned_by) {
-                                $lines[] = '   Gate Officer: ' . $ticket->scanned_by;
-                            }
-                        } elseif ($record->date) {
-                            $lines[] = '🛫 Sched Departure: ' . \Carbon\Carbon::parse($record->date)->format('M d, Y') . ($record->time ? ' · ' . \Carbon\Carbon::parse($record->time)->format('g:i A') : '');
-                        }
-
-                        if ($ticket?->start_odometer) {
-                            $lines[] = '📟 Initial Odometer: ' . number_format($ticket->start_odometer) . ' km';
-                        }
-
-                        $gateIn = $ticket?->gate_in_at ?: ($record->status === 'completed' && $ticket?->updated_at ? $ticket->updated_at : null);
-                        if ($gateIn) {
-                            $lines[] = '🛬 Actual Arrival (Gate In): ' . \Carbon\Carbon::parse($gateIn)->timezone('Asia/Manila')->format('M d, Y · g:i A');
-                            if ($ticket?->scanned_by) {
-                                $lines[] = '   Gate Guard Officer: ' . $ticket->scanned_by;
-                            }
-                        } elseif ($record->return_date) {
-                            $lines[] = '🛬 Target Return: ' . \Carbon\Carbon::parse($record->return_date)->format('M d, Y') . ($record->return_time ? ' · ' . \Carbon\Carbon::parse($record->return_time)->format('g:i A') : '');
-                        }
-
-                        if ($ticket?->end_odometer) {
-                            $lines[] = '📟 Final Odometer: ' . number_format($ticket->end_odometer) . ' km';
-                            if ($ticket->distance_traveled) {
-                                $lines[] = '🚗 Distance Traveled: ' . number_format($ticket->distance_traveled) . ' km';
-                            }
-                        }
-
-                        $lines[] = '💡 Click row to open complete Travel Timeline tracker';
-                        return implode("\n", $lines);
-                    }),
+                    ->tooltip('Click row to view Travel Timeline & Odometer tracker'),
                 TextColumn::make('odometer')
                     ->label('Odometer')
                     ->width('120px')
