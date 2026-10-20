@@ -115,7 +115,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                         @endif
                     </svg>
-                    <span>{{ $isVerified ? '✅ Verified (Resend SMS)' : '📱 Verify & Send SMS to Driver' }}</span>
+                    <span>{{ $isVerified ? 'Verified (Resend SMS)' : 'Verify & Send SMS to Driver' }}</span>
                 </button>
             @endif
         </div>
@@ -294,7 +294,7 @@
                         <svg class="w-4 h-4 flex-shrink-0 text-emerald-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>✅ Verified (Resend SMS)</span>
+                        <span>Verified (Resend SMS)</span>
                     `;
                     btn.disabled = false;
 
