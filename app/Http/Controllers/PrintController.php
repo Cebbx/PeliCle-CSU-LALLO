@@ -371,8 +371,27 @@ class PrintController extends Controller
         $approvalRate = $totalRequests > 0 ? round(($approvedCount / $totalRequests) * 100, 1) : 0;
         $totalPassengers = $requests->sum('number_of_passengers');
 
-        // Breakdown by department
-        $deptBreakdown = $requests->groupBy('department')->map->count();
+        // Breakdown by department (with completed trips and passenger counts)
+        $deptBreakdown = $requests->groupBy('department')->map(function ($items, $dept) {
+            return [
+                'name' => $dept ?: 'Unspecified Department',
+                'total_requests' => $items->count(),
+                'completed_count' => $items->where('status', 'completed')->count(),
+                'passengers' => $items->sum('number_of_passengers'),
+            ];
+        })->sortByDesc('total_requests');
+
+        // Breakdown by driver (Driver Trip Summary)
+        $driverBreakdown = $requests->groupBy(fn ($r) => $r->tripTicket?->driver?->name ?? 'Unassigned / GSO Driver')
+            ->map(function ($items, $driverName) {
+                return [
+                    'name' => $driverName,
+                    'total_trips' => $items->count(),
+                    'completed_trips' => $items->where('status', 'completed')->count(),
+                    'passengers' => $items->sum('number_of_passengers'),
+                ];
+            })
+            ->sortByDesc('total_trips');
 
         // Breakdown by vehicle
         $vehicleBreakdown = $requests->groupBy('vehicle')->map->count();
@@ -385,6 +404,7 @@ class PrintController extends Controller
             'approvalRate',
             'totalPassengers',
             'deptBreakdown',
+            'driverBreakdown',
             'vehicleBreakdown',
             'startDate',
             'endDate',

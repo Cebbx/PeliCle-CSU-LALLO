@@ -445,6 +445,18 @@ class TripTicketForm
                     })
                     ->getOptionLabelFromRecordUsing(function ($record, callable $get, ?TripTicket $ticketRecord) {
                         static $drvLabelCache = [];
+                        static $driverTripCounts = null;
+
+                        if ($driverTripCounts === null) {
+                            $driverTripCounts = TripTicket::whereMonth('created_at', now()->month)
+                                ->whereYear('created_at', now()->year)
+                                ->whereNotNull('driver_id')
+                                ->groupBy('driver_id')
+                                ->selectRaw('driver_id, count(*) as count')
+                                ->pluck('count', 'driver_id')
+                                ->toArray();
+                        }
+
                         $requestId = $get('vehicle_request_id') ?: 'none';
                         $recId = $ticketRecord?->id ?? 0;
                         $cacheKey = "{$requestId}_{$recId}";
@@ -465,15 +477,17 @@ class TripTicketForm
                         }
 
                         $isScheduled = in_array((int) $record->id, $drvLabelCache[$cacheKey], true);
+                        $count = $driverTripCounts[$record->id] ?? 0;
+                        $tripText = $count === 1 ? '1 trip this month' : "{$count} trips this month";
 
                         if (in_array($record->status, ['off_duty', 'unavailable'])) {
-                            return "{$record->name} (Off Duty)";
+                            return "{$record->name} (Off Duty • {$tripText})";
                         } elseif ($record->status === 'on_trip') {
-                            return "{$record->name} (On Trip)";
+                            return "{$record->name} (On Trip • {$tripText})";
                         } elseif ($isScheduled) {
-                            return "{$record->name} (Scheduled on this date)";
+                            return "{$record->name} (Scheduled on this date • {$tripText})";
                         }
-                        return $record->name;
+                        return "{$record->name} ({$tripText})";
                     })
                     ->disableOptionWhen(function (string $value, callable $get, ?TripTicket $record) {
                         static $drvDisableCache = [];
@@ -551,6 +565,21 @@ class TripTicketForm
                         $text = "<strong>Driver Schedule for " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . ":</strong><br>";
                         $text .= "<span style='color: #16a34a;'>✅ Available:</span> " . ($availableDrivers ?: "None") . "<br>";
                         $text .= "<span style='color: #dc2626;'>❌ On Trip / On Leave:</span> " . ($busyDrivers ?: "None");
+
+                        $driverCounts = TripTicket::whereMonth('created_at', now()->month)
+                            ->whereYear('created_at', now()->year)
+                            ->whereNotNull('driver_id')
+                            ->groupBy('driver_id')
+                            ->selectRaw('driver_id, count(*) as count')
+                            ->pluck('count', 'driver_id')
+                            ->toArray();
+
+                        $workloadItems = \App\Models\Driver::all()->map(function ($d) use ($driverCounts) {
+                            $c = $driverCounts[$d->id] ?? 0;
+                            return "{$d->name}: <strong>{$c}</strong>";
+                        })->join(' &bull; ');
+
+                        $text .= "<br><span style='color: #2563eb;'>⚖️ Monthly Workload (" . date('M Y') . "):</span> " . $workloadItems;
                         
                         return new \Illuminate\Support\HtmlString($text);
                     })

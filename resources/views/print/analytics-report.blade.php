@@ -140,40 +140,89 @@
 
         <!-- Section 1: Department Distribution Table -->
         <div class="mb-4">
-            <h4 class="text-xs font-bold uppercase tracking-wider mb-1.5 text-black border-b border-black pb-0.5">
-                1. Departmental Trip Distribution
+            <h4 class="text-xs font-bold uppercase tracking-wider mb-1.5 text-black border-b border-black pb-0.5 flex items-center justify-between">
+                <span>1. Departmental Trip Accomplishment & Distribution</span>
+                <span class="text-[9px] font-normal text-gray-600">(CICS, CTE, CHM, COA, and Administrative Offices)</span>
             </h4>
             <table class="w-full border-collapse border border-black text-[10px]">
                 <thead>
                     <tr class="bg-gray-100">
                         <th class="border border-black p-1.5 text-left font-bold">College / Department Unit</th>
-                        <th class="border border-black p-1.5 text-center font-bold">Number of Trip Requests</th>
-                        <th class="border border-black p-1.5 text-center font-bold">Share of Total Fleet Demand</th>
+                        <th class="border border-black p-1.5 text-center font-bold">Total Requests</th>
+                        <th class="border border-black p-1.5 text-center font-bold">Completed Trips</th>
+                        <th class="border border-black p-1.5 text-center font-bold">Passengers</th>
+                        <th class="border border-black p-1.5 text-center font-bold">Share of Total Demand</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($deptBreakdown as $deptName => $count)
+                    @forelse($deptBreakdown as $deptItem)
                         @php
-                            $percentage = $totalRequests > 0 ? round(($count / $totalRequests) * 100, 1) : 0;
+                            $deptName = is_array($deptItem) ? $deptItem['name'] : (is_string($deptItem) ? $deptItem : 'Unit');
+                            $totalCount = is_array($deptItem) ? $deptItem['total_requests'] : (int) $deptItem;
+                            $completedCount = is_array($deptItem) ? $deptItem['completed_count'] : 0;
+                            $paxCount = is_array($deptItem) ? $deptItem['passengers'] : 0;
+                            $percentage = $totalRequests > 0 ? round(($totalCount / $totalRequests) * 100, 1) : 0;
                         @endphp
                         <tr>
                             <td class="border border-black p-1.5 font-semibold">{{ $deptName }}</td>
-                            <td class="border border-black p-1.5 text-center">{{ $count }} request(s)</td>
-                            <td class="border border-black p-1.5 text-center">{{ $percentage }}%</td>
+                            <td class="border border-black p-1.5 text-center font-bold">{{ $totalCount }}</td>
+                            <td class="border border-black p-1.5 text-center text-emerald-800 font-bold">{{ $completedCount }}</td>
+                            <td class="border border-black p-1.5 text-center">{{ $paxCount }}</td>
+                            <td class="border border-black p-1.5 text-center font-mono">{{ $percentage }}%</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="border border-black p-2 text-center text-gray-500 italic">No departmental trip data recorded for this scope.</td>
+                            <td colspan="5" class="border border-black p-2 text-center text-gray-500 italic">No departmental trip data recorded for this scope.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <!-- Section 2: Detailed Accomplished Trip Log -->
+        <!-- Section 2: Driver Trip Summary -->
+        <div class="mb-4">
+            <h4 class="text-xs font-bold uppercase tracking-wider mb-1.5 text-black border-b border-black pb-0.5">
+                2. Driver Trip Dispatch & Workload Summary
+            </h4>
+            <table class="w-full border-collapse border border-black text-[10px]">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border border-black p-1.5 text-left font-bold">Assigned Campus Driver</th>
+                        <th class="border border-black p-1.5 text-center font-bold">Total Trips Assigned</th>
+                        <th class="border border-black p-1.5 text-center font-bold">Completed Trips</th>
+                        <th class="border border-black p-1.5 text-center font-bold">Passengers Transported</th>
+                        <th class="border border-black p-1.5 text-center font-bold">Workload Share</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($driverBreakdown as $drv)
+                        @php
+                            $dName = $drv['name'] ?? 'Driver';
+                            $dTotal = $drv['total_trips'] ?? 0;
+                            $dCompleted = $drv['completed_trips'] ?? 0;
+                            $dPax = $drv['passengers'] ?? 0;
+                            $dShare = $totalRequests > 0 ? round(($dTotal / $totalRequests) * 100, 1) : 0;
+                        @endphp
+                        <tr>
+                            <td class="border border-black p-1.5 font-semibold">{{ $dName }}</td>
+                            <td class="border border-black p-1.5 text-center font-bold">{{ $dTotal }}</td>
+                            <td class="border border-black p-1.5 text-center text-emerald-800 font-bold">{{ $dCompleted }}</td>
+                            <td class="border border-black p-1.5 text-center">{{ $dPax }}</td>
+                            <td class="border border-black p-1.5 text-center font-mono">{{ $dShare }}%</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="border border-black p-2 text-center text-gray-500 italic">No driver dispatch records found for this scope.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Section 3: Detailed Accomplished Trip Log -->
         <div class="mb-6">
             <h4 class="text-xs font-bold uppercase tracking-wider mb-1.5 text-black border-b border-black pb-0.5">
-                2. Official Trip Log Summary Sheet
+                3. Official Trip Log Summary Sheet
             </h4>
             <table class="w-full border-collapse border border-black text-[9px]">
                 <thead>
