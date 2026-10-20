@@ -22,6 +22,7 @@ class VehicleRequestsTable
                 TextColumn::make('request_number')
                     ->label('Vehicle Request')
                     ->width('110px')
+                    ->grow(false)
                     ->formatStateUsing(fn ($state) => preg_replace('/^VR-(?=\d{4}-)/', '', $state))
                     ->searchable(query: function (\Illuminate\Database\Eloquent\Builder $query, string $search): \Illuminate\Database\Eloquent\Builder {
                         return $query->where(function ($q) use ($search) {
@@ -34,20 +35,23 @@ class VehicleRequestsTable
                     ->description(fn ($record) => $record->is_urgent ? '🚨 URGENT' : null),
                 TextColumn::make('employee_name')
                     ->label('Requester')
-                    ->width('115px')
-                    ->limit(18)
+                    ->width('120px')
+                    ->grow(false)
+                    ->limit(20)
                     ->tooltip(fn ($record) => $record->employee_name)
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('department')
                     ->label('Offices')
-                    ->width('80px')
+                    ->width('75px')
+                    ->grow(false)
                     ->limit(8)
                     ->tooltip(fn ($record) => $record->department)
                     ->searchable(),
                 TextColumn::make('vehicle')
                     ->label('Vehicle')
-                    ->width('105px')
+                    ->width('95px')
+                    ->grow(false)
                     ->placeholder('To be assigned')
                     ->default('To be assigned')
                     ->formatStateUsing(function ($state, $record) {
@@ -94,8 +98,9 @@ class VehicleRequestsTable
                     ->searchable(),
                 TextColumn::make('destination')
                     ->label('Destination')
-                    ->width('190px')
-                    ->limit(35)
+                    ->grow()
+                    ->wrap()
+                    ->limit(60)
                     ->tooltip(fn ($record) => $record->destination)
                     ->searchable(),
                 TextColumn::make('date')
@@ -114,7 +119,8 @@ class VehicleRequestsTable
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('travel_timeline')
                     ->label('Departure & Arrival')
-                    ->width('170px')
+                    ->width('160px')
+                    ->grow(false)
                     ->sortable(query: fn ($query, $direction) => $query->orderBy('date', $direction))
                     ->searchable(query: fn ($query, string $search) => $query->where('destination', 'like', "%{$search}%"))
                     ->state(function ($record) {
@@ -183,7 +189,8 @@ class VehicleRequestsTable
                         return implode("\n", $lines);
                     }),
                 TextColumn::make('status')
-                    ->width('130px')
+                    ->width('120px')
+                    ->grow(false)
                     ->badge()
                     ->color(fn (string $state, $record): string => match ($state) {
                         'pending' => 'warning',
