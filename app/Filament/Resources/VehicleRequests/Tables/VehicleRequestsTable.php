@@ -118,7 +118,7 @@ class VehicleRequestsTable
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('travel_timeline')
                     ->label('Departure & Arrival')
-                    ->width('160px')
+                    ->width('170px')
                     ->grow(false)
                     ->sortable(query: fn ($query, $direction) => $query->orderBy('date', $direction))
                     ->searchable(query: fn ($query, string $search) => $query->where('destination', 'like', "%{$search}%"))
@@ -138,11 +138,11 @@ class VehicleRequestsTable
                         $gateIn = $ticket?->gate_in_at ?: ($record->status === 'completed' && $ticket?->updated_at ? $ticket->updated_at : null);
 
                         if ($record->status === 'completed') {
-                            $guard = $ticket?->scanned_by ? " ({$ticket->scanned_by})" : '';
+                            $dist = $ticket?->distance_traveled ? ' · ' . number_format($ticket->distance_traveled) . ' km' : '';
                             if ($gateIn) {
-                                return '🛬 ' . \Carbon\Carbon::parse($gateIn)->timezone('Asia/Manila')->format('M d · g:i A') . $guard;
+                                return '🛬 ' . \Carbon\Carbon::parse($gateIn)->timezone('Asia/Manila')->format('M d · g:i A') . $dist;
                             }
-                            return '🛬 Completed at Gate';
+                            return '🛬 Completed' . ($dist ?: ' at Gate');
                         }
 
                         if ($ticket?->gate_in_at) {
@@ -150,7 +150,8 @@ class VehicleRequestsTable
                         }
                         if ($record->status === 'on_trip' || ($ticket && $ticket->status === 'active')) {
                             $ret = $record->return_date ? \Carbon\Carbon::parse($record->return_date)->format('M d') : null;
-                            return '🚗 In Transit' . ($ret ? " (Due {$ret})" : '');
+                            $odo = $ticket?->start_odometer ? ' · ' . number_format($ticket->start_odometer) . ' km' : '';
+                            return '🚗 In Transit' . ($ret ? " (Due {$ret})" : '') . $odo;
                         }
                         if ($record->return_date) {
                             $rt = $record->return_time ? \Carbon\Carbon::parse($record->return_time)->format('g:i A') : '';
@@ -174,6 +175,10 @@ class VehicleRequestsTable
                             $lines[] = '🛫 Sched Departure: ' . \Carbon\Carbon::parse($record->date)->format('M d, Y') . ($record->time ? ' · ' . \Carbon\Carbon::parse($record->time)->format('g:i A') : '');
                         }
 
+                        if ($ticket?->start_odometer) {
+                            $lines[] = '📟 Initial Odometer: ' . number_format($ticket->start_odometer) . ' km';
+                        }
+
                         $gateIn = $ticket?->gate_in_at ?: ($record->status === 'completed' && $ticket?->updated_at ? $ticket->updated_at : null);
                         if ($gateIn) {
                             $lines[] = '🛬 Actual Arrival (Gate In): ' . \Carbon\Carbon::parse($gateIn)->timezone('Asia/Manila')->format('M d, Y · g:i A');
@@ -184,9 +189,41 @@ class VehicleRequestsTable
                             $lines[] = '🛬 Target Return: ' . \Carbon\Carbon::parse($record->return_date)->format('M d, Y') . ($record->return_time ? ' · ' . \Carbon\Carbon::parse($record->return_time)->format('g:i A') : '');
                         }
 
+                        if ($ticket?->end_odometer) {
+                            $lines[] = '📟 Final Odometer: ' . number_format($ticket->end_odometer) . ' km';
+                            if ($ticket->distance_traveled) {
+                                $lines[] = '🚗 Distance Traveled: ' . number_format($ticket->distance_traveled) . ' km';
+                            }
+                        }
+
                         $lines[] = '💡 Click row to open complete Travel Timeline tracker';
                         return implode("\n", $lines);
                     }),
+                TextColumn::make('odometer')
+                    ->label('Odometer')
+                    ->width('120px')
+                    ->state(function ($record) {
+                        $ticket = $record->tripTicket;
+                        if (!$ticket) return '---';
+                        if ($ticket->status === 'completed' && $ticket->end_odometer) {
+                            return number_format($ticket->end_odometer) . ' km';
+                        }
+                        if ($ticket->start_odometer) {
+                            return number_format($ticket->start_odometer) . ' km';
+                        }
+                        return '---';
+                    })
+                    ->description(function ($record) {
+                        $ticket = $record->tripTicket;
+                        if ($ticket?->distance_traveled) {
+                            return '🚗 ' . number_format($ticket->distance_traveled) . ' km traveled';
+                        }
+                        if ($ticket?->status === 'active' || $record->status === 'on_trip') {
+                            return '📟 Starting ODO';
+                        }
+                        return null;
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
                     ->width('120px')
                     ->grow(false)

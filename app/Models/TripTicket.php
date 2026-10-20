@@ -249,21 +249,23 @@ class TripTicket extends Model
         });
 
         static::saving(function ($tripTicket) {
-            // Auto-compute Odometer if completed and left empty
-            if ($tripTicket->status === 'completed' && (!$tripTicket->start_odometer || !$tripTicket->end_odometer)) {
-                $tripTicket->loadMissing('vehicleRequest');
-                $dest = $tripTicket->vehicleRequest?->destination ?? '';
-                $roundtripKm = static::estimateDistance($dest) * 2;
-                
-                // Get last known odometer for this vehicle or standard base
+            // Auto-assign Initial Odometer for active (on trip) or completed trips
+            if (in_array($tripTicket->status, ['active', 'completed']) && empty($tripTicket->start_odometer)) {
                 $lastKnownOdo = static::where('vehicle', $tripTicket->vehicle)
                     ->where('id', '!=', $tripTicket->id)
                     ->whereNotNull('end_odometer')
                     ->max('end_odometer');
 
-                $startOdo = $lastKnownOdo ?: 42150;
-                $tripTicket->start_odometer = $tripTicket->start_odometer ?: $startOdo;
-                $tripTicket->end_odometer = $tripTicket->end_odometer ?: ($startOdo + $roundtripKm);
+                $tripTicket->start_odometer = $lastKnownOdo ?: 42150;
+            }
+
+            // Auto-compute Final Odometer if completed and left empty
+            if ($tripTicket->status === 'completed' && empty($tripTicket->end_odometer)) {
+                $tripTicket->loadMissing('vehicleRequest');
+                $dest = $tripTicket->vehicleRequest?->destination ?? '';
+                $roundtripKm = static::estimateDistance($dest) * 2;
+                $startOdo = $tripTicket->start_odometer ?: 42150;
+                $tripTicket->end_odometer = $startOdo + ($roundtripKm > 0 ? $roundtripKm : 80);
             }
 
             // Check if driver changed

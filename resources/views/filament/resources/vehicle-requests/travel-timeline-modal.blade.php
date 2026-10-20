@@ -501,7 +501,15 @@
         <div class="tt-metric-card">
             <span class="tt-metric-label">🚐 Vehicle</span>
             <div class="tt-metric-val" title="{{ $vehName }}">{{ $vehName }}</div>
-            <div class="tt-metric-sub">{{ $vehPlate ? "Plate: {$vehPlate}" : 'CSU Fleet' }}</div>
+            <div class="tt-metric-sub">
+                @if($ticket?->distance_traveled)
+                    {{ $vehPlate ?: 'CSU Fleet' }} &bull; 🚗 {{ number_format($ticket->distance_traveled) }} km
+                @elseif($ticket?->start_odometer)
+                    {{ $vehPlate ?: 'CSU Fleet' }} &bull; 📟 {{ number_format($ticket->start_odometer) }} km
+                @else
+                    {{ $vehPlate ? "Plate: {$vehPlate}" : 'CSU Fleet' }}
+                @endif
+            </div>
         </div>
 
         <div class="tt-metric-card">
@@ -749,11 +757,19 @@
                         <span class="tt-data-val">{{ $guardName }}</span>
                     </div>
 
-                    <div class="tt-data-item">
-                        <span class="tt-data-label">Initial Odometer Reading</span>
-                        <span class="tt-data-val" style="font-family: ui-monospace, monospace;">
-                            {{ $ticket?->start_odometer ? number_format($ticket->start_odometer) . ' km' : 'Logged upon departure' }}
-                        </span>
+                    <div class="tt-data-item" style="grid-column: span 2;">
+                        <span class="tt-data-label">Initial Odometer Reading (Pagkaalis)</span>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+                            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; background-color: #0f172a; color: #38bdf8; border: 1px solid #1e293b; box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);">
+                                <span style="font-size: 10px; opacity: 0.8; letter-spacing: 0.05em; text-transform: uppercase; color: #94a3b8;">ODO</span>
+                                <span>{{ $ticket?->start_odometer ? number_format($ticket->start_odometer) . ' km' : 'Logged upon departure' }}</span>
+                            </span>
+                            @if($ticket?->start_odometer)
+                                <span style="font-size: 11.5px; color: #64748b; font-weight: 500;">
+                                    Verified at security gate before departure
+                                </span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -823,18 +839,24 @@
                         @endif
                     </div>
 
-                    <div class="tt-data-item">
-                        <span class="tt-data-label">Final Odometer & Distance</span>
-                        <span class="tt-data-val" style="font-family: ui-monospace, monospace;">
-                            @if($ticket?->end_odometer)
-                                {{ number_format($ticket->end_odometer) }} km
-                                @if($ticket->distance_traveled)
-                                    <strong style="color: #059669;"> ({{ number_format($ticket->distance_traveled) }} km traveled)</strong>
+                    <div class="tt-data-item" style="grid-column: span 2;">
+                        <span class="tt-data-label">Final Odometer & Total Distance (Pagbalik)</span>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+                            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; background-color: #0f172a; color: #34d399; border: 1px solid #1e293b; box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);">
+                                <span style="font-size: 10px; opacity: 0.8; letter-spacing: 0.05em; text-transform: uppercase; color: #94a3b8;">ODO</span>
+                                <span>{{ $ticket?->end_odometer ? number_format($ticket->end_odometer) . ' km' : ($status === 'on_trip' ? 'Recording in progress...' : 'Logged upon gate return') }}</span>
+                            </span>
+                            @if($ticket?->distance_traveled)
+                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 700; background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
+                                    🚗 {{ number_format($ticket->distance_traveled) }} km Traveled
+                                </span>
+                                @if($ticket->start_odometer)
+                                    <span style="font-size: 11.5px; color: #64748b; font-weight: 500;">
+                                        ({{ number_format($ticket->start_odometer) }} &rarr; {{ number_format($ticket->end_odometer) }} km)
+                                    </span>
                                 @endif
-                            @else
-                                Logged upon gate return
                             @endif
-                        </span>
+                        </div>
                     </div>
 
                     <div class="tt-data-item">
