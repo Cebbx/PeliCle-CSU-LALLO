@@ -138,20 +138,14 @@ class VehicleRequestsTable
                         $gateIn = $ticket?->gate_in_at ?: ($record->status === 'completed' && $ticket?->updated_at ? $ticket->updated_at : null);
 
                         if ($record->status === 'completed') {
-                            $dist = $ticket?->distance_traveled ? ' · ' . number_format($ticket->distance_traveled) . ' km' : '';
                             if ($gateIn) {
-                                return '🛬 ' . \Carbon\Carbon::parse($gateIn)->timezone('Asia/Manila')->format('M d · g:i A') . $dist;
+                                return '🛬 ' . \Carbon\Carbon::parse($gateIn)->timezone('Asia/Manila')->format('M d · g:i A');
                             }
-                            return '🛬 Completed' . ($dist ?: ' at Gate');
+                            return '🛬 Completed at Gate';
                         }
 
                         if ($ticket?->gate_in_at) {
                             return '🛬 ' . \Carbon\Carbon::parse($ticket->gate_in_at)->timezone('Asia/Manila')->format('M d · g:i A');
-                        }
-                        if ($record->status === 'on_trip' || ($ticket && $ticket->status === 'active')) {
-                            $ret = $record->return_date ? \Carbon\Carbon::parse($record->return_date)->format('M d') : null;
-                            $odo = $ticket?->start_odometer ? ' · ' . number_format($ticket->start_odometer) . ' km' : '';
-                            return '🚗 In Transit' . ($ret ? " (Due {$ret})" : '') . $odo;
                         }
                         if ($record->return_date) {
                             $rt = $record->return_time ? \Carbon\Carbon::parse($record->return_time)->format('g:i A') : '';
