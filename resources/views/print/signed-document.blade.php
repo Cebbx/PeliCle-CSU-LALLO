@@ -122,10 +122,18 @@
     </div>
 
     <!-- Status Banner Alert Box -->
-    <div id="statusAlertBox" class="no-print max-w-[8.5in] w-full mx-auto mb-3 p-3 rounded-xl border flex items-center justify-between text-xs sm:text-sm font-semibold shadow-sm {{ $isVerified ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-amber-50 border-amber-300 text-amber-900' }}">
-        <div class="flex items-center gap-2">
-            <span class="text-base">{{ $isVerified ? '✅' : '⏳' }}</span>
-            <div id="statusAlertText">
+    <div id="statusAlertBox" class="no-print max-w-[8.5in] w-full mx-auto mb-3 p-3 rounded-xl border flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold shadow-sm {{ $isVerified ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-amber-50 border-amber-300 text-amber-900' }}">
+        <div class="flex items-center gap-2.5 flex-1 min-w-0">
+            @if($isVerified)
+                <svg class="w-5 h-5 flex-shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            @else
+                <svg class="w-5 h-5 flex-shrink-0 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            @endif
+            <div id="statusAlertText" class="text-xs sm:text-sm leading-relaxed">
                 @if($isVerified)
                     <strong>Verified CEO Document:</strong> This document has been verified by Admin/GSO and SMS dispatch has been sent to Driver ({{ $driverName }}). Trip Status: <strong>{{ ($record->status === 'on_trip' || $record->status === 'active') ? 'On Trip' : 'Ready (Waiting)' }}</strong>.
                 @else
@@ -133,7 +141,7 @@
                 @endif
             </div>
         </div>
-        <span class="text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full {{ $isVerified ? 'bg-emerald-200 text-emerald-800' : 'bg-amber-200 text-amber-800' }}">
+        <span class="whitespace-nowrap flex-shrink-0 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border {{ $isVerified ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-amber-100 border-amber-300 text-amber-800' }}">
             {{ $isVerified ? (($record->status === 'on_trip' || $record->status === 'active') ? 'On Trip' : 'Ready (Waiting)') : 'For Admin Review' }}
         </span>
     </div>
@@ -300,15 +308,17 @@
 
                     const alertBox = document.getElementById('statusAlertBox');
                     if (alertBox) {
-                        alertBox.className = "no-print max-w-[8.5in] w-full mx-auto mb-3 p-3 rounded-xl border flex items-center justify-between text-xs sm:text-sm font-semibold shadow-sm bg-emerald-50 border-emerald-300 text-emerald-900";
+                        alertBox.className = "no-print max-w-[8.5in] w-full mx-auto mb-3 p-3 rounded-xl border flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold shadow-sm bg-emerald-50 border-emerald-300 text-emerald-900";
                         alertBox.innerHTML = `
-                            <div class="flex items-center gap-2">
-                                <span class="text-base">✅</span>
-                                <div id="statusAlertText">
+                            <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                                <svg class="w-5 h-5 flex-shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div id="statusAlertText" class="text-xs sm:text-sm leading-relaxed">
                                     <strong>Verified CEO Document:</strong> This document has been verified by Admin/GSO and SMS dispatch has been sent to Driver (${driverName}). Trip Status: <strong>${data.status_label}</strong>.
                                 </div>
                             </div>
-                            <span class="text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-800">
+                            <span class="whitespace-nowrap flex-shrink-0 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border bg-emerald-100 border-emerald-300 text-emerald-800">
                                 ${data.status_label}
                             </span>
                         `;
