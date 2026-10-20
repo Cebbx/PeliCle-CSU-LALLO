@@ -92,12 +92,18 @@ class VehicleRequestsTable
                         return $name ? "{$name}{$carpoolNote}" : 'Assigned by GSO Motorpool upon approval';
                     })
                     ->searchable(),
+                TextColumn::make('destination')
+                    ->width('125px')
+                    ->limit(18)
+                    ->tooltip(fn ($record) => $record->destination)
+                    ->searchable(),
                 TextColumn::make('date')
                     ->label('Schedule')
                     ->width('110px')
                     ->date('M d, Y')
                     ->description(fn ($record) => $record->time ? \Carbon\Carbon::parse($record->time)->format('h:i A') : null)
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('return_date')
                     ->label('Return')
                     ->width('95px')
@@ -108,6 +114,7 @@ class VehicleRequestsTable
                 TextColumn::make('travel_timeline')
                     ->label('Departure & Arrival')
                     ->width('170px')
+                    ->sortable(query: fn ($query, $direction) => $query->orderBy('date', $direction))
                     ->searchable(query: fn ($query, string $search) => $query->where('destination', 'like', "%{$search}%"))
                     ->state(function ($record) {
                         $ticket = $record->tripTicket;
