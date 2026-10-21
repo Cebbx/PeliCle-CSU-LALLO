@@ -15,8 +15,6 @@
             print-color-adjust: exact;
         }
         .esign-crisp {
-            filter: brightness(0) contrast(400%) drop-shadow(0px 0px 0.45px #000000) drop-shadow(0px 0px 0.35px #000000);
-            -webkit-filter: brightness(0) contrast(400%) drop-shadow(0px 0px 0.45px #000000) drop-shadow(0px 0px 0.35px #000000);
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
         }
@@ -201,7 +199,7 @@
                 <!-- Client's Signature -->
                 <div class="flex flex-col items-center">
                     @if(!empty($request->signature_url))
-                        <img id="client-signature-img" src="{{ $request->signature_url }}" crossorigin="anonymous" alt="Client Signature" class="esign-crisp h-14 sm:h-16 max-h-16 w-auto max-w-[240px] object-contain -mb-1.5 z-10 pointer-events-none select-none" />
+                        <img id="client-signature-img" src="{{ $request->signature_url }}" crossorigin="anonymous" alt="Client Signature" class="h-14 sm:h-16 max-h-16 w-auto max-w-[240px] object-contain -mb-1.5 z-10 pointer-events-none select-none" />
                     @else
                         <div class="h-12 sm:h-14"></div>
                     @endif
@@ -269,7 +267,7 @@
 
     <!-- Mobile & PC Optimized 1-Page PDF Download & Print Scripts -->
     <script>
-        // Automatically auto-crop empty canvas whitespace and thicken/darken signature strokes for crystal-clear printing & PDF export
+        // Automatically auto-crop whitespace, enhance strokes, and smartly handle transparent canvas, paper-photo, or uploaded images
         (function enhanceClientSignature() {
             const sigImg = document.getElementById('client-signature-img');
             if (!sigImg || !sigImg.src) return;
@@ -284,96 +282,141 @@
                     const tempCanvas = document.createElement('canvas');
                     tempCanvas.width = nw;
                     tempCanvas.height = nh;
-                    const tempCtx = tempCanvas.getContext('2d');
+                    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
                     tempCtx.drawImage(sigImg, 0, 0);
 
                     const imgData = tempCtx.getImageData(0, 0, nw, nh);
                     const data = imgData.data;
+                    const totalPixels = nw * nh;
 
-                    // Detect if image has a solid white/light background (uploaded photo) vs transparent canvas
-                    let cornerOpaqueCount = 0;
-                    const corners = [0, (nw - 1) * 4, (nh - 1) * nw * 4, ((nh - 1) * nw + (nw - 1)) * 4];
-                    for (const idx of corners) {
-                        if (data[idx + 3] > 200 && data[idx] > 200 && data[idx + 1] > 200 && data[idx + 2] > 200) {
-                            cornerOpaqueCount++;
+                    // 1. Sample transparency ratio across the image
+                    let transparentCount = 0;
+                    const sampleStep = Math.max(1, Math.floor(Math.sqrt(totalPixels / 2500)));
+                    let sampleTotal = 0;
+                    for (let y = 0; y < nh; y += sampleStep) {
+                        for (let x = 0; x < nw; x += sampleStep) {
+                            sampleTotal++;
+                            const a = data[(y * nw + x) * 4 + 3];
+                            if (a < 50) transparentCount++;
                         }
                     }
-                    const isOpaqueBg = cornerOpaqueCount >= 3;
+                    const isTransparent = (transparentCount / Math.max(1, sampleTotal)) > 0.10;
 
+                    let shouldCropAndReplace = false;
                     let minX = nw, minY = nh, maxX = 0, maxY = 0, found = false;
 
-                    for (let y = 0; y < nh; y++) {
-                        for (let x = 0; x < nw; x++) {
-                            const i = (y * nw + x) * 4;
-                            const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
-                            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-
-                            let isInk = false;
-                            if (isOpaqueBg) {
-                                // Dark ink on light paper
-                                if (a > 40 && lum < 200) {
-                                    isInk = true;
-                                    const strength = Math.min(255, Math.round((220 - lum) * 2.5));
-                                    data[i] = 0; data[i + 1] = 0; data[i + 2] = 0; data[i + 3] = strength;
-                                } else {
-                                    data[i + 3] = 0;
-                                }
-                            } else {
-                                // Transparent canvas signature
-                                if (a > 18) {
-                                    isInk = true;
-                                    data[i] = 0; data[i + 1] = 0; data[i + 2] = 0;
+                    if (isTransparent) {
+                        // Case A: Transparent canvas signature or transparent PNG
+                        for (let y = 0; y < nh; y++) {
+                            for (let x = 0; x < nw; x++) {
+                                const i = (y * nw + x) * 4;
+                                const a = data[i + 3];
+                                if (a > 20) {
+                                    found = true;
+                                    data[i] = 0;
+                                    data[i + 1] = 0;
+                                    data[i + 2] = 0;
                                     data[i + 3] = Math.min(255, Math.round(a * 2.8));
+                                    if (x < minX) minX = x;
+                                    if (x > maxX) maxX = x;
+                                    if (y < minY) minY = y;
+                                    if (y > maxY) maxY = y;
                                 } else {
                                     data[i + 3] = 0;
                                 }
                             }
+                        }
+                        shouldCropAndReplace = found;
+                    } else {
+                        // Case B: Opaque image (JPEG or opaque PNG). Check if it's a signature on paper
+                        const lums = [];
+                        const sampleCount = 1000;
+                        for (let s = 0; s < sampleCount; s++) {
+                            const rx = Math.floor(Math.random() * nw);
+                            const ry = Math.floor(Math.random() * nh);
+                            const i = (ry * nw + rx) * 4;
+                            const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                            lums.push(lum);
+                        }
+                        lums.sort((a, b) => a - b);
+                        const paperLum = lums[Math.floor(sampleCount * 0.85)];
 
-                            if (isInk) {
-                                found = true;
-                                if (x < minX) minX = x;
-                                if (x > maxX) maxX = x;
-                                if (y < minY) minY = y;
-                                if (y > maxY) maxY = y;
+                        // Count dark ink pixels compared to paper background
+                        let inkSampleCount = 0;
+                        for (let y = 0; y < nh; y += sampleStep) {
+                            for (let x = 0; x < nw; x += sampleStep) {
+                                const i = (y * nw + x) * 4;
+                                const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                                if (lum < paperLum - 38) {
+                                    inkSampleCount++;
+                                }
                             }
+                        }
+                        const inkRatio = inkSampleCount / Math.max(1, sampleTotal);
+
+                        // If background is light paper (paperLum >= 130) and dark ink is thin/signature-like (0.2% - 35%)
+                        if (paperLum >= 130 && inkRatio >= 0.002 && inkRatio <= 0.35) {
+                            for (let y = 0; y < nh; y++) {
+                                for (let x = 0; x < nw; x++) {
+                                    const i = (y * nw + x) * 4;
+                                    const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                                    if (lum < paperLum - 35) {
+                                        found = true;
+                                        data[i] = 0;
+                                        data[i + 1] = 0;
+                                        data[i + 2] = 0;
+                                        data[i + 3] = Math.min(255, Math.round(((paperLum - 25) - lum) * 3));
+                                        if (x < minX) minX = x;
+                                        if (x > maxX) maxX = x;
+                                        if (y < minY) minY = y;
+                                        if (y > maxY) maxY = y;
+                                    } else {
+                                        data[i + 3] = 0;
+                                    }
+                                }
+                            }
+                            shouldCropAndReplace = found;
+                        } else {
+                            // Regular photo / picture or low-contrast image: keep original intact without alteration
+                            shouldCropAndReplace = false;
                         }
                     }
 
-                    if (!found) return;
-                    tempCtx.putImageData(imgData, 0, 0);
+                    if (shouldCropAndReplace && found && maxX > minX && maxY > minY) {
+                        tempCtx.putImageData(imgData, 0, 0);
 
-                    const pad = Math.max(8, Math.round(Math.max(maxX - minX, maxY - minY) * 0.04));
-                    const cropX = Math.max(0, minX - pad);
-                    const cropY = Math.max(0, minY - pad);
-                    const cropW = Math.min(nw - cropX, (maxX - minX) + pad * 2);
-                    const cropH = Math.min(nh - cropY, (maxY - minY) + pad * 2);
+                        const pad = Math.max(8, Math.round(Math.max(maxX - minX, maxY - minY) * 0.04));
+                        const cropX = Math.max(0, minX - pad);
+                        const cropY = Math.max(0, minY - pad);
+                        const cropW = Math.min(nw - cropX, (maxX - minX) + pad * 2);
+                        const cropH = Math.min(nh - cropY, (maxY - minY) + pad * 2);
 
-                    // Target high-resolution output height (240px) so strokes are uniformly bold and sharp
-                    const targetH = 240;
-                    const scale = targetH / Math.max(cropH, 1);
-                    const targetW = Math.max(1, Math.min(900, Math.round(cropW * scale)));
+                        const targetH = 240;
+                        const scale = targetH / Math.max(cropH, 1);
+                        const targetW = Math.max(1, Math.min(900, Math.round(cropW * scale)));
 
-                    const outCanvas = document.createElement('canvas');
-                    outCanvas.width = targetW;
-                    outCanvas.height = targetH;
-                    const outCtx = outCanvas.getContext('2d');
-                    outCtx.imageSmoothingEnabled = true;
-                    outCtx.imageSmoothingQuality = 'high';
+                        const outCanvas = document.createElement('canvas');
+                        outCanvas.width = targetW;
+                        outCanvas.height = targetH;
+                        const outCtx = outCanvas.getContext('2d');
+                        outCtx.imageSmoothingEnabled = true;
+                        outCtx.imageSmoothingQuality = 'high';
 
-                    // Multi-pass stroke thickening so thin high-DPI lines become bold, crisp ink on print
-                    const offsets = [
-                        [0, 0], [-0.85, 0], [0.85, 0], [0, -0.85], [0, 0.85],
-                        [-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]
-                    ];
-                    for (const [dx, dy] of offsets) {
-                        outCtx.drawImage(tempCanvas, cropX, cropY, cropW, cropH, dx, dy, targetW, targetH);
+                        const offsets = [
+                            [0, 0], [-0.85, 0], [0.85, 0], [0, -0.85], [0, 0.85],
+                            [-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]
+                        ];
+                        for (const [dx, dy] of offsets) {
+                            outCtx.drawImage(tempCanvas, cropX, cropY, cropW, cropH, dx, dy, targetW, targetH);
+                        }
+
+                        sigImg.dataset.enhanced = '1';
+                        sigImg.src = outCanvas.toDataURL('image/png');
+                    } else {
+                        sigImg.dataset.enhanced = '1';
                     }
-
-                    sigImg.dataset.enhanced = '1';
-                    sigImg.classList.remove('esign-crisp');
-                    sigImg.src = outCanvas.toDataURL('image/png');
                 } catch (e) {
-                    // Keep CSS .esign-crisp filter fallback if canvas is tainted
+                    sigImg.dataset.enhanced = '1';
                 }
             };
 
