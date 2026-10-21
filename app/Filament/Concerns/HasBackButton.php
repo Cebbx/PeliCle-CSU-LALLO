@@ -12,7 +12,8 @@ trait HasBackButton
             ->label('Back')
             ->icon('heroicon-m-arrow-left')
             ->color('gray')
-            ->url(fn () => static::getResource()::getUrl('index'))
+            ->url(fn () => $this->getSafeBackUrl())
+            ->alpineClickHandler(null)
             ->visible(fn () => $this instanceof \Filament\Resources\Pages\ViewRecord);
     }
 
@@ -21,6 +22,24 @@ trait HasBackButton
         return parent::getCancelFormAction()
             ->label('Back')
             ->icon('heroicon-m-arrow-left')
-            ->url(fn () => static::getResource()::getUrl('index'));
+            ->color('gray')
+            ->url(fn () => $this->getSafeBackUrl())
+            ->alpineClickHandler(null);
+    }
+
+    protected function getSafeBackUrl(): string
+    {
+        $previousUrl = $this->previousUrl ?? url()->previous();
+        $currentUrl = request()->fullUrl();
+
+        if (
+            $previousUrl &&
+            $previousUrl !== $currentUrl &&
+            str_starts_with($previousUrl, request()->getSchemeAndHttpHost())
+        ) {
+            return $previousUrl;
+        }
+
+        return static::getResource()::getUrl('index');
     }
 }
