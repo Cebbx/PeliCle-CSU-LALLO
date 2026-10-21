@@ -362,6 +362,7 @@ class AdminPanelProvider extends PanelProvider
                         }
                         .fi-ta-content {
                             overflow-x: auto !important;
+                            -webkit-overflow-scrolling: touch !important;
                             padding-right: 2px !important;
                         }
                         .fi-ta-table {
@@ -369,6 +370,11 @@ class AdminPanelProvider extends PanelProvider
                             table-layout: auto !important;
                             border-collapse: separate !important;
                             border-spacing: 0 !important;
+                        }
+                        @media (max-width: 768px) {
+                            .fi-ta-table {
+                                min-width: 650px !important;
+                            }
                         }
                         .fi-ta-header-cell {
                             padding-left: 4px !important;
@@ -451,9 +457,8 @@ class AdminPanelProvider extends PanelProvider
                             white-space: nowrap !important;
                         }
                         .fi-ta-header-cell[class*="status"], .fi-ta-cell[class*="status"] {
-                            width: 130px !important;
-                            min-width: 130px !important;
-                            max-width: 140px !important;
+                            width: 145px !important;
+                            min-width: 145px !important;
                             white-space: nowrap !important;
                         }
 

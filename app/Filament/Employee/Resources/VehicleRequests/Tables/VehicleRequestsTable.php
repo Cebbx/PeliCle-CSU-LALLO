@@ -106,7 +106,7 @@ class VehicleRequestsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
-                    ->width('130px')
+                    ->width('145px')
                     ->badge()
                     ->color(fn (string $state, $record): string => match ($state) {
                         'pending' => 'warning',
@@ -147,7 +147,7 @@ class VehicleRequestsTable
                         if ($record->status === 'approved') {
                             if (!empty($record->document)) {
                                 if (empty($record->document_verified_at)) {
-                                    return '⏳ Awaiting Admin Verification';
+                                    return '⏳ For Admin Verification';
                                 }
                                 return $record->time 
                                     ? '⏳ Departs ' . \Carbon\Carbon::parse($record->time)->format('g:i A')

@@ -54,6 +54,7 @@ class DriverPanelProvider extends PanelProvider
                         }
                         .fi-ta-content {
                             overflow-x: auto !important;
+                            -webkit-overflow-scrolling: touch !important;
                             padding-right: 2px !important;
                         }
                         .fi-ta-table {
@@ -61,6 +62,11 @@ class DriverPanelProvider extends PanelProvider
                             table-layout: auto !important;
                             border-collapse: separate !important;
                             border-spacing: 0 !important;
+                        }
+                        @media (max-width: 768px) {
+                            .fi-ta-table {
+                                min-width: 620px !important;
+                            }
                         }
                         .fi-ta-header-cell {
                             padding-left: 4px !important;

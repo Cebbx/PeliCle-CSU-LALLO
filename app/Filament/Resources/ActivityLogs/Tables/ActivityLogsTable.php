@@ -21,6 +21,7 @@ class ActivityLogsTable
                 TextColumn::make('user_name')
                     ->label('User')
                     ->icon('heroicon-m-user')
+                    ->width('120px')
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
@@ -28,6 +29,7 @@ class ActivityLogsTable
 
                 TextColumn::make('action')
                     ->label('Action')
+                    ->width('160px')
                     ->searchable()
                     ->sortable()
                     ->badge()
@@ -59,10 +61,12 @@ class ActivityLogsTable
                 TextColumn::make('details')
                     ->label('Details')
                     ->searchable()
-                    ->wrap(),
+                    ->wrap()
+                    ->grow(true),
 
                 TextColumn::make('created_at')
                     ->label('Date & Time')
+                    ->width('150px')
                     ->dateTime('M d, Y • h:i A')
                     ->sortable(),
 
