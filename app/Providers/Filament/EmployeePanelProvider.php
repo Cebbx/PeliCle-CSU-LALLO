@@ -504,18 +504,18 @@ class EmployeePanelProvider extends PanelProvider
                             .fi-global-search-field {
                                 margin-inline: 0 !important;
                                 margin-left: 0 !important;
-                                margin-right: 0 !important;
-                                flex: 0 1 180px !important;
-                                max-width: 220px !important;
+                                margin-right: 4px !important;
+                                flex: 0 1 140px !important;
+                                max-width: 140px !important;
                                 min-width: 0 !important;
                                 width: 100% !important;
                             }
 
                             .fi-global-search-field .fi-input-wrp {
-                                max-width: 220px !important;
+                                max-width: 140px !important;
                                 min-width: 0 !important;
                                 width: 100% !important;
-                                height: 34px !important;
+                                height: 32px !important;
                                 display: flex !important;
                                 align-items: center !important;
                                 overflow: hidden !important;
@@ -545,7 +545,7 @@ class EmployeePanelProvider extends PanelProvider
                                 min-width: 0 !important;
                                 max-width: 100% !important;
                                 font-size: 12px !important;
-                                height: 32px !important;
+                                height: 30px !important;
                                 padding-left: 2px !important;
                                 padding-right: 6px !important;
                                 padding-inline: 2px 6px !important;
@@ -599,16 +599,17 @@ class EmployeePanelProvider extends PanelProvider
                             }
                         }
 
-                        @media (max-width: 640px) {
-                            /* Hide cramped search bar in topbar on mobile phones */
+                        @media (max-width: 420px) {
                             .fi-global-search-ctn,
                             .fi-global-search,
-                            .fi-global-search-field {
-                                display: none !important;
+                            .fi-global-search-field,
+                            .fi-global-search-field .fi-input-wrp {
+                                flex: 0 1 120px !important;
+                                max-width: 125px !important;
                             }
 
                             .fi-topbar-end {
-                                gap: 10px !important;
+                                gap: 8px !important;
                                 margin-right: 2px !important;
                             }
                         }

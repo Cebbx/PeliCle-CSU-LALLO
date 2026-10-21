@@ -22,9 +22,9 @@
         .welcome-banner {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #ffffff;
-            padding: 24px 28px;
+            padding: 20px 24px;
             border-radius: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: space-between;
@@ -33,7 +33,7 @@
             gap: 16px;
         }
         .welcome-text-wrap {
-            flex: 1 1 300px;
+            flex: 1 1 auto;
             min-width: 0;
         }
         .welcome-badge-wrap {
@@ -41,7 +41,7 @@
             flex-wrap: wrap;
             align-items: center;
             gap: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .welcome-role-badge {
             background: rgba(245, 158, 11, 0.2);
@@ -59,7 +59,7 @@
             font-weight: 500;
         }
         .welcome-banner h2 {
-            font-size: 22px;
+            font-size: 21px;
             font-weight: 800;
             margin: 0;
             color: #ffffff;
@@ -67,19 +67,19 @@
             letter-spacing: -0.01em;
         }
         .welcome-banner p {
-            font-size: 13px;
+            font-size: 12.5px;
             color: #cbd5e1;
-            margin: 6px 0 0 0;
+            margin: 4px 0 0 0;
             line-height: 1.4;
         }
         .btn-new-req {
             background: #f59e0b;
             color: #0f172a;
             border: none;
-            padding: 11px 22px;
-            border-radius: 10px;
+            padding: 10px 20px;
+            border-radius: 8px;
             font-weight: 800;
-            font-size: 13px;
+            font-size: 12.5px;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -97,29 +97,34 @@
 
         @media (max-width: 640px) {
             .welcome-banner {
-                padding: 18px 16px;
+                padding: 16px;
                 border-radius: 14px;
                 margin-bottom: 16px;
                 flex-direction: column;
                 align-items: stretch;
-                gap: 14px;
+                gap: 12px;
+            }
+            .welcome-text-wrap {
+                flex: none;
+                width: 100%;
             }
             .welcome-banner h2 {
-                font-size: 18px;
-                line-height: 1.3;
+                font-size: 17px;
+                line-height: 1.25;
             }
             .welcome-banner p {
-                font-size: 12px;
+                font-size: 11.5px;
+                margin-top: 3px;
             }
             .welcome-dept-full {
-                font-size: 11px;
+                font-size: 10.5px;
             }
             .btn-new-req {
                 width: 100%;
                 justify-content: center;
                 text-align: center;
-                padding: 11px 16px;
-                font-size: 13px;
+                padding: 10px 14px;
+                font-size: 12px;
             }
         }
 
