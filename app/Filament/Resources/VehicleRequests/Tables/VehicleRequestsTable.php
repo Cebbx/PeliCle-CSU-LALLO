@@ -122,6 +122,18 @@ class VehicleRequestsTable
                     ->grow(false)
                     ->sortable(query: fn ($query, $direction) => $query->orderBy('date', $direction))
                     ->searchable(query: fn ($query, string $search) => $query->where('destination', 'like', "%{$search}%"))
+                    ->action(
+                        Action::make('view_timeline')
+                            ->modalHeading(fn ($record) => '🧭 Travel Timeline & Tracking: ' . ($record->formatted_request_number ?? ('#' . $record->id)))
+                            ->modalDescription(fn ($record) => 'Complete departure & arrival timeline tracker for official travel to ' . ($record->destination ?? 'Destination') . '.')
+                            ->modalWidth('3xl')
+                            ->modalSubmitAction(false)
+                            ->modalCancelActionLabel('Close')
+                            ->modalContent(fn ($record) => view('filament.resources.vehicle-requests.travel-timeline-modal', [
+                                'record' => $record,
+                                'tripTicket' => $record->tripTicket,
+                            ]))
+                    )
                     ->state(function ($record) {
                         $ticket = $record->tripTicket;
                         if ($ticket?->gate_out_at) {
@@ -153,7 +165,7 @@ class VehicleRequestsTable
                         }
                         return '🛬 CSU Return Pending';
                     })
-                    ->tooltip('Click row to view Travel Timeline & Odometer tracker'),
+                    ->tooltip('Click to view Travel Timeline & Odometer tracker'),
                 TextColumn::make('odometer')
                     ->label('Odometer')
                     ->width('120px')
@@ -272,22 +284,9 @@ class VehicleRequestsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordUrl(null)
-            ->recordAction('view_timeline')
+            ->recordAction(null)
             ->recordActions([
                 ActionGroup::make([
-                    Action::make('view_timeline')
-                        ->label('View Travel Timeline & Odometer')
-                        ->icon('heroicon-o-clock')
-                        ->color('info')
-                        ->modalHeading(fn ($record) => '🧭 Travel Timeline & Tracking: ' . ($record->formatted_request_number ?? ('#' . $record->id)))
-                        ->modalDescription(fn ($record) => 'Complete departure & arrival timeline tracker for official travel to ' . ($record->destination ?? 'Destination') . '.')
-                        ->modalWidth('3xl')
-                        ->modalSubmitAction(false)
-                        ->modalCancelActionLabel('Close')
-                        ->modalContent(fn ($record) => view('filament.resources.vehicle-requests.travel-timeline-modal', [
-                            'record' => $record,
-                            'tripTicket' => $record->tripTicket,
-                        ])),
                     Action::make('consolidate_to_existing_ticket')
                         ->label(function ($record) {
                             $ticket = \App\Models\TripTicket::findCompatibleOpenTicketForRequest($record);
