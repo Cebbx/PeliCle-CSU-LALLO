@@ -3,7 +3,14 @@
         $stats = $this->getStats();
         $recentRequests = $this->getRecentRequests();
         $activeTrips = $this->getActiveTrips();
-        $deptName = auth()->user()->name;
+        $rawDept = auth()->user()->name ?? 'Department';
+        if (preg_match('/^([^(]+)\s*\((.+)\)$/', $rawDept, $matches)) {
+            $shortDept = trim($matches[1]);
+            $fullDept = trim($matches[2]);
+        } else {
+            $shortDept = $rawDept;
+            $fullDept = null;
+        }
     @endphp
 
     <style>
@@ -15,7 +22,7 @@
         .welcome-banner {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #ffffff;
-            padding: 24px;
+            padding: 24px 28px;
             border-radius: 16px;
             margin-bottom: 24px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -25,32 +32,95 @@
             flex-wrap: wrap;
             gap: 16px;
         }
+        .welcome-text-wrap {
+            flex: 1 1 300px;
+            min-width: 0;
+        }
+        .welcome-badge-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .welcome-role-badge {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+        .welcome-dept-full {
+            color: #94a3b8;
+            font-size: 11.5px;
+            font-weight: 500;
+        }
         .welcome-banner h2 {
             font-size: 22px;
             font-weight: 800;
             margin: 0;
-            color: white;
+            color: #ffffff;
+            line-height: 1.25;
+            letter-spacing: -0.01em;
         }
         .welcome-banner p {
             font-size: 13px;
-            color: #94a3b8;
-            margin: 4px 0 0 0;
+            color: #cbd5e1;
+            margin: 6px 0 0 0;
+            line-height: 1.4;
         }
         .btn-new-req {
             background: #f59e0b;
             color: #0f172a;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 11px 22px;
+            border-radius: 10px;
             font-weight: 800;
-            font-size: 12px;
+            font-size: 13px;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+            white-space: nowrap;
         }
         .btn-new-req:hover {
             background: #d97706;
-            color: white;
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        @media (max-width: 640px) {
+            .welcome-banner {
+                padding: 18px 16px;
+                border-radius: 14px;
+                margin-bottom: 16px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+            }
+            .welcome-banner h2 {
+                font-size: 18px;
+                line-height: 1.3;
+            }
+            .welcome-banner p {
+                font-size: 12px;
+            }
+            .welcome-dept-full {
+                font-size: 11px;
+            }
+            .btn-new-req {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+                padding: 11px 16px;
+                font-size: 13px;
+            }
         }
 
         /* Stats Grid */
@@ -305,8 +375,14 @@
         
         <!-- Welcome banner -->
         <div class="welcome-banner">
-            <div>
-                <h2>Welcome, {{ $deptName }} Representative!</h2>
+            <div class="welcome-text-wrap">
+                <div class="welcome-badge-wrap">
+                    <span class="welcome-role-badge">🏛️ {{ $shortDept }}</span>
+                    @if($fullDept)
+                        <span class="welcome-dept-full">{{ $fullDept }}</span>
+                    @endif
+                </div>
+                <h2>Welcome, {{ $shortDept }} Representative!</h2>
                 <p>Manage and track your college vehicle requests for official trips and seminars.</p>
             </div>
             <a href="{{ \App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('create') }}" class="btn-new-req">

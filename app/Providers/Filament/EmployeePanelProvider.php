@@ -493,23 +493,24 @@ class EmployeePanelProvider extends PanelProvider
                                 margin-right: 4px !important;
                             }
 
+                            /* Global search input on tablets & desktops */
                             .fi-global-search-ctn,
                             .fi-global-search,
                             .fi-global-search-field {
                                 margin-inline: 0 !important;
                                 margin-left: 0 !important;
                                 margin-right: 0 !important;
-                                flex: 0 1 140px !important;
-                                max-width: 140px !important;
+                                flex: 0 1 180px !important;
+                                max-width: 220px !important;
                                 min-width: 0 !important;
                                 width: 100% !important;
                             }
 
                             .fi-global-search-field .fi-input-wrp {
-                                max-width: 140px !important;
+                                max-width: 220px !important;
                                 min-width: 0 !important;
                                 width: 100% !important;
-                                height: 32px !important;
+                                height: 34px !important;
                                 display: flex !important;
                                 align-items: center !important;
                                 overflow: hidden !important;
@@ -539,7 +540,7 @@ class EmployeePanelProvider extends PanelProvider
                                 min-width: 0 !important;
                                 max-width: 100% !important;
                                 font-size: 12px !important;
-                                height: 30px !important;
+                                height: 32px !important;
                                 padding-left: 2px !important;
                                 padding-right: 6px !important;
                                 padding-inline: 2px 6px !important;
@@ -593,31 +594,17 @@ class EmployeePanelProvider extends PanelProvider
                             }
                         }
 
-                        @media (max-width: 420px) {
+                        @media (max-width: 640px) {
+                            /* Hide cramped search bar in topbar on mobile phones */
                             .fi-global-search-ctn,
                             .fi-global-search,
-                            .fi-global-search-field,
-                            .fi-global-search-field .fi-input-wrp {
-                                flex: 0 1 115px !important;
-                                max-width: 115px !important;
+                            .fi-global-search-field {
+                                display: none !important;
                             }
 
                             .fi-topbar-end {
-                                gap: 6px !important;
+                                gap: 10px !important;
                                 margin-right: 2px !important;
-                            }
-
-                            .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn,
-                            .fi-topbar-database-notifications-btn > .pelicle-unread-badge {
-                                top: 0px !important;
-                                right: 9px !important;
-                                left: auto !important;
-                                bottom: auto !important;
-                                inset-inline-start: auto !important;
-                                inset-inline-end: 9px !important;
-                                transform: none !important;
-                                --tw-translate-x: 0 !important;
-                                --tw-translate-y: 0 !important;
                             }
                         }
                     </style>
