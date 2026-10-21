@@ -473,18 +473,64 @@ class EmployeePanelProvider extends PanelProvider
                         }
 
                         /* ========================================================
+                           FULL-WIDTH FLUSH TOPBAR HEADER (NAKA-SAGAD SA SCREEN)
+                           ======================================================== */
+                        /* Container spans 100% full-width flush edge-to-edge with no outer margin/padding */
+                        .fi-topbar-ctn {
+                            width: 100% !important;
+                            max-width: 100% !important;
+                            padding-left: 0 !important;
+                            padding-right: 0 !important;
+                            padding-inline: 0 !important;
+                            margin: 0 !important;
+                            box-sizing: border-box !important;
+                        }
+
+                        /* Header topbar nav stretches completely edge-to-edge with no side margins or rounded corners */
+                        header.fi-topbar,
+                        nav.fi-topbar,
+                        .fi-topbar {
+                            width: 100% !important;
+                            max-width: 100% !important;
+                            margin-left: 0 !important;
+                            margin-right: 0 !important;
+                            border-radius: 0 !important;
+                            border-left: none !important;
+                            border-right: none !important;
+                            border-top: none !important;
+                            box-shadow: none !important;
+                            --tw-ring-offset-shadow: 0 0 #0000 !important;
+                            --tw-ring-shadow: 0 0 #0000 !important;
+                            box-sizing: border-box !important;
+                        }
+
+                        /* ========================================================
                            MOBILE RESPONSIVE TOPBAR & AVATAR PROFILE LOGOUT FIX
                            ======================================================== */
                         @media (max-width: 768px) {
+                            /* Ensure topbar container is 100% flush edge-to-edge ("sagad sa screen") */
+                            .fi-topbar-ctn {
+                                width: 100% !important;
+                                max-width: 100vw !important;
+                                padding: 0 !important;
+                                margin: 0 !important;
+                            }
+
+                            /* Ensure topbar nav touches both screen edges with no side margins or rounded corners */
                             header.fi-topbar,
                             nav.fi-topbar,
-                            .fi-topbar,
-                            .fi-topbar-ctn,
-                            .fi-topbar-header,
-                            .fi-topbar-nav {
-                                padding-left: 8px !important;
-                                padding-right: 12px !important;
+                            .fi-topbar {
+                                width: 100% !important;
                                 max-width: 100vw !important;
+                                margin-left: 0 !important;
+                                margin-right: 0 !important;
+                                border-radius: 0 !important;
+                                border-left: none !important;
+                                border-right: none !important;
+                                border-top: none !important;
+                                padding-left: 8px !important;
+                                padding-right: 8px !important;
+                                padding-inline: 8px !important;
                                 box-sizing: border-box !important;
                             }
 

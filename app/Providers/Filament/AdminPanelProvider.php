@@ -102,25 +102,29 @@ class AdminPanelProvider extends PanelProvider
                         html.dark header.fi-topbar, 
                         html.dark .fi-topbar,
                         html.dark .fi-topbar-nav, 
-                        html.dark .fi-topbar-header, 
-                        html.dark .fi-topbar > div {
+                        html.dark .fi-topbar-header {
                             border-bottom: 1px solid #161f30 !important;
                             height: 50px !important;
                             min-height: 50px !important;
                             max-height: 50px !important;
                         }
+                        html.dark .fi-global-search-field .fi-input-wrp {
+                            background-color: #0b0f19 !important;
+                            border: 1px solid #1e293b !important;
+                            border-radius: 6px !important;
+                            box-shadow: none !important;
+                        }
                         html.dark .fi-global-search-field input,
                         html.dark .fi-topbar input, 
                         html.dark .fi-global-search-input, 
                         html.dark .fi-global-search-input-field {
-                            background-color: #0b0f19 !important;
-                            border: 1px solid #1e293b !important;
-                            border-radius: 6px !important;
+                            border: none !important;
+                            outline: none !important;
+                            box-shadow: none !important;
+                            background: transparent !important;
                             color: #ffffff !important;
                             height: 30px !important;
                             font-size: 11.5px !important;
-                            padding-left: 30px !important;
-                            padding-right: 10px !important;
                             width: 210px !important;
                         }
                         html.dark .fi-topbar input::placeholder {
@@ -236,27 +240,32 @@ class AdminPanelProvider extends PanelProvider
 
                         /* Light Topbar */
                         html:not(.dark) header.fi-topbar, 
+                        html:not(.dark) .fi-topbar,
                         html:not(.dark) .fi-topbar-nav, 
-                        html:not(.dark) .fi-topbar-header, 
-                        html:not(.dark) .fi-topbar > div {
+                        html:not(.dark) .fi-topbar-header {
                             background-color: #ffffff !important;
                             border-bottom: 1px solid #e2e8f0 !important;
                             height: 50px !important;
                             min-height: 50px !important;
                             max-height: 50px !important;
                         }
+                        html:not(.dark) .fi-global-search-field .fi-input-wrp {
+                            background-color: #f1f5f9 !important;
+                            border: 1px solid #cbd5e1 !important;
+                            border-radius: 6px !important;
+                            box-shadow: none !important;
+                        }
                         html:not(.dark) .fi-global-search-field input,
                         html:not(.dark) .fi-topbar input, 
                         html:not(.dark) .fi-global-search-input, 
                         html:not(.dark) .fi-global-search-input-field {
-                            background-color: #f1f5f9 !important;
-                            border: 1px solid #cbd5e1 !important;
-                            border-radius: 6px !important;
+                            border: none !important;
+                            outline: none !important;
+                            box-shadow: none !important;
+                            background: transparent !important;
                             color: #0f172a !important;
                             height: 30px !important;
                             font-size: 11.5px !important;
-                            padding-left: 30px !important;
-                            padding-right: 10px !important;
                             width: 210px !important;
                         }
                         html:not(.dark) .fi-topbar input::placeholder {
@@ -733,20 +742,64 @@ class AdminPanelProvider extends PanelProvider
                         }
 
                         /* ========================================================
+                           FULL-WIDTH FLUSH TOPBAR HEADER (NAKA-SAGAD SA SCREEN)
+                           ======================================================== */
+                        /* Container spans 100% full-width flush edge-to-edge with no outer margin/padding */
+                        .fi-topbar-ctn {
+                            width: 100% !important;
+                            max-width: 100% !important;
+                            padding-left: 0 !important;
+                            padding-right: 0 !important;
+                            padding-inline: 0 !important;
+                            margin: 0 !important;
+                            box-sizing: border-box !important;
+                        }
+
+                        /* Header topbar nav stretches completely edge-to-edge with no side margins or rounded corners */
+                        header.fi-topbar,
+                        nav.fi-topbar,
+                        .fi-topbar {
+                            width: 100% !important;
+                            max-width: 100% !important;
+                            margin-left: 0 !important;
+                            margin-right: 0 !important;
+                            border-radius: 0 !important;
+                            border-left: none !important;
+                            border-right: none !important;
+                            border-top: none !important;
+                            box-shadow: none !important;
+                            --tw-ring-offset-shadow: 0 0 #0000 !important;
+                            --tw-ring-shadow: 0 0 #0000 !important;
+                            box-sizing: border-box !important;
+                        }
+
+                        /* ========================================================
                            MOBILE RESPONSIVE TOPBAR & AVATAR PROFILE LOGOUT FIX
                            ======================================================== */
                         @media (max-width: 768px) {
-                            /* Ensure topbar header does not overflow horizontally */
+                            /* Ensure topbar container is 100% flush edge-to-edge ("sagad sa screen") */
+                            .fi-topbar-ctn {
+                                width: 100% !important;
+                                max-width: 100vw !important;
+                                padding: 0 !important;
+                                margin: 0 !important;
+                            }
+
+                            /* Ensure topbar nav touches both screen edges with no side margins or rounded corners */
                             header.fi-topbar,
                             nav.fi-topbar,
-                            .fi-topbar,
-                            .fi-topbar-ctn,
-                            .fi-topbar-header,
-                            header.fi-topbar > div,
-                            .fi-topbar-nav {
-                                padding-left: 8px !important;
-                                padding-right: 12px !important;
+                            .fi-topbar {
+                                width: 100% !important;
                                 max-width: 100vw !important;
+                                margin-left: 0 !important;
+                                margin-right: 0 !important;
+                                border-radius: 0 !important;
+                                border-left: none !important;
+                                border-right: none !important;
+                                border-top: none !important;
+                                padding-left: 8px !important;
+                                padding-right: 8px !important;
+                                padding-inline: 8px !important;
                                 box-sizing: border-box !important;
                             }
 
