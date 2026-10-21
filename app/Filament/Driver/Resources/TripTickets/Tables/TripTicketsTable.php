@@ -74,7 +74,7 @@ class TripTicketsTable
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->visible(fn ($record) => $record->status === 'pending')
+                        ->visible(fn ($record) => $record->status === 'pending' && $record->hasVerifiedDocument())
                         ->action(function ($record) {
                             $record->update(['status' => 'active']);
                             $record->driver?->update(['status' => 'on_trip']);

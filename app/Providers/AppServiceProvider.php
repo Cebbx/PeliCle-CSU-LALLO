@@ -224,15 +224,15 @@ class AppServiceProvider extends ServiceProvider
         try {
             if (!app()->runningInConsole() && \Illuminate\Support\Facades\Cache::add('cron_sync_trip_statuses_lock', true, 60)) {
                 if (\Illuminate\Support\Facades\Schema::hasTable('trip_tickets')) {
-                // 1. Activate trips with uploaded document whose departure time has arrived
+                // 1. Activate trips with VERIFIED document whose departure time has arrived
                 $pendingReadyTrips = \App\Models\TripTicket::where('status', 'pending')
                     ->where(function ($query) {
-                        $query->whereNotNull('document')
+                        $query->whereNotNull('document_verified_at')
                             ->orWhereHas('vehicleRequests', function ($q) {
-                                $q->whereNotNull('document');
+                                $q->whereNotNull('document_verified_at');
                             })
                             ->orWhereHas('vehicleRequest', function ($q) {
-                                $q->whereNotNull('document');
+                                $q->whereNotNull('document_verified_at');
                             });
                     })
                     ->with(['vehicleRequest', 'vehicleRequests', 'driver'])

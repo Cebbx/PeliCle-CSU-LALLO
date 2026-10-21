@@ -110,7 +110,9 @@ class VehicleRequestsTable
                     ->badge()
                     ->color(fn (string $state, $record): string => match ($state) {
                         'pending' => 'warning',
-                        'approved' => !empty($record->document) ? 'info' : 'success',
+                        'approved' => !empty($record->document) 
+                            ? (empty($record->document_verified_at) ? 'warning' : 'info')
+                            : 'success',
                         'on_trip' => 'info',
                         'rejected' => 'danger',
                         'cancelled' => 'danger',
@@ -120,7 +122,13 @@ class VehicleRequestsTable
                     })
                     ->formatStateUsing(function (string $state, $record) {
                         if ($state === 'approved') {
-                            return !empty($record->document) ? 'Ready (Waiting)' : 'Approved';
+                            if (!empty($record->document)) {
+                                if (empty($record->document_verified_at)) {
+                                    return 'Doc For Review';
+                                }
+                                return 'Ready (Waiting)';
+                            }
+                            return 'Approved';
                         }
                         return match ($state) {
                             'pending' => 'Pending',
@@ -138,9 +146,12 @@ class VehicleRequestsTable
                         }
                         if ($record->status === 'approved') {
                             if (!empty($record->document)) {
+                                if (empty($record->document_verified_at)) {
+                                    return '⏳ Awaiting Admin Verification';
+                                }
                                 return $record->time 
                                     ? '⏳ Departs ' . \Carbon\Carbon::parse($record->time)->format('g:i A')
-                                    : '✅ Doc Attached';
+                                    : '✅ Doc Verified';
                             }
                             return '📄 Awaiting CEO Doc';
                         }

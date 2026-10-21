@@ -179,38 +179,20 @@ class TripTicketsTable
 
                             $record->update([
                                 'document' => $finalPath,
+                                'document_verified_at' => null,
                             ]);
 
                             foreach ($record->all_vehicle_requests as $req) {
                                 $req->updateQuietly([
                                     'document' => $finalPath,
-                                    'status' => $record->status === 'active' ? 'on_trip' : 'approved',
+                                    'document_verified_at' => null,
+                                    'status' => 'approved',
                                 ]);
                             }
 
-                            $record->sendSmsNotification();
-
-                            $driverUser = $record->driver?->getUserAccount();
-                            if ($driverUser) {
-                                try {
-                                    $dest = $record->vehicleRequest?->destination ?? 'Assigned Destination';
-                                    \Filament\Notifications\Notification::make()
-                                        ->title('📄 CEO Document Ready (' . $record->ticket_number . ')')
-                                        ->body("CEO signed document for trip to {$dest} has been uploaded. Your trip is cleared for scheduled departure.")
-                                        ->icon('heroicon-o-document-check')
-                                        ->iconColor('success')
-                                        ->actions([
-                                            \Filament\Actions\Action::make('view')
-                                                ->label('View Trip')
-                                                ->url('/driver/trip-tickets'),
-                                        ])
-                                        ->sendToDatabase($driverUser);
-                                } catch (\Throwable $e) {}
-                            }
-
                             \Filament\Notifications\Notification::make()
-                                ->title('Document Uploaded & Driver Notified')
-                                ->body("CEO Signed Document uploaded for {$record->ticket_number}. SMS notification has been sent to {$record->driver?->name}.")
+                                ->title('Document Uploaded (Awaiting Verification)')
+                                ->body("CEO Signed Document uploaded for {$record->ticket_number}. Pindutin ang 'Verify Doc & Send SMS' o buksan ang dokumento para ma-verify at maipadala ang SMS sa driver.")
                                 ->success()
                                 ->send();
                         }),
@@ -486,7 +468,7 @@ class TripTicketsTable
                         ->label('Resend SMS')
                         ->icon('heroicon-o-paper-airplane')
                         ->color('warning')
-                        ->visible(fn ($record) => in_array($record->status, ['pending', 'active']) && $record->hasSignedDocument())
+                        ->visible(fn ($record) => in_array($record->status, ['pending', 'active']) && $record->hasVerifiedDocument())
                         ->action(function ($record) {
                             if (!$record->driver) {
                                 \Filament\Notifications\Notification::make()
@@ -505,6 +487,27 @@ class TripTicketsTable
                                 ->send();
                         })
                         ->requiresConfirmation(fn ($record) => (bool) $record->driver),
+                    Action::make('verify_and_send_sms')
+                        ->label('Verify Doc & Send SMS')
+                        ->icon('heroicon-o-paper-airplane')
+                        ->color('success')
+                        ->visible(fn ($record) => $record->hasSignedDocument() && !$record->hasVerifiedDocument() && in_array($record->status, ['pending']))
+                        ->requiresConfirmation()
+                        ->modalHeading('📱 Verify CEO Document & Send SMS to Driver')
+                        ->modalDescription(function ($record) {
+                            $driver = $record->driver?->name ?? 'Assigned Driver';
+                            $phone = $record->driver?->contact_number ? " ({$record->driver->contact_number})" : '';
+                            return "Kumpirmahin at i-verify ang CEO Signed Document at ipadala ang SMS dispatch kay {$driver}{$phone}?";
+                        })
+                        ->modalSubmitActionLabel('Yes, Verify & Send SMS')
+                        ->action(function ($record) {
+                            $res = $record->verifyDocumentAndDispatch(sendSms: true);
+                            \Filament\Notifications\Notification::make()
+                                ->title('Document Verified & SMS Sent')
+                                ->body($res['message'])
+                                ->success()
+                                ->send();
+                        }),
                     Action::make('view_signed_document')
                         ->label('View Signed Document')
                         ->icon('heroicon-o-document-check')

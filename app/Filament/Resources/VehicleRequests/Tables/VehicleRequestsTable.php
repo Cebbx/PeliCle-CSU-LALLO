@@ -435,39 +435,26 @@ class VehicleRequestsTable
 
                             $record->update([
                                 'document' => $finalPath,
+                                'document_verified_at' => null,
+                                'status' => 'approved',
                             ]);
-
-                            $now = \Illuminate\Support\Carbon::now('Asia/Manila');
-                            $depDate = $record->date ?? $now->format('Y-m-d');
-                            $depTime = $record->time ?? '00:00:00';
-                            $tripDateTime = \Illuminate\Support\Carbon::parse("{$depDate} {$depTime}", 'Asia/Manila');
-                            $timeArrived = $now->greaterThanOrEqualTo($tripDateTime);
 
                             if ($record->tripTicket) {
                                 $tripTicket = $record->tripTicket;
                                 $tripTicket->document = $finalPath;
-                                if ($timeArrived) {
-                                    $tripTicket->status = 'active';
-                                    $tripTicket->save();
-                                    $record->update(['status' => 'on_trip']);
-                                } else {
-                                    if ($tripTicket->status === 'cancelled') {
-                                        $tripTicket->status = 'pending';
-                                    }
-                                    $tripTicket->save();
-                                    $record->update(['status' => 'approved']);
+                                $tripTicket->document_verified_at = null;
+                                if ($tripTicket->status === 'cancelled') {
+                                    $tripTicket->status = 'pending';
                                 }
-                                $tripTicket->sendSmsNotification();
+                                $tripTicket->saveQuietly();
                             }
 
                             $msg = $record->tripTicket
-                                ? ($timeArrived
-                                    ? 'CEO Signed Document uploaded! Scheduled travel time has arrived — Trip is now ON TRIP and SMS sent to driver!'
-                                    : 'CEO Signed Document uploaded and SMS sent to driver! Request is now Ready (Waiting for departure at ' . ($record->time ? \Carbon\Carbon::parse($record->time)->format('g:i A') : 'scheduled time') . ').')
-                                : 'CEO Signed Document uploaded! You can now click Approve & Ticket to assign a driver and vehicle.';
+                                ? 'CEO Signed Document uploaded! Naka-attach na ang dokumento. Pindutin ang "Verify Doc & Send SMS" o tingnan ang dokumento para opisyal itong ma-verify at maipadala ang SMS sa driver.'
+                                : 'CEO Signed Document uploaded! Maaari mo nang pindutin ang Approve & Ticket para magtalaga ng driver at sasakyan.';
 
                             \Filament\Notifications\Notification::make()
-                                ->title('Document Uploaded')
+                                ->title('Document Uploaded (Awaiting Verification)')
                                 ->body($msg)
                                 ->success()
                                 ->send();
@@ -549,15 +536,19 @@ class VehicleRequestsTable
 
                             $record->update([
                                 'document' => $finalPath,
+                                'document_verified_at' => null,
+                                'status' => 'approved',
                             ]);
                             if ($record->tripTicket) {
                                 $record->tripTicket->updateQuietly([
                                     'document' => $finalPath,
+                                    'document_verified_at' => null,
+                                    'status' => 'pending',
                                 ]);
                             }
                             \Filament\Notifications\Notification::make()
-                                ->title('Document Replaced')
-                                ->body('Signed document replaced successfully.')
+                                ->title('Document Replaced (Awaiting Verification)')
+                                ->body('Signed document replaced successfully. Pindutin ang "Verify Doc & Send SMS" para ma-verify at ma-dispatch ang driver.')
                                 ->success()
                                 ->send();
                         }),

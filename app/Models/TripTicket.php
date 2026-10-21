@@ -284,8 +284,8 @@ class TripTicket extends Model
                 $tripTicket->document = $tripTicket->vehicleRequest->document;
             }
 
-            // Set active ONLY if document uploaded AND scheduled departure time has arrived
-            if ($tripTicket->document && $tripTicket->status === 'pending') {
+            // Set active ONLY if document is verified by admin AND scheduled departure time has arrived
+            if ($tripTicket->document && $tripTicket->document_verified_at && $tripTicket->status === 'pending') {
                 if ($tripTicket->isDepartureTimeArrived()) {
                     $tripTicket->status = 'active';
                 }
@@ -487,8 +487,8 @@ class TripTicket extends Model
     {
         $this->load(['driver', 'vehicleRequest', 'vehicleRequests']);
 
-        // Do not send automatic SMS if CEO signed document is not uploaded yet
-        if (!$forceResend && !$this->hasSignedDocument()) {
+        // Do not send automatic SMS unless CEO signed document has been verified by Admin
+        if (!$forceResend && !$this->hasVerifiedDocument()) {
             return;
         }
 
@@ -810,6 +810,24 @@ class TripTicket extends Model
             return $this->vehicleRequests()
                 ->whereNotNull('document')
                 ->where('document', '!=', '')
+                ->exists();
+        }
+
+        return false;
+    }
+
+    public function hasVerifiedDocument(): bool
+    {
+        if (!empty($this->document_verified_at) || !empty($this->vehicleRequest?->document_verified_at)) {
+            return true;
+        }
+
+        if ($this->id) {
+            if ($this->relationLoaded('vehicleRequests')) {
+                return $this->vehicleRequests->contains(fn ($r) => !empty($r->document_verified_at));
+            }
+            return $this->vehicleRequests()
+                ->whereNotNull('document_verified_at')
                 ->exists();
         }
 
