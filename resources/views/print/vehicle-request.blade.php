@@ -199,9 +199,11 @@
                 <!-- Client's Signature -->
                 <div class="flex flex-col items-center">
                     @if(!empty($request->signature_url))
-                        <img id="client-signature-img" src="{{ $request->signature_url }}" crossorigin="anonymous" alt="Client Signature" class="h-14 sm:h-16 max-h-16 w-auto max-w-[240px] object-contain -mb-1.5 z-10 pointer-events-none select-none" />
+                        <div class="h-14 sm:h-16 flex items-end justify-center mb-1">
+                            <img id="client-signature-img" src="{{ $request->signature_url }}" crossorigin="anonymous" alt="Client Signature" class="max-h-14 sm:max-h-16 w-auto max-w-[220px] object-contain pointer-events-none select-none" />
+                        </div>
                     @else
-                        <div class="h-12 sm:h-14"></div>
+                        <div class="h-14 sm:h-16"></div>
                     @endif
                     <div class="w-full border-t border-black text-center pt-1">
                         <span class="text-xs sm:text-sm font-extrabold text-black uppercase tracking-wide block leading-tight">{{ $request->employee_name }}</span>
