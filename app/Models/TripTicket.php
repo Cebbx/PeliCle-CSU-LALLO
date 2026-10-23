@@ -400,7 +400,10 @@ class TripTicket extends Model
 
     public static function syncVehicleStatus(?string $vehicleIdentifier): void
     {
-        if (empty($vehicleIdentifier)) return;
+        if (empty($vehicleIdentifier)) {
+            self::syncAllVehicleStatuses();
+            return;
+        }
 
         $plate = $vehicleIdentifier;
         if (str_contains($plate, ' - ')) {
@@ -422,6 +425,33 @@ class TripTicket extends Model
                 ->exists();
 
             $vehicle->update(['status' => $hasActiveTrip ? 'on_trip' : 'available']);
+        }
+
+        self::syncAllVehicleStatuses();
+    }
+
+    public static function syncAllVehicleStatuses(): void
+    {
+        $activeTripVehicles = TripTicket::where('status', 'active')
+            ->pluck('vehicle')
+            ->filter()
+            ->map(fn ($v) => str_contains($v, ' - ') ? trim(end(explode(' - ', $v))) : trim($v))
+            ->toArray();
+
+        foreach (Vehicle::where('status', '!=', 'maintenance')->get() as $vehicle) {
+            $hasActiveTrip = in_array($vehicle->plate_number, $activeTripVehicles)
+                || in_array($vehicle->brand, $activeTripVehicles)
+                || TripTicket::where('status', 'active')
+                    ->where(function ($q) use ($vehicle) {
+                        $q->where('vehicle', 'like', '%' . $vehicle->plate_number . '%')
+                          ->orWhere('vehicle', 'like', '%' . $vehicle->brand . '%');
+                    })
+                    ->exists();
+
+            $targetStatus = $hasActiveTrip ? 'on_trip' : 'available';
+            if ($vehicle->status !== $targetStatus) {
+                $vehicle->update(['status' => $targetStatus]);
+            }
         }
     }
 

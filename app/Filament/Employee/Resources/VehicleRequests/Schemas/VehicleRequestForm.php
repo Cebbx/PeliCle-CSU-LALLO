@@ -30,7 +30,7 @@ class VehicleRequestForm
                     ->columnSpanFull()
                     ->schema([
                         TextInput::make('request_number')
-                            ->label('Vehicle Request')
+                            ->label('Vehicle Request Number')
                             ->default(fn () => \App\Models\VehicleRequest::generateNextRequestNumber())
                             ->helperText('Auto-generated tracking number')
                             ->disabled()
@@ -205,6 +205,7 @@ class VehicleRequestForm
 
                         TimePicker::make('time')
                             ->label('Travel Departure Time')
+                            ->seconds(false)
                             ->default(now())
                             ->live()
                             ->rules([
@@ -231,6 +232,7 @@ class VehicleRequestForm
 
                         TimePicker::make('return_time')
                             ->label('Expected Return Time')
+                            ->seconds(false)
                             ->default(fn () => now()->addHours(4))
                             ->live()
                             ->rules([

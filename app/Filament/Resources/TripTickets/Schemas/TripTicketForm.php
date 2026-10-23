@@ -83,7 +83,7 @@ class TripTicketForm
                     ->label('Companion Requests (Carpool / Same Destination or Along Route & Same Date)')
                     ->multiple()
                     ->dehydrated(false)
-                    ->placeholder('Select compatible same-date requests (Same Destination / Pwede Idagas)...')
+                    ->placeholder('Select compatible requests to carpool (Same Destination / Along Route)...')
                     ->options(function (callable $get, ?TripTicket $record) {
                         $primaryId = $get('vehicle_request_id') ?: ($record?->vehicle_request_id ?? request()->query('vehicle_request_id'));
                         $primaryReq = $primaryId ? VehicleRequest::find($primaryId) : null;
@@ -127,7 +127,7 @@ class TripTicketForm
                                 if ($matchType === 'same_municipality') {
                                     $destTag = "⭐ SAME DESTINATION: {$r->destination}";
                                 } else {
-                                    $destTag = "🛣️ PWEDE IDAGAS (ALONG ROUTE): {$r->destination}";
+                                    $destTag = "🛣️ ALONG ROUTE: {$r->destination}";
                                 }
 
                                 $timeBadge = '';
@@ -332,7 +332,7 @@ class TripTicketForm
 
                             if ($vehicle->status === 'maintenance') {
                                 $vehiclesFormatted[$vehicle->plate_number] = "{$fullName} (Under Maintenance)";
-                            } elseif ($vehicle->status === 'on_trip' || in_array($vehicle->plate_number, $activeVehicles)) {
+                            } elseif (in_array($vehicle->plate_number, $activeVehicles)) {
                                 $vehiclesFormatted[$vehicle->plate_number] = "{$fullName} (On Trip)";
                             } elseif ($isScheduled) {
                                 $vehiclesFormatted[$vehicle->plate_number] = "{$fullName} (Scheduled on this date)";
@@ -379,7 +379,7 @@ class TripTicketForm
                         $state = $vehStateCache[$cacheKey];
                         $dbVehicle = $state['vehicles'][$value] ?? null;
                         $isMaintenance = $dbVehicle && $dbVehicle->status === 'maintenance';
-                        $isOnTrip = ($dbVehicle && $dbVehicle->status === 'on_trip') || in_array($value, $state['active']);
+                        $isOnTrip = in_array($value, $state['active']);
                         $isScheduled = false;
                         foreach ($state['scheduled'] as $sV) {
                             if (str_contains($sV, $value)) {
@@ -422,7 +422,7 @@ class TripTicketForm
 
                             $dbVehicle = \App\Models\Vehicle::where('plate_number', $value)->first();
                             $isMaintenance = $dbVehicle && $dbVehicle->status === 'maintenance';
-                            $isOnTrip = ($dbVehicle && $dbVehicle->status === 'on_trip') || in_array($value, $activeVehicles);
+                            $isOnTrip = in_array($value, $activeVehicles);
 
                             if ($isOnTrip) {
                                 $fail("This vehicle is currently on a trip. Please select another vehicle.");

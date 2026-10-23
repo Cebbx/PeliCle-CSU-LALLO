@@ -327,6 +327,9 @@ class AppServiceProvider extends ServiceProvider
                         ]);
                     }
                 }
+
+                // 3. Ensure all vehicle and driver availability statuses match real active trips
+                \App\Models\TripTicket::syncAllVehicleStatuses();
             }
             }
         } catch (\Throwable $e) {

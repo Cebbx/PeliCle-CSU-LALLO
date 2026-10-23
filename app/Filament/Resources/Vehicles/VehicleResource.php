@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Vehicles;
 
 use App\Filament\Resources\Vehicles\Pages\CreateVehicle;
-use App\Filament\Resources\Vehicles\Pages\EditVehicle;
 use App\Filament\Resources\Vehicles\Pages\ListVehicles;
+use App\Filament\Resources\Vehicles\Pages\ViewVehicle;
 use App\Filament\Resources\Vehicles\Schemas\VehicleForm;
 use App\Filament\Resources\Vehicles\Tables\VehiclesTable;
 use App\Models\Vehicle;
@@ -13,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class VehicleResource extends Resource
 {
@@ -25,6 +26,11 @@ class VehicleResource extends Resource
     protected static ?int $navigationSort = 4;
 
     protected static ?string $recordTitleAttribute = 'plate_number';
+
+    public static function canEdit(Model $record): bool
+    {
+        return false;
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -48,7 +54,7 @@ class VehicleResource extends Resource
         return [
             'index' => ListVehicles::route('/'),
             'create' => CreateVehicle::route('/create'),
-            'edit' => EditVehicle::route('/{record}/edit'),
+            'view' => ViewVehicle::route('/{record}'),
         ];
     }
 }
