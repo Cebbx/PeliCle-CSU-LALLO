@@ -33,3 +33,7 @@ services:
         value: "wal"
       - key: DB_SYNCHRONOUS
         value: "NORMAL"
+      - key: TEXTBEE_API_KEY
+        value: "txb_d2nHDE5wmA2oQfDoJLqfdVhGBHZo90dr"
+      - key: TEXTBEE_DEVICE_ID
+        value: "6ad44dc65291071e57939e85"
