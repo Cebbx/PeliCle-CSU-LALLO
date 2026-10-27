@@ -97,7 +97,7 @@ chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/d
 (
     while true; do
         sleep 600
-        PING_URL="${RENDER_EXTERNAL_URL:-https://csu-vehicle-request.onrender.com}/up"
+        PING_URL="${RENDER_EXTERNAL_URL:-https://pelicle-csulallo.onrender.com}/up"
         curl -s -L --max-time 30 "$PING_URL" >/dev/null 2>&1 || true
     done
 ) &

@@ -11,4 +11,4 @@ jobs:
     steps:
       - name: Ping CSU Vehicle Request System
         run: |
-          curl -I -s -L --max-time 60 https://csu-vehicle-request.onrender.com/up || true
+          curl -I -s -L --max-time 60 https://pelicle-csulallo.onrender.com/up || true

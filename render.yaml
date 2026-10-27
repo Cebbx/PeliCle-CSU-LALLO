@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: pelicle-fleet-system
+    name: pelicle-csulallo
     runtime: docker
     plan: free
     region: singapore
@@ -14,7 +14,7 @@ services:
       - key: APP_KEY
         value: base64:b0csUkDjXbSebH3/XMh148ORsb1zoV1ARYDtUgnar4M=
       - key: APP_URL
-        value: https://csu-vehicle-request.onrender.com
+        value: https://pelicle-csulallo.onrender.com
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE
