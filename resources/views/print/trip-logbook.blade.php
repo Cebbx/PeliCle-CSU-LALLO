@@ -38,6 +38,19 @@
                 max-width: 100% !important;
                 width: 100% !important;
             }
+            .print-signatures-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 3rem !important;
+            }
+            .print-header-flex {
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                text-align: left !important;
+            }
+            .print-summary-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            }
         }
     </style>
 </head>
@@ -96,9 +109,9 @@
     <div class="print-container max-w-[13in] mx-auto bg-white p-6 rounded-xl shadow-lg border border-black min-h-[8in] text-black">
         
         <!-- CSU Lal-lo Letterhead -->
-        <div class="flex items-center justify-between border-b-2 border-black pb-3 mb-4">
-            <div class="flex items-center gap-3">
-                <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-14 h-14 object-contain" onerror="this.style.display='none'" />
+        <div class="print-header-flex flex flex-col sm:flex-row items-center justify-between gap-3 border-b-2 border-black pb-3 mb-4 text-center sm:text-left">
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <img src="{{ asset('csu-logo.png') }}" alt="CSU Logo" crossorigin="anonymous" class="w-14 h-14 object-contain flex-shrink-0" onerror="this.style.display='none'" />
                 <div>
                     <div class="text-[10px] font-bold uppercase tracking-widest text-black">Republic of the Philippines</div>
                     <div class="text-sm font-black uppercase text-black leading-tight">Cagayan State University</div>
@@ -106,35 +119,36 @@
                     <div class="text-[11px] font-bold text-blue-900 mt-0.5">GENERAL SERVICES OFFICE (GSO) &bull; MOTORPOOL & FLEET SECTION</div>
                 </div>
             </div>
-            <div class="text-right">
-                <div class="text-sm font-black uppercase tracking-wide border-b border-black pb-0.5">MONTHLY VEHICLE TRAVEL LOGBOOK</div>
+            <div class="text-center sm:text-right mt-1 sm:mt-0">
+                <div class="text-xs sm:text-sm font-black uppercase tracking-wide border-b border-black pb-0.5">MONTHLY VEHICLE TRAVEL LOGBOOK</div>
                 <div class="text-xs font-mono font-bold mt-1 text-black">Period: {{ strtoupper($monthName) }}</div>
                 <div class="text-[10px] font-semibold text-gray-600 mt-0.5">Total Trips Recorded: <span class="font-bold text-black">{{ $totalTrips }}</span></div>
             </div>
         </div>
 
         <!-- Monthly Summary Highlights -->
-        <div class="grid grid-cols-4 gap-2 mb-3 text-center border border-black p-2 bg-gray-50 text-xs">
+        <div class="print-summary-grid grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 text-center border border-black p-2 bg-gray-50 text-xs">
             <div>
-                <span class="font-bold">Total Trips Dispatched:</span>
-                <span class="font-black text-black ml-1">{{ $totalTrips }}</span>
+                <span class="font-bold block sm:inline">Total Trips Dispatched:</span>
+                <span class="font-black text-black sm:ml-1">{{ $totalTrips }}</span>
             </div>
             <div>
-                <span class="font-bold">Completed Trips:</span>
-                <span class="font-black text-green-700 ml-1">{{ $completedTrips }}</span>
+                <span class="font-bold block sm:inline">Completed Trips:</span>
+                <span class="font-black text-green-700 sm:ml-1">{{ $completedTrips }}</span>
             </div>
             <div>
-                <span class="font-bold">Active / On Trip:</span>
-                <span class="font-black text-blue-700 ml-1">{{ $activeTrips }}</span>
+                <span class="font-bold block sm:inline">Active / On Trip:</span>
+                <span class="font-black text-blue-700 sm:ml-1">{{ $activeTrips }}</span>
             </div>
             <div>
-                <span class="font-bold">Total Passengers Served:</span>
-                <span class="font-black text-black ml-1">{{ $totalPassengers }} persons</span>
+                <span class="font-bold block sm:inline">Total Passengers Served:</span>
+                <span class="font-black text-black sm:ml-1">{{ $totalPassengers }} persons</span>
             </div>
         </div>
 
         <!-- Official Logbook Table -->
-        <table class="w-full border-collapse border border-black text-[10px] mb-4">
+        <div class="overflow-x-auto w-full mb-4">
+            <table class="w-full border-collapse border border-black text-[10px] min-w-[760px]">
             <thead>
                 <tr class="bg-gray-100 font-bold text-center border-b border-black">
                     <th class="border border-black p-1.5 w-8">#</th>
@@ -211,28 +225,29 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
 
         <!-- Signatures & Verification -->
-        <div class="mt-8 grid grid-cols-2 gap-12 text-xs">
-            <div>
-                <div class="font-bold uppercase mb-8">Prepared by:</div>
-                <div class="border-b border-black w-72 pb-0.5 text-center font-bold uppercase">
+        <div class="print-signatures-grid mt-8 grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-12 text-xs">
+            <div class="flex flex-col items-center sm:items-start">
+                <div class="font-bold uppercase mb-6 sm:mb-8 text-center sm:text-left">Prepared by:</div>
+                <div class="border-b border-black w-64 sm:w-72 pb-0.5 text-center font-bold uppercase">
                     JOEL A. TUMAMAO
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase w-72 text-center">General Services Office</div>
+                <div class="text-[10px] text-gray-700 uppercase w-64 sm:w-72 text-center">General Services Office</div>
             </div>
 
-            <div class="text-right flex flex-col items-end">
-                <div class="font-bold uppercase mb-8 self-end">Noted by:</div>
-                <div class="border-b border-black w-72 pb-0.5 text-center font-bold uppercase self-end text-[11px] whitespace-nowrap">
+            <div class="flex flex-col items-center sm:items-end text-center sm:text-right">
+                <div class="font-bold uppercase mb-6 sm:mb-8">Noted by:</div>
+                <div class="border-b border-black w-64 sm:w-72 pb-0.5 text-center font-bold uppercase text-[10.5px] sm:text-[11px] whitespace-nowrap">
                     {{ \App\Models\User::getCeoName() }}
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase self-end w-72 text-center">Campus Executive Officer</div>
+                <div class="text-[10px] text-gray-700 uppercase w-64 sm:w-72 text-center">Campus Executive Officer</div>
             </div>
         </div>
 
         <!-- Footer Code -->
-        <div class="mt-6 pt-2 border-t border-black flex justify-between items-center text-[9px] font-mono text-gray-600">
+        <div class="mt-6 pt-2 border-t border-black flex flex-col sm:flex-row justify-between items-center text-[9px] font-mono text-gray-600 gap-1 text-center sm:text-left">
             <span>F-GSO-LOGBOOK-61202</span>
             <span>Cagayan State University Lal-lo Campus &bull; GSO Motorpool Section</span>
         </div>

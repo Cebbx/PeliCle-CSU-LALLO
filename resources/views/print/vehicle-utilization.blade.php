@@ -37,6 +37,19 @@
                 max-width: 100% !important;
                 width: 100% !important;
             }
+            .print-signatures-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 3rem !important;
+            }
+            .print-header-flex {
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                text-align: left !important;
+            }
+            .print-summary-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            }
         }
     </style>
 </head>
@@ -102,28 +115,27 @@
     <div class="print-container max-w-5xl mx-auto bg-white p-6 sm:p-8 border border-black shadow-lg text-black">
         
         <!-- Header -->
-        <div class="border-b-2 border-black pb-3 mb-4">
-            <div class="flex items-center justify-between gap-4">
-                <img src="{{ asset('csu-logo.png') }}" class="w-16 h-16 sm:w-20 sm:h-20 object-contain" alt="CSU Logo" crossorigin="anonymous" />
-                <div class="text-center flex-1">
+        <div class="print-header-flex flex flex-col sm:flex-row items-center justify-between gap-3 border-b-2 border-black pb-3 mb-4 text-center sm:text-left">
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <img src="{{ asset('csu-logo.png') }}" class="w-16 h-16 sm:w-20 sm:h-20 object-contain flex-shrink-0" alt="CSU Logo" crossorigin="anonymous" />
+                <div>
                     <p class="text-[10px] tracking-widest uppercase font-semibold text-gray-700">Republic of the Philippines</p>
                     <h2 class="text-base sm:text-lg font-black text-black uppercase tracking-wide">Cagayan State University</h2>
                     <p class="text-xs font-bold text-gray-800">Lal-lo Campus &bull; Lal-lo, Cagayan</p>
                     <p class="text-[11px] font-bold text-gray-700 uppercase mt-0.5">GENERAL SERVICES OFFICE &bull; MOTORPOOL SECTION</p>
-                    <h3 class="text-xs sm:text-sm font-black uppercase text-black mt-2 underline tracking-wider">
-                        MONTHLY VEHICLE UTILIZATION & FLEET ACCOMPLISHMENT REPORT
-                    </h3>
-                    <p class="text-xs font-bold text-gray-800 uppercase mt-0.5">FOR THE MONTH OF {{ strtoupper($monthName) }}</p>
                 </div>
-                <div class="w-20 text-right font-mono text-[9px] text-gray-600">
-                    <div>F-GSO-VEH-UTIL</div>
-                    <div>Rev. 01</div>
-                </div>
+            </div>
+            <div class="text-center sm:text-right mt-1 sm:mt-0">
+                <h3 class="text-xs sm:text-sm font-black uppercase text-black underline tracking-wider">
+                    MONTHLY VEHICLE UTILIZATION REPORT
+                </h3>
+                <p class="text-xs font-bold text-gray-800 uppercase mt-0.5">FOR THE MONTH OF {{ strtoupper($monthName) }}</p>
+                <div class="text-[9px] font-mono text-gray-500 mt-1">F-GSO-VEH-UTIL &bull; Rev. 01</div>
             </div>
         </div>
 
         <!-- Monthly KPI Metrics -->
-        <div class="grid grid-cols-4 gap-2 mb-4 text-center">
+        <div class="print-summary-grid grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-center">
             <div class="border border-black p-2 bg-gray-50">
                 <div class="text-[8.5px] uppercase font-bold text-gray-600">Total Fleet Units</div>
                 <div class="text-lg font-black text-black">{{ count($allVehicles) }}</div>
@@ -153,7 +165,8 @@
                 <span class="text-[9px] font-normal text-gray-600">Sorted by utilization frequency</span>
             </h4>
 
-            <table class="w-full border-collapse border border-black text-[10px]">
+            <div class="overflow-x-auto w-full">
+                <table class="w-full border-collapse border border-black text-[10px] min-w-[700px]">
                 <thead>
                     <tr class="bg-gray-100 font-bold text-center border-b border-black">
                         <th class="border border-black p-1.5 w-8">#</th>
@@ -219,29 +232,30 @@
                     @endforelse
                 </tbody>
             </table>
+            </div>
         </div>
 
         <!-- Signatures & Verification -->
-        <div class="mt-8 grid grid-cols-2 gap-12 text-xs">
-            <div>
-                <div class="font-bold uppercase mb-8">Prepared by:</div>
-                <div class="border-b border-black w-72 pb-0.5 text-center font-bold uppercase">
+        <div class="print-signatures-grid mt-8 grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-12 text-xs">
+            <div class="flex flex-col items-center sm:items-start">
+                <div class="font-bold uppercase mb-6 sm:mb-8 text-center sm:text-left">Prepared by:</div>
+                <div class="border-b border-black w-64 sm:w-72 pb-0.5 text-center font-bold uppercase">
                     JOEL A. TUMAMAO
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase w-72 text-center">General Services Office</div>
+                <div class="text-[10px] text-gray-700 uppercase w-64 sm:w-72 text-center">General Services Office</div>
             </div>
 
-            <div class="text-right flex flex-col items-end">
-                <div class="font-bold uppercase mb-8 self-end">Noted by:</div>
-                <div class="border-b border-black w-72 pb-0.5 text-center font-bold uppercase self-end text-[11px] whitespace-nowrap">
+            <div class="flex flex-col items-center sm:items-end text-center sm:text-right">
+                <div class="font-bold uppercase mb-6 sm:mb-8">Noted by:</div>
+                <div class="border-b border-black w-64 sm:w-72 pb-0.5 text-center font-bold uppercase text-[10.5px] sm:text-[11px] whitespace-nowrap">
                     {{ \App\Models\User::getCeoName() }}
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase self-end w-72 text-center">Campus Executive Officer</div>
+                <div class="text-[10px] text-gray-700 uppercase w-64 sm:w-72 text-center">Campus Executive Officer</div>
             </div>
         </div>
 
         <!-- Footer Code -->
-        <div class="mt-6 pt-2 border-t border-black flex justify-between items-center text-[9px] font-mono text-gray-600">
+        <div class="mt-6 pt-2 border-t border-black flex flex-col sm:flex-row justify-between items-center text-[9px] font-mono text-gray-600 gap-1 text-center sm:text-left">
             <span>F-GSO-VEH-UTIL-61202</span>
             <span>Cagayan State University Lal-lo Campus &bull; GSO Motorpool Section</span>
         </div>
