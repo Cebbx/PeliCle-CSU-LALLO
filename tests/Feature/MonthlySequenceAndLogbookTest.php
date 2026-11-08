@@ -107,3 +107,17 @@ test('authenticated user can export monthly trip logbook as csv', function () {
     $response->assertStatus(200);
     $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
 });
+
+test('authenticated user can view and print monthly vehicle utilization report', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+
+    $response = test()->actingAs($admin)->get(route('logbook.vehicle-usage.print', [
+        'year' => '2026',
+        'month' => '09',
+    ]));
+
+    $response->assertStatus(200);
+    $response->assertSee('MONTHLY VEHICLE UTILIZATION');
+    $response->assertSee('SEPTEMBER 2026');
+    $response->assertSee('JOEL A. TUMAMAO');
+});

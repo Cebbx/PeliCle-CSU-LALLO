@@ -483,6 +483,162 @@ class PrintController extends Controller
         ));
     }
 
+    public function printVehicleUsageReport(\Illuminate\Http\Request $request)
+    {
+        $monthInput = $request->query('month');
+        $yearInput = $request->query('year');
+
+        if ($monthInput && str_contains($monthInput, '-')) {
+            $parts = explode('-', $monthInput);
+            $year = $parts[0];
+            $month = str_pad($parts[1], 2, '0', STR_PAD_LEFT);
+        } else {
+            $year = $yearInput ?: now()->format('Y');
+            $month = str_pad($monthInput ?: now()->format('m'), 2, '0', STR_PAD_LEFT);
+        }
+
+        $trips = \App\Models\TripTicket::with(['vehicleRequest', 'vehicleRequests', 'driver'])
+            ->where(function ($q) use ($year, $month) {
+                $prefix = "TT-{$year}-{$month}-";
+                $q->where('ticket_number', 'like', "{$prefix}%")
+                  ->orWhere(function ($sub) use ($year, $month) {
+                      $sub->whereYear('created_at', $year)
+                          ->whereMonth('created_at', $month);
+                  });
+            })
+            ->get();
+
+        $monthName = \Carbon\Carbon::createFromDate((int)$year, (int)$month, 1)->format('F Y');
+        $allVehicles = \App\Models\Vehicle::orderBy('brand')->get();
+
+        $vehicleStats = [];
+        $totalFleetTrips = 0;
+        $totalFleetPassengers = 0;
+        $activeVehiclesCount = 0;
+        $matchedTripIds = [];
+
+        foreach ($allVehicles as $v) {
+            $plate = strtoupper(trim($v->plate_number));
+            $brand = strtoupper(trim($v->brand));
+
+            $vTrips = $trips->filter(function ($t) use ($plate, $brand) {
+                $vField = strtoupper(trim($t->vehicle ?? ''));
+                return str_contains($vField, $plate) || (!empty($brand) && str_contains($vField, $brand));
+            });
+
+            foreach ($vTrips as $t) {
+                $matchedTripIds[$t->id] = true;
+            }
+
+            $tripCount = $vTrips->count();
+            $completedCount = $vTrips->where('status', 'completed')->count();
+            $activeCount = $vTrips->where('status', 'active')->count();
+
+            $paxCount = 0;
+            $drivers = [];
+            $destinations = [];
+
+            foreach ($vTrips as $t) {
+                if ($t->driver?->name) {
+                    $drivers[] = $t->driver->name;
+                }
+                foreach ($t->all_vehicle_requests as $req) {
+                    $paxCount += ($req->number_of_passengers ?: 1);
+                    if ($req->destination) {
+                        $destinations[] = $req->destination;
+                    }
+                }
+            }
+
+            if ($tripCount > 0) {
+                $activeVehiclesCount++;
+            }
+
+            $totalFleetTrips += $tripCount;
+            $totalFleetPassengers += $paxCount;
+
+            $vehicleStats[] = [
+                'vehicle' => $v,
+                'plate' => $v->plate_number,
+                'brand_model' => "{$v->brand} {$v->model}",
+                'type' => $v->type ?: 'Campus Vehicle',
+                'trips_count' => $tripCount,
+                'completed_count' => $completedCount,
+                'active_count' => $activeCount,
+                'passengers' => $paxCount,
+                'frequent_drivers' => array_values(array_unique($drivers)),
+                'destinations' => array_values(array_unique($destinations)),
+                'status' => $v->status,
+                'is_overdue' => $v->isPmsOverdue(),
+                'is_due_soon' => $v->isPmsUpcoming(),
+                'next_pms' => $v->next_pms_date ? \Carbon\Carbon::parse($v->next_pms_date)->format('M d, Y') : 'Not Set',
+            ];
+        }
+
+        // Account for any trips with unlisted or external vehicles
+        $unmatchedTrips = $trips->reject(fn ($t) => isset($matchedTripIds[$t->id]));
+        if ($unmatchedTrips->isNotEmpty()) {
+            $otherPax = 0;
+            $otherDrivers = [];
+            foreach ($unmatchedTrips as $t) {
+                if ($t->driver?->name) {
+                    $otherDrivers[] = $t->driver->name;
+                }
+                foreach ($t->all_vehicle_requests as $req) {
+                    $otherPax += ($req->number_of_passengers ?: 1);
+                }
+            }
+
+            $totalFleetTrips += $unmatchedTrips->count();
+            $totalFleetPassengers += $otherPax;
+            $activeVehiclesCount++;
+
+            $vehicleStats[] = [
+                'vehicle' => null,
+                'plate' => 'OTHER / OUTSIDE',
+                'brand_model' => 'Other / Outside Vehicle',
+                'type' => 'External Utility',
+                'trips_count' => $unmatchedTrips->count(),
+                'completed_count' => $unmatchedTrips->where('status', 'completed')->count(),
+                'active_count' => $unmatchedTrips->where('status', 'active')->count(),
+                'passengers' => $otherPax,
+                'frequent_drivers' => array_values(array_unique($otherDrivers)),
+                'destinations' => [],
+                'status' => 'active',
+                'is_overdue' => false,
+                'is_due_soon' => false,
+                'next_pms' => 'N/A',
+            ];
+        }
+
+        // Sort by trips count descending
+        usort($vehicleStats, fn ($a, $b) => $b['trips_count'] <=> $a['trips_count']);
+
+        $availableMonths = [];
+        for ($i = 0; $i < 6; $i++) {
+            $dt = now()->subMonths($i);
+            $key = $dt->format('Y-m');
+            $count = \App\Models\TripTicket::where('ticket_number', 'like', "TT-{$key}-%")
+                ->orWhere(function ($q) use ($dt) {
+                    $q->whereYear('created_at', $dt->year)->whereMonth('created_at', $dt->month);
+                })->count();
+            $label = $dt->format('F Y') . ($count > 0 ? " ({$count} Trips)" : '');
+            $availableMonths[$key] = $label;
+        }
+
+        return view('print.vehicle-utilization', compact(
+            'vehicleStats',
+            'year',
+            'month',
+            'monthName',
+            'totalFleetTrips',
+            'totalFleetPassengers',
+            'activeVehiclesCount',
+            'allVehicles',
+            'availableMonths'
+        ));
+    }
+
     public function exportTripLogbookCsv(\Illuminate\Http\Request $request)
     {
         $monthInput = $request->query('month');

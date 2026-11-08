@@ -62,6 +62,14 @@
                 </select>
             </div>
 
+            <!-- Switcher to Vehicle Usage Report -->
+            <a href="{{ route('logbook.vehicle-usage.print', ['year' => $year, 'month' => $month]) }}" class="bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold py-2 px-3 rounded-lg text-xs transition border border-amber-200 flex items-center gap-1.5 shadow-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                <span class="hidden sm:inline">Vehicle Usage</span>
+            </a>
+
             <!-- Back Button -->
             <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="flex-1 sm:flex-initial bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm border border-gray-300 cursor-pointer select-none">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">

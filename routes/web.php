@@ -98,6 +98,7 @@ Route::middleware(['auth:web,admin,employee,driver'])->group(function () {
     Route::get('/withdrawal-slips/{id}/print', [App\Http\Controllers\PrintController::class, 'printSlip'])->name('withdrawal-slips.print');
     Route::get('/analytics/print', [App\Http\Controllers\PrintController::class, 'printAnalyticsReport'])->name('analytics.print');
     Route::get('/logbook/print', [App\Http\Controllers\PrintController::class, 'printTripLogbook'])->name('logbook.print');
+    Route::get('/logbook/vehicle-usage', [App\Http\Controllers\PrintController::class, 'printVehicleUsageReport'])->name('logbook.vehicle-usage.print');
     Route::get('/logbook/export-csv', [App\Http\Controllers\PrintController::class, 'exportTripLogbookCsv'])->name('logbook.export-csv');
 
     // Real-Time Live Notification Check Endpoint (Admin, Driver, and Employee)

@@ -40,6 +40,26 @@ class TripLogbook extends Page implements HasTable
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('print_logbook')
+                ->label('Print Total Trips (Logbook)')
+                ->icon('heroicon-o-document-text')
+                ->color('primary')
+                ->url(fn () => route('logbook.print', [
+                    'year' => now()->format('Y'),
+                    'month' => now()->format('m'),
+                ]))
+                ->openUrlInNewTab(),
+
+            Action::make('print_vehicle_usage')
+                ->label('Print Monthly Vehicle Usage')
+                ->icon('heroicon-o-truck')
+                ->color('warning')
+                ->url(fn () => route('logbook.vehicle-usage.print', [
+                    'year' => now()->format('Y'),
+                    'month' => now()->format('m'),
+                ]))
+                ->openUrlInNewTab(),
+
             Action::make('export_csv')
                 ->label('Export to Excel')
                 ->icon('heroicon-o-arrow-down-tray')
@@ -48,16 +68,6 @@ class TripLogbook extends Page implements HasTable
                     'year' => now()->format('Y'),
                     'month' => now()->format('m'),
                 ])),
-
-            Action::make('print_logbook')
-                ->label('Print Monthly Logbook Sheet')
-                ->icon('heroicon-o-printer')
-                ->color('primary')
-                ->url(fn () => route('logbook.print', [
-                    'year' => now()->format('Y'),
-                    'month' => now()->format('m'),
-                ]))
-                ->openUrlInNewTab(),
         ];
     }
 
