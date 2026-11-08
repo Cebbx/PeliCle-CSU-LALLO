@@ -468,7 +468,7 @@ class TripTicketsTable
                         ->label('Resend SMS')
                         ->icon('heroicon-o-paper-airplane')
                         ->color('warning')
-                        ->visible(fn ($record) => in_array($record->status, ['pending', 'active']) && $record->hasVerifiedDocument())
+                        ->visible(fn ($record) => in_array($record->status, ['pending', 'active']))
                         ->action(function ($record) {
                             if (!$record->driver) {
                                 \Filament\Notifications\Notification::make()

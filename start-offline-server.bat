@@ -132,8 +132,9 @@ echo     Email    : driver1@csu.edu.ph
 echo     Password : password
 echo.
 echo   [GUARD QR SCANNER]
-echo     Officer  : Edward Cabbat ^(Offline Direct Login^)
-echo     Password : 1001
+echo     Officer  : Edward Cabbat (2FA Email OTP)
+echo     Email    : edwarddufale3@gmail.com
+echo     Emergency: 1001 o 123456 (Backup Code kung offline)
 echo ============================================================================
 ) > "%LINKS_FILE_1%" 2>nul
 
@@ -168,7 +169,7 @@ echo   [DEMO ACCOUNTS]
 echo   Admin    : admin@csu.edu.ph        ^| Pass: password
 echo   Employee : csu.employee1@gmail.com ^| Pass: password
 echo   Driver   : driver1@csu.edu.ph      ^| Pass: password
-echo   Guard    : Edward Cabbat           ^| Pass: 1001 ^(No Email Code Needed^)
+echo   Guard    : Edward Cabbat           ^| Email: edwarddufale3@gmail.com ^(OTP / Backup: 1001/123456^)
 echo ============================================================================
 echo   PAALALA: HUWAG ISASARA ANG WINDOW NA ITO HABANG NAG-DEDEFENSE!
 echo ============================================================================

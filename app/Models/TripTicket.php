@@ -435,7 +435,13 @@ class TripTicket extends Model
         $activeTripVehicles = TripTicket::where('status', 'active')
             ->pluck('vehicle')
             ->filter()
-            ->map(fn ($v) => str_contains($v, ' - ') ? trim(end(explode(' - ', $v))) : trim($v))
+            ->map(function ($v) {
+                if (str_contains($v, ' - ')) {
+                    $parts = explode(' - ', $v);
+                    return trim((string) end($parts));
+                }
+                return trim($v);
+            })
             ->toArray();
 
         foreach (Vehicle::where('status', '!=', 'maintenance')->get() as $vehicle) {
@@ -916,11 +922,10 @@ class TripTicket extends Model
     }
 
     /**
-     * Trip Ticket can ONLY be edited/consolidated when:
+     * Trip Ticket can be edited/consolidated when:
      * 1. Not archived (trashed)
      * 2. Status is still 'pending' (not active/on_trip, completed, or cancelled)
      * 3. CEO signed document has NOT been uploaded yet
-     * 4. There is at least one compatible companion request (same date + same municipality or along the route / "pwede idagas")
      */
     public function canConsolidateOrEdit(): bool
     {
@@ -928,7 +933,7 @@ class TripTicket extends Model
             return false;
         }
 
-        return $this->hasCompatibleCarpoolRequests();
+        return true;
     }
 
     /**

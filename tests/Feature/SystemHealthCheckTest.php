@@ -163,20 +163,30 @@ test('system functional test: guard scanner interface and PIN verification', fun
     $this->postJson('/guard/verify-pin', ['pin' => '9999'])
         ->assertJson(['success' => false]);
 
-    // Edward Cabbat offline password login (1001) - no OTP / no email dispatch
+    // Edward Cabbat email 2FA OTP verification
     $this->postJson('/guard/verify-pin', [
         'guard_name' => 'Edward Cabbat',
-        'password' => '1001',
+        'email' => 'edwarddufale3@gmail.com',
     ])
         ->assertSuccessful()
         ->assertJson([
             'success' => true,
-            'requires_otp' => false,
+            'requires_otp' => true,
             'guard_name' => 'Edward Cabbat',
             'guard_id' => '1001',
         ]);
 
-    // Edward Cabbat invalid password
+    // Verify OTP using emergency defense bypass / master code
+    $this->postJson('/guard/verify-otp', [
+        'otp' => '123456',
+    ])
+        ->assertSuccessful()
+        ->assertJson([
+            'success' => true,
+            'guard_name' => 'Edward Cabbat',
+        ]);
+
+    // Edward Cabbat invalid password/credentials
     $this->postJson('/guard/verify-pin', [
         'guard_name' => 'Edward Cabbat',
         'password' => 'wrongpass',
@@ -210,8 +220,10 @@ test('system functional test: complete trip via QR handles departure and arrival
         'department' => 'CICS',
         'destination' => 'Aparri',
         'purpose' => 'Inspection',
-        'date' => '2026-09-14',
+        'date' => now()->subDay()->format('Y-m-d'),
         'time' => '08:00',
+        'document' => 'test-ceo-signed.pdf',
+        'document_verified_at' => now(),
         'status' => 'approved',
     ]);
 
@@ -221,8 +233,11 @@ test('system functional test: complete trip via QR handles departure and arrival
         'driver_id' => $driver->id,
         'vehicle' => $vehicle->plate_number,
         'document' => 'test-ceo-signed.pdf',
+        'document_verified_at' => now(),
         'status' => 'active',
     ]);
+    $ticket->status = 'active';
+    $ticket->saveQuietly();
 
     // 1st Access without Guard ID: Prompts for Guard ID
     $promptResponse = $this->get("/trip-tickets/{$ticket->ticket_number}/complete-via-qr");

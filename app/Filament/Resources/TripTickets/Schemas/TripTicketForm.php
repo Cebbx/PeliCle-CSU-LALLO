@@ -356,7 +356,13 @@ class TripTicketForm
                                 ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
                                 ->pluck('vehicle')
                                 ->filter()
-                                ->map(fn ($v) => str_contains($v, ' - ') ? trim(end(explode(' - ', $v))) : trim($v))
+                                ->map(function ($v) {
+                                    if (str_contains($v, ' - ')) {
+                                        $parts = explode(' - ', $v);
+                                        return trim((string) end($parts));
+                                    }
+                                    return trim($v);
+                                })
                                 ->toArray();
 
                             $scheduledVehicles = [];

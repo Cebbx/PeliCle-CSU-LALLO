@@ -126,6 +126,8 @@ test('transaction trigger: creating trip ticket notifies employee and driver', f
         'vehicle_request_id' => $req->id,
         'driver_id' => $driver->id,
         'vehicle' => 'Toyota Hiace - SAA-1234',
+        'document' => 'signed_ceo.pdf',
+        'document_verified_at' => now(),
         'status' => 'pending',
     ]);
 

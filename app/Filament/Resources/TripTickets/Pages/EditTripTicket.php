@@ -38,7 +38,7 @@ class EditTripTicket extends EditRecord
         if (!$this->record->canConsolidateOrEdit()) {
             \Filament\Notifications\Notification::make()
                 ->title('Edit Not Available')
-                ->body('Trip Ticket can only be edited when pending, before CEO signed document upload, and when a same-date compatible destination/route request exists.')
+                ->body('Trip Ticket can only be edited when pending and before the CEO signed document has been uploaded.')
                 ->warning()
                 ->send();
 

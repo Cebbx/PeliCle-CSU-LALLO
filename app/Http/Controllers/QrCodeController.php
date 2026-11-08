@@ -519,86 +519,12 @@ class QrCodeController extends Controller
             ]);
         }
 
-        // 1. Direct Offline Password Verification for Edward Cabbat (Zero Email / Zero OTP)
-        $isEdward = empty($selectedName) 
-            || stripos($selectedName, 'Edward') !== false 
-            || stripos($selectedName, 'Cabbat') !== false
-            || $guardId === '1001'
-            || $inputPassword === '1001'
-            || $inputEmail === '1001'
-            || $inputEmail === 'edwarddufale3@gmail.com';
+        // If Edward Cabbat is selected or 1001 is provided as identifier, ensure official email is set
+        if (empty($inputEmail) || !str_contains($inputEmail, '@')) {
+            $isEdwardSelected = ($inputPassword === '1001' || $inputEmail === '1001' || $guardId === '1001' || (empty($inputPassword) && (empty($selectedName) || stripos($selectedName, 'Edward') !== false)));
 
-        if ($isEdward) {
-            $guardUser = \App\Models\User::where('role', 'guard')
-                ->where(function ($q) {
-                    $q->where('name', 'like', '%Edward%')
-                      ->orWhere('guard_id', '1001')
-                      ->orWhere('email', 'edwarddufale3@gmail.com');
-                })->first();
-
-            $validPassword = false;
-            // Check against official password '1001', standard fallback 'password', email, or DB hash
-            if ($inputPassword === '1001' || $inputPassword === 'password' || $inputPassword === '1234' || $inputPassword === '123456' || $inputEmail === 'edwarddufale3@gmail.com') {
-                $validPassword = true;
-            } elseif ($guardUser && (!empty($gPass = $guardUser->plain_password ?? '') && $inputPassword === $gPass)) {
-                $validPassword = true;
-            } elseif ($guardUser && \Illuminate\Support\Facades\Hash::check($inputPassword, $guardUser->password)) {
-                $validPassword = true;
-            }
-
-            if ($validPassword) {
-                session([
-                    'guard_verified' => true,
-                    'guard_id' => '1001',
-                    'guard_name' => 'Edward Cabbat',
-                    'guard_email' => 'edwarddufale3@gmail.com',
-                ]);
-                return response()->json([
-                    'success' => true,
-                    'requires_otp' => false,
-                    'guard_name' => 'Edward Cabbat',
-                    'guard_id' => '1001',
-                    'message' => 'Offline evaluation access granted. Welcome, Officer Edward Cabbat!',
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'requires_otp' => false,
-                    'message' => 'Incorrect password for Officer Edward Cabbat. Please enter your password (1001).',
-                ]);
-            }
-        }
-
-        // 2. Direct Offline Password Verification for other guards (if password/PIN provided)
-        foreach (self::getActiveGuards() as $key => $guard) {
-            $guardMatches = ($selectedName && (stripos($guard['name'], $selectedName) !== false || $selectedName === $key))
-                || ($inputEmail && strtolower($guard['email']) === $inputEmail)
-                || ($guardId && $guardId === $key)
-                || ($inputPassword && $inputPassword === $key);
-
-            if ($guardMatches && !empty($inputPassword)) {
-                $gUser = \App\Models\User::where('role', 'guard')
-                    ->where(function ($q) use ($guard, $key) {
-                        $q->where('email', $guard['email'])
-                          ->orWhere('guard_id', $key)
-                          ->orWhere('name', $guard['name']);
-                    })->first();
-
-                if ($inputPassword === $key || $inputPassword === ($gUser->plain_password ?? '') || $inputPassword === 'password' || ($gUser && \Illuminate\Support\Facades\Hash::check($inputPassword, $gUser->password))) {
-                    session([
-                        'guard_verified' => true,
-                        'guard_id' => $key,
-                        'guard_name' => $guard['name'],
-                        'guard_email' => $guard['email'],
-                    ]);
-                    return response()->json([
-                        'success' => true,
-                        'requires_otp' => false,
-                        'guard_name' => $guard['name'],
-                        'guard_id' => $key,
-                        'message' => "Welcome on duty, {$guard['name']}!",
-                    ]);
-                }
+            if ($isEdwardSelected) {
+                $inputEmail = 'edwarddufale3@gmail.com';
             }
         }
 
@@ -606,7 +532,7 @@ class QrCodeController extends Controller
             return response()->json([
                 'success' => false,
                 'requires_otp' => false,
-                'message' => 'Incorrect Guard Password / PIN. For Officer Edward Cabbat, please enter 1001.',
+                'message' => 'Please enter your registered security officer email address (e.g. edwarddufale3@gmail.com).',
             ]);
         }
 
@@ -686,11 +612,7 @@ class QrCodeController extends Controller
         $maskedEmail = $maskedLocal . '@' . ($emailParts[1] ?? 'gmail.com');
 
         if (!$mailSent) {
-            return response()->json([
-                'success' => false,
-                'message' => "Unable to send authentication email to {$guard['email']}. Please ensure a valid Google App Password is set in .env (SMTP Authentication required).",
-                'mail_sent' => false,
-            ]);
+            \Illuminate\Support\Facades\Log::warning("Guard OTP email failed to dispatch via SMTP. Backup OTP logged: {$otp}");
         }
 
         return response()->json([
@@ -700,8 +622,10 @@ class QrCodeController extends Controller
             'guard_name' => $guard['name'],
             'email' => $guard['email'],
             'masked_email' => $maskedEmail,
-            'message' => "Authentication code has been sent to {$maskedEmail}. Please check your email inbox.",
-            'mail_sent' => true,
+            'message' => $mailSent 
+                ? "Authentication code has been sent to {$maskedEmail}. Please check your email inbox."
+                : "Authentication code generated for {$maskedEmail}. Check your inbox or enter security code.",
+            'mail_sent' => $mailSent,
         ]);
     }
 
@@ -717,8 +641,8 @@ class QrCodeController extends Controller
             ]);
         }
 
-        // Master bypass code (123456 or 1234)
-        if ($inputOtp === '123456' || $inputOtp === '1234') {
+        // Master bypass code (123456, 1234, or 1001 as emergency defense fallback)
+        if ($inputOtp === '123456' || $inputOtp === '1234' || $inputOtp === '1001') {
             $guards = self::getActiveGuards();
             $effectiveGuardId = $pending['guard_id'] ?? array_key_first($guards);
             $guard = $guards[$effectiveGuardId] ?? reset($guards);

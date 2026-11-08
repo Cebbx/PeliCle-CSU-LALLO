@@ -143,45 +143,40 @@
                                         👮
                                     </div>
                                     <span class="block text-xs font-extrabold {{ $isFirst ? 'text-white' : 'text-slate-300' }} truncate" title="{{ $gData['name'] }}">{{ $gData['name'] }}</span>
-                                    <span class="block text-[9px] {{ $c['text'] }} font-semibold mt-0.5 truncate">{{ ($gData['name'] === 'Edward Cabbat' || str_contains($gData['name'], 'Edward')) ? 'ID: 1001 • Offline Ready' : ($gData['badge'] ?? 'Gate Officer') }}</span>
+                                    <span class="block text-[9px] {{ $c['text'] }} font-semibold mt-0.5 truncate">{{ ($gData['name'] === 'Edward Cabbat' || str_contains($gData['name'], 'Edward')) ? 'ID: 1001 • 2FA Email OTP' : ($gData['badge'] ?? 'Gate Officer') }}</span>
                                 </div>
                             @endforeach
                         </div>
                     </div>
 
-                    <!-- Login Form Step 1: Password / Verification Entry -->
+                    <!-- Login Form Step 1: Official Email & OTP Request Entry -->
                     <form id="guard-login-form" onsubmit="handleGuardLogin(event)" class="space-y-4">
                         <input type="hidden" id="selected_guard_name" name="guard_name" value="{{ $firstGuardName }}">
                         <div>
                             <label for="guard_auth_input" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
                                 <span class="flex items-center gap-1.5">
                                     <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                     </svg>
-                                    <span id="email-field-label">Officer Password</span>
+                                    <span id="email-field-label">Officer Registered Email</span>
                                 </span>
-                                <span id="auth-mode-badge" class="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Offline Evaluation</span>
+                                <span id="auth-mode-badge" class="text-[10px] text-cyan-400 font-mono font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">2FA Email OTP</span>
                             </label>
                             <div class="relative">
                                 <input 
-                                    type="password" 
+                                    type="email" 
                                     id="guard_auth_input" 
-                                    name="password" 
+                                    name="email" 
                                     required 
                                     autofocus 
-                                    autocomplete="current-password"
-                                    placeholder="Enter Password (1001)" 
-                                    class="w-full px-4 py-3.5 pr-11 bg-slate-950/90 border border-slate-700/90 rounded-2xl text-white placeholder-slate-500 text-center text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition shadow-inner font-mono tracking-wider"
+                                    autocomplete="email"
+                                    placeholder="edwarddufale3@gmail.com" 
+                                    value="{{ $firstGuardEmail }}"
+                                    class="w-full px-4 py-3.5 bg-slate-950/90 border border-slate-700/90 rounded-2xl text-white placeholder-slate-500 text-center text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition shadow-inner font-mono tracking-wider"
                                 />
-                                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-1 cursor-pointer" title="Show / Hide Password">
-                                    <svg id="eye-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </button>
                             </div>
                             <p id="auth-helper-note" class="text-[11px] text-slate-400 mt-2 text-center">
-                                Offline Evaluation Mode: No email code needed. Enter password <span class="text-emerald-400 font-mono font-bold">1001</span> to log in directly.
+                                A 6-digit authentication code will be sent to your registered Gmail (<span class="text-emerald-400 font-mono font-bold">{{ $firstGuardEmail }}</span>).
                             </p>
                         </div>
 
@@ -190,7 +185,7 @@
                             id="login-submit-btn" 
                             class="w-full py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-emerald-950/40 cursor-pointer flex items-center justify-center gap-2 mt-4"
                         >
-                            <span id="btn-text">Sign In as Edward Cabbat &rarr;</span>
+                            <span id="btn-text">Send Authentication Code &rarr;</span>
                             <svg id="btn-spinner" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         </button>
                     </form>
@@ -692,39 +687,45 @@
                 const inputEl = document.getElementById('guard_auth_input');
 
                 if (name === 'Edward Cabbat' || name.indexOf('Edward') !== -1) {
-                    if (label) label.innerText = "Officer Password";
+                    const guardEmail = email || 'edwarddufale3@gmail.com';
+                    if (label) label.innerText = "Officer Registered Email";
                     if (badge) {
-                        badge.innerText = "Offline Evaluation";
-                        badge.className = "text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20";
-                    }
-                    if (inputEl) {
-                        inputEl.type = "password";
-                        inputEl.placeholder = "Enter Password (1001)";
-                        inputEl.value = "";
-                        inputEl.focus();
-                    }
-                    if (helperNote) {
-                        helperNote.innerHTML = 'Offline Evaluation Mode: No email code needed. Enter password <span class="text-emerald-400 font-mono font-bold">1001</span> to log in directly.';
-                        helperNote.classList.remove('hidden');
-                    }
-                    if (btnText) btnText.innerHTML = "Sign In as Edward Cabbat &rarr;";
-                } else {
-                    if (label) label.innerText = "Password / PIN for " + name;
-                    if (badge) {
-                        badge.innerText = "Password / OTP";
+                        badge.innerText = "2FA Email OTP";
                         badge.className = "text-[10px] text-cyan-400 font-mono font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20";
                     }
                     if (inputEl) {
-                        inputEl.type = "password";
-                        inputEl.placeholder = "Enter Password (or Email)";
-                        inputEl.value = "";
+                        inputEl.type = "email";
+                        inputEl.placeholder = guardEmail;
+                        inputEl.value = guardEmail;
                         inputEl.focus();
                     }
                     if (helperNote) {
-                        helperNote.innerHTML = 'Enter guard password/PIN or official email address.';
+                        helperNote.innerHTML = 'A 6-digit authentication code will be sent to your registered Gmail (<span class="text-emerald-400 font-mono font-bold">' + guardEmail + '</span>).';
                         helperNote.classList.remove('hidden');
                     }
-                    if (btnText) btnText.innerHTML = "Sign In as " + name + " &rarr;";
+                    if (btnText) btnText.innerHTML = "Send Authentication Code &rarr;";
+                } else {
+                    const guardEmail = email || '';
+                    if (label) label.innerText = "Officer Registered Email / PIN for " + name;
+                    if (badge) {
+                        badge.innerText = "2FA Email / PIN";
+                        badge.className = "text-[10px] text-cyan-400 font-mono font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20";
+                    }
+                    if (inputEl) {
+                        inputEl.type = guardEmail ? "email" : "text";
+                        inputEl.placeholder = guardEmail || "Enter Officer Email or PIN";
+                        inputEl.value = guardEmail;
+                        inputEl.focus();
+                    }
+                    if (helperNote) {
+                        if (guardEmail) {
+                            helperNote.innerHTML = 'A 6-digit verification code will be sent to <span class="text-emerald-400 font-mono font-bold">' + guardEmail + '</span>.';
+                        } else {
+                            helperNote.innerHTML = 'Enter guard PIN or registered email address.';
+                        }
+                        helperNote.classList.remove('hidden');
+                    }
+                    if (btnText) btnText.innerHTML = guardEmail ? "Send Authentication Code &rarr;" : "Sign In as " + name + " &rarr;";
                 }
 
                 // Update visual card selection
@@ -774,7 +775,7 @@
                 const val = inputEl ? inputEl.value.trim() : '';
 
                 if (!val) {
-                    errorAlert.innerText = "Please enter your password.";
+                    errorAlert.innerText = "Please enter your registered email or PIN.";
                     errorAlert.classList.remove('hidden');
                     return;
                 }
@@ -784,7 +785,7 @@
                 if (successAlert) successAlert.classList.add('hidden');
                 submitBtn.disabled = true;
                 const origBtnText = btnText.innerHTML;
-                btnText.innerText = "Verifying credentials...";
+                btnText.innerText = "Sending authentication code...";
                 btnSpinner.classList.remove('hidden');
 
                 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
