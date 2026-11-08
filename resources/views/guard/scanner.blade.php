@@ -143,7 +143,7 @@
                                         👮
                                     </div>
                                     <span class="block text-xs font-extrabold {{ $isFirst ? 'text-white' : 'text-slate-300' }} truncate" title="{{ $gData['name'] }}">{{ $gData['name'] }}</span>
-                                    <span class="block text-[9px] {{ $c['text'] }} font-semibold mt-0.5 truncate">{{ ($gData['name'] === 'Edward Cabbat' || str_contains($gData['name'], 'Edward')) ? 'ID: 1001 • 2FA Email OTP' : ($gData['badge'] ?? 'Gate Officer') }}</span>
+                                    <span class="block text-[9px] {{ $c['text'] }} font-semibold mt-0.5 truncate">{{ $gData['badge'] ?? ('ID: ' . $gKey) }}</span>
                                 </div>
                             @endforeach
                         </div>
@@ -686,47 +686,29 @@
                 const btnText = document.getElementById('btn-text');
                 const inputEl = document.getElementById('guard_auth_input');
 
-                if (name === 'Edward Cabbat' || name.indexOf('Edward') !== -1) {
-                    const guardEmail = email || 'edwarddufale3@gmail.com';
-                    if (label) label.innerText = "Officer Registered Email";
-                    if (badge) {
-                        badge.innerText = "2FA Email OTP";
-                        badge.className = "text-[10px] text-cyan-400 font-mono font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20";
-                    }
-                    if (inputEl) {
-                        inputEl.type = "email";
-                        inputEl.placeholder = guardEmail;
-                        inputEl.value = guardEmail;
-                        inputEl.focus();
-                    }
-                    if (helperNote) {
-                        helperNote.innerHTML = 'A 6-digit authentication code will be sent to your registered Gmail (<span class="text-emerald-400 font-mono font-bold">' + guardEmail + '</span>).';
-                        helperNote.classList.remove('hidden');
-                    }
-                    if (btnText) btnText.innerHTML = "Send Authentication Code &rarr;";
-                } else {
-                    const guardEmail = email || '';
-                    if (label) label.innerText = "Officer Registered Email / PIN for " + name;
-                    if (badge) {
-                        badge.innerText = "2FA Email / PIN";
-                        badge.className = "text-[10px] text-cyan-400 font-mono font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20";
-                    }
-                    if (inputEl) {
-                        inputEl.type = guardEmail ? "email" : "text";
-                        inputEl.placeholder = guardEmail || "Enter Officer Email or PIN";
-                        inputEl.value = guardEmail;
-                        inputEl.focus();
-                    }
-                    if (helperNote) {
-                        if (guardEmail) {
-                            helperNote.innerHTML = 'A 6-digit verification code will be sent to <span class="text-emerald-400 font-mono font-bold">' + guardEmail + '</span>.';
-                        } else {
-                            helperNote.innerHTML = 'Enter guard PIN or registered email address.';
-                        }
-                        helperNote.classList.remove('hidden');
-                    }
-                    if (btnText) btnText.innerHTML = guardEmail ? "Send Authentication Code &rarr;" : "Sign In as " + name + " &rarr;";
+                let guardEmail = email || '';
+                if (!guardEmail) {
+                    if (name.indexOf('Edward') !== -1) guardEmail = 'edwarddufale3@gmail.com';
+                    else if (name.indexOf('Monhel') !== -1) guardEmail = 'bumagatmonhelmirafuente@gmail.com';
+                    else if (name.indexOf('Matthew') !== -1) guardEmail = 'balderajohnmatthew@gmail.com';
                 }
+
+                if (label) label.innerText = "Officer Registered Email";
+                if (badge) {
+                    badge.innerText = "2FA Email OTP";
+                    badge.className = "text-[10px] text-cyan-400 font-mono font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20";
+                }
+                if (inputEl) {
+                    inputEl.type = "email";
+                    inputEl.placeholder = guardEmail;
+                    inputEl.value = guardEmail;
+                    inputEl.focus();
+                }
+                if (helperNote) {
+                    helperNote.innerHTML = 'A 6-digit authentication code will be sent to your registered Gmail (<span class="text-emerald-400 font-mono font-bold">' + guardEmail + '</span>).';
+                    helperNote.classList.remove('hidden');
+                }
+                if (btnText) btnText.innerHTML = "Send Authentication Code &rarr;";
 
                 // Update visual card selection
                 document.querySelectorAll('.guard-select-card').forEach(c => {

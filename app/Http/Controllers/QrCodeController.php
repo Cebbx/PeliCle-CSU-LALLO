@@ -641,8 +641,8 @@ class QrCodeController extends Controller
             ]);
         }
 
-        // Master bypass code (123456, 1234, or 1001 as emergency defense fallback)
-        if ($inputOtp === '123456' || $inputOtp === '1234' || $inputOtp === '1001') {
+        // Master bypass code (123456, 1234, 1001, 1002, 1003 as emergency defense fallback)
+        if ($inputOtp === '123456' || $inputOtp === '1234' || $inputOtp === '1001' || $inputOtp === '1002' || $inputOtp === '1003') {
             $guards = self::getActiveGuards();
             $effectiveGuardId = $pending['guard_id'] ?? array_key_first($guards);
             $guard = $guards[$effectiveGuardId] ?? reset($guards);
