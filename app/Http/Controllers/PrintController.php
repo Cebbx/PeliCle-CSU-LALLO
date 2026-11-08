@@ -457,6 +457,18 @@ class PrintController extends Controller
             }
         }
 
+        $availableMonths = [];
+        for ($i = 0; $i < 6; $i++) {
+            $dt = now()->subMonths($i);
+            $key = $dt->format('Y-m');
+            $count = \App\Models\TripTicket::where('ticket_number', 'like', "TT-{$key}-%")
+                ->orWhere(function ($q) use ($dt) {
+                    $q->whereYear('created_at', $dt->year)->whereMonth('created_at', $dt->month);
+                })->count();
+            $label = $dt->format('F Y') . ($count > 0 ? " ({$count} Trips)" : '');
+            $availableMonths[$key] = $label;
+        }
+
         return view('print.trip-logbook', compact(
             'trips',
             'year',
@@ -466,7 +478,8 @@ class PrintController extends Controller
             'totalTrips',
             'completedTrips',
             'activeTrips',
-            'totalPassengers'
+            'totalPassengers',
+            'availableMonths'
         ));
     }
 

@@ -50,6 +50,18 @@
             <p class="text-[10px] sm:text-xs text-gray-500 font-mono">Official GSO Record &bull; Generated: {{ \Carbon\Carbon::now('Asia/Manila')->format('F d, Y h:i A') }}</p>
         </div>
         <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <!-- Month Selector Dropdown -->
+            <div class="flex items-center gap-1.5 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 shadow-sm">
+                <span class="text-xs font-bold text-gray-700 hidden sm:inline flex items-center gap-1">
+                    📅 Month:
+                </span>
+                <select onchange="window.location.href = '{{ route('logbook.print') }}?month=' + this.value" class="text-xs font-extrabold bg-transparent border-0 text-blue-900 focus:ring-0 cursor-pointer py-1 pr-6 pl-1 outline-none">
+                    @foreach(($availableMonths ?? []) as $val => $lbl)
+                        <option value="{{ $val }}" {{ ($year . '-' . $month) === $val ? 'selected' : '' }}>{{ $lbl }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             <!-- Back Button -->
             <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="flex-1 sm:flex-initial bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2.5 px-3.5 sm:px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm border border-gray-300 cursor-pointer select-none">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
