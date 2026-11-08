@@ -208,7 +208,7 @@
         <div class="mt-8 grid grid-cols-2 gap-12 text-xs">
             <div>
                 <div class="font-bold uppercase mb-8">Prepared by:</div>
-                <div class="border-b border-black w-64 pb-0.5 text-center font-bold uppercase">
+                <div class="border-b border-black w-72 pb-0.5 text-center font-bold uppercase">
                     JOEL A. TUMAMAO
                 </div>
                 <div class="text-[10px] text-gray-700 uppercase">General Services Office</div>
@@ -216,10 +216,10 @@
 
             <div class="text-right flex flex-col items-end">
                 <div class="font-bold uppercase mb-8 self-end">Noted by:</div>
-                <div class="border-b border-black w-64 pb-0.5 text-center font-bold uppercase self-end">
-                    CAMPUS EXECUTIVE OFFICER
+                <div class="border-b border-black w-72 pb-0.5 text-center font-bold uppercase self-end text-[11px] whitespace-nowrap">
+                    {{ \App\Models\User::getCeoName() }}
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase self-end">CSU Lal-lo Campus</div>
+                <div class="text-[10px] text-gray-700 uppercase self-end">Campus Executive Officer</div>
             </div>
         </div>
 
