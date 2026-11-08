@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>CSU Lal-lo - Security Gate Portal & Scanner</title>
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem('guard_terminal_theme') === 'light') {
+                    document.documentElement.classList.add('light-mode');
+                }
+            } catch(e) {}
+        })();
+    </script>
     <script src="{{ asset('js/tailwindcss.js') }}"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +22,7 @@
         body {
             font-family: 'Outfit', sans-serif;
             background: radial-gradient(circle at top left, #0b111e, #020408 100%);
+            transition: background 0.3s ease, color 0.3s ease;
         }
         
         /* Forces the camera video feed to scale correctly without black letterbox bars */
@@ -54,6 +64,187 @@
         .shake {
             animation: shake 0.4s ease-in-out;
         }
+
+        /* ========================================================
+           LIGHT MODE THEME OVERRIDES (Clean CSU Lal-lo Styling)
+           ======================================================== */
+        html.light-mode body,
+        body.light-mode {
+            background: radial-gradient(circle at top left, #f8fafc, #e2e8f0 100%) !important;
+            color: #1e293b !important;
+        }
+
+        body.light-mode #main-container {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+            color: #1e293b !important;
+        }
+
+        body.light-mode #login-screen {
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+        }
+
+        body.light-mode .text-white {
+            color: #0f172a !important;
+        }
+
+        body.light-mode .text-slate-100 {
+            color: #0f172a !important;
+        }
+
+        body.light-mode .text-slate-200 {
+            color: #1e293b !important;
+        }
+
+        body.light-mode .text-slate-300 {
+            color: #334155 !important;
+        }
+
+        body.light-mode .text-slate-400 {
+            color: #64748b !important;
+        }
+
+        body.light-mode .text-slate-500 {
+            color: #64748b !important;
+        }
+
+        body.light-mode .text-slate-600 {
+            color: #94a3b8 !important;
+        }
+
+        body.light-mode .bg-slate-950,
+        body.light-mode .bg-slate-950\/90,
+        body.light-mode .bg-slate-950\/80,
+        body.light-mode .bg-slate-950\/70,
+        body.light-mode .bg-slate-950\/60,
+        body.light-mode .bg-slate-900,
+        body.light-mode .bg-slate-900\/95,
+        body.light-mode .bg-slate-900\/80,
+        body.light-mode .bg-slate-900\/60,
+        body.light-mode .bg-slate-900\/50 {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        body.light-mode .border-slate-800,
+        body.light-mode .border-slate-800\/90,
+        body.light-mode .border-slate-800\/80,
+        body.light-mode .border-slate-800\/60,
+        body.light-mode .border-slate-800\/40,
+        body.light-mode .border-slate-700,
+        body.light-mode .border-slate-700\/90,
+        body.light-mode .border-slate-700\/80,
+        body.light-mode .border-slate-700\/50 {
+            border-color: #e2e8f0 !important;
+        }
+
+        body.light-mode .divide-slate-800\/60 > * {
+            border-color: #e2e8f0 !important;
+        }
+
+        body.light-mode .guard-select-card {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        body.light-mode .guard-select-card.border-emerald-500\/50,
+        body.light-mode .guard-select-card.ring-emerald-500\/30 {
+            background-color: #ecfdf5 !important;
+            border-color: #10b981 !important;
+        }
+
+        body.light-mode .guard-select-card span.truncate {
+            color: #0f172a !important;
+        }
+
+        body.light-mode input[type="email"],
+        body.light-mode input[type="text"],
+        body.light-mode select {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+
+        body.light-mode input::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        body.light-mode a[href="/"],
+        body.light-mode a[href*="logout"],
+        body.light-mode .theme-toggle-btn {
+            background-color: #f8fafc !important;
+            border-color: #cbd5e1 !important;
+            color: #334155 !important;
+        }
+
+        body.light-mode a[href="/"]:hover,
+        body.light-mode a[href*="logout"]:hover,
+        body.light-mode .theme-toggle-btn:hover {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+
+        body.light-mode #tab-btn-scanner:not(.bg-emerald-600),
+        body.light-mode #tab-btn-logbook:not(.bg-emerald-600) {
+            color: #64748b !important;
+        }
+
+        body.light-mode #tab-btn-scanner:not(.bg-emerald-600):hover,
+        body.light-mode #tab-btn-logbook:not(.bg-emerald-600):hover {
+            color: #0f172a !important;
+        }
+
+        body.light-mode table thead {
+            background-color: #f1f5f9 !important;
+            color: #475569 !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+        }
+
+        body.light-mode table tbody tr {
+            border-color: #e2e8f0 !important;
+        }
+
+        body.light-mode table tbody tr:hover {
+            background-color: #f8fafc !important;
+        }
+
+        body.light-mode #trip-details-modal > div {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+
+        body.light-mode #trip-details-modal .bg-slate-950\/70,
+        body.light-mode #trip-details-modal .bg-slate-950\/90 {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        body.light-mode #trip-details-modal button[onclick*="closeTripDetails"] {
+            background-color: #f1f5f9 !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #475569 !important;
+        }
+
+        body.light-mode #trip-details-modal button[onclick*="closeTripDetails"]:hover {
+            background-color: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+
+        body.light-mode .scanner-container {
+            background-color: #020617 !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        body.light-mode #placeholder-prompt {
+            background-color: rgba(2, 6, 23, 0.95) !important;
+        }
+
+        body.light-mode #placeholder-prompt p.text-white {
+            color: #ffffff !important;
+        }
     </style>
 </head>
 <body class="min-h-screen text-slate-100 flex items-center justify-center p-2 sm:p-4 antialiased">
@@ -68,15 +259,25 @@
         <!-- 1. OFFICIAL GUARD DUTY LOGIN SCREEN -->
         <div id="login-screen" style="background-color: #0b0f19;" class="absolute inset-0 z-50 flex flex-col justify-between p-4 sm:p-8 transition-opacity duration-300 {{ $isVerified ? 'hidden pointer-events-none' : '' }}">
             
-            <!-- Exit / Back button -->
+            <!-- Exit / Back button & Theme Mode Toggle -->
             <div class="flex justify-between items-center">
                 <a href="/" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors py-1.5 px-3 rounded-xl bg-slate-900/60 border border-slate-800">
                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                     <span>Back to Portals</span>
                 </a>
-                <span class="text-[10px] uppercase font-mono font-bold tracking-widest text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded-full border border-emerald-400/20">
-                    Gate Clearance Station
-                </span>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="toggleTerminalTheme()" title="Switch Light/Dark Mode" class="theme-toggle-btn p-1.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center justify-center">
+                        <span class="theme-icon-sun">
+                            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        </span>
+                        <span class="theme-icon-moon hidden">
+                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        </span>
+                    </button>
+                    <span class="text-[10px] uppercase font-mono font-bold tracking-widest text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded-full border border-emerald-400/20">
+                        Gate Clearance Station
+                    </span>
+                </div>
             </div>
 
             <!-- Login Form Box -->
@@ -274,6 +475,15 @@
 
                 <!-- Active Guard Shift Badge & Actions -->
                 <div class="flex items-center gap-2">
+                    <button type="button" onclick="toggleTerminalTheme()" title="Switch Light/Dark Mode" class="theme-toggle-btn p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center justify-center">
+                        <span class="theme-icon-sun">
+                            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        </span>
+                        <span class="theme-icon-moon hidden">
+                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        </span>
+                    </button>
+
                     <div class="inline-flex items-center gap-1.5 bg-slate-950/90 border border-slate-800 px-3 py-1.5 rounded-xl shadow-inner text-xs">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span class="text-slate-400 text-[11px]">Duty:</span>
@@ -646,6 +856,47 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             let isVerified = {{ $isVerified ? 'true' : 'false' }};
+
+            // Theme Mode Management (Cyber Tactical Dark / Clean Campus Light)
+            window.toggleTerminalTheme = function() {
+                const isLight = document.documentElement.classList.toggle('light-mode');
+                if (document.body) {
+                    document.body.classList.toggle('light-mode', isLight);
+                }
+                try {
+                    localStorage.setItem('guard_terminal_theme', isLight ? 'light' : 'dark');
+                } catch(e) {}
+                updateThemeIcons(isLight);
+            };
+
+            function updateThemeIcons(isLight) {
+                document.querySelectorAll('.theme-icon-sun').forEach(el => {
+                    if (isLight) {
+                        el.classList.add('hidden');
+                    } else {
+                        el.classList.remove('hidden');
+                    }
+                });
+                document.querySelectorAll('.theme-icon-moon').forEach(el => {
+                    if (isLight) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                });
+                document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+                    btn.setAttribute('title', isLight ? 'Switch to Cyber Tactical Dark Mode' : 'Switch to Light Mode');
+                });
+            }
+
+            const initialIsLight = document.documentElement.classList.contains('light-mode') || (function() {
+                try { return localStorage.getItem('guard_terminal_theme') === 'light'; } catch(e) { return false; }
+            })();
+            if (initialIsLight) {
+                document.documentElement.classList.add('light-mode');
+                if (document.body) document.body.classList.add('light-mode');
+            }
+            updateThemeIcons(initialIsLight);
 
             // Real-Time Terminal Clock
             function updateTerminalClock() {
