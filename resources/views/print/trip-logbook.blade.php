@@ -131,13 +131,13 @@
                 <tr class="bg-gray-100 font-bold text-center border-b border-black">
                     <th class="border border-black p-1.5 w-8">#</th>
                     <th class="border border-black p-1.5">TT CONTROL NO.</th>
-                    <th class="border border-black p-1.5">DEPARTURE DATE</th>
+                    <th class="border border-black p-1.5">TRAVEL DATE</th>
                     <th class="border border-black p-1.5">TIME</th>
-                    <th class="border border-black p-1.5">REQUESTING DEPT / PASSENGERS</th>
+                    <th class="border border-black p-1.5">REQUESTING OFFICE</th>
                     <th class="border border-black p-1.5">DESTINATION</th>
                     <th class="border border-black p-1.5">VEHICLE & PLATE</th>
                     <th class="border border-black p-1.5">DRIVER</th>
-                    <th class="border border-black p-1.5">DEPARTURE / ARRIVAL LOG</th>
+                    <th class="border border-black p-1.5">GATE LOG</th>
                     <th class="border border-black p-1.5 w-16">STATUS</th>
                 </tr>
             </thead>
@@ -151,7 +151,7 @@
                         $tripPax = 0;
                         foreach ($allReqs as $r) { $tripPax += ($r->number_of_passengers ?: 1); }
 
-                        // Check digital milestones
+                        // Check digital milestones / gate timestamps
                         $depLog = \App\Models\ActivityLog::where('model_type', \App\Models\TripTicket::class)
                             ->where('model_id', $trip->id)
                             ->where('action', 'Departure Logged')
@@ -160,6 +160,8 @@
                             ->where('model_id', $trip->id)
                             ->where('action', 'Arrival Logged')
                             ->first();
+                        $outTime = $depLog ? \Carbon\Carbon::parse($depLog->created_at) : ($trip->gate_out_at ? \Carbon\Carbon::parse($trip->gate_out_at) : null);
+                        $inTime = $arrLog ? \Carbon\Carbon::parse($arrLog->created_at) : ($trip->gate_in_at ? \Carbon\Carbon::parse($trip->gate_in_at) : null);
                     @endphp
                     <tr class="border-b border-black hover:bg-gray-50">
                         <td class="border border-black p-1 text-center font-bold">{{ $index + 1 }}</td>
@@ -179,12 +181,12 @@
                         <td class="border border-black p-1 font-mono font-semibold whitespace-nowrap">{{ $trip->vehicle ?? 'N/A' }}</td>
                         <td class="border border-black p-1 whitespace-nowrap">{{ $trip->driver?->name ?? 'Unassigned' }}</td>
                         <td class="border border-black p-1 font-mono text-[9px]">
-                            @if($depLog)
-                                <span>Dep: {{ \Carbon\Carbon::parse($depLog->created_at)->format('g:i A') }}</span>
+                            @if($outTime)
+                                <span>Out: {{ $outTime->format('g:i A') }}</span>
                             @endif
-                            @if($arrLog)
-                                <span class="block">Arr: {{ \Carbon\Carbon::parse($arrLog->created_at)->format('g:i A') }}</span>
-                            @elseif(!$depLog && !$arrLog)
+                            @if($inTime)
+                                <span class="block">In: {{ $inTime->format('g:i A') }}</span>
+                            @elseif(!$outTime && !$inTime)
                                 <span class="text-gray-400">---</span>
                             @endif
                         </td>
