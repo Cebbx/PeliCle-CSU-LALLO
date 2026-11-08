@@ -211,7 +211,7 @@
                 <div class="border-b border-black w-72 pb-0.5 text-center font-bold uppercase">
                     JOEL A. TUMAMAO
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase">General Services Office</div>
+                <div class="text-[10px] text-gray-700 uppercase w-72 text-center">General Services Office</div>
             </div>
 
             <div class="text-right flex flex-col items-end">
@@ -219,7 +219,7 @@
                 <div class="border-b border-black w-72 pb-0.5 text-center font-bold uppercase self-end text-[11px] whitespace-nowrap">
                     {{ \App\Models\User::getCeoName() }}
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase self-end">Campus Executive Officer</div>
+                <div class="text-[10px] text-gray-700 uppercase self-end w-72 text-center">Campus Executive Officer</div>
             </div>
         </div>
 
