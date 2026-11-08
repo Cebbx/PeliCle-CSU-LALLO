@@ -137,7 +137,7 @@
                 <span class="font-black text-green-700 sm:ml-1">{{ $completedTrips }}</span>
             </div>
             <div>
-                <span class="font-bold block sm:inline">Active / On Trip:</span>
+                <span class="font-bold block sm:inline">Ongoing Trips:</span>
                 <span class="font-black text-blue-700 sm:ml-1">{{ $activeTrips }}</span>
             </div>
             <div>
