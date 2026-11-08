@@ -211,7 +211,7 @@
                 <div class="border-b border-black w-64 pb-0.5 text-center font-bold uppercase">
                     JOEL A. TUMAMAO
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase">Head, General Services Office (GSO)</div>
+                <div class="text-[10px] text-gray-700 uppercase">General Services Office</div>
             </div>
 
             <div class="text-right flex flex-col items-end">
