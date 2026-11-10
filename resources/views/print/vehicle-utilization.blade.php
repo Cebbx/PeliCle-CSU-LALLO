@@ -167,7 +167,6 @@
                         <th class="border border-black p-1.5 text-center">COMPLETED</th>
                         <th class="border border-black p-1.5 text-center">PASSENGERS</th>
                         <th class="border border-black p-1.5 text-left">ASSIGNED DRIVER(S)</th>
-                        <th class="border border-black p-1.5 text-center">PMS SCHEDULE</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -193,19 +192,10 @@
                                     <span class="text-gray-400 italic">No Trips</span>
                                 @endif
                             </td>
-                            <td class="border border-black p-1.5 text-center text-[9px] whitespace-nowrap">
-                                @if($stat['is_overdue'])
-                                    <span class="text-red-600 font-bold">{{ $stat['next_pms'] }} (Overdue)</span>
-                                @elseif($stat['is_due_soon'])
-                                    <span class="text-amber-600 font-bold">{{ $stat['next_pms'] }} (Due)</span>
-                                @else
-                                    <span class="text-gray-700">{{ $stat['next_pms'] }}</span>
-                                @endif
-                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="border border-black p-6 text-center text-gray-500 font-semibold">
+                            <td colspan="8" class="border border-black p-6 text-center text-gray-500 font-semibold">
                                 No vehicles recorded in the system.
                             </td>
                         </tr>
@@ -218,19 +208,23 @@
         <!-- Signatures & Verification -->
         <div class="print-signatures-grid mt-8 grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-12 text-xs">
             <div class="flex flex-col items-center sm:items-start">
-                <div class="font-bold uppercase mb-6 sm:mb-8 text-center sm:text-left">Prepared by:</div>
-                <div class="border-b border-black w-64 sm:w-72 pb-0.5 text-center font-bold uppercase">
-                    JOEL A. TUMAMAO
+                <div class="w-64 sm:w-72">
+                    <div class="font-bold uppercase mb-6 sm:mb-8 text-center sm:text-left">Prepared by:</div>
+                    <div class="border-b border-black w-full pb-0.5 text-center font-bold uppercase">
+                        JOEL A. TUMAMAO
+                    </div>
+                    <div class="text-[10px] text-gray-700 uppercase w-full text-center">General Services Office</div>
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase w-64 sm:w-72 text-center">General Services Office</div>
             </div>
 
-            <div class="flex flex-col items-center sm:items-end text-center sm:text-right">
-                <div class="font-bold uppercase mb-6 sm:mb-8">Noted by:</div>
-                <div class="border-b border-black w-64 sm:w-72 pb-0.5 text-center font-bold uppercase text-[10.5px] sm:text-[11px] whitespace-nowrap">
-                    {{ \App\Models\User::getCeoName() }}
+            <div class="flex flex-col items-center sm:items-end">
+                <div class="w-64 sm:w-72">
+                    <div class="font-bold uppercase mb-6 sm:mb-8 text-center sm:text-left">Noted by:</div>
+                    <div class="border-b border-black w-full pb-0.5 text-center font-bold uppercase text-[10.5px] sm:text-[11px] whitespace-nowrap">
+                        {{ \App\Models\User::getCeoName() }}
+                    </div>
+                    <div class="text-[10px] text-gray-700 uppercase w-full text-center">Campus Executive Officer</div>
                 </div>
-                <div class="text-[10px] text-gray-700 uppercase w-64 sm:w-72 text-center">Campus Executive Officer</div>
             </div>
         </div>
 

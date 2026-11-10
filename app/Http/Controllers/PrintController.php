@@ -557,10 +557,20 @@ class PrintController extends Controller
             $totalFleetTrips += $tripCount;
             $totalFleetPassengers += $paxCount;
 
+            $brandClean = trim($v->brand ?? '');
+            $modelClean = trim($v->model ?? '');
+            $similarity = 0;
+            if ($brandClean !== '' && $modelClean !== '') {
+                similar_text(strtolower($brandClean), strtolower($modelClean), $similarity);
+            }
+            $displayBrandModel = ($similarity >= 70 || strcasecmp($brandClean, $modelClean) === 0 || empty($brandClean))
+                ? strtoupper($modelClean ?: $brandClean)
+                : strtoupper(trim("{$brandClean} {$modelClean}"));
+
             $vehicleStats[] = [
                 'vehicle' => $v,
                 'plate' => $v->plate_number,
-                'brand_model' => "{$v->brand} {$v->model}",
+                'brand_model' => $displayBrandModel,
                 'type' => $v->type ?: 'Campus Vehicle',
                 'trips_count' => $tripCount,
                 'completed_count' => $completedCount,
