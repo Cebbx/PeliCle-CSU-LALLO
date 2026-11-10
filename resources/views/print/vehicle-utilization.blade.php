@@ -177,7 +177,6 @@
                         <th class="border border-black p-1.5 text-center">COMPLETED</th>
                         <th class="border border-black p-1.5 text-center">PASSENGERS</th>
                         <th class="border border-black p-1.5 text-left">ASSIGNED DRIVER(S)</th>
-                        <th class="border border-black p-1.5 text-center">STATUS</th>
                         <th class="border border-black p-1.5 text-center">PMS SCHEDULE</th>
                     </tr>
                 </thead>
@@ -204,15 +203,6 @@
                                     <span class="text-gray-400 italic">No Trips</span>
                                 @endif
                             </td>
-                            <td class="border border-black p-1.5 text-center uppercase text-[9px] font-bold">
-                                @if($stat['status'] === 'maintenance')
-                                    <span class="text-red-600">Maintenance</span>
-                                @elseif($stat['active_count'] > 0)
-                                    <span class="text-blue-600">On Trip</span>
-                                @else
-                                    <span class="text-emerald-700">Available</span>
-                                @endif
-                            </td>
                             <td class="border border-black p-1.5 text-center text-[9px] whitespace-nowrap">
                                 @if($stat['is_overdue'])
                                     <span class="text-red-600 font-bold">{{ $stat['next_pms'] }} (Overdue)</span>
@@ -225,7 +215,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="border border-black p-6 text-center text-gray-500 font-semibold">
+                            <td colspan="9" class="border border-black p-6 text-center text-gray-500 font-semibold">
                                 No vehicles recorded in the system.
                             </td>
                         </tr>
