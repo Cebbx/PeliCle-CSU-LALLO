@@ -28,7 +28,7 @@ class EditVehicleRequest extends EditRecord
 
             Notification::make()
                 ->title('Editing Prohibited')
-                ->body("Hindi na maaaring i-edit ang request na ito dahil ito ay {$statusLabel}.")
+                ->body("This request can no longer be edited because its status is {$statusLabel}.")
                 ->warning()
                 ->send();
 
@@ -44,7 +44,7 @@ class EditVehicleRequest extends EditRecord
         if (in_array($this->record->status, ['rejected', 'cancelled', 'expired']) || $this->record->status !== 'pending' || !empty($this->record->document)) {
             Notification::make()
                 ->title('Cannot Save Changes')
-                ->body('Bawal baguhin ang form kapag ito ay Disapproved o Cancelled na.')
+                ->body('Changes cannot be saved once a request has been approved, disapproved, or cancelled.')
                 ->danger()
                 ->send();
 

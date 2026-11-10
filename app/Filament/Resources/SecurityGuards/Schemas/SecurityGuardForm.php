@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\SecurityGuards\Schemas;
 
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Hash;
@@ -21,7 +20,7 @@ class SecurityGuardForm
                     ->maxLength(255),
 
                 TextInput::make('guard_id')
-                    ->label('Guard ID / Badge No.')
+                    ->label('Guard ID')
                     ->placeholder('e.g. 1004')
                     ->helperText('Used for gate scanner authentication and PIN bypass')
                     ->required()
@@ -44,29 +43,25 @@ class SecurityGuardForm
                     ->unique('users', 'email', ignoreRecord: true)
                     ->maxLength(255),
 
-                Select::make('position')
-                    ->label('Position / Designation')
-                    ->options([
-                        'Gate Security Officer' => 'Gate Security Officer',
-                        'Lead Gate Guard' => 'Lead Gate Guard',
-                        'Campus Security Officer' => 'Campus Security Officer',
-                        'Senior Gate Inspector' => 'Senior Gate Inspector',
-                    ])
+                TextInput::make('position')
+                    ->label('Position')
+                    ->placeholder('e.g. Gate Security Officer')
                     ->default('Gate Security Officer')
-                    ->required(),
+                    ->required()
+                    ->maxLength(255),
 
                 TextInput::make('contact_number')
-                    ->label('Contact / Mobile Number')
+                    ->label('Contact Number')
                     ->placeholder('e.g. 09123456789')
                     ->tel()
                     ->maxLength(50),
 
                 TextInput::make('password')
-                    ->label('System Password / Default PIN')
+                    ->label('System Password')
                     ->password()
+                    ->revealable()
                     ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
                     ->dehydrated(fn ($state) => filled($state))
-                    ->required(fn (string $context): bool => $context === 'create')
                     ->default('password')
                     ->placeholder(fn (string $context): string => $context === 'edit' ? 'Leave blank to keep current password' : 'Enter login password')
                     ->maxLength(255),

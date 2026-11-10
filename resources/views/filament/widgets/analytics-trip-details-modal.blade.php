@@ -239,7 +239,7 @@
                 <span class="trip-label" style="margin-bottom: 0;">Request Number</span>
                 @if($record->is_urgent)
                     <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; background-color: #fee2e2; color: #b91c1c;">
-                        🚨 URGENT
+                        URGENT
                     </span>
                 @endif
             </div>
@@ -261,7 +261,6 @@
     <!-- Reason Box (If Disapproved, Cancelled, or Expired) -->
     @if($record->status === 'rejected' && $record->rejection_reason)
         <div class="trip-reason trip-reason-danger">
-            <span style="font-size: 16px; line-height: 1;">⚠️</span>
             <div>
                 <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">Reason for Disapproval:</strong>
                 <span style="font-size: 13px;">{{ $record->rejection_reason }}</span>
@@ -269,7 +268,6 @@
         </div>
     @elseif($record->status === 'cancelled' && $record->cancellation_reason)
         <div class="trip-reason trip-reason-danger">
-            <span style="font-size: 18px; line-height: 1;">🚨</span>
             <div>
                 <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #b91c1c;">
                     {{ str_contains(strtolower($record->cancellation_reason), 'breakdown') ? 'Trip Aborted / Emergency Aberya Notice:' : 'Cancellation Reason:' }}
@@ -279,7 +277,6 @@
         </div>
     @elseif($record->status === 'expired' && $record->cancellation_reason)
         <div class="trip-reason trip-reason-warn">
-            <span style="font-size: 16px; line-height: 1;">ℹ️</span>
             <div>
                 <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">Lapse Notice:</strong>
                 <span style="font-size: 13px;">{{ $record->cancellation_reason }}</span>
@@ -394,7 +391,7 @@
                 @if($driver)
                     <div class="trip-val">{{ $driver->name }}</div>
                     @if($driver->contact_number)
-                        <div class="trip-val-sub" style="margin-top: 3px;">📞 {{ $driver->contact_number }}</div>
+                        <div class="trip-val-sub" style="margin-top: 3px;">{{ $driver->contact_number }}</div>
                     @endif
                 @else
                     <div class="trip-val-sub" style="font-style: italic;">To be assigned</div>
@@ -429,7 +426,7 @@
                 <div style="display: flex; flex-wrap: wrap; gap: 6px; padding-top: 4px;">
                     @foreach($passengers as $pName)
                         <span class="trip-pill">
-                            👤 {{ $pName }}
+                            {{ $pName }}
                         </span>
                     @endforeach
                 </div>

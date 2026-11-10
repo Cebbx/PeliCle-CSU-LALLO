@@ -18,7 +18,15 @@ class CreateSecurityGuard extends CreateRecord
         if (empty($data['department'])) {
             $data['department'] = 'Security & Safety Office';
         }
+        if (empty($data['password'])) {
+            $data['password'] = bcrypt('password');
+        }
         return $data;
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
     }
 
     public function canCreateAnother(): bool

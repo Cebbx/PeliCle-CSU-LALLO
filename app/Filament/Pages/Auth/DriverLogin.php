@@ -96,11 +96,11 @@ class DriverLogin extends BaseLogin
                 ->map(fn ($d) => "{$d->name} ({$d->license_number})")
                 ->implode(', ');
 
-            $hint = !empty($sampleDrivers) ? " (Mga halimbawa: {$sampleDrivers})" : "";
+            $hint = !empty($sampleDrivers) ? " (Examples: {$sampleDrivers})" : "";
 
             Notification::make()
                 ->title('Driver Not Found')
-                ->body('Hindi mahanap ang driver para sa "' . e($input) . '". Pakisuri ang License ID o contact number.' . $hint)
+                ->body('No driver record found for "' . e($input) . '". Please check your License ID or contact number.' . $hint)
                 ->danger()
                 ->send();
 

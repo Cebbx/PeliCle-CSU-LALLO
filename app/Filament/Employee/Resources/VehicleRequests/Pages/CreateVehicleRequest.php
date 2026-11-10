@@ -19,12 +19,7 @@ class CreateVehicleRequest extends CreateRecord
 
     public function getHeading(): string
     {
-        return 'Create Trip Ticket Request';
-    }
-
-    public function getSubheading(): ?string
-    {
-        return 'Fill out the vehicle reservation form below to request an official trip ticket.';
+        return 'Create Vehicle Request';
     }
 
     protected function getCreateFormAction(): \Filament\Actions\Action

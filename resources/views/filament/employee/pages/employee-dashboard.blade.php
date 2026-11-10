@@ -144,6 +144,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
             text-decoration: none !important;
             cursor: pointer;
             transition: all 0.18s ease;
@@ -179,7 +180,13 @@
             color: #ffffff;
         }
         .stat-emoji {
-            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
         /* Two Column Layout */
@@ -242,6 +249,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
             font-weight: 800;
             font-size: 13px;
             margin-bottom: 12px;
@@ -382,7 +391,10 @@
         <div class="welcome-banner">
             <div class="welcome-text-wrap">
                 <div class="welcome-badge-wrap">
-                    <span class="welcome-role-badge">🏛️ {{ $shortDept }}</span>
+                    <span class="welcome-role-badge" style="display: inline-flex; align-items: center; gap: 5px;">
+                        <x-filament::icon icon="heroicon-o-building-library" style="width: 13px; height: 13px;" />
+                        {{ $shortDept }}
+                    </span>
                     @if($fullDept)
                         <span class="welcome-dept-full">{{ $fullDept }}</span>
                     @endif
@@ -391,7 +403,8 @@
                 <p>Manage and track your college vehicle requests for official trips and seminars.</p>
             </div>
             <a href="{{ \App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('create') }}" class="btn-new-req">
-                ➕ Request a Vehicle
+                <x-filament::icon icon="heroicon-o-plus" style="width: 15px; height: 15px;" />
+                Request a Vehicle
             </a>
         </div>
 
@@ -402,7 +415,9 @@
                     <span class="stat-label">Total Requests</span>
                     <span class="stat-val">{{ $stats['total'] }}</span>
                 </div>
-                <div class="stat-emoji">📁</div>
+                <div class="stat-emoji" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                    <x-filament::icon icon="heroicon-o-folder" style="width: 22px; height: 22px;" />
+                </div>
             </a>
 
             <a href="{{ \App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'pending']) }}" class="stat-card">
@@ -410,15 +425,19 @@
                     <span class="stat-label">Pending GSO</span>
                     <span class="stat-val">{{ $stats['pending'] }}</span>
                 </div>
-                <div class="stat-emoji">🕒</div>
+                <div class="stat-emoji" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                    <x-filament::icon icon="heroicon-o-clock" style="width: 22px; height: 22px;" />
+                </div>
             </a>
 
             <a href="{{ \App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'approved']) }}" class="stat-card">
                 <div>
-                    <span class="stat-label">Approved / Scheduled</span>
+                    <span class="stat-label">Approved &amp; Scheduled</span>
                     <span class="stat-val">{{ $stats['approved'] }}</span>
                 </div>
-                <div class="stat-emoji">📅</div>
+                <div class="stat-emoji" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                    <x-filament::icon icon="heroicon-o-calendar-days" style="width: 22px; height: 22px;" />
+                </div>
             </a>
 
             <a href="{{ \App\Filament\Employee\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'on_trip']) }}" class="stat-card">
@@ -426,7 +445,9 @@
                     <span class="stat-label">On Trip</span>
                     <span class="stat-val">{{ $stats['on_trip'] }}</span>
                 </div>
-                <div class="stat-emoji">🚗</div>
+                <div class="stat-emoji" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;">
+                    <x-filament::icon icon="heroicon-o-truck" style="width: 22px; height: 22px;" />
+                </div>
             </a>
         </div>
 
@@ -471,11 +492,11 @@
                                         @if($req->status === 'approved' || $req->status === 'on_trip' || $req->status === 'completed')
                                             <div style="display: inline-flex; gap: 4px; justify-content: center; align-items: center; flex-wrap: wrap;">
                                                 <a href="{{ route('vehicle-requests.print', $req->id) }}" target="_blank" class="btn-action" style="background: #10b981;">
-                                                    🖨️ Print
+                                                    Print
                                                 </a>
                                                 @if($req->status === 'completed')
                                                     <a href="https://csu.edu.ph/feedback/public/survey?office_id=255" target="_blank" rel="noopener noreferrer" class="btn-action" style="background: #f59e0b; color: #0f172a; font-weight: 800;" title="Evaluate this completed trip">
-                                                        ⭐ Rate
+                                                        Rate
                                                     </a>
                                                 @endif
                                             </div>
@@ -516,23 +537,23 @@
                                     <span class="badge-status badge-{{ $tripReq->status }}">{{ $tripReq->status === 'rejected' ? 'Disapproved' : ucwords(str_replace('_', ' ', $tripReq->status)) }}</span>
                                 </div>
                                 <div style="font-size: 12px; line-height: 1.6;">
-                                    <div>📍 <strong>Dest:</strong> {{ $tripReq->destination }}</div>
-                                    <div style="margin-top: 6px;">🚗 <strong>Vehicle:</strong> {{ $ticket?->formatted_vehicle ?? ($tripReq->vehicle ?? 'Assigned Vehicle') }}</div>
-                                    <div style="margin-top: 6px;">👤 <strong>Driver:</strong> {{ $driver?->name ?? 'GSO Assigning Driver...' }}</div>
-                                    <div style="margin-top: 6px;">📞 <strong>Contact:</strong> {{ $driver?->contact_number ?? 'N/A' }}</div>
+                                    <div><strong>Destination:</strong> {{ $tripReq->destination }}</div>
+                                    <div style="margin-top: 6px;"><strong>Vehicle:</strong> {{ $ticket?->formatted_vehicle ?? ($tripReq->vehicle ?? 'Assigned Vehicle') }}</div>
+                                    <div style="margin-top: 6px;"><strong>Driver:</strong> {{ $driver?->name ?? 'GSO Assigning Driver...' }}</div>
+                                    <div style="margin-top: 6px;"><strong>Contact:</strong> {{ $driver?->contact_number ?? 'N/A' }}</div>
                                 </div>
                                 @if($ticket)
                                     <div style="margin-top: 12px; border-top: 1px solid rgba(59,130,246,0.1); padding-top: 10px; text-align: center;">
                                         <a href="{{ route('trip-tickets.print', $ticket->id) }}" target="_blank" style="font-size: 11px; font-weight: 800; color: #2563eb; text-decoration: underline;">
-                                            📄 View Trip Ticket Voucher
+                                            View Trip Ticket Voucher
                                         </a>
                                     </div>
                                 @endif
                             </div>
                         @empty
                             <div style="text-align: center; padding: 24px 0; color: #94a3b8; font-size: 12px;">
-                                <span style="font-size: 28px; display: block; margin-bottom: 8px;">🚗</span>
-                                No current active trip assignments. Assignments will appear here once GSO approves your request.
+                                <x-filament::icon icon="heroicon-o-truck" style="width: 28px; height: 28px; margin: 0 auto 8px auto; color: #64748b;" />
+                                No active trip assignments at the moment. Details will appear here once the GSO approves your request.
                             </div>
                         @endforelse
                     </div>
@@ -540,17 +561,18 @@
 
                 <!-- CSU Client Satisfaction Measurement Survey Card -->
                 <div class="card-panel" style="border: 1.5px solid #f59e0b; background: linear-gradient(180deg, rgba(245, 158, 11, 0.04) 0%, rgba(255, 255, 255, 1) 100%);">
-                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; background: #fffbeb; border-bottom: 1px solid #fde68a;">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #fffbeb; border-bottom: 1px solid #fde68a;">
                         <span style="display: flex; align-items: center; gap: 6px; color: #92400e; font-weight: 800;">
-                            <span>⭐</span> CSU Service Evaluation
+                            <x-filament::icon icon="heroicon-o-star" style="width: 16px; height: 16px; color: #d97706; flex-shrink: 0;" />
+                            <span>CSU Service Evaluation</span>
                         </span>
-                        <span style="font-size: 10px; font-weight: 800; background: #f59e0b; color: #0f172a; padding: 2px 8px; border-radius: 9999px;">
+                        <span style="font-size: 10px; font-weight: 800; background: #f59e0b; color: #0f172a; padding: 2px 8px; border-radius: 9999px; white-space: nowrap;">
                             OFFICE ID: 255
                         </span>
                     </div>
                     <div class="card-body" style="text-align: center;">
                         <p style="font-size: 12px; color: #475569; margin: 0 0 12px 0; line-height: 1.5;">
-                            Help us improve CSU Lal-lo motorpool & transportation service! Click the button or scan the QR code to evaluate:
+                            Help us improve CSU Lal-lo's motorpool and transportation services. Click the button or scan the QR code below to evaluate:
                         </p>
                         
                         <!-- Clickable / Scannable QR Code -->
@@ -558,19 +580,20 @@
                             <a href="https://csu.edu.ph/feedback/public/survey?office_id=255" target="_blank" rel="noopener noreferrer" title="Click to open CSU Survey in a new tab" style="display: inline-block; padding: 10px; background: #ffffff; border-radius: 12px; border: 2px dashed #f59e0b; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
                                 <img src="/csu-survey-qr.png" alt="CSU Client Satisfaction Survey QR Code" style="width: 130px; height: 130px; border-radius: 6px; display: block; margin: 0 auto;" />
                                 <span style="font-size: 10px; font-weight: 700; color: #b45309; display: block; margin-top: 6px;">
-                                    👆 Click to Open / 📷 Scan to Rate
+                                    Click to Open or Scan to Rate
                                 </span>
                             </a>
                         </div>
 
                         <!-- Direct Clickable Button -->
                         <a href="https://csu.edu.ph/feedback/public/survey?office_id=255" target="_blank" rel="noopener noreferrer" class="btn-new-req" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; text-align: center; padding: 10px 14px; background: #f59e0b; color: #0f172a; font-weight: 800; border-radius: 8px; text-decoration: none; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);">
-                            <span>⭐</span> Open CSU Survey Form ↗
+                            <x-filament::icon icon="heroicon-o-star" style="width: 15px; height: 15px;" />
+                            Open CSU Survey Form
                         </a>
 
                         <div style="font-size: 10px; color: #94a3b8; margin-top: 10px; line-height: 1.3;">
                             Client Satisfaction Measurement Survey<br>
-                            Available Mon–Fri, 7:00 AM – 6:00 PM
+                            Available Monday to Friday, 7:00 AM – 6:00 PM
                         </div>
                     </div>
                 </div>
@@ -582,10 +605,10 @@
                     </div>
                     <div class="card-body" style="font-size: 12px; color: #475569; line-height: 1.6;">
                         <ol style="padding-left: 20px; margin: 0;">
-                            <li style="margin-bottom: 6px;">Submit request at least **3 days before** the travel date.</li>
-                            <li style="margin-bottom: 6px;">Review selected date to avoid busy vehicles.</li>
-                            <li style="margin-bottom: 6px;">GSO will assign the driver and create the Trip Ticket.</li>
-                            <li>Download and print the **Approved Request Slip** for your clearance.</li>
+                            <li style="margin-bottom: 6px;">Submit your vehicle request at least <strong>3 days before</strong> the scheduled travel date.</li>
+                            <li style="margin-bottom: 6px;">Check the travel schedule in advance to ensure vehicle availability.</li>
+                            <li style="margin-bottom: 6px;">The GSO will assign an available vehicle and driver, then issue the official Trip Ticket.</li>
+                            <li>Download and print the <strong>Approved Request Slip</strong> for official signature and clearance.</li>
                         </ol>
                     </div>
                 </div>

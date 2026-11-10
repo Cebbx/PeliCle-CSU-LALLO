@@ -39,7 +39,7 @@ class DriverForm
                                     ->default('available'),
 
                                 Select::make('campus')
-                                    ->label('Home Campus / Station Assignment')
+                                    ->label('Home Campus Assignment')
                                     ->prefixIcon('heroicon-m-building-office-2')
                                     ->options([
                                         'CSU Lal-lo Campus' => 'CSU Lal-lo Campus (Home Base)',

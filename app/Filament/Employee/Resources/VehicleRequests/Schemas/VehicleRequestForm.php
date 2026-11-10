@@ -80,7 +80,6 @@ class VehicleRequestForm
                                 }
                                 return 'Campus Student Council';
                             })
-                            ->helperText('Auto-filled from your department')
                             ->disabled()
                             ->dehydrated()
                             ->required(),
@@ -88,7 +87,6 @@ class VehicleRequestForm
                         TextInput::make('employee_name')
                             ->label('Requester Name')
                             ->placeholder('e.g. Dr. Juan Dela Cruz')
-                            ->helperText('Auto-filled from your previous request (editable)')
                             ->default(function () {
                                 $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
                                 if ($user) {
@@ -115,7 +113,6 @@ class VehicleRequestForm
                         TextInput::make('requester_phone')
                             ->label('Mobile Number (For SMS)')
                             ->placeholder('e.g. 09171234567')
-                            ->helperText('Auto-saved for future requests (editable)')
                             ->tel()
                             ->default(function () {
                                 $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();

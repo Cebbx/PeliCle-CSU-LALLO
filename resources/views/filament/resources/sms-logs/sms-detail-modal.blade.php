@@ -167,7 +167,7 @@
     <div>
         <div class="sms-preview-header">
             <span class="sms-preview-title">
-                💬 SMS Text Message Preview
+                SMS Text Message Preview
             </span>
             <span class="sms-preview-count">
                 {{ strlen($record->message) }} chars

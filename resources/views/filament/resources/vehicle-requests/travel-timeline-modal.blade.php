@@ -66,7 +66,7 @@
     $statusLabel = match ($status) {
         'pending' => 'Pending Admin Review',
         'approved' => !empty($record->document) ? 'Approved & Ready for Departure' : 'Approved (Awaiting CEO Document)',
-        'on_trip' => '🚗 On Trip / In Transit',
+        'on_trip' => 'On Trip / In Transit',
         'completed' => 'Trip Completed',
         'rejected' => 'Disapproved',
         'cancelled' => 'Cancelled',
@@ -464,13 +464,12 @@
                     @endif
                     @if($isUrgent)
                         <span style="padding: 2px 8px; border-radius: 9999px; font-size: 10.5px; font-weight: 700; background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;">
-                            🚨 Urgent Request
+                            Urgent Request
                         </span>
                     @endif
                 </div>
 
                 <div style="font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 18px;">📍</span>
                     <span>{{ $record->destination }}</span>
                 </div>
 
@@ -493,19 +492,19 @@
     <!-- 4 Key Metric Cards -->
     <div class="tt-metrics-grid">
         <div class="tt-metric-card">
-            <span class="tt-metric-label">👤 Requester</span>
+            <span class="tt-metric-label">Requester</span>
             <div class="tt-metric-val" title="{{ $record->employee_name }}">{{ $record->employee_name }}</div>
             <div class="tt-metric-sub">{{ $record->department }}</div>
         </div>
 
         <div class="tt-metric-card">
-            <span class="tt-metric-label">🚐 Vehicle</span>
+            <span class="tt-metric-label">Vehicle</span>
             <div class="tt-metric-val" title="{{ $vehName }}">{{ $vehName }}</div>
             <div class="tt-metric-sub">
                 @if($ticket?->distance_traveled)
-                    {{ $vehPlate ?: 'CSU Fleet' }} &bull; 🚗 {{ number_format($ticket->distance_traveled) }} km
+                    {{ $vehPlate ?: 'CSU Fleet' }} &bull; {{ number_format($ticket->distance_traveled) }} km
                 @elseif($ticket?->start_odometer)
-                    {{ $vehPlate ?: 'CSU Fleet' }} &bull; 📟 {{ number_format($ticket->start_odometer) }} km
+                    {{ $vehPlate ?: 'CSU Fleet' }} &bull; {{ number_format($ticket->start_odometer) }} km
                 @else
                     {{ $vehPlate ? "Plate: {$vehPlate}" : 'CSU Fleet' }}
                 @endif
@@ -513,22 +512,21 @@
         </div>
 
         <div class="tt-metric-card">
-            <span class="tt-metric-label">🪪 Driver</span>
+            <span class="tt-metric-label">Driver</span>
             <div class="tt-metric-val" title="{{ $driverName }}">{{ $driverName }}</div>
             <div class="tt-metric-sub">{{ $driverContact ?: 'Assigned by GSO' }}</div>
         </div>
 
         <div class="tt-metric-card">
-            <span class="tt-metric-label">👥 Passengers</span>
+            <span class="tt-metric-label">Passengers</span>
             <div class="tt-metric-val">{{ $paxCount }} {{ $paxCount === 1 ? 'Person' : 'Persons' }}</div>
-            <div class="tt-metric-sub">{{ $tripDuration ? "⏱️ {$tripDuration}" : 'Scheduled Trip' }}</div>
+            <div class="tt-metric-sub">{{ $tripDuration ?: 'Scheduled Trip' }}</div>
         </div>
     </div>
 
     <!-- Disapproval / Cancellation Notice (if applicable) -->
     @if($isRejected && $record->rejection_reason)
         <div class="tt-alert tt-alert-danger">
-            <span style="font-size: 20px; line-height: 1;">❌</span>
             <div>
                 <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #b91c1c;">
                     Disapproval Reason:
@@ -538,7 +536,6 @@
         </div>
     @elseif($isCancelled && ($record->cancellation_reason || $ticket?->cancellation_reason))
         <div class="tt-alert tt-alert-danger">
-            <span style="font-size: 20px; line-height: 1;">⚠️</span>
             <div>
                 <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #b91c1c;">
                     Cancellation Notice:
@@ -553,7 +550,6 @@
     <!-- Visual Progress Stepper (Travel Timeline Tracker) -->
     <div class="tt-timeline-container">
         <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #2563eb; margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
-            <span>🧭</span>
             <span>Official Travel Timeline & Gate Security Tracking</span>
         </div>
 
@@ -567,7 +563,7 @@
             <div class="tt-content">
                 <div class="tt-step-header">
                     <div class="tt-step-title">
-                        <span>📝 Stage 1: Vehicle Requisition Filed</span>
+                        <span>Stage 1: Vehicle Requisition Filed</span>
                     </div>
                     <span class="tt-step-badge" style="background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
                         Filed
@@ -604,7 +600,7 @@
             <div class="tt-content">
                 <div class="tt-step-header">
                     <div class="tt-step-title">
-                        <span>🎫 Stage 2: Approved & Trip Ticket Dispatched</span>
+                        <span>Stage 2: Approved & Trip Ticket Dispatched</span>
                     </div>
                     @if($step2Done)
                         <span class="tt-step-badge" style="background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
@@ -649,19 +645,19 @@
             <div class="tt-content">
                 <div class="tt-step-header">
                     <div class="tt-step-title">
-                        <span>📄 Stage 3: CEO Signed Travel Authority</span>
+                        <span>Stage 3: CEO Signed Travel Authority</span>
                     </div>
                     @if($step3Done)
                         <span class="tt-step-badge" style="background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
-                            ✅ Verified & Cleared by Admin
+                            Verified & Cleared by Admin
                         </span>
                     @elseif($hasDoc)
                         <span class="tt-step-badge" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;">
-                            📄 Doc Uploaded (Awaiting Admin Review & SMS)
+                            Doc Uploaded (Awaiting Admin Review & SMS)
                         </span>
                     @elseif($status === 'approved')
                         <span class="tt-step-badge" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;">
-                            ⏳ Awaiting Signed Document
+                            Awaiting Signed Document
                         </span>
                     @else
                         <span class="tt-step-badge" style="background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;">
@@ -710,7 +706,7 @@
             <div class="tt-content {{ $step4Active && !$step5Done ? 'tt-content-highlight' : '' }}">
                 <div class="tt-step-header">
                     <div class="tt-step-title" style="color: #2563eb;">
-                        <span>🛫 Stage 4: Departure Details (Pagkaalis mula sa CSU)</span>
+                        <span>Stage 4: Departure Details (Pagkaalis mula sa CSU)</span>
                     </div>
                     @if($gateOutFormatted)
                         <span class="tt-step-badge" style="background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;">
@@ -718,11 +714,11 @@
                         </span>
                     @elseif($status === 'on_trip')
                         <span class="tt-step-badge" style="background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;">
-                            🚗 Currently Departed
+                            Currently Departed
                         </span>
                     @elseif($hasDoc && $status === 'approved')
                         <span class="tt-step-badge" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;">
-                            ⏳ Ready for Gate Verification
+                            Ready for Gate Verification
                         </span>
                     @else
                         <span class="tt-step-badge" style="background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;">
@@ -793,7 +789,7 @@
             <div class="tt-content {{ $step5Done ? 'tt-content-highlight' : '' }}">
                 <div class="tt-step-header">
                     <div class="tt-step-title" style="color: #059669;">
-                        <span>🛬 Stage 5: Arrival Details (Pagkarating / Pagbalik sa CSU)</span>
+                        <span>Stage 5: Arrival Details (Pagkarating / Pagbalik sa CSU)</span>
                     </div>
                     @if($gateInFormatted || $status === 'completed')
                         <span class="tt-step-badge" style="background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
@@ -801,7 +797,7 @@
                         </span>
                     @elseif($status === 'on_trip')
                         <span class="tt-step-badge" style="background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;">
-                            🚗 In Transit / En Route
+                            In Transit / En Route
                         </span>
                     @else
                         <span class="tt-step-badge" style="background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;">
@@ -830,7 +826,7 @@
                             </span>
                         @elseif($status === 'on_trip')
                             <span class="tt-data-val" style="color: #2563eb; font-weight: 600;">
-                                🚗 Currently on the road {{ $tripDuration ? "({$tripDuration})" : '' }}
+                                Currently on the road {{ $tripDuration ? "({$tripDuration})" : '' }}
                             </span>
                         @else
                             <span class="tt-data-val" style="font-style: italic; color: #64748b;">
@@ -848,7 +844,7 @@
                             </span>
                             @if($ticket?->distance_traveled)
                                 <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 700; background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
-                                    🚗 {{ number_format($ticket->distance_traveled) }} km Traveled
+                                    {{ number_format($ticket->distance_traveled) }} km Traveled
                                 </span>
                                 @if($ticket->start_odometer)
                                     <span style="font-size: 11.5px; color: #64748b; font-weight: 500;">

@@ -141,20 +141,20 @@ class WithdrawalSlipForm
                         Select::make('item')
                             ->label('Item Type')
                             ->options([
-                                'diesel' => '⛽ Diesel',
-                                'gasoline_regular' => '⛽ Gasoline (Regular)',
-                                'gasoline_premium' => '⛽ Gasoline (Premium)',
-                                'lubricant_40' => '🛢️ Lubricant Oil 40',
-                                'lubricant_30' => '🛢️ Lubricant Oil 30',
-                                'brake_fluid' => '🛑 Brake Fluid',
-                                'grease_atf' => '⚙️ 2T / Grease / ATF',
-                                'gear_oil' => '🔧 Gear Oil',
+                                'diesel' => 'Diesel',
+                                'gasoline_regular' => 'Gasoline (Regular)',
+                                'gasoline_premium' => 'Gasoline (Premium)',
+                                'lubricant_40' => 'Lubricant Oil 40',
+                                'lubricant_30' => 'Lubricant Oil 30',
+                                'brake_fluid' => 'Brake Fluid',
+                                'grease_atf' => '2T, Grease, or ATF',
+                                'gear_oil' => 'Gear Oil',
                             ])
                             ->default('diesel')
                             ->required()
                             ->searchable(),
                         TextInput::make('quantity')
-                            ->label('Quantity (Liters / Amount)')
+                            ->label('Quantity (Liters or Amount)')
                             ->placeholder('e.g. 20, 35, 50, or Full Tank')
                             ->default('Full Tank')
                             ->helperText('Type the number of liters or quantity needed (e.g. 25, 40, Full Tank).')
@@ -171,14 +171,14 @@ class WithdrawalSlipForm
                         }
 
                         $itemNames = [
-                            'diesel' => '⛽ Diesel',
-                            'gasoline_regular' => '⛽ Gasoline (Regular)',
-                            'gasoline_premium' => '⛽ Gasoline (Premium)',
-                            'lubricant_40' => '🛢️ Lubricant Oil 40',
-                            'lubricant_30' => '🛢️ Lubricant Oil 30',
-                            'brake_fluid' => '🛑 Brake Fluid',
-                            'grease_atf' => '⚙️ 2T / Grease / ATF',
-                            'gear_oil' => '🔧 Gear Oil',
+                            'diesel' => 'Diesel',
+                            'gasoline_regular' => 'Gasoline (Regular)',
+                            'gasoline_premium' => 'Gasoline (Premium)',
+                            'lubricant_40' => 'Lubricant Oil 40',
+                            'lubricant_30' => 'Lubricant Oil 30',
+                            'brake_fluid' => 'Brake Fluid',
+                            'grease_atf' => '2T, Grease, or ATF',
+                            'gear_oil' => 'Gear Oil',
                         ];
 
                         $label = $itemNames[$item] ?? $item;
@@ -187,9 +187,9 @@ class WithdrawalSlipForm
                 Select::make('status')
                     ->label('Status')
                     ->options([
-                        'approved' => 'Approved / Issued',
+                        'approved' => 'Approved and Issued',
                         'pending' => 'Pending Review',
-                        'rejected' => 'Cancelled / Void',
+                        'rejected' => 'Cancelled',
                     ])
                     ->default('approved')
                     ->required(fn (string $operation) => $operation !== 'create')

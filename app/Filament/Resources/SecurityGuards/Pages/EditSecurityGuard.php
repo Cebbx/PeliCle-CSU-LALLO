@@ -19,16 +19,28 @@ class EditSecurityGuard extends EditRecord
         return [
             $this->getBackButtonAction(),
             DeleteAction::make()
-                ->label('Archive Guard')
-                ->icon('heroicon-o-archive-box')
-                ->color('warning')
-                ->modalHeading('Archive Security Guard')
-                ->modalDescription('Archived guards will no longer appear on the Gate Clearance Portal or be able to scan QR codes.')
-                ->modalSubmitActionLabel('Yes, Archive'),
+                ->label('Delete Guard')
+                ->icon('heroicon-o-trash')
+                ->color('danger')
+                ->modalHeading('Delete Security Guard')
+                ->modalDescription('Are you sure you want to delete this security guard? They will be removed from the Gate Clearance Portal and QR Scanner.')
+                ->modalSubmitActionLabel('Yes, Delete Guard')
+                ->using(function ($record) {
+                    try {
+                        return $record->forceDelete();
+                    } catch (\Throwable $e) {
+                        return $record->delete();
+                    }
+                }),
             RestoreAction::make()
                 ->label('Restore Guard')
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('success'),
         ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
     }
 }

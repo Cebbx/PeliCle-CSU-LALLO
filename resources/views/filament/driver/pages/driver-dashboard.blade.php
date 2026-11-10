@@ -299,7 +299,13 @@
             color: #ffffff;
         }
         .stat-emoji {
-            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
         
         .btn-toggle-duty {
@@ -544,20 +550,22 @@
                     @if($driverStatus !== 'on_trip')
                         <button wire:click="toggleDutyStatus" class="btn-toggle-status-banner {{ $isOffline ? 'btn-toggle-available' : 'btn-toggle-unavailable' }}">
                             @if($isOffline)
-                                🟢 <span>Go Online (Available)</span>
+                                <x-filament::icon icon="heroicon-o-check-circle" style="width: 14px; height: 14px;" />
+                                <span>Go Online (Available)</span>
                             @else
-                                🔴 <span>Go Offline (Off-Duty)</span>
+                                <x-filament::icon icon="heroicon-o-pause-circle" style="width: 14px; height: 14px;" />
+                                <span>Go Offline (Off-Duty)</span>
                             @endif
                         </button>
                     @endif
                 </div>
-                <div class="status-emoji-icon">
+                <div class="status-emoji-icon" style="width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.08);">
                     @if($driverStatus === 'on_trip')
-                        🚗
+                        <x-filament::icon icon="heroicon-o-truck" style="width: 24px; height: 24px; color: #fbbf24;" />
                     @elseif($isOffline)
-                        🔴
+                        <x-filament::icon icon="heroicon-o-pause-circle" style="width: 24px; height: 24px; color: #f87171;" />
                     @else
-                        🟢
+                        <x-filament::icon icon="heroicon-o-check-circle" style="width: 24px; height: 24px; color: #4ade80;" />
                     @endif
                 </div>
             </div>
@@ -572,15 +580,18 @@
                 $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' . urlencode($completionUrl);
             @endphp
             <div class="banner-alert">
-                <p>🚨 ON-GOING TRIP: Destination: <strong>{{ $activeTrip->vehicleRequest?->destination ?? 'N/A' }}</strong></p>
+                <p style="display: flex; align-items: center; gap: 6px;">
+                    <x-filament::icon icon="heroicon-o-truck" style="width: 18px; height: 18px;" />
+                    <span>ON-GOING TRIP: Destination: <strong>{{ $activeTrip->vehicleRequest?->destination ?? 'N/A' }}</strong></span>
+                </p>
                 <div style="font-size: 12px; margin-bottom: 12px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
                     <strong>Travel Logs:</strong>
                     @if(!$depLogged)
                         <span style="opacity: 0.8;">Departure not logged.</span>
                     @elseif($depLogged && !$arrLogged)
-                        <span style="color: #10b981; font-weight: bold;">🛫 Departure Logged!</span> &middot; <span style="opacity: 0.8;">Not arrived yet.</span>
+                        <span style="color: #10b981; font-weight: bold;">Departure Logged!</span> &middot; <span style="opacity: 0.8;">Not arrived yet.</span>
                     @else
-                        <span style="color: #10b981; font-weight: bold;">🛫 Departure & 🛬 Arrival Logged!</span> &middot; <span style="font-weight: bold;">Present QR at gate desk.</span>
+                        <span style="color: #10b981; font-weight: bold;">Departure &amp; Arrival Logged!</span> &middot; <span style="font-weight: bold;">Present QR at gate desk.</span>
                     @endif
                 </div>
 
@@ -589,27 +600,31 @@
                     <img src="{{ $qrCodeUrl }}" alt="Trip QR Code" class="w-40 h-40 rounded-xl shadow-md border-2 border-white dark:border-slate-800 bg-white p-1" />
                     <div>
                         <p class="text-[11px] text-amber-800 dark:text-amber-200 font-extrabold uppercase tracking-wider">Gate Clearance QR Code</p>
-                        <p class="text-[10px] text-amber-700/85 dark:text-amber-300/80 mt-1">Ipakita ang QR code na ito sa Security Guard sa gate para i-scan at makumpleto ang biyahe.</p>
+                        <p class="text-[10px] text-amber-700/85 dark:text-amber-300/80 mt-1">Present this QR code to the Security Guard at the gate to log your departure and arrival.</p>
                     </div>
                 </div>
                 
                 <div class="alert-actions-row">
-                    <a href="{{ \App\Filament\Driver\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $activeTrip->id]) }}" class="btn-alert-action">
-                        📄 View Trip Details
+                    <a href="{{ \App\Filament\Driver\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $activeTrip->id]) }}" class="btn-alert-action" style="display: inline-flex; align-items: center; gap: 5px;">
+                        <x-filament::icon icon="heroicon-o-document-text" style="width: 14px; height: 14px;" />
+                        View Trip Details
                     </a>
                     
                     @if(!$depLogged)
-                        <button wire:click="logDeparture" class="btn-milestone">
-                            🛫 Log Departure
+                        <button wire:click="logDeparture" class="btn-milestone" style="display: inline-flex; align-items: center; gap: 5px;">
+                            <x-filament::icon icon="heroicon-o-arrow-right-circle" style="width: 14px; height: 14px;" />
+                            Log Departure
                         </button>
                     @elseif($depLogged && !$arrLogged)
-                        <button wire:click="logArrival" class="btn-milestone">
-                            🛬 Log Arrival
+                        <button wire:click="logArrival" class="btn-milestone" style="display: inline-flex; align-items: center; gap: 5px;">
+                            <x-filament::icon icon="heroicon-o-check-circle" style="width: 14px; height: 14px;" />
+                            Log Arrival
                         </button>
                     @endif
 
-                    <button type="button" wire:click="openBreakdownModal" class="btn-emergency">
-                        ⚠️ Report Breakdown
+                    <button type="button" wire:click="openBreakdownModal" class="btn-emergency" style="display: inline-flex; align-items: center; gap: 5px;">
+                        <x-filament::icon icon="heroicon-o-exclamation-triangle" style="width: 14px; height: 14px;" />
+                        Report Breakdown
                     </button>
                 </div>
             </div>
@@ -617,37 +632,45 @@
 
         <!-- Quick Statistics Panel (Clickable Widgets) -->
         <div class="stats-grid">
-            <a href="{{ \App\Filament\Driver\Resources\TripTickets\TripTicketResource::getUrl('index') }}" class="stat-card stat-card-link" title="Tingnan ang lahat ng naka-assign na trips">
+            <a href="{{ \App\Filament\Driver\Resources\TripTickets\TripTicketResource::getUrl('index') }}" class="stat-card stat-card-link" title="View all assigned trips">
                 <div>
                     <span class="stat-label">Assigned Trips</span>
                     <span class="stat-val">{{ count($this->getAssignedTrips()) }}</span>
                 </div>
-                <div class="stat-emoji">📋</div>
+                <div class="stat-emoji" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                    <x-filament::icon icon="heroicon-o-clipboard-document-list" style="width: 22px; height: 22px;" />
+                </div>
             </a>
 
-            <a href="{{ \App\Filament\Driver\Resources\TripTickets\TripTicketResource::getUrl('index') }}" class="stat-card stat-card-link" title="Tingnan ang mga natapos na biyahe">
+            <a href="{{ \App\Filament\Driver\Resources\TripTickets\TripTicketResource::getUrl('index') }}" class="stat-card stat-card-link" title="View completed trips">
                 <div>
                     <span class="stat-label">Completed Trips</span>
                     <span class="stat-val">{{ $this->getCompletedTripsCount() }}</span>
                 </div>
-                <div class="stat-emoji">🏁</div>
+                <div class="stat-emoji" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                    <x-filament::icon icon="heroicon-o-check-badge" style="width: 22px; height: 22px;" />
+                </div>
             </a>
 
             @if($activeTrip)
-                <a href="{{ \App\Filament\Driver\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $activeTrip->id]) }}" class="stat-card stat-card-link" title="Tingnan ang detalye ng kasalukuyang sasakyan / biyahe">
-                    <div>
+                <a href="{{ \App\Filament\Driver\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $activeTrip->id]) }}" class="stat-card stat-card-link" style="gap: 12px;" title="View active vehicle and trip details">
+                    <div style="min-width: 0; flex: 1;">
                         <span class="stat-label">Active Vehicle</span>
-                        <span class="stat-val">{{ $activeTrip->formatted_vehicle }}</span>
+                        <span class="stat-val" style="font-size: 15px; line-height: 1.25; word-break: break-word;">{{ $activeTrip->formatted_vehicle }}</span>
                     </div>
-                    <div class="stat-emoji">🚗</div>
+                    <div class="stat-emoji" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                        <x-filament::icon icon="heroicon-o-truck" style="width: 22px; height: 22px;" />
+                    </div>
                 </a>
             @else
-                <div class="stat-card">
-                    <div>
+                <div class="stat-card" style="gap: 12px;">
+                    <div style="min-width: 0; flex: 1;">
                         <span class="stat-label">Active Vehicle</span>
                         <span class="stat-val">None</span>
                     </div>
-                    <div class="stat-emoji">🚗</div>
+                    <div class="stat-emoji" style="background: rgba(100, 116, 139, 0.12); color: #64748b;">
+                        <x-filament::icon icon="heroicon-o-truck" style="width: 22px; height: 22px;" />
+                    </div>
                 </div>
             @endif
         </div>
@@ -695,11 +718,12 @@
                                     </td>
                                     <td>
                                         <span class="badge-status {{ $trip->status === 'active' ? 'badge-active' : ($trip->status === 'completed' ? 'badge-completed' : ($trip->status === 'cancelled' ? 'badge-cancelled' : 'badge-pending')) }}">
-                                            {{ $trip->status === 'active' ? 'On Trip' : ($trip->status === 'cancelled' ? 'Cancelled / Aborted' : ucfirst($trip->status)) }}
+                                            {{ $trip->status === 'active' ? 'On Trip' : ($trip->status === 'cancelled' ? 'Cancelled' : ucfirst($trip->status)) }}
                                         </span>
                                         @if($trip->status === 'cancelled' && str_contains(strtolower($trip->cancellation_reason ?? ''), 'breakdown'))
                                             <div style="font-size: 10px; color: #ef4444; font-weight: 700; margin-top: 3px; display: flex; align-items: center; gap: 3px;">
-                                                <span>🚨</span> Aberya Reported
+                                                <x-filament::icon icon="heroicon-o-exclamation-triangle" style="width: 12px; height: 12px;" />
+                                                <span>Breakdown Reported</span>
                                             </div>
                                         @endif
                                     </td>
@@ -731,10 +755,10 @@
                     </div>
                     <div class="card-body">
                         <ul class="rules-list">
-                            <li>Verify that the **Vehicle Log** has been signed before heading out.</li>
-                            <li>Maintain passenger limit capacity rules.</li>
-                            <li>Request fuel using printed Gasoline Slips.</li>
-                            <li>Scan your QR Code with the Gate Guard to complete trips.</li>
+                            <li>Ensure that the <strong>Trip Ticket</strong> and <strong>CEO Signed Document</strong> are verified before departure.</li>
+                            <li>Strictly observe the authorized passenger capacity of the vehicle.</li>
+                            <li>Present the approved <strong>Fuel Withdrawal Slip</strong> when refueling.</li>
+                            <li>Present your <strong>Trip QR Code</strong> to the Security Guard at the gate upon departure and return.</li>
                         </ul>
                     </div>
                 </div>
@@ -767,7 +791,6 @@
     </div>
 
     <!-- Emergency Breakdown Report Modal -->
-    <!-- Emergency Breakdown Report Modal -->
     @if($showBreakdownModal && $activeTrip)
         <div class="driver-modal-backdrop" wire:keydown.escape="closeBreakdownModal">
             <div class="driver-modal-card" style="max-height: 92vh; display: flex; flex-direction: column;">
@@ -775,8 +798,8 @@
                 <div style="background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%); color: #ffffff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <div style="font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-                            <span>🚨</span>
-                            <span>Vehicle Emergency & Breakdown Report</span>
+                            <x-filament::icon icon="heroicon-o-exclamation-triangle" style="width: 18px; height: 18px;" />
+                            <span>Vehicle Emergency &amp; Breakdown Report</span>
                         </div>
                         <div style="font-size: 11px; color: #fecaca; margin-top: 2px;">
                             Trip Ticket: <strong>{{ $activeTrip->ticket_number }}</strong> &bull; Vehicle: <strong>{{ $activeTrip->formatted_vehicle ?? $activeTrip->vehicle }}</strong>
@@ -792,36 +815,36 @@
                     <!-- Category Selection (Quick-tap cards with Bilingual labels) -->
                     <div>
                         <label style="font-size: 12px; font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px;">
-                            <span>Select Incident Type / Uri ng Aberya:</span> <span style="color: #ef4444;">*</span>
+                            <span>Select Incident Type (Uri ng Aberya):</span> <span style="color: #ef4444;">*</span>
                         </label>
                         @php
                             $categories = [
                                 'Flat Tire' => [
-                                    'title' => '🛞 Flat Tire',
-                                    'sub' => 'Pumutok / Nasiraan ng Gulong',
+                                    'title' => 'Flat Tire',
+                                    'sub' => 'Pumutok o Nasiraan ng Gulong',
                                 ],
                                 'Engine Failure' => [
-                                    'title' => '⚙️ Engine Failure',
-                                    'sub' => 'Tirik / Sira ang Makina',
+                                    'title' => 'Engine Failure',
+                                    'sub' => 'Tirik o Sira ang Makina',
                                 ],
                                 'Overheating' => [
-                                    'title' => '🌡️ Engine Overheating',
+                                    'title' => 'Engine Overheating',
                                     'sub' => 'Mataas ang Temperatura',
                                 ],
                                 'Battery Issue' => [
-                                    'title' => '🔋 Battery / Electrical',
-                                    'sub' => 'Ayaw mag-start / Kuryente',
+                                    'title' => 'Battery or Electrical',
+                                    'sub' => 'Ayaw mag-start o Kuryente',
                                 ],
                                 'Brake & Steering' => [
-                                    'title' => '🛑 Brake / Steering Issue',
+                                    'title' => 'Brake or Steering Issue',
                                     'sub' => 'Sira ang Preno o Manibela',
                                 ],
                                 'Road Accident' => [
-                                    'title' => '💥 Vehicular Accident',
+                                    'title' => 'Vehicular Accident',
                                     'sub' => 'Banggaan sa Kalsada',
                                 ],
                                 'Other Emergency' => [
-                                    'title' => '❓ Other Emergency',
+                                    'title' => 'Other Emergency',
                                     'sub' => 'Iba pang Aberya sa Daan',
                                 ],
                             ];
@@ -838,7 +861,7 @@
                                     <div style="font-size: 12px; font-weight: 800; color: {{ $isSelected ? '#991b1b' : '#0f172a' }}; display: flex; align-items: center; justify-content: space-between;">
                                         <span>{{ $cat['title'] }}</span>
                                         @if($isSelected)
-                                            <span style="font-size: 11px; color: #dc2626;">✓</span>
+                                            <x-filament::icon icon="heroicon-o-check" style="width: 13px; height: 13px; color: #dc2626;" />
                                         @endif
                                     </div>
                                     <div style="font-size: 10.5px; font-weight: 500; color: {{ $isSelected ? '#b91c1c' : '#64748b' }}; margin-top: 1px;">
@@ -852,7 +875,7 @@
                     <!-- Location Input -->
                     <div>
                         <label style="font-size: 12px; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
-                            📍 Incident Location / Landmark <span style="font-size: 11px; font-weight: 500; color: #64748b;">(Saan nangyari?)</span>
+                            Incident Location or Landmark <span style="font-size: 11px; font-weight: 500; color: #64748b;">(Saan nangyari?)</span>
                         </label>
                         <input type="text" 
                             wire:model="breakdownLocation" 
@@ -863,19 +886,19 @@
                     <!-- Passenger Status -->
                     <div>
                         <label style="font-size: 12px; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
-                            👥 Passenger Safety Status <span style="font-size: 11px; font-weight: 500; color: #64748b;">(Kalagayan ng mga Pasahero)</span>
+                            Passenger Safety Status <span style="font-size: 11px; font-weight: 500; color: #64748b;">(Kalagayan ng mga Pasahero)</span>
                         </label>
                         <select wire:model="passengerStatus" style="width: 100%; font-size: 12px; font-weight: 600; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; color: #0f172a;">
-                            <option value="Safe roadside with Driver">🟢 Safe roadside with Driver (Ligtas lahat sa tabi ng daan)</option>
-                            <option value="Transferred to other transport">🟡 Passengers transferred / commuted (Nakasakay na sa ibang biyahe)</option>
-                            <option value="Requires Emergency Rescue">🔴 Requires emergency medical / rescue assistance (Nangangailangan ng saklolo)</option>
+                            <option value="Safe roadside with Driver">Safe roadside with Driver (Ligtas lahat sa tabi ng daan)</option>
+                            <option value="Transferred to other transport">Passengers transferred or commuted (Nakasakay na sa ibang biyahe)</option>
+                            <option value="Requires Emergency Rescue">Requires emergency medical or rescue assistance (Nangangailangan ng saklolo)</option>
                         </select>
                     </div>
 
                     <!-- Comments / Explanation -->
                     <div>
                         <label style="font-size: 12px; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
-                            💬 Driver's Remarks & Details <span style="color: #ef4444;">*</span> <span style="font-size: 11px; font-weight: 500; color: #64748b;">(Paliwanag kung anong nangyari)</span>
+                            Driver's Remarks &amp; Details <span style="color: #ef4444;">*</span> <span style="font-size: 11px; font-weight: 500; color: #64748b;">(Paliwanag kung anong nangyari)</span>
                         </label>
                         <textarea 
                             wire:model="breakdownComment" 
@@ -886,7 +909,7 @@
 
                     <!-- Notice Warning -->
                     <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; font-size: 11px; color: #92400e; display: flex; gap: 8px; align-items: flex-start;">
-                        <span style="font-size: 14px;">⚠️</span>
+                        <x-filament::icon icon="heroicon-o-exclamation-triangle" style="width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px;" />
                         <div>
                             <strong>Notice:</strong> Submitting this report will notify GSO Admin in real-time, cancel the current trip, and set vehicle status to <strong>Maintenance</strong>.
                         </div>
@@ -902,7 +925,7 @@
                         wire:click="submitBreakdownReport" 
                         wire:loading.attr="disabled"
                         style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #ffffff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);">
-                        <span wire:loading.remove wire:target="submitBreakdownReport">🚨 Submit Emergency Report</span>
+                        <span wire:loading.remove wire:target="submitBreakdownReport">Submit Emergency Report</span>
                         <span wire:loading wire:target="submitBreakdownReport">Submitting Alert...</span>
                     </button>
                 </div>

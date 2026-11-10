@@ -8,8 +8,8 @@
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
             <div>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">
-                        🗓️
+                    <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; color: #f59e0b;">
+                        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
                     </div>
                     <div>
                         <h2 style="font-size: 16px; font-weight: 800; color: #ffffff; margin: 0; line-height: 1.2;">
@@ -29,7 +29,7 @@
                     </span>
                     <span style="display: inline-flex; align-items: center; gap: 6px;">
                         <span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; display: inline-block;"></span>
-                        Active (On Trip / En Route)
+                        Active (On Trip or En Route)
                     </span>
                     <span style="display: inline-flex; align-items: center; gap: 6px;">
                         <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
@@ -49,20 +49,23 @@
                 <button type="button" 
                         @click="activeTab = 'pending'" 
                         :style="activeTab === 'pending' ? 'background: #d97706; color: #ffffff; border-color: #d97706;' : 'background: #1e293b; color: #94a3b8; border-color: #334155;'"
-                        style="padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 700; border: 1px solid; cursor: pointer; transition: all 0.2s;">
-                    🟡 Pending ({{ $counts['pending'] }})
+                        style="padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 700; border: 1px solid; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+                    Pending ({{ $counts['pending'] }})
                 </button>
                 <button type="button" 
                         @click="activeTab = 'active'" 
                         :style="activeTab === 'active' ? 'background: #2563eb; color: #ffffff; border-color: #2563eb;' : 'background: #1e293b; color: #94a3b8; border-color: #334155;'"
-                        style="padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 700; border: 1px solid; cursor: pointer; transition: all 0.2s;">
-                    🔵 Active ({{ $counts['active'] }})
+                        style="padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 700; border: 1px solid; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #3b82f6; display: inline-block;"></span>
+                    Active ({{ $counts['active'] }})
                 </button>
                 <button type="button" 
                         @click="activeTab = 'completed'" 
                         :style="activeTab === 'completed' ? 'background: #059669; color: #ffffff; border-color: #059669;' : 'background: #1e293b; color: #94a3b8; border-color: #334155;'"
-                        style="padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 700; border: 1px solid; cursor: pointer; transition: all 0.2s;">
-                    🟢 Completed ({{ $counts['completed'] }})
+                        style="padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 700; border: 1px solid; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                    Completed ({{ $counts['completed'] }})
                 </button>
             </div>
         </div>
@@ -116,7 +119,7 @@
                         </div>
                         <div>
                             <div style="font-size: 12.5px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-                                <span>⏰ {{ $trip['formatted_time'] }}</span>
+                                <span>{{ $trip['formatted_time'] }}</span>
                                 @if($trip['is_today'])
                                     <span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 4px;">TODAY</span>
                                 @endif
@@ -131,16 +134,16 @@
                     <div style="flex: 1; min-width: 220px;">
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <span style="font-size: 13.5px; font-weight: 800; color: #ffffff;">
-                                🚐 {{ $trip['vehicle'] }}
+                                {{ $trip['vehicle'] }}
                             </span>
                         </div>
                         <div style="font-size: 12px; color: #cbd5e1; margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                            <strong style="color: #38bdf8;">📍 {{ $trip['destination'] }}</strong>
+                            <strong style="color: #38bdf8;">{{ $trip['destination'] }}</strong>
                             <span style="color: #64748b;">&bull;</span>
                             <span style="color: #94a3b8;">{{ $trip['purpose'] }}</span>
                         </div>
                         <div style="font-size: 11px; color: #64748b; margin-top: 3px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                            <span>👤 Driver: <strong style="color: #cbd5e1;">{{ $trip['driver'] }}</strong></span>
+                            <span>Driver: <strong style="color: #cbd5e1;">{{ $trip['driver'] }}</strong></span>
                             <span>&bull;</span>
                             <span>Requested by: <span style="color: #94a3b8;">{{ $trip['requested_by'] }} ({{ $trip['department'] }})</span></span>
                         </div>
@@ -176,7 +179,6 @@
                 </div>
             @empty
                 <div style="padding: 36px 16px; text-align: center; color: #64748b;">
-                    <div style="font-size: 28px; margin-bottom: 8px;">🗓️</div>
                     <div style="font-size: 13.5px; font-weight: 700; color: #cbd5e1;">No Trip Tickets Found</div>
                     <div style="font-size: 11.5px; color: #64748b; margin-top: 2px;">
                         Approved vehicle requests and generated trip tickets will be listed here automatically.

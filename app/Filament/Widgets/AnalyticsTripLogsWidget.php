@@ -76,7 +76,7 @@ class AnalyticsTripLogsWidget extends TableWidget
                     ->weight('bold')
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->is_urgent ? '🚨 URGENT' : null),
+                    ->description(fn ($record) => $record->is_urgent ? 'URGENT' : null),
 
                 TextColumn::make('employee_name')
                     ->label('Requester')

@@ -259,7 +259,9 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            flex: 1;
             min-width: 0;
+            overflow: hidden;
         }
         .feed-dot-indicator {
             width: 4.5px;
@@ -271,7 +273,9 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            flex: 1;
             min-width: 0;
+            overflow: hidden;
         }
         .feed-ref-code {
             font-size: 10px;
@@ -285,7 +289,8 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 140px;
+            flex: 1;
+            min-width: 0;
         }
         .feed-item-right {
             display: flex;
@@ -634,7 +639,7 @@
             <div>
                 <h1 class="dash-title">Dashboard</h1>
                 <div class="dash-welcome">
-                    Welcome back, Administrator! 👋
+                    Welcome back, Administrator!
                 </div>
                 <div class="dash-desc">
                     Here is the current operational status of the CSU Lal-lo Campus Vehicle & Trip Management System.
@@ -643,10 +648,11 @@
             <div style="display: flex; align-items: center; gap: 8px;">
                 <a href="{{ route('admin.backup.download') }}" style="background: #047857; color: #ffffff; border: 1px solid #059669; padding: 7px 14px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#047857'">
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                    <span>💾 Backup Database</span>
+                    <span>Backup Database</span>
                 </a>
                 <button type="button" @click="showTransactionsModal = true" style="background: #1e293b; color: #f8fafc; border: 1px solid #334155; padding: 7px 14px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='#334155'" onmouseout="this.style.background='#1e293b'">
-                    <span>📋 Live Transactions Feed</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/></svg>
+                    <span>Live Transactions Feed</span>
                     <span style="background: #0284c7; color: #ffffff; padding: 1px 6px; border-radius: 9999px; font-size: 10px;">{{ count($latestTransactions ?? []) }}</span>
                 </button>
             </div>
@@ -659,8 +665,8 @@
                     <div style="background: linear-gradient(135deg, rgba(220, 38, 38, 0.16) 0%, rgba(185, 28, 28, 0.25) 100%); border: 1.5px solid #ef4444; border-radius: 12px; padding: 14px 18px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); animation: pulseAlert 2.5s infinite;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
                             <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 260px;">
-                                <div style="background: #ef4444; color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);">
-                                    🚨
+                                <div style="background: #ef4444; color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);">
+                                    <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
                                 </div>
                                 <div>
                                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -683,16 +689,16 @@
                                 @if($incident->model_id)
                                     <a href="{{ \App\Filament\Resources\TripTickets\TripTicketResource::getUrl('view', ['record' => $incident->model_id]) }}" 
                                        style="background: #1e293b; color: #f8fafc; border: 1px solid #475569; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                        📄 View Trip Ticket
+                                        View Trip Ticket
                                     </a>
                                 @endif
                                 <a href="/admin/vehicles?tab=maintenance" 
                                    style="background: #dc2626; color: #ffffff; border: none; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                    🔧 View Maintenance
+                                    View Maintenance
                                 </a>
                                 <a href="/admin/activity-logs?tableSearch={{ urlencode($incident->user_name) }}" 
                                    style="background: #0284c7; color: #ffffff; border: none; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                    📋 Audit Log
+                                    Audit Log
                                 </a>
                                 <button type="button" 
                                         wire:click="dismissIncident({{ $incident->id }})" 
@@ -726,7 +732,7 @@
                 </div>
                 <div class="card-mid-section">
                     <div class="card-number-bold">
-                        {{ $driverStats['available'] }} / {{ $driverStats['total'] }} <span class="card-unit-label">Available</span>
+                        {{ $driverStats['available'] }} <span class="card-unit-label">of</span> {{ $driverStats['total'] }} <span class="card-unit-label">Available</span>
                     </div>
                     <div class="card-subtitle-note color-green" style="display: flex; justify-content: space-between;">
                         <span>Drivers ready for dispatch</span>
@@ -758,7 +764,7 @@
                 </div>
                 <div class="card-mid-section">
                     <div class="card-number-bold">
-                        {{ $vehicleStats['available'] }} / {{ $vehicleStats['total'] }} <span class="card-unit-label">Available</span>
+                        {{ $vehicleStats['available'] }} <span class="card-unit-label">of</span> {{ $vehicleStats['total'] }} <span class="card-unit-label">Available</span>
                     </div>
                     <div class="card-subtitle-note color-green" style="display: flex; justify-content: space-between;">
                         <span>Vehicles ready for dispatch</span>
@@ -843,7 +849,11 @@
             <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'on_trip']) }}" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
-                        <div class="card-icon-round bg-icon-blue" style="font-weight: 800; font-size: 11px;">A</div>
+                        <div class="card-icon-round bg-icon-blue">
+                            <svg style="width: 13px; height: 13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                            </svg>
+                        </div>
                         <span class="card-title-text">Active Trips (On Trip)</span>
                     </div>
                 </div>
@@ -896,7 +906,7 @@
                     </div>
                     @if(!empty($mostTravelers))
                         <span class="traveler-rank-pill" title="Click to view Top Rankings">
-                            🏆 Top 1
+                            Top 1
                         </span>
                     @endif
                 </div>
@@ -935,8 +945,8 @@
                      totalTrips: {{ (int)($tripActivity['total'] ?? 0) }}
                  }">
                 <div class="panel-top-bar">
-                    <div class="panel-title-text">
-                        <span style="color: #0284c7;">📈</span>
+                    <div class="panel-title-text" style="display: flex; align-items: center; gap: 6px;">
+                        <svg style="width: 15px; height: 15px; color: #0284c7;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg>
                         <span>Trip Activity (This Week)</span>
                     </div>
                     <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'on_trip']) }}" class="panel-filter-btn">
@@ -1100,8 +1110,8 @@
             <!-- Column 2: Vehicle Request Status Donut Chart -->
             <div class="dash-card dash-card-pad">
                 <div class="panel-top-bar">
-                    <div class="panel-title-text">
-                        <span style="color: #10b981;">📉</span>
+                    <div class="panel-title-text" style="display: flex; align-items: center; gap: 6px;">
+                        <svg style="width: 15px; height: 15px; color: #10b981;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/></svg>
                         <span>Vehicle Request Status</span>
                     </div>
                     <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'pending']) }}" class="panel-filter-btn">
@@ -1276,7 +1286,7 @@
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <span class="feed-ref-code">{{ $req->request_number }}</span>
                                         @if($req->is_urgent)
-                                            <span style="display: inline-block; background-color: #ef4444; color: #ffffff; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">🚨 URGENT</span>
+                                            <span style="display: inline-block; background-color: #ef4444; color: #ffffff; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">URGENT</span>
                                         @endif
                                     </div>
                                     <span class="feed-purpose-desc">{{ $req->purpose ?? $req->destination ?? $req->employee_name }}</span>
@@ -1309,7 +1319,10 @@
             <div class="travelers-modal-card" @click.stop>
                 <div class="travelers-modal-header">
                     <div>
-                        <h3 class="travelers-modal-title">🏆 Most Frequent Travelers</h3>
+                        <h3 class="travelers-modal-title" style="display: flex; align-items: center; gap: 8px;">
+                            <svg style="width: 18px; height: 18px; color: #f59e0b;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"/></svg>
+                            <span>Most Frequent Travelers</span>
+                        </h3>
                         <p class="travelers-modal-desc">Top employees and passengers with the highest number of trips</p>
                     </div>
                     <button type="button" @click="showTravelersModal = false" class="travelers-modal-close" title="Close">
@@ -1329,12 +1342,7 @@
                                 3 => 'background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff;',
                                 default => 'background: #1e293b; color: #94a3b8; border-color: #334155;'
                             };
-                            $medal = match($rank) {
-                                1 => '🥇',
-                                2 => '🥈',
-                                3 => '🥉',
-                                default => '#' . $rank
-                            };
+                            $medal = '#' . $rank;
                         @endphp
                         <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tableSearch' => $traveler['name']]) }}" class="traveler-row-item" style="text-decoration: none; cursor: pointer; transition: background 0.15s;" title="Filter requests for {{ $traveler['name'] }}">
                             <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
@@ -1379,10 +1387,10 @@
                 <div class="travelers-modal-header" style="background: #0f172a; border-bottom: 1px solid #1e293b;">
                     <div>
                         <h3 class="travelers-modal-title" style="display: flex; align-items: center; gap: 8px;">
-                            <span>📋</span>
+                            <svg style="width: 18px; height: 18px; color: #38bdf8;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/></svg>
                             <span>Live System Transactions & Incident Feed</span>
                         </h3>
-                        <p class="travelers-modal-desc">Real-time audit log ng lahat ng biyahe, emergency reports, requests, at approvals</p>
+                        <p class="travelers-modal-desc">Real-time audit log of all trips, emergency reports, vehicle requests, and approvals</p>
                     </div>
                     <button type="button" @click="showTransactionsModal = false" class="travelers-modal-close" title="Close">
                         <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

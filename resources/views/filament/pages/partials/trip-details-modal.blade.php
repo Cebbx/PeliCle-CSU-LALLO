@@ -259,12 +259,12 @@
                 <span class="trip-label" style="margin-bottom: 0;">Control Sequence</span>
                 @if($isCarpool)
                     <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 10.5px; font-weight: 700; background-color: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe;">
-                        ⚡ Carpool ({{ $allRequests->count() }} Offices Combined)
+                        Carpool ({{ $allRequests->count() }} Offices Combined)
                     </span>
                 @endif
                 @if($isUrgent)
                     <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;">
-                        🚨 Urgent
+                        Urgent
                     </span>
                 @endif
             </div>
@@ -288,7 +288,6 @@
     <!-- Cancellation Reason (If Cancelled) -->
     @if($record->status === 'cancelled' && $record->cancellation_reason)
         <div class="trip-reason trip-reason-danger">
-            <span style="font-size: 18px; line-height: 1;">{{ str_contains(strtolower($record->cancellation_reason), 'breakdown') ? '🚨' : '⚠️' }}</span>
             <div>
                 <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #b91c1c;">
                     {{ str_contains(strtolower($record->cancellation_reason), 'breakdown') ? 'Trip Aborted / Emergency Aberya Notice:' : 'Trip Cancellation Notice:' }}
@@ -340,7 +339,7 @@
                 </span>
                 @if($tripDuration)
                     <span style="padding: 1px 7px; border-radius: 9999px; font-size: 10px; font-weight: 700; background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
-                        ⏱️ {{ $tripDuration }}
+                        {{ $tripDuration }}
                     </span>
                 @endif
             </div>
@@ -353,7 +352,7 @@
                     </span>
                 @elseif($record->status === 'active')
                     <span class="trip-val" style="color: #2563eb;">
-                        🚗 On Trip / In Transit
+                        On Trip / In Transit
                     </span>
                 @else
                     <span class="trip-val-sub" style="font-style: italic;">---</span>
@@ -416,7 +415,7 @@
                 <div class="trip-field">
                     <span class="trip-label">Contact / Phone Number</span>
                     <a href="tel:{{ $record->driver->contact_number }}" class="trip-val" style="color: #2563eb; font-size: 13px; text-decoration: underline; display: inline-flex; align-items: center; gap: 4px;">
-                        📞 {{ $record->driver->contact_number }}
+                        {{ $record->driver->contact_number }}
                     </a>
                 </div>
             @endif
@@ -463,7 +462,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
                         <div>
                             <span style="font-weight: 700; font-size: 13px; color: #1e40af;">
-                                🏛️ {{ $req->department ?? 'General Department' }}
+                                {{ $req->department ?? 'General Department' }}
                             </span>
                             <span class="trip-val-sub" style="margin-left: 6px;">
                                 &bull; Requested by: <strong>{{ $req->employee_name ?? 'N/A' }}</strong>
@@ -478,11 +477,11 @@
                     <div class="trip-grid-2" style="border-top: 1px dashed #e2e8f0; padding-top: 8px; margin-bottom: 8px;">
                         <div>
                             <span class="trip-label">Destination</span>
-                            <span class="trip-val" style="font-size: 12px;">📍 {{ $req->destination ?? 'Official Destination' }}</span>
+                            <span class="trip-val" style="font-size: 12px;">{{ $req->destination ?? 'Official Destination' }}</span>
                         </div>
                         <div>
                             <span class="trip-label">Purpose of Travel</span>
-                            <span class="trip-val-sub" style="font-size: 12px;">📝 {{ $req->purpose ?? 'Official University Travel' }}</span>
+                            <span class="trip-val-sub" style="font-size: 12px;">{{ $req->purpose ?? 'Official University Travel' }}</span>
                         </div>
                     </div>
 
@@ -492,7 +491,7 @@
                             <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                                 @foreach($pList as $pName)
                                     <span class="trip-pill">
-                                        👤 {{ $pName }}
+                                        {{ $pName }}
                                     </span>
                                 @endforeach
                             </div>

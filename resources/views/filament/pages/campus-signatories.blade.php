@@ -162,7 +162,7 @@
         <div class="signatory-header-card">
             <div class="signatory-header-left">
                 <div class="signatory-icon-badge">
-                    🖋️
+                    <svg style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 </div>
                 <div>
                     <h2 class="signatory-title">Campus Administration & Document Signatories</h2>
@@ -173,7 +173,7 @@
             </div>
             <div>
                 <span class="rbac-tag">
-                    🛡️ RBAC Protected • Admin Only
+                    RBAC Protected • Admin Only
                 </span>
             </div>
         </div>
@@ -185,7 +185,7 @@
                 <!-- General Services Officer (GSO) -->
                 <div class="signatory-card">
                     <div class="card-header-bar">
-                        <span class="text-xl">🛠️</span>
+                        <svg style="width: 20px; height: 20px; color: #f59e0b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         <div>
                             <h3>General Services Officer</h3>
                             <p class="text-[11px] text-gray-400">Recommending / Prepared By</p>
@@ -218,7 +218,7 @@
                         </div>
 
                         <div class="pt-2 text-[11px] text-amber-400 bg-amber-950/40 p-2.5 rounded border border-amber-900/60">
-                            💡 Signs the <strong>Prepared By</strong> &amp; <strong>Recommending Approval</strong> on vehicle dispatches.
+                            Signs the <strong>Prepared By</strong> &amp; <strong>Recommending Approval</strong> on vehicle dispatches.
                         </div>
                     </div>
                 </div>
@@ -226,7 +226,7 @@
                 <!-- Campus Executive Officer (CEO) -->
                 <div class="signatory-card">
                     <div class="card-header-bar">
-                        <span class="text-xl">🏛️</span>
+                        <svg style="width: 20px; height: 20px; color: #38bdf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         <div>
                             <h3>Campus Executive Officer</h3>
                             <p class="text-[11px] text-gray-400">Approving Authority (CEO)</p>
@@ -259,7 +259,7 @@
                         </div>
 
                         <div class="pt-2 text-[11px] text-blue-400 bg-blue-950/40 p-2.5 rounded border border-blue-900/60">
-                            💡 Signs the <strong>Approved By</strong> box on Trip Tickets, Travel Orders, and Fuel Slips.
+                            Signs the <strong>Approved By</strong> box on Trip Tickets, Travel Orders, and Fuel Slips.
                         </div>
                     </div>
                 </div>
@@ -269,7 +269,7 @@
             <!-- 3. Real-Time Document Preview Box -->
             <div class="signatory-card mt-5">
                 <div class="card-header-bar">
-                    <span class="text-xl">📄</span>
+                    <svg style="width: 20px; height: 20px; color: #34d399;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <div>
                         <h3>Official Print Document Preview</h3>
                         <p class="text-[11px] text-gray-400">How the signature block will appear on generated CSU Lal-lo documents</p>
@@ -310,11 +310,11 @@
             <!-- 4. Save Changes Button -->
             <div class="flex items-center justify-between pt-4 mt-2">
                 <span class="text-xs text-gray-400">
-                    💡 Only users with the <strong>Admin</strong> role can view and submit this page.
+                    Only users with the <strong>Admin</strong> role can view and submit this page.
                 </span>
                 <button type="submit" class="save-btn" wire:loading.attr="disabled">
-                    <span wire:loading.remove>💾 Save &amp; Update Signatories</span>
-                    <span wire:loading>⏳ Updating Signatories...</span>
+                    <span wire:loading.remove>Save &amp; Update Signatories</span>
+                    <span wire:loading>Updating Signatories...</span>
                 </button>
             </div>
         </form>

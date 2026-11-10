@@ -107,7 +107,7 @@ class EditTripTicket extends EditRecord
                     try {
                         $driverName = $record->driver?->name ?? 'Assigned Driver';
                         \Filament\Notifications\Notification::make()
-                            ->title('🚐 Request Consolidated into Trip Ticket')
+                            ->title('Request Consolidated into Trip Ticket')
                             ->body("Your request {$req->request_number} to {$req->destination} was approved and consolidated into Trip Ticket {$record->ticket_number} (Driver: {$driverName}, Vehicle: {$record->vehicle}).")
                             ->icon('heroicon-o-check-circle')
                             ->iconColor('success')

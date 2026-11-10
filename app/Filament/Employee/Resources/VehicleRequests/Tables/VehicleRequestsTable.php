@@ -32,7 +32,7 @@ class VehicleRequestsTable
                     })
                     ->sortable()
                     ->weight('bold')
-                    ->description(fn ($record) => $record->is_urgent ? '🚨 URGENT' : null),
+                    ->description(fn ($record) => $record->is_urgent ? 'URGENT' : null),
                 TextColumn::make('employee_name')
                     ->label('Requester')
                     ->width('105px')
@@ -63,7 +63,7 @@ class VehicleRequestsTable
                         if ($record->tripTicket) {
                             $otherCount = $record->tripTicket->vehicleRequests()->where('id', '!=', $record->id)->count();
                             if ($otherCount > 0) {
-                                return '🚐 Carpool (' . ($otherCount + 1) . ' Depts)';
+                                return 'Carpool (' . ($otherCount + 1) . ' Depts)';
                             }
                         }
                         return null;
@@ -142,18 +142,18 @@ class VehicleRequestsTable
                     })
                     ->description(function ($record) {
                         if ($record->status === 'pending' && !empty($record->document)) {
-                            return '✅ Doc Attached';
+                            return 'Doc Attached';
                         }
                         if ($record->status === 'approved') {
                             if (!empty($record->document)) {
                                 if (empty($record->document_verified_at)) {
-                                    return '⏳ For Admin Verification';
+                                    return 'For Admin Verification';
                                 }
                                 return $record->time 
-                                    ? '⏳ Departs ' . \Carbon\Carbon::parse($record->time)->format('g:i A')
-                                    : '✅ Doc Verified';
+                                    ? 'Departs ' . \Carbon\Carbon::parse($record->time)->format('g:i A')
+                                    : 'Doc Verified';
                             }
-                            return '📄 Awaiting CEO Doc';
+                            return 'Awaiting CEO Doc';
                         }
                         return null;
                     })
@@ -213,7 +213,7 @@ class VehicleRequestsTable
                         ->url(fn ($record) => route('trip-tickets.print', $record->tripTicket->id))
                         ->openUrlInNewTab(),
                     Action::make('csu_survey')
-                        ->label('⭐ Evaluate Service (CSU Survey)')
+                        ->label('Evaluate Service (CSU Survey)')
                         ->icon('heroicon-o-star')
                         ->color('warning')
                         ->url('https://csu.edu.ph/feedback/public/survey?office_id=255')
@@ -223,7 +223,7 @@ class VehicleRequestsTable
                         ->label('Upload or Scan Document')
                         ->icon('heroicon-o-camera')
                         ->color('success')
-                        ->modalHeading('📄 Upload or Scan CEO Signed Document')
+                        ->modalHeading('Upload or Scan CEO Signed Document')
                         ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
                         ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Save Document')
@@ -249,7 +249,7 @@ class VehicleRequestsTable
                                                 ->directory('request-documents')
                                                 ->visibility('public')
                                                 ->imagePreviewHeight('250')
-                                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                                                ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
                                                 ->helperText('Select the scanned document or photo from your computer or phone.')
                                                 ->columnSpanFull(),
                                         ]),
@@ -300,7 +300,7 @@ class VehicleRequestsTable
                             // 1. Check if late upload (departure was more than 24 hours in past)
                             if ($depDateTime && $now->diffInHours($depDateTime, false) < -24) {
                                 $formattedSchedule = $depDateTime->format('M d, Y h:i A');
-                                $reason = "Auto-declined: CEO signed document was uploaded late after scheduled departure date/time ({$formattedSchedule}).";
+                                $reason = "Auto-declined: CEO signed document was uploaded late after scheduled departure date and time ({$formattedSchedule}).";
 
                                 $record->update([
                                     'document' => $finalPath,
@@ -384,8 +384,8 @@ class VehicleRequestsTable
                                 $admins = \App\Models\User::where('role', 'admin')->get();
                                 foreach ($admins as $admin) {
                                     \Filament\Notifications\Notification::make()
-                                        ->title('📄 CEO Document Uploaded: ' . $record->request_number)
-                                        ->body("{$record->employee_name} ({$record->department}) uploaded CEO signed document for request {$record->request_number}. Ready for Admin / GSO review & SMS dispatch.")
+                                        ->title('CEO Document Uploaded: ' . $record->request_number)
+                                        ->body("{$record->employee_name} ({$record->department}) uploaded CEO signed document for request {$record->request_number}. Ready for Admin and GSO review & SMS dispatch.")
                                         ->icon('heroicon-o-document-check')
                                         ->iconColor('warning')
                                         ->actions([
@@ -400,7 +400,7 @@ class VehicleRequestsTable
 
                             \Filament\Notifications\Notification::make()
                                 ->title('Document Uploaded Successfully')
-                                ->body("CEO Signed Document has been submitted! Your request is now queued for Admin / GSO verification. The assigned driver will receive an SMS dispatch notification once verified by Admin.")
+                                ->body("CEO Signed Document has been submitted! Your request is now queued for Admin and GSO verification. The assigned driver will receive an SMS dispatch notification once verified by Admin.")
                                 ->success()
                                 ->send();
                         }),
@@ -408,7 +408,7 @@ class VehicleRequestsTable
                         ->label('Replace Signed Document')
                         ->icon('heroicon-o-arrow-path')
                         ->color('warning')
-                        ->modalHeading('📄 Replace CEO Signed Document')
+                        ->modalHeading('Replace CEO Signed Document')
                         ->modalDescription('Choose whether to scan using the camera or upload a new document from your device.')
                         ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Update Document')
@@ -434,7 +434,7 @@ class VehicleRequestsTable
                                                 ->directory('request-documents')
                                                 ->visibility('public')
                                                 ->imagePreviewHeight('250')
-                                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                                                ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
                                                 ->helperText('Select the scanned document or photo from your computer or phone.')
                                                 ->columnSpanFull(),
                                         ]),
@@ -511,7 +511,7 @@ class VehicleRequestsTable
                         ->label('Cancel Request')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
-                        ->modalHeading('⚠️ Are you sure you want to cancel this vehicle request?')
+                        ->modalHeading('Are you sure you want to cancel this vehicle request?')
                         ->modalDescription('This action cannot be undone. Cancelling will withdraw this vehicle request.')
                         ->modalSubmitActionLabel('Yes, Cancel Request')
                         ->modalCancelActionLabel('No, Keep Request')
@@ -554,7 +554,7 @@ class VehicleRequestsTable
                                 $admins = \App\Models\User::where('role', 'admin')->get();
                                 foreach ($admins as $admin) {
                                     \Filament\Notifications\Notification::make()
-                                        ->title('⚠️ Request Cancelled by Employee: ' . $record->request_number)
+                                        ->title('Request Cancelled by Employee: ' . $record->request_number)
                                         ->body("{$record->employee_name} ({$record->department}) cancelled request to {$record->destination}. Reason: {$reason}")
                                         ->icon('heroicon-o-x-circle')
                                         ->iconColor('gray')
@@ -570,7 +570,7 @@ class VehicleRequestsTable
                                     $driverUser = $record->tripTicket->driver->getUserAccount();
                                     if ($driverUser) {
                                         \Filament\Notifications\Notification::make()
-                                            ->title('⚠️ Trip Cancelled by Employee: ' . $record->tripTicket->ticket_number)
+                                            ->title('Trip Cancelled by Employee: ' . $record->tripTicket->ticket_number)
                                             ->body("{$record->employee_name} cancelled request for travel to {$record->destination}. Reason: {$reason}")
                                             ->icon('heroicon-o-x-circle')
                                             ->iconColor('gray')

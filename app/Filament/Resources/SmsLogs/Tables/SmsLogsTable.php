@@ -29,7 +29,7 @@ class SmsLogsTable
                     ->sortable()
                     ->weight('bold')
                     ->default('Unassigned Driver')
-                    ->description(fn ($record) => $record->phone_number ? "📞 {$record->phone_number}" : null),
+                    ->description(fn ($record) => $record->phone_number ? $record->phone_number : null),
 
                 TextColumn::make('type')
                     ->label('Alert Type')

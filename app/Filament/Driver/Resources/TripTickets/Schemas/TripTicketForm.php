@@ -27,7 +27,7 @@ class TripTicketForm
                                 $reason = $record->cancellation_reason;
                                 $isBreakdown = str_contains(strtolower($reason), 'breakdown') || str_contains(strtolower($reason), 'aberya') || str_contains(strtolower($reason), 'flat tire') || str_contains(strtolower($reason), 'engine');
 
-                                $category = 'Vehicle Emergency / Aberya';
+                                $category = 'Vehicle Emergency or Aberya';
                                 $location = null;
                                 $passengers = null;
                                 $comment = $reason;
@@ -39,7 +39,7 @@ class TripTicketForm
                                     $passengers = !empty($m[4]) ? trim($m[4]) : null;
                                 }
 
-                                $title = $isBreakdown ? '🚨 BIYAHE NA-ABORT / EMERGENCY ABERYA' : '⚠️ TRIP CANCELLATION NOTICE';
+                                $title = $isBreakdown ? 'EMERGENCY ABERYA REPORT' : 'TRIP CANCELLATION NOTICE';
                                 $sub = $isBreakdown 
                                     ? 'Nai-report ang aberya na ito habang nasa biyahe. Naka-rekord na ito sa system at naka-maintenance na ang sasakyan.'
                                     : 'Kinansela ang biyaheng ito at naka-log na sa official records.';
@@ -48,8 +48,8 @@ class TripTicketForm
                                 <div style='background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.14) 100%); border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 16px; padding: 18px 20px; box-shadow: 0 4px 15px -3px rgba(239, 68, 68, 0.15);'>
                                     <div style='display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;'>
                                         <div style='display: flex; align-items: center; gap: 12px;'>
-                                            <div style='width: 40px; height: 40px; min-width: 40px; border-radius: 12px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); display: flex; align-items: center; justify-content: center; font-size: 20px;'>
-                                                ⚠️
+                                            <div style='width: 40px; height: 40px; min-width: 40px; border-radius: 12px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); display: flex; align-items: center; justify-content: center; color: #dc2626;'>
+                                                <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='currentColor' style='width: 22px; height: 22px;'><path stroke-linecap='round' stroke-linejoin='round' d='M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z'/></svg>
                                             </div>
                                             <div>
                                                 <h3 style='margin: 0; font-size: 15px; font-weight: 800; color: #dc2626; letter-spacing: -0.01em;'>{$title}</h3>
@@ -57,24 +57,24 @@ class TripTicketForm
                                             </div>
                                         </div>
                                         <span style='padding: 4px 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 9999px; font-size: 11.5px; font-weight: 800; text-transform: uppercase;'>
-                                            ⚠️ {$category}
+                                            {$category}
                                         </span>
                                     </div>
                                     
                                     <div style='margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(239, 68, 68, 0.25); display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; font-size: 12px;'>
                                         <div style='background: rgba(255,255,255,0.7); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.15);'>
-                                            <span style='display: block; font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 2px;'>💬 Paliwanag / Remarks</span>
+                                            <span style='display: block; font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 2px;'>Paliwanag at Remarks</span>
                                             <span style='font-weight: 700; color: #0f172a;'>{$comment}</span>
                                         </div>
                                         " . ($location ? "
                                         <div style='background: rgba(255,255,255,0.7); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.15);'>
-                                            <span style='display: block; font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 2px;'>📍 Lokasyon</span>
+                                            <span style='display: block; font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 2px;'>Lokasyon</span>
                                             <span style='font-weight: 700; color: #0f172a;'>{$location}</span>
                                         </div>
                                         " : "") . "
                                         " . ($passengers ? "
                                         <div style='background: rgba(255,255,255,0.7); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.15);'>
-                                            <span style='display: block; font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 2px;'>👥 Kalagayan ng Pasahero</span>
+                                            <span style='display: block; font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 2px;'>Kalagayan ng Pasahero</span>
                                             <span style='font-weight: 700; color: #059669;'>{$passengers}</span>
                                         </div>
                                         " : "") . "
@@ -99,7 +99,7 @@ class TripTicketForm
                                     ->content(function ($record) {
                                         if (!$record || !is_object($record)) return 'N/A';
                                         $dest = $record->vehicleRequest?->destination ?? 'N/A';
-                                        return new HtmlString("<div style='font-size: 13.5px; font-weight: 700; color: #0284c7; display: flex; align-items: center; gap: 6px;'>📍 <span>{$dest}</span></div>");
+                                        return new HtmlString("<div style='font-size: 13.5px; font-weight: 700; color: #0284c7; display: flex; align-items: center; gap: 6px;'><span>{$dest}</span></div>");
                                     }),
 
                                 Placeholder::make('status')
@@ -108,10 +108,10 @@ class TripTicketForm
                                         if (!$record || !is_object($record)) return 'N/A';
                                         $st = strtolower($record->status ?? 'pending');
                                         $map = [
-                                            'active' => ['bg' => '#dbeafe', 'text' => '#1d4ed8', 'border' => '#93c5fd', 'label' => '🚗 On Trip / En Route'],
-                                            'completed' => ['bg' => '#dcfce7', 'text' => '#15803d', 'border' => '#86efac', 'label' => '✅ Completed'],
-                                            'cancelled' => ['bg' => '#fee2e2', 'text' => '#b91c1c', 'border' => '#fca5a5', 'label' => '🛑 Cancelled / Aborted'],
-                                            'pending' => ['bg' => '#fef3c7', 'text' => '#b45309', 'border' => '#fde68a', 'label' => '⏳ Pending Dispatch'],
+                                            'active' => ['bg' => '#dbeafe', 'text' => '#1d4ed8', 'border' => '#93c5fd', 'label' => 'On Trip'],
+                                            'completed' => ['bg' => '#dcfce7', 'text' => '#15803d', 'border' => '#86efac', 'label' => 'Completed'],
+                                            'cancelled' => ['bg' => '#fee2e2', 'text' => '#b91c1c', 'border' => '#fca5a5', 'label' => 'Cancelled'],
+                                            'pending' => ['bg' => '#fef3c7', 'text' => '#b45309', 'border' => '#fde68a', 'label' => 'Pending Dispatch'],
                                         ];
                                         $cfg = $map[$st] ?? ['bg' => '#f1f5f9', 'text' => '#475569', 'border' => '#cbd5e1', 'label' => ucfirst($st)];
                                         return new HtmlString("<span style='display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 9999px; font-size: 11.5px; font-weight: 800; background: {$cfg['bg']}; color: {$cfg['text']}; border: 1px solid {$cfg['border']};'>{$cfg['label']}</span>");
@@ -124,7 +124,7 @@ class TripTicketForm
                                         $vName = \App\Models\Vehicle::getVehicleName($record->vehicle);
                                         $vPlate = \App\Models\Vehicle::getPlateNumber($record->vehicle);
                                         $plateHtml = ($vPlate && $vPlate !== $vName) ? "<span style='margin-left: 6px; padding: 1px 6px; font-size: 10.5px; font-weight: 700; background: #e2e8f0; color: #1e293b; border-radius: 4px;'>{$vPlate}</span>" : "";
-                                        return new HtmlString("<div style='font-size: 13px; font-weight: 700;'>🚐 {$vName} {$plateHtml}</div>");
+                                        return new HtmlString("<div style='font-size: 13px; font-weight: 700;'>{$vName} {$plateHtml}</div>");
                                     }),
 
                                 Placeholder::make('schedule')
@@ -133,7 +133,7 @@ class TripTicketForm
                                         if (!$record || !is_object($record) || !$record->vehicleRequest) return 'N/A';
                                         $d = $record->vehicleRequest->date ? \Carbon\Carbon::parse($record->vehicleRequest->date)->format('F d, Y') : 'N/A';
                                         $t = $record->vehicleRequest->time ? \Carbon\Carbon::parse($record->vehicleRequest->time)->format('h:i A') : '';
-                                        return new HtmlString("<div style='font-size: 13px; font-weight: 600;'>📅 {$d} " . ($t ? "<span style='color: #64748b; font-size: 11.5px;'>({$t})</span>" : "") . "</div>");
+                                        return new HtmlString("<div style='font-size: 13px; font-weight: 600;'>{$d} " . ($t ? "<span style='color: #64748b; font-size: 11.5px;'>({$t})</span>" : "") . "</div>");
                                     }),
 
                                 Placeholder::make('passenger')
@@ -145,7 +145,7 @@ class TripTicketForm
                                         $name = $req->employee_name ?? 'N/A';
                                         $dept = $req->department ? "({$req->department})" : "";
                                         $count = (int) ($req->number_of_passengers ?: 1);
-                                        return new HtmlString("<div style='font-size: 13px; font-weight: 700;'>👤 {$name} <span style='font-size: 11px; color: #64748b; font-weight: 500;'>{$dept} &bull; {$count} pax</span></div>");
+                                        return new HtmlString("<div style='font-size: 13px; font-weight: 700;'>{$name} <span style='font-size: 11px; color: #64748b; font-weight: 500;'>{$dept} &bull; {$count} pax</span></div>");
                                     }),
 
                                 Placeholder::make('purpose')

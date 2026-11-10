@@ -22,6 +22,19 @@ class SecurityGuard extends User
             if (empty($model->position)) {
                 $model->position = 'Gate Security Officer';
             }
+            if (empty($model->password)) {
+                $model->password = bcrypt('password');
+            }
+        });
+
+        static::updating(function ($model) {
+            if ($model->isDirty('name')) {
+                $oldName = $model->getOriginal('name');
+                $newName = $model->name;
+                if (!empty($oldName) && !empty($newName) && $oldName !== $newName) {
+                    TripTicket::where('scanned_by', $oldName)->update(['scanned_by' => $newName]);
+                }
+            }
         });
     }
 

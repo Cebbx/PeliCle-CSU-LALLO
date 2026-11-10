@@ -247,7 +247,7 @@ it('allows admin to edit and save a trip ticket without an assigned driver and h
         ->test(\App\Filament\Resources\TripTickets\Pages\ListTripTickets::class)
         ->assertCanSeeTableRecords([$ticket])
         ->callTableAction('resendSms', $ticket)
-        ->assertNotified('Walang Driver na Naka-assign');
+        ->assertNotified('No Driver Assigned');
 });
 
 

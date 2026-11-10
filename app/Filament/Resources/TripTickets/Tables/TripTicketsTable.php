@@ -36,10 +36,10 @@ class TripTicketsTable
                         $allReqs = $record->all_vehicle_requests;
                         if ($allReqs->count() > 1) {
                             $depts = $allReqs->pluck('department')->filter()->unique()->join(' + ');
-                            return '🚐 Consolidated (' . $allReqs->count() . ' Requests' . ($depts ? ": {$depts}" : '') . ')';
+                            return 'Consolidated (' . $allReqs->count() . ' Requests' . ($depts ? ": {$depts}" : '') . ')';
                         }
                         if ($record->canConsolidateOrEdit()) {
-                            return '💡 Same Date & Route Match (Edit to Consolidate)';
+                            return 'Same Date & Route Match (Edit to Consolidate)';
                         }
                         return null;
                     })
@@ -101,7 +101,7 @@ class TripTicketsTable
             ->recordActions([
                 ActionGroup::make([
                     EditAction::make('edit')
-                        ->label('Edit Trip Ticket (Consolidate / Carpool)')
+                        ->label('Edit Trip Ticket (Consolidate or Carpool)')
                         ->icon('heroicon-o-pencil-square')
                         ->color('primary')
                         ->visible(fn ($record) => $record->canConsolidateOrEdit()),
@@ -109,7 +109,7 @@ class TripTicketsTable
                         ->label('Upload or Scan Document')
                         ->icon('heroicon-o-camera')
                         ->color('success')
-                        ->modalHeading('📄 Upload or Scan CEO Signed Document')
+                        ->modalHeading('Upload or Scan CEO Signed Document')
                         ->modalDescription('Choose whether to scan using the camera or upload a document from your device.')
                         ->modalWidth('2xl')
                         ->modalSubmitActionLabel('Save Document')
@@ -135,7 +135,7 @@ class TripTicketsTable
                                                 ->directory('request-documents')
                                                 ->visibility('public')
                                                 ->imagePreviewHeight('250')
-                                                ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                                                ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
                                                 ->helperText('Select the scanned document or photo from your computer or phone.')
                                                 ->columnSpanFull(),
                                         ]),
@@ -192,7 +192,7 @@ class TripTicketsTable
 
                             \Filament\Notifications\Notification::make()
                                 ->title('Document Uploaded (Awaiting Verification)')
-                                ->body("CEO Signed Document uploaded for {$record->ticket_number}. Pindutin ang 'Verify Doc & Send SMS' o buksan ang dokumento para ma-verify at maipadala ang SMS sa driver.")
+                                ->body("CEO Signed Document uploaded for {$record->ticket_number}. Click 'Verify Doc & Send SMS' or open the document to verify and dispatch the driver via SMS.")
                                 ->success()
                                 ->send();
                         }),
@@ -222,11 +222,11 @@ class TripTicketsTable
                                             ->icon('heroicon-o-arrow-up-tray')
                                             ->schema([
                                                 \Filament\Forms\Components\FileUpload::make('document')
-                                                    ->label('Upload CEO Signed Document (Required)')
+                                                    ->label('Upload CEO Signed Document (Photo or PDF)')
                                                     ->disk('public')
                                                     ->directory('request-documents')
                                                     ->visibility('public')
-                                                    ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                                                    ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
                                                     ->columnSpanFull(),
                                             ]),
                                     ]),
@@ -367,7 +367,7 @@ class TripTicketsTable
                         ->label('Cancel Trip')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
-                        ->modalHeading('⚠️ Are you sure you want to cancel this trip?')
+                        ->modalHeading('Are you sure you want to cancel this trip?')
                         ->modalDescription('This action cannot be undone. Cancelling will notify the assigned driver via SMS and release the vehicle back to available status.')
                         ->modalSubmitActionLabel('Yes, Cancel Trip')
                         ->modalCancelActionLabel('No, Keep Trip')
@@ -432,7 +432,7 @@ class TripTicketsTable
                                 if ($requesterUser) {
                                     try {
                                         \Filament\Notifications\Notification::make()
-                                            ->title('⚠️ Trip Ticket Cancelled: ' . $record->ticket_number)
+                                            ->title('Trip Ticket Cancelled: ' . $record->ticket_number)
                                             ->body("Your approved trip ticket has been cancelled by Admin. Reason: {$reason}")
                                             ->icon('heroicon-o-x-mark')
                                             ->iconColor('danger')
@@ -445,7 +445,7 @@ class TripTicketsTable
                             if ($driverUser) {
                                 try {
                                     \Filament\Notifications\Notification::make()
-                                        ->title('⚠️ Trip Ticket Cancelled: ' . $record->ticket_number)
+                                        ->title('Trip Ticket Cancelled: ' . $record->ticket_number)
                                         ->body("Trip ticket {$record->ticket_number} has been cancelled by Admin. Reason: {$reason}")
                                         ->icon('heroicon-o-x-mark')
                                         ->iconColor('danger')
@@ -472,8 +472,8 @@ class TripTicketsTable
                         ->action(function ($record) {
                             if (!$record->driver) {
                                 \Filament\Notifications\Notification::make()
-                                    ->title('Walang Driver na Naka-assign')
-                                    ->body('Hindi maipapadala ang SMS: Wala pang driver na naka-assign sa trip ticket na ito.')
+                                    ->title('No Driver Assigned')
+                                    ->body('Cannot send SMS: No driver is currently assigned to this trip ticket.')
                                     ->warning()
                                     ->send();
                                 return;
@@ -493,11 +493,11 @@ class TripTicketsTable
                         ->color('success')
                         ->visible(fn ($record) => $record->hasSignedDocument() && !$record->hasVerifiedDocument() && in_array($record->status, ['pending']))
                         ->requiresConfirmation()
-                        ->modalHeading('📱 Verify CEO Document & Send SMS to Driver')
+                        ->modalHeading('Verify CEO Document & Send SMS to Driver')
                         ->modalDescription(function ($record) {
                             $driver = $record->driver?->name ?? 'Assigned Driver';
                             $phone = $record->driver?->contact_number ? " ({$record->driver->contact_number})" : '';
-                            return "Kumpirmahin at i-verify ang CEO Signed Document at ipadala ang SMS dispatch kay {$driver}{$phone}?";
+                            return "Confirm and verify the CEO Signed Document and send the SMS dispatch notification to {$driver}{$phone}?";
                         })
                         ->modalSubmitActionLabel('Yes, Verify & Send SMS')
                         ->action(function ($record) {

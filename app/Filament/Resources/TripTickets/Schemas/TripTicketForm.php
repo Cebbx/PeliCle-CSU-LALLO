@@ -80,10 +80,10 @@ class TripTicketForm
                     ->required(),
 
                 Select::make('companion_requests')
-                    ->label('Companion Requests (Carpool / Same Destination or Along Route & Same Date)')
+                    ->label('Companion Requests (Carpool - Same Destination or Along Route & Same Date)')
                     ->multiple()
                     ->dehydrated(false)
-                    ->placeholder('Select compatible requests to carpool (Same Destination / Along Route)...')
+                    ->placeholder('Select compatible requests to carpool (Same Destination or Along Route)...')
                     ->options(function (callable $get, ?TripTicket $record) {
                         $primaryId = $get('vehicle_request_id') ?: ($record?->vehicle_request_id ?? request()->query('vehicle_request_id'));
                         $primaryReq = $primaryId ? VehicleRequest::find($primaryId) : null;
@@ -125,9 +125,9 @@ class TripTicketForm
                                 $timeStr = $r->time ? \Carbon\Carbon::parse($r->time)->format('g:i A') : 'No time';
 
                                 if ($matchType === 'same_municipality') {
-                                    $destTag = "⭐ SAME DESTINATION: {$r->destination}";
+                                    $destTag = "SAME DESTINATION: {$r->destination}";
                                 } else {
-                                    $destTag = "🛣️ ALONG ROUTE: {$r->destination}";
+                                    $destTag = "ALONG ROUTE: {$r->destination}";
                                 }
 
                                 $timeBadge = '';
@@ -251,13 +251,13 @@ class TripTicketForm
                         }
 
                         $html = "<div class='text-xs space-y-1.5 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700'>";
-                        $html .= "<div><strong>👥 Total Passengers:</strong> <span class='text-primary-600 dark:text-primary-400 font-bold'>{$totalPax} {$totalPersonWord}</span> &mdash; " . implode(' + ', $deptBreakdown) . "</div>";
+                        $html .= "<div><strong>Total Passengers:</strong> <span class='text-primary-600 dark:text-primary-400 font-bold'>{$totalPax} {$totalPersonWord}</span> &mdash; " . implode(' + ', $deptBreakdown) . "</div>";
                         if ($carpoolCount > 1) {
-                            $html .= "<div><strong>🚐 Consolidated Carpool:</strong> <span class='text-emerald-600 dark:text-emerald-400 font-semibold'>{$carpoolCount} Departments</span> are consolidated into this single trip.</div>";
+                            $html .= "<div><strong>Consolidated Carpool:</strong> <span class='text-emerald-600 dark:text-emerald-400 font-semibold'>{$carpoolCount} Departments</span> are consolidated into this single trip.</div>";
                         }
-                        $html .= "<div><strong>💡 Recommended Vehicle:</strong> <span class='font-semibold'>{$recVehicle}</span> <span class='text-slate-500 text-[11px]'>(Auto-selected below; Dispatcher can modify if needed)</span></div>";
+                        $html .= "<div><strong>Recommended Vehicle:</strong> <span class='font-semibold'>{$recVehicle}</span> <span class='text-slate-500 text-[11px]'>(Auto-selected below; Dispatcher can modify if needed)</span></div>";
                         if ($hasLargeTimeGap) {
-                            $html .= "<div class='text-amber-700 dark:text-amber-400 text-[11px] pt-1.5 border-t border-amber-200 dark:border-amber-900/40'><strong>⚠️ Paalala sa Oras:</strong> May napiling biyahe na higit 2 oras ang pagitan ng alis mula sa Lead Request. Siguraduhing napagkasunduan ang oras ng pagsakay.</div>";
+                            $html .= "<div class='text-amber-700 dark:text-amber-400 text-[11px] pt-1.5 border-t border-amber-200 dark:border-amber-900/40'><strong>Schedule Notice:</strong> One or more selected companion requests have a departure time gap of more than 2 hours from the Lead Request. Please ensure the departure time is coordinated among all passengers.</div>";
                         }
                         $html .= "</div>";
 
@@ -555,8 +555,8 @@ class TripTicketForm
                         $availableDrivers = \App\Models\Driver::whereNotIn('id', $allBusyDriverIds)->pluck('name')->join(', ');
 
                         $text = "<strong>Driver Schedule for " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . ":</strong><br>";
-                        $text .= "<span style='color: #16a34a;'>✅ Available:</span> " . ($availableDrivers ?: "None") . "<br>";
-                        $text .= "<span style='color: #dc2626;'>❌ On Trip / On Leave:</span> " . ($busyDrivers ?: "None");
+                        $text .= "<span style='color: #16a34a; font-weight: 700;'>Available:</span> " . ($availableDrivers ?: "None") . "<br>";
+                        $text .= "<span style='color: #dc2626; font-weight: 700;'>On Trip or On Leave:</span> " . ($busyDrivers ?: "None");
 
                         $driverCounts = TripTicket::whereMonth('created_at', now()->month)
                             ->whereYear('created_at', now()->year)
@@ -571,7 +571,7 @@ class TripTicketForm
                             return "{$d->name}: <strong>{$c}</strong>";
                         })->join(' &bull; ');
 
-                        $text .= "<br><span style='color: #2563eb;'>⚖️ Monthly Workload (" . date('M Y') . "):</span> " . $workloadItems;
+                        $text .= "<br><span style='color: #2563eb; font-weight: 700;'>Monthly Workload (" . date('M Y') . "):</span> " . $workloadItems;
                         
                         return new \Illuminate\Support\HtmlString($text);
                     })

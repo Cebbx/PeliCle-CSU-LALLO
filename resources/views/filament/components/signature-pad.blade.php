@@ -855,14 +855,18 @@
         <div class="sigpad-header">
             <div>
                 <div class="sigpad-title-wrap">
-                    <div class="sigpad-icon-badge">✍️</div>
+                    <div class="sigpad-icon-badge">
+                        <svg style="width: 15px; height: 15px; color: #38bdf8;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
+                        </svg>
+                    </div>
                     <h3 class="sigpad-title">Requester Electronic Signature</h3>
                     <template x-if="hasSignature">
-                        <span class="sigpad-captured-badge">✓ E-Sign Captured</span>
+                        <span class="sigpad-captured-badge">E-Sign Captured</span>
                     </template>
                 </div>
                 <p class="sigpad-subtitle">
-                    Pumirma gamit ang daliri, stylus pen, o mouse.
+                    Sign using your finger, stylus pen, or mouse.
                 </p>
             </div>
 
@@ -873,7 +877,7 @@
                     type="button"
                     @click="openFullscreen()"
                     class="sigpad-fullscreen-btn"
-                    title="Pumirma sa Full Screen"
+                    title="Sign in Full Screen"
                 >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
@@ -909,7 +913,7 @@
                 <!-- Dotted Baseline Guide -->
                 <div class="sigpad-waterline">
                     <span>Signature Line</span>
-                    <span>✍️ E-Sign</span>
+                    <span>E-Sign</span>
                 </div>
 
                 <!-- Floating Controls (Undo & Clear) -->
@@ -920,7 +924,7 @@
                         x-show="hasSignature && history.length > 0"
                         @click="undo()"
                         class="sigpad-btn-undo"
-                        title="I-undo ang huling linya o stroke"
+                        title="Undo the last stroke"
                     >
                         <svg viewBox="0 0 24 24" stroke="currentColor" style="width: 13px; height: 13px; stroke-width: 2.2; fill: none;">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
@@ -934,7 +938,7 @@
                         x-show="hasSignature"
                         @click="clear()"
                         class="sigpad-btn-clear"
-                        title="Burahin ang buong pirma"
+                        title="Clear the entire signature"
                     >
                         <svg viewBox="0 0 24 24" stroke="currentColor" style="width: 12px; height: 12px; stroke-width: 2.2; fill: none;">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -942,19 +946,6 @@
                         <span>Clear</span>
                     </button>
                 </div>
-
-                <!-- Floating Fullscreen Corner Shortcut -->
-                <button
-                    type="button"
-                    @click="openFullscreen()"
-                    class="sigpad-canvas-fs-badge"
-                    title="Pumirma sa Full Screen"
-                >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 12px; height: 12px;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
-                    </svg>
-                    <span>Full Screen</span>
-                </button>
 
                 <!-- Canvas element -->
                 <canvas
@@ -972,9 +963,8 @@
                     x-show="!hasSignature"
                     class="sigpad-watermark"
                 >
-                    <span style="font-size: 26px; margin-bottom: 4px; opacity: 0.75;">✍️</span>
-                    <span style="font-size: 13px; font-weight: 600; color: #64748b;">Iguhit ang inyong pirma dito sa kahon</span>
-                    <span style="font-size: 11px; color: #94a3b8; margin-top: 3px;">Pindutin ang Full Screen para sa mas malawak na pirma</span>
+                    <span style="font-size: 13px; font-weight: 600; color: #64748b;">Draw your signature inside this box</span>
+                    <span style="font-size: 11px; color: #94a3b8; margin-top: 3px;">Click Full Screen for a larger signing area</span>
                 </div>
             </div>
         </div>
@@ -995,9 +985,8 @@
 
                 <template x-if="!hasSignature">
                     <div style="display: flex; flex-direction: column; align-items: center;">
-                        <div style="font-size: 32px; margin-bottom: 6px;">📁</div>
-                        <span style="font-size: 13px; font-weight: 700; color: #0f172a;">Pindutin para mag-upload ng image ng inyong pirma</span>
-                        <span style="font-size: 11px; color: #64748b; margin-top: 3px;">Tumatanggap ng PNG, JPG, o SVG</span>
+                        <span style="font-size: 13px; font-weight: 700; color: #0f172a;">Click to upload an image of your signature</span>
+                        <span style="font-size: 11px; color: #64748b; margin-top: 3px;">Supports PNG, JPG, or SVG formats</span>
                     </div>
                 </template>
 
@@ -1006,8 +995,8 @@
                         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 16px; margin-bottom: 8px;">
                             <img :src="state" alt="Signature Preview" style="max-height: 90px; object-fit: contain;" />
                         </div>
-                        <span style="font-size: 12px; font-weight: 700; color: #10b981;">✓ Naka-upload na ang pirma</span>
-                        <span style="font-size: 10.5px; color: #94a3b8; text-decoration: underline; margin-top: 3px;">Pindutin para palitan ng ibang image</span>
+                        <span style="font-size: 12px; font-weight: 700; color: #10b981;">Signature uploaded successfully</span>
+                        <span style="font-size: 10.5px; color: #94a3b8; text-decoration: underline; margin-top: 3px;">Click to replace with another image</span>
                     </div>
                 </template>
             </div>
@@ -1016,10 +1005,10 @@
         <!-- Footer Guidance & Info -->
         <div class="sigpad-footer">
             <div style="display: inline-flex; align-items: center; gap: 6px;">
-                <svg viewBox="0 0 24 24" stroke="currentColor" style="width: 14px; height: 14px; color: #3b82f6; fill: none;">
+                <svg viewBox="0 0 24 24" stroke="currentColor" style="width: 14px; height: 14px; color: #3b82f6; fill: none; flex-shrink: 0;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Ang pirma ay kusang ilalagay sa opisyal na printable documents. May <b>Undo</b> button kung nagkamali sa guhit.</span>
+                <span>Your signature will be automatically applied to official printable documents. Use the <b>Undo</b> button to revert the last stroke.</span>
             </div>
 
             <template x-if="hasSignature">
@@ -1028,7 +1017,7 @@
                     @click="clear()"
                     style="background: none; border: none; color: #f43f5e; font-size: 11.5px; font-weight: 700; text-decoration: underline; cursor: pointer;"
                 >
-                    Tanggalin ang Pirma
+                    Remove Signature
                 </button>
             </template>
         </div>
@@ -1046,13 +1035,17 @@
         <!-- Modal Top Bar -->
         <div class="sigpad-fs-header">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div class="sigpad-icon-badge">✍️</div>
+                <div class="sigpad-icon-badge">
+                    <svg style="width: 15px; height: 15px; color: #38bdf8;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
+                    </svg>
+                </div>
                 <div>
                     <h3 style="font-size: 15px; font-weight: 800; margin: 0; color: #ffffff;">
                         Electronic Signature &mdash; Full Screen Mode
                     </h3>
                     <p style="font-size: 11px; color: #94a3b8; margin: 2px 0 0 0;">
-                        Pumirma nang malinaw sa buong screen. May Undo at Clear controls.
+                        Sign clearly across the full screen. Undo and Clear controls are available.
                     </p>
                 </div>
             </div>
@@ -1065,7 +1058,7 @@
                     x-show="hasSignature && fsHistory.length > 0"
                     @click="undoFs()"
                     style="display: inline-flex; align-items: center; gap: 5px; padding: 7px 13px; background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 9px; font-size: 12px; font-weight: 700; cursor: pointer;"
-                    title="I-undo ang huling linya"
+                    title="Undo the last stroke"
                 >
                     <svg viewBox="0 0 24 24" stroke="currentColor" style="width: 13px; height: 13px; stroke-width: 2.2; fill: none;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
@@ -1079,7 +1072,7 @@
                     x-show="hasSignature"
                     @click="clearFs()"
                     style="display: inline-flex; align-items: center; gap: 5px; padding: 7px 13px; background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.35); border-radius: 9px; font-size: 12px; font-weight: 700; cursor: pointer;"
-                    title="Burahin ang pirma"
+                    title="Clear signature"
                 >
                     <svg viewBox="0 0 24 24" stroke="currentColor" style="width: 13px; height: 13px; stroke-width: 2.2; fill: none;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -1087,17 +1080,17 @@
                     <span>Clear</span>
                 </button>
 
-                <!-- Done / Save E-Sign Button -->
+                <!-- Save E-Signature Button -->
                 <button
                     type="button"
                     @click="closeFullscreen(true)"
                     style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; background: #10b981; color: #ffffff; border: 1px solid #10b981; border-radius: 9px; font-size: 12.5px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);"
-                    title="I-save ang pirma at isara"
+                    title="Save signature and close"
                 >
                     <svg viewBox="0 0 24 24" stroke="currentColor" style="width: 14px; height: 14px; stroke-width: 2.5; fill: none;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                    <span>Done / Save E-Sign</span>
+                    <span>Save E-Signature</span>
                 </button>
 
                 <!-- Exit / Close Button -->
@@ -1105,7 +1098,7 @@
                     type="button"
                     @click="closeFullscreen(false)"
                     style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 9px; color: #94a3b8; font-size: 16px; font-weight: 700; cursor: pointer;"
-                    title="Isara (Esc)"
+                    title="Close (Esc)"
                 >
                     ✕
                 </button>
@@ -1116,7 +1109,7 @@
         <div class="sigpad-fs-canvas-box">
             <div class="sigpad-fs-waterline">
                 <span>Signature Baseline</span>
-                <span>✍️ Fullscreen Mode</span>
+                <span>Fullscreen Mode</span>
             </div>
 
             <canvas
@@ -1133,20 +1126,18 @@
                 x-show="!hasSignature"
                 style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; user-select: none; color: #94a3b8; text-align: center; padding: 20px; z-index: 5;"
             >
-                <span style="font-size: 34px; opacity: 0.6; margin-bottom: 6px;">✏️</span>
-                <span style="font-size: 15px; font-weight: 700; color: #475569;">Iguhit ang inyong pirma dito sa malawak na screen</span>
-                <span style="font-size: 12px; color: #94a3b8; margin-top: 3px;">Pumirma gamit ang daliri, stylus, o mouse</span>
+                <span style="font-size: 15px; font-weight: 700; color: #475569;">Draw your signature across this full-screen pad</span>
+                <span style="font-size: 12px; color: #94a3b8; margin-top: 3px;">Sign using your finger, stylus pen, or mouse</span>
             </div>
         </div>
 
         <!-- Modal Footer Help Tip -->
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding-top: 6px; font-size: 11px; color: #94a3b8; flex-shrink: 0;">
             <div style="display: flex; align-items: center; gap: 6px;">
-                <span>💡</span>
-                <span>Gamitin ang daliri o stylus pen para pumirma sa buong screen. May <b>Undo</b> button kung nais burahin ang huling stroke.</span>
+                <span>Use your finger, stylus pen, or mouse to sign. Click <b>Undo</b> to revert your last stroke.</span>
             </div>
             <div>
-                <span>Pindutin ang <b>Done / Save E-Sign</b> kapag tapos na.</span>
+                <span>Click <b>Save E-Signature</b> when finished.</span>
             </div>
         </div>
     </div>

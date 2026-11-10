@@ -480,7 +480,6 @@
         <!-- Smart Sharpness / Blur Detection Alert -->
         <template x-if="isBlurry">
             <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px; text-align: left;">
-                <span style="font-size: 16px; line-height: 1;">⚠️</span>
                 <div style="font-size: 11.5px; color: #fde68a; line-height: 1.4;">
                     <strong style="color: #fbbf24; display: block; margin-bottom: 2px;">Image Appears Blurry</strong>
                     Please ensure the CEO signature is clearly readable. If blurry, click <b>"Retake"</b> below.
@@ -490,7 +489,7 @@
 
         <template x-if="!isBlurry && sharpnessScore > 0">
             <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 6px 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #34d399;">
-                <span>✓ Image is clear and readable</span>
+                <span>Image is clear and readable</span>
                 <span style="font-family: monospace; font-size: 10px; color: #059669;">Quality: Good</span>
             </div>
         </template>
@@ -503,7 +502,7 @@
         >
             <img :src="state" alt="CEO Signed Document Scan" class="doc-preview-img" />
             <div style="position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,0.75); color: #34d399; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-family: monospace;">
-                🔍 Click to zoom
+                Click to zoom
             </div>
         </div>
 
@@ -518,14 +517,14 @@
                     @click="showZoomModal = true"
                     style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; cursor: pointer;"
                 >
-                    🔍 Zoom
+                    Zoom
                 </button>
                 <button
                     type="button"
                     @click="retake()"
                     style="padding: 5px 10px; font-size: 11.5px; font-weight: 600; color: #f59e0b; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; cursor: pointer;"
                 >
-                    🔄 Retake
+                    Retake
                 </button>
                 <button
                     type="button"
@@ -545,7 +544,7 @@
             @keydown.escape.window="showZoomModal = false"
         >
             <div style="width: 100%; max-width: 720px; display: flex; align-items: center; justify-content: space-between; color: white; border-bottom: 1px solid #334155; padding-bottom: 10px;">
-                <span style="font-size: 14px; font-weight: 700; color: #34d399;">📄 Document Preview</span>
+                <span style="font-size: 14px; font-weight: 700; color: #34d399;">Document Preview</span>
                 <button
                     type="button"
                     @click="showZoomModal = false"
@@ -566,7 +565,7 @@
                     @click="showZoomModal = false"
                     style="background: #059669; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;"
                 >
-                    ✓ Looks Good, Use This
+                    Looks Good, Use This
                 </button>
             </div>
         </div>
@@ -646,7 +645,7 @@
 
                 <!-- Center Guide label -->
                 <div style="position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.65); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; pointer-events: none; white-space: nowrap;">
-                    📄 Center document within frame
+                    Center document within frame
                 </div>
             </div>
 
@@ -708,7 +707,7 @@
 
             <!-- Helpful Guide to Tab -->
             <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #1e293b; font-size: 11.5px; color: #94a3b8; line-height: 1.5;">
-                💡 <span>May saved photo o PDF na sa device? Gamitin ang <b>Upload Document</b> tab sa itaas.</span>
+                <span>May saved photo o PDF na sa device? Gamitin ang <b>Upload Document</b> tab sa itaas.</span>
             </div>
         </div>
 </div>

@@ -248,18 +248,23 @@ class QrCodeController extends Controller
 
                 <!-- Duty Guards Reference -->
                 <div class='grid grid-cols-3 gap-2 mb-4 text-center'>
-                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-2 px-1'>
-                        <span class='block text-[11px] font-bold text-white truncate'>Edward Cabbat</span>
-                        <span class='block text-[10px] font-semibold text-emerald-400'>Gate Officer</span>
-                    </div>
-                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-2 px-1'>
-                        <span class='block text-[11px] font-bold text-white truncate'>Monhel Bumagat</span>
-                        <span class='block text-[10px] font-semibold text-cyan-400'>Gate Officer</span>
-                    </div>
-                    <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-2 px-1'>
-                        <span class='block text-[11px] font-bold text-white truncate'>Matthew Baldera</span>
-                        <span class='block text-[10px] font-semibold text-purple-400'>Gate Officer</span>
-                    </div>
+                    " . (function () {
+                        $cardsHtml = '';
+                        $colors = ['text-emerald-400', 'text-cyan-400', 'text-purple-400', 'text-amber-400', 'text-rose-400'];
+                        $idx = 0;
+                        foreach (self::getActiveGuards() as $gKey => $gData) {
+                            $color = $colors[$idx % count($colors)];
+                            $gName = e($gData['name']);
+                            $gBadge = e($gData['badge'] ?? ('ID: ' . $gKey));
+                            $cardsHtml .= "
+                            <div class='bg-slate-950/70 border border-slate-800/80 rounded-xl py-2 px-1'>
+                                <span class='block text-[11px] font-bold text-white truncate'>{$gName}</span>
+                                <span class='block text-[10px] font-semibold {$color}'>{$gBadge}</span>
+                            </div>";
+                            $idx++;
+                        }
+                        return $cardsHtml;
+                    })() . "
                 </div>
 
                 <!-- Trip Details Summary -->
@@ -391,9 +396,46 @@ class QrCodeController extends Controller
 
     public function scannerPage(Request $request)
     {
+        $activeGuards = self::getActiveGuards();
+        $firstKey = array_key_first($activeGuards) ?? '1001';
+        $firstGuard = $activeGuards[$firstKey] ?? ['name' => 'Edward Cabbat', 'email' => 'edwarddufale3@gmail.com'];
+
         $isVerified = session('guard_verified', false);
-        $guardName = session('guard_name', 'Edward Cabbat');
-        $guardId = session('guard_id', '1001');
+        $guardId = (string) session('guard_id', $firstKey);
+        $guardName = session('guard_name', $firstGuard['name']);
+        $guardUserId = session('guard_user_id');
+
+        // Dynamically sync session if Admin updated the guard's Name, Email, or Guard ID
+        if ($isVerified && !empty($activeGuards)) {
+            $syncedGuard = null;
+            $syncedKey = null;
+
+            if ($guardUserId) {
+                foreach ($activeGuards as $k => $g) {
+                    if (isset($g['id']) && (int) $g['id'] === (int) $guardUserId) {
+                        $syncedGuard = $g;
+                        $syncedKey = (string) $k;
+                        break;
+                    }
+                }
+            }
+
+            if (!$syncedGuard && isset($activeGuards[$guardId])) {
+                $syncedGuard = $activeGuards[$guardId];
+                $syncedKey = $guardId;
+            }
+
+            if ($syncedGuard) {
+                $guardId = $syncedKey;
+                $guardName = $syncedGuard['name'];
+                session([
+                    'guard_id' => $guardId,
+                    'guard_name' => $guardName,
+                    'guard_email' => $syncedGuard['email'] ?? '',
+                    'guard_user_id' => $syncedGuard['id'] ?? null,
+                ]);
+            }
+        }
 
         $selectedMonth = $request->query('month', now('Asia/Manila')->format('m'));
         $selectedYear = $request->query('year', now('Asia/Manila')->format('Y'));
@@ -426,7 +468,6 @@ class QrCodeController extends Controller
         }
 
         $monthName = \Carbon\Carbon::createFromDate($selectedYear, (int) $selectedMonth, 1)->format('F Y');
-        $activeGuards = self::getActiveGuards();
 
         return view('guard.scanner', compact(
             'isVerified',
@@ -497,6 +538,10 @@ class QrCodeController extends Controller
         $selectedName = trim((string) $request->input('guard_name', ''));
         $guardId = trim((string) $request->input('guard_id', ''));
 
+        $activeGuards = self::getActiveGuards();
+        $defaultGuardKey = (string) (array_key_first($activeGuards) ?? '1001');
+        $defaultGuard = $activeGuards[$defaultGuardKey] ?? ['id' => null, 'name' => 'Edward Cabbat', 'email' => 'edwarddufale3@gmail.com'];
+
         // If password was passed in email field (e.g. user typed password into the single input field)
         if (empty($inputPassword) && !empty($inputEmail) && !filter_var($inputEmail, FILTER_VALIDATE_EMAIL)) {
             $inputPassword = $inputEmail;
@@ -504,27 +549,49 @@ class QrCodeController extends Controller
 
         // Master bypass for testing / rapid capstone defense demo
         if ($inputPassword === '1234' || $inputPassword === '123456' || $inputEmail === '1234' || $guardId === '1234') {
+            $targetKey = $defaultGuardKey;
+            $targetGuard = $defaultGuard;
+
+            foreach ($activeGuards as $k => $g) {
+                if ($selectedName && (stripos($g['name'], $selectedName) !== false || (string) $k === $selectedName)) {
+                    $targetKey = (string) $k;
+                    $targetGuard = $g;
+                    break;
+                }
+            }
+
             session([
                 'guard_verified' => true,
-                'guard_id' => '1001',
-                'guard_name' => 'Edward Cabbat',
-                'guard_email' => 'edwarddufale3@gmail.com',
+                'guard_id' => $targetKey,
+                'guard_name' => $targetGuard['name'],
+                'guard_email' => $targetGuard['email'],
+                'guard_user_id' => $targetGuard['id'] ?? null,
             ]);
             return response()->json([
                 'success' => true,
                 'requires_otp' => false,
-                'guard_name' => 'Edward Cabbat',
-                'guard_id' => '1001',
-                'message' => 'Master security badge authorized. Welcome, Edward Cabbat.',
+                'guard_name' => $targetGuard['name'],
+                'guard_id' => $targetKey,
+                'message' => "Master security badge authorized. Welcome, {$targetGuard['name']}.",
             ]);
         }
 
-        // If Edward Cabbat is selected or 1001 is provided as identifier, ensure official email is set
+        // If a guard ID is provided without an '@', resolve their dynamic registered email
         if (empty($inputEmail) || !str_contains($inputEmail, '@')) {
-            $isEdwardSelected = ($inputPassword === '1001' || $inputEmail === '1001' || $guardId === '1001' || (empty($inputPassword) && (empty($selectedName) || stripos($selectedName, 'Edward') !== false)));
-
-            if ($isEdwardSelected) {
-                $inputEmail = 'edwarddufale3@gmail.com';
+            $candidateKey = $inputPassword ?: ($inputEmail ?: $guardId);
+            if ($candidateKey && isset($activeGuards[$candidateKey])) {
+                $inputEmail = strtolower($activeGuards[$candidateKey]['email']);
+            } elseif (empty($inputPassword)) {
+                if ($selectedName) {
+                    foreach ($activeGuards as $k => $g) {
+                        if (stripos($g['name'], $selectedName) !== false || (string) $k === $selectedName) {
+                            $inputEmail = strtolower($g['email']);
+                            break;
+                        }
+                    }
+                } else {
+                    $inputEmail = strtolower($defaultGuard['email']);
+                }
             }
         }
 
@@ -532,7 +599,7 @@ class QrCodeController extends Controller
             return response()->json([
                 'success' => false,
                 'requires_otp' => false,
-                'message' => 'Please enter your registered security officer email address (e.g. edwarddufale3@gmail.com).',
+                'message' => "Please enter your registered security officer email address (e.g. {$defaultGuard['email']}).",
             ]);
         }
 
@@ -540,12 +607,12 @@ class QrCodeController extends Controller
         $matchedGuard = null;
         $matchedKey = null;
 
-        foreach (self::getActiveGuards() as $key => $guard) {
+        foreach ($activeGuards as $key => $guard) {
             // If specific guard was selected by name, verify that the email matches that guard
-            if ($selectedName && (stripos($guard['name'], $selectedName) !== false || $selectedName === $key)) {
+            if ($selectedName && (stripos($guard['name'], $selectedName) !== false || (string) $key === $selectedName)) {
                 if (strtolower($guard['email']) === $inputEmail) {
                     $matchedGuard = $guard;
-                    $matchedKey = $key;
+                    $matchedKey = (string) $key;
                     break;
                 } else {
                     return response()->json([
@@ -559,7 +626,7 @@ class QrCodeController extends Controller
             // Or direct email match
             if (strtolower($guard['email']) === $inputEmail) {
                 $matchedGuard = $guard;
-                $matchedKey = $key;
+                $matchedKey = (string) $key;
                 break;
             }
         }
@@ -567,7 +634,7 @@ class QrCodeController extends Controller
         if (!$matchedGuard) {
             return response()->json([
                 'success' => false, 
-                'message' => 'Email address not recognized. Please use your official registered security email (e.g. edwarddufale3@gmail.com).'
+                'message' => "Email address not recognized. Please use your official registered security email (e.g. {$defaultGuard['email']})."
             ]);
         }
 
@@ -579,6 +646,7 @@ class QrCodeController extends Controller
         session([
             'pending_guard_auth' => [
                 'guard_id' => $guardId,
+                'guard_user_id' => $guard['id'] ?? null,
                 'guard_name' => $guard['name'],
                 'email' => $guard['email'],
                 'otp' => $otp,
@@ -641,15 +709,17 @@ class QrCodeController extends Controller
             ]);
         }
 
-        // Master bypass code (123456, 1234, 1001, 1002, 1003 as emergency defense fallback)
-        if ($inputOtp === '123456' || $inputOtp === '1234' || $inputOtp === '1001' || $inputOtp === '1002' || $inputOtp === '1003') {
-            $guards = self::getActiveGuards();
-            $effectiveGuardId = $pending['guard_id'] ?? array_key_first($guards);
+        $guards = self::getActiveGuards();
+
+        // Master bypass code (123456, 1234, or any active guard's Guard ID)
+        if ($inputOtp === '123456' || $inputOtp === '1234' || isset($guards[$inputOtp]) || in_array($inputOtp, ['1001', '1002', '1003'])) {
+            $effectiveGuardId = $pending['guard_id'] ?? (isset($guards[$inputOtp]) ? $inputOtp : array_key_first($guards));
             $guard = $guards[$effectiveGuardId] ?? reset($guards);
             
             session([
                 'guard_verified' => true,
                 'guard_id' => $effectiveGuardId,
+                'guard_user_id' => $guard['id'] ?? null,
                 'guard_name' => $guard['name'],
                 'guard_email' => $guard['email'],
             ]);

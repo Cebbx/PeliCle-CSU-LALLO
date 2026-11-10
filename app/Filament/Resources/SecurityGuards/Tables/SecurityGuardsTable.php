@@ -21,7 +21,7 @@ class SecurityGuardsTable
             ->poll('10s')
             ->columns([
                 TextColumn::make('guard_id')
-                    ->label('Badge ID')
+                    ->label('Guard ID')
                     ->badge()
                     ->color('warning')
                     ->searchable()
@@ -40,7 +40,7 @@ class SecurityGuardsTable
                     ->sortable(),
 
                 TextColumn::make('position')
-                    ->label('Position / Role')
+                    ->label('Position')
                     ->badge()
                     ->color('info')
                     ->searchable()
@@ -57,8 +57,7 @@ class SecurityGuardsTable
                     ->state(fn ($record) => TripTicket::where('scanned_by', $record->name)->count())
                     ->badge()
                     ->color('success')
-                    ->suffix(' trips')
-                    ->sortable(),
+                    ->suffix(' trips'),
 
                 TextColumn::make('created_at')
                     ->label('Date Added')
@@ -71,14 +70,22 @@ class SecurityGuardsTable
                     ->label('Archive Status'),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->label('Edit'),
                 DeleteAction::make()
-                    ->label('Archive')
-                    ->icon('heroicon-o-archive-box')
-                    ->color('warning')
-                    ->modalHeading('Archive Security Guard')
-                    ->modalDescription('Archived guards will no longer appear on the Gate Clearance Portal or be able to scan QR codes.')
-                    ->modalSubmitActionLabel('Yes, Archive'),
+                    ->label('Delete')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->modalHeading('Delete Security Guard')
+                    ->modalDescription('Are you sure you want to delete this security guard? They will be removed from the Gate Clearance Portal and QR Scanner.')
+                    ->modalSubmitActionLabel('Yes, Delete Guard')
+                    ->using(function ($record) {
+                        try {
+                            return $record->forceDelete();
+                        } catch (\Throwable $e) {
+                            return $record->delete();
+                        }
+                    }),
                 RestoreAction::make()
                     ->label('Restore')
                     ->icon('heroicon-o-arrow-uturn-left')
@@ -87,9 +94,9 @@ class SecurityGuardsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->label('Archive Selected')
-                        ->icon('heroicon-o-archive-box')
-                        ->color('warning'),
+                        ->label('Delete Selected')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger'),
                     RestoreBulkAction::make()
                         ->label('Restore Selected')
                         ->icon('heroicon-o-arrow-uturn-left')

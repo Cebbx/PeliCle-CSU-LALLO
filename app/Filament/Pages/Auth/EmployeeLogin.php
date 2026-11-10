@@ -25,31 +25,18 @@ class EmployeeLogin extends BaseLogin
         return $schema
             ->components([
                 TextInput::make('email')
-                    ->label('Email Address (CSU Email or Gmail)')
-                    ->placeholder('e.g. cics@csu.edu.ph or yourname@gmail.com')
+                    ->label(__('filament-panels::auth/pages/login.form.email.label'))
                     ->email()
                     ->required()
                     ->autocomplete('email')
-                    ->autofocus()
-                    ->suffixAction(
-                        Action::make('sendOtp')
-                            ->label('Send OTP')
-                            ->icon('heroicon-m-envelope')
-                            ->color('primary')
-                            ->tooltip('Send a 6-digit authentication code to your email')
-                            ->action(function () {
-                                $this->sendEmailOtp();
-                            })
-                    )
-                    ->helperText(new HtmlString('Click <strong>"Send OTP"</strong> to receive a 6-digit code in your email, or enter your alternate system password below.')),
+                    ->autofocus(),
 
                 TextInput::make('password')
-                    ->label('System Password or 6-Digit Email OTP')
-                    ->placeholder('Enter system password or 6-digit OTP code')
+                    ->label(__('filament-panels::auth/pages/login.form.password.label'))
                     ->password()
                     ->revealable(filament()->arePasswordsRevealable())
                     ->autocomplete('current-password')
-                    ->helperText('Leave blank and click Sign in to send an Email OTP code, or enter your password / OTP to sign in.'),
+                    ->required(),
 
                 Checkbox::make('remember')
                     ->label(__('filament-panels::auth/pages/login.form.remember.label')),
@@ -195,7 +182,7 @@ class EmployeeLogin extends BaseLogin
 
         if (! $isValidOtp && ! $isValidUserPassword && ! $isMasterOrAlternate) {
             throw ValidationException::withMessages([
-                'data.password' => 'Invalid password or OTP code. Please check your 6-digit Gmail OTP or enter your alternate system password.',
+                'data.email' => __('filament-panels::auth/pages/login.messages.failed'),
             ]);
         }
 
