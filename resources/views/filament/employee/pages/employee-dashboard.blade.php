@@ -8,8 +8,28 @@
             $shortDept = trim($matches[1]);
             $fullDept = trim($matches[2]);
         } else {
-            $shortDept = $rawDept;
+            $shortDept = trim($rawDept);
             $fullDept = null;
+        }
+
+        $deptMap = [
+            'cics' => ['CICS', 'College of Information and Computing Sciences'],
+            'cte' => ['CTE', 'College of Teacher Education'],
+            'chm' => ['CHM', 'College of Hospitality Management'],
+            'coa' => ['COA', 'College of Agriculture'],
+            'ceo' => ['Office of the CEO', 'Campus Executive Officer'],
+            'hrmo' => ['HRMO', 'Human Resource Management Office'],
+            'mis' => ['MIS Office', 'Management Information System'],
+            'csc' => ['CSC', 'Campus Student Council'],
+            'dmst' => ['DMST Office', 'Department of Military Science and Tactics Office'],
+            'cafevalena' => ['Café Valena', 'CoffeeHub Café'],
+        ];
+        $lowerShort = strtolower($shortDept);
+        if (isset($deptMap[$lowerShort])) {
+            $shortDept = $deptMap[$lowerShort][0];
+            $fullDept = $fullDept ?: $deptMap[$lowerShort][1];
+        } else {
+            $shortDept = preg_replace_callback('/\b(cics|cte|chm|coa|ceo|hrmo|mis|csc|dmst|csu)\b/i', fn ($m) => strtoupper($m[0]), $shortDept);
         }
     @endphp
 

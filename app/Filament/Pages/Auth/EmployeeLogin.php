@@ -208,6 +208,30 @@ class EmployeeLogin extends BaseLogin
 
     protected function resolveOrCreateEmployeeUser(string $email): User
     {
+        $departments = [
+            'ceo' => 'Office of the CEO (Campus Executive Officer)',
+            'hrmo' => 'HRMO (Human Resource Management Office)',
+            'accounting' => 'Accounting Office',
+            'budget' => 'Budget Office',
+            'property' => 'Property and Supply Office',
+            'records' => 'Records Office',
+            'planning' => 'Planning Office',
+            'mis' => 'MIS Office (Management Information System / System Admin)',
+            'registrar' => 'Office of the Campus Registrar',
+            'admission' => 'Campus Admission Office',
+            'publication' => 'Campus Publication Office',
+            'library' => 'University Library',
+            'cics' => 'CICS (College of Information and Computing Sciences)',
+            'cte' => 'CTE (College of Teacher Education)',
+            'chm' => 'CHM (College of Hospitality Management)',
+            'coa' => 'COA (College of Agriculture)',
+            'cafevalena' => 'Café Valena (CoffeeHub Café)',
+            'csc' => 'Campus Student Council (CSC)',
+            'dmst' => 'Department of Military Science and Tactics Office (DMST Office)',
+        ];
+
+        $prefix = strtolower(explode('@', $email)[0] ?? 'employee');
+
         $user = User::withTrashed()
             ->whereRaw('LOWER(email) = ?', [strtolower($email)])
             ->first();
@@ -216,20 +240,32 @@ class EmployeeLogin extends BaseLogin
             if ($user->trashed()) {
                 $user->restore();
             }
+            if (isset($departments[$prefix]) && strtolower(trim($user->name)) === $prefix) {
+                $user->updateQuietly([
+                    'name' => $departments[$prefix],
+                    'department' => $departments[$prefix],
+                ]);
+            }
 
             return $user;
         }
 
-        $prefix = explode('@', $email)[0] ?? 'employee';
-        $displayName = ucwords(str_replace(['.', '_', '-'], ' ', $prefix));
-        if (empty(trim($displayName))) {
-            $displayName = 'Campus Employee';
+        if (isset($departments[$prefix])) {
+            $displayName = $departments[$prefix];
+            $deptName = $departments[$prefix];
+        } else {
+            $displayName = ucwords(str_replace(['.', '_', '-'], ' ', $prefix));
+            $displayName = preg_replace_callback('/\b(cics|cte|chm|coa|ceo|hrmo|mis|csc|dmst|csu)\b/i', fn ($m) => strtoupper($m[0]), $displayName);
+            if (empty(trim($displayName))) {
+                $displayName = 'Campus Employee';
+            }
+            $deptName = 'CSU Lal-lo Campus';
         }
 
         return User::create([
             'email' => strtolower($email),
             'name' => $displayName,
-            'department' => 'CSU Lal-lo Campus',
+            'department' => $deptName,
             'password' => Hash::make($prefix),
             'plain_password' => $prefix,
             'role' => 'employee',
