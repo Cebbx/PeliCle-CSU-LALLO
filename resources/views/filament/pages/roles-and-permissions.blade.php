@@ -310,23 +310,23 @@
 
             <div class="rbac-stats-pills">
                 <div class="rbac-stat-pill">
-                    <span>👥 Total Accounts:</span>
+                    <span>Total Accounts:</span>
                     <span class="rbac-stat-num">{{ $totalUsers ?? 0 }}</span>
                 </div>
                 <div class="rbac-stat-pill">
-                    <span>👑 Admins:</span>
+                    <span>Admins:</span>
                     <span class="rbac-stat-num" style="color: #fbbf24;">{{ $adminCount ?? 0 }}</span>
                 </div>
                 <div class="rbac-stat-pill">
-                    <span>👤 Employees:</span>
+                    <span>Employees:</span>
                     <span class="rbac-stat-num" style="color: #38bdf8;">{{ $employeeCount ?? 0 }}</span>
                 </div>
                 <div class="rbac-stat-pill">
-                    <span>🚗 Drivers:</span>
+                    <span>Drivers:</span>
                     <span class="rbac-stat-num" style="color: #34d399;">{{ $driverCount ?? 0 }}</span>
                 </div>
                 <div class="rbac-stat-pill">
-                    <span>🛡️ Guards:</span>
+                    <span>Guards:</span>
                     <span class="rbac-stat-num" style="color: #c084fc;">{{ $guardCount ?? 3 }}</span>
                 </div>
             </div>
@@ -340,7 +340,9 @@
                 <div>
                     <div class="role-card-top">
                         <div class="role-badge-wrap">
-                            <div class="role-icon-box role-icon-admin">👑</div>
+                            <div class="role-icon-box role-icon-admin">
+                                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            </div>
                             <div>
                                 <div class="role-name-text">Administrator</div>
                                 <span style="font-size: 10px; color: #94a3b8;">Superuser Control</span>
@@ -361,7 +363,7 @@
                 </div>
                 <a href="/admin/users" class="role-bottom-btn">
                     <span>View Admin Users ({{ $adminCount ?? 0 }})</span>
-                    <span>→</span>
+                    <span>&rarr;</span>
                 </a>
             </div>
 
@@ -370,9 +372,11 @@
                 <div>
                     <div class="role-card-top">
                         <div class="role-badge-wrap">
-                            <div class="role-icon-box role-icon-employee">👤</div>
+                            <div class="role-icon-box role-icon-employee">
+                                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            </div>
                             <div>
-                                <div class="role-name-text">Employee / Faculty</div>
+                                <div class="role-name-text">Employee &amp; Faculty</div>
                                 <span style="font-size: 10px; color: #94a3b8;">Requester Portal</span>
                             </div>
                         </div>
@@ -390,7 +394,7 @@
                 </div>
                 <a href="/admin/users" class="role-bottom-btn">
                     <span>View Employees ({{ $employeeCount ?? 0 }})</span>
-                    <span>→</span>
+                    <span>&rarr;</span>
                 </a>
             </div>
 
@@ -399,7 +403,9 @@
                 <div>
                     <div class="role-card-top">
                         <div class="role-badge-wrap">
-                            <div class="role-icon-box role-icon-driver">🚗</div>
+                            <div class="role-icon-box role-icon-driver">
+                                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8m-8 5h8m-4 4v3m-6-3h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            </div>
                             <div>
                                 <div class="role-name-text">Campus Driver</div>
                                 <span style="font-size: 10px; color: #94a3b8;">Fleet Operator</span>
@@ -419,7 +425,7 @@
                 </div>
                 <a href="/admin/drivers" class="role-bottom-btn">
                     <span>View Drivers ({{ $driverCount ?? 0 }})</span>
-                    <span>→</span>
+                    <span>&rarr;</span>
                 </a>
             </div>
 
@@ -428,7 +434,9 @@
                 <div>
                     <div class="role-card-top">
                         <div class="role-badge-wrap">
-                            <div class="role-icon-box role-icon-guard">🛡️</div>
+                            <div class="role-icon-box role-icon-guard">
+                                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            </div>
                             <div>
                                 <div class="role-name-text">Security Guard</div>
                                 <span style="font-size: 10px; color: #94a3b8;">Gate Terminal Pass</span>
@@ -436,20 +444,29 @@
                         </div>
                         <span class="role-tag-pill tag-guard">Gatekeeper</span>
                     </div>
+                    @php
+                        $activeGuardNames = collect(\App\Http\Controllers\QrCodeController::getActiveGuards())->pluck('name')->implode(', ');
+                    @endphp
                     <div class="role-desc">
-                        On-duty campus gate security (Edward Cabbat, Monhel Bumagat, Matthew Baldera) who scan vehicle QR passes with Email OTP authentication.
+                        On-duty campus gate security ({{ $activeGuardNames ?: 'Assigned Officers' }}) who scan vehicle QR passes with Email OTP authentication.
                     </div>
                     <div class="role-capabilities-wrap">
                         <span class="capability-pill">QR Pass Scanner</span>
                         <span class="capability-pill">Email OTP Auth</span>
-                        <span class="capability-pill">Gate IN / OUT Log</span>
+                        <span class="capability-pill">Gate IN &amp; OUT Log</span>
                         <span class="capability-pill">Print Gate Log</span>
                     </div>
                 </div>
-                <a href="/guard/scanner" target="_blank" class="role-bottom-btn">
-                    <span>Open Gate Scanner ({{ $guardCount ?? 3 }} Stations)</span>
-                    <span>→</span>
-                </a>
+                <div style="display: flex; gap: 6px; margin-top: auto;">
+                    <a href="/admin/security-guards" class="role-bottom-btn" style="flex: 1;">
+                        <span>Manage Guards ({{ $guardCount ?? 3 }})</span>
+                        <span>&rarr;</span>
+                    </a>
+                    <a href="/guard/scanner" target="_blank" class="role-bottom-btn" style="flex: 1;">
+                        <span>Gate Scanner</span>
+                        <span>&rarr;</span>
+                    </a>
+                </div>
             </div>
 
         </div>
@@ -458,7 +475,7 @@
         <div class="rbac-matrix-card">
             <div class="matrix-title-bar">
                 <div class="matrix-title">
-                    <span style="color: #f59e0b;">📊</span>
+                    <svg style="width: 16px; height: 16px; color: #f59e0b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>Module Authorization Matrix</span>
                 </div>
                 <span style="font-size: 10.5px; color: #94a3b8;">CSU Lal-lo Campus Security Policy v2.5</span>
@@ -469,82 +486,82 @@
                     <thead>
                         <tr>
                             <th>System Module</th>
-                            <th>👑 Administrator</th>
-                            <th>👤 Employee</th>
-                            <th>🚗 Driver</th>
-                            <th>🛡️ Security Guard</th>
+                            <th>Administrator</th>
+                            <th>Employee</th>
+                            <th>Driver</th>
+                            <th>Security Guard</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>Dashboard & Fleet Overview</td>
-                            <td><span class="perm-badge perm-full">✔ Full Access</span></td>
-                            <td><span class="perm-badge perm-view">👁️ Personal Stats</span></td>
-                            <td><span class="perm-badge perm-view">👁️ Driver Stats</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
+                            <td><span class="perm-badge perm-full">Full Access</span></td>
+                            <td><span class="perm-badge perm-view">Personal Stats</span></td>
+                            <td><span class="perm-badge perm-view">Driver Stats</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
                         </tr>
                         <tr>
                             <td>Vehicle Requests (Reservations)</td>
-                            <td><span class="perm-badge perm-full">✔ Full / Approve / Reject</span></td>
-                            <td><span class="perm-badge perm-view">✔ Create & Track Own</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
+                            <td><span class="perm-badge perm-full">Approve &amp; Reject</span></td>
+                            <td><span class="perm-badge perm-view">Create & Track Own</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
                         </tr>
                         <tr>
                             <td>Trip Tickets</td>
-                            <td><span class="perm-badge perm-full">✔ Full / Edit / Print (Admin Only)</span></td>
-                            <td><span class="perm-badge perm-view">👁️ View Trip Ticket QR Only</span></td>
-                            <td><span class="perm-badge perm-view">👁️ View Assigned Tickets</span></td>
-                            <td><span class="perm-badge perm-guard">👁️ Verify Gate Pass</span></td>
+                            <td><span class="perm-badge perm-full">Create, Edit &amp; Print</span></td>
+                            <td><span class="perm-badge perm-view">View Trip Ticket QR Only</span></td>
+                            <td><span class="perm-badge perm-view">View Assigned Tickets</span></td>
+                            <td><span class="perm-badge perm-guard">Verify Gate Pass</span></td>
                         </tr>
                         <tr>
                             <td>Gasoline Withdrawal Slips</td>
-                            <td><span class="perm-badge perm-full">✔ Full / Review & Approve</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
-                            <td><span class="perm-badge perm-view">✔ Request Fuel Slip</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
+                            <td><span class="perm-badge perm-full">Review &amp; Approve</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
+                            <td><span class="perm-badge perm-view">Request Fuel Slip</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
                         </tr>
                         <tr>
                             <td>Vehicles Fleet & Maintenance</td>
-                            <td><span class="perm-badge perm-full">✔ Full Management</span></td>
-                            <td><span class="perm-badge perm-view">👁️ View Availability</span></td>
-                            <td><span class="perm-badge perm-view">👁️ View Assigned Vehicle</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
+                            <td><span class="perm-badge perm-full">Full Management</span></td>
+                            <td><span class="perm-badge perm-view">View Availability</span></td>
+                            <td><span class="perm-badge perm-view">View Assigned Vehicle</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
                         </tr>
                         <tr>
                             <td>Drivers Roster & Assignments</td>
-                            <td><span class="perm-badge perm-full">✔ Full Management</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
-                            <td><span class="perm-badge perm-view">👁️ View Own Profile</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
+                            <td><span class="perm-badge perm-full">Full Management</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
+                            <td><span class="perm-badge perm-view">View Own Profile</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
                         </tr>
                         <tr>
                             <td>Gate Security QR Scanner</td>
-                            <td><span class="perm-badge perm-full">✔ Oversee & Complete</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
-                            <td><span class="perm-badge perm-view">✔ Present QR Code</span></td>
-                            <td><span class="perm-badge perm-full">✔ Full Scanner Terminal</span></td>
+                            <td><span class="perm-badge perm-full">Oversee & Complete</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
+                            <td><span class="perm-badge perm-view">Present QR Code</span></td>
+                            <td><span class="perm-badge perm-full">Full Scanner Terminal</span></td>
                         </tr>
                         <tr>
                             <td>Gate Dispatch Logbook & Sheets</td>
-                            <td><span class="perm-badge perm-full">✔ Full Oversight</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
-                            <td><span class="perm-badge perm-full">✔ Print & Log Sheet</span></td>
+                            <td><span class="perm-badge perm-full">Full Oversight</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
+                            <td><span class="perm-badge perm-full">Print & Log Sheet</span></td>
                         </tr>
                         <tr>
                             <td>Executive Analytics & Reports</td>
-                            <td><span class="perm-badge perm-full">✔ Full Export & Print</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
+                            <td><span class="perm-badge perm-full">Full Export & Print</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
                         </tr>
                         <tr>
                             <td>User Accounts & Role Settings</td>
-                            <td><span class="perm-badge perm-full">✔ Full Management</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
-                            <td><span class="perm-badge perm-none">🔒 No Access</span></td>
+                            <td><span class="perm-badge perm-full">Full Management</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
+                            <td><span class="perm-badge perm-none">No Access</span></td>
                         </tr>
                     </tbody>
                 </table>
