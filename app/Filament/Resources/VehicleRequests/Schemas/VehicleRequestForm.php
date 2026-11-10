@@ -80,6 +80,29 @@ class VehicleRequestForm
                 TextInput::make('employee_name')
                     ->label('Requester Name')
                     ->required(),
+                TextInput::make('requester_phone')
+                    ->label('Requester Mobile No. (For SMS)')
+                    ->placeholder('e.g. 09171234567')
+                    ->tel()
+                    ->afterStateHydrated(function (TextInput $component, ?\App\Models\VehicleRequest $record) {
+                        if ($record && !empty($record->requester_phone)) {
+                            $component->state($record->requester_phone);
+                        }
+                    })
+                    ->dehydrated(false)
+                    ->saveRelationshipsUsing(function (?\App\Models\VehicleRequest $record, $state) {
+                        $phone = trim((string) $state);
+                        if ($phone !== '') {
+                            if ($record?->user) {
+                                $record->user->updateQuietly(['contact_number' => $phone]);
+                            }
+                            if ($record?->id) {
+                                try {
+                                    \Illuminate\Support\Facades\Cache::forever('vr_phone_' . $record->id, $phone);
+                                } catch (\Throwable $e) {}
+                            }
+                        }
+                    }),
                 Select::make('department')
                     ->label('Offices')
                     ->options([
@@ -107,7 +130,7 @@ class VehicleRequestForm
                     ->searchable()
                     ->required(),
                 \Filament\Forms\Components\Placeholder::make('carpool_info')
-                    ->label('🚗 Destination Consolidation & Carpool Status')
+                    ->label('Destination Consolidation & Carpool Status')
                     ->columnSpanFull()
                     ->content(function (callable $get, ?\App\Models\VehicleRequest $record) {
                         $travelDate = $get('date') ?? $record?->date;
@@ -135,7 +158,6 @@ class VehicleRequestForm
                         if ($otherReqs->isEmpty()) {
                             return new \Illuminate\Support\HtmlString("
                                 <div class='p-3 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2'>
-                                    <span class='text-sm'>ℹ️</span>
                                     <span><strong>Solo Trip Schedule:</strong> No other requests on " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . ".</span>
                                 </div>
                             ");
@@ -155,7 +177,7 @@ class VehicleRequestForm
                         $html = "<div class='p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs space-y-2'>";
                         if ($sameDestReqs->isNotEmpty()) {
                             $html .= "<div class='text-amber-800 dark:text-amber-300 font-bold flex items-center gap-1.5 text-sm'>
-                                <span>⭐ Found " . $sameDestReqs->count() . " Other Request(s) to Same Destination on " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . "!</span>
+                                <span>Found " . $sameDestReqs->count() . " Other Request(s) to Same Destination on " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . "!</span>
                             </div>";
                             $html .= "<p class='text-slate-600 dark:text-slate-300'>You can consolidate these requests into one trip ticket using <strong>'Approve & Create Trip Ticket'</strong> in the header actions above:</p>";
                             $html .= "<ul class='list-disc list-inside space-y-1 text-slate-700 dark:text-slate-200 font-medium'>";
@@ -167,7 +189,7 @@ class VehicleRequestForm
                             }
                             $html .= "</ul>";
                         } else {
-                            $html .= "<div class='text-slate-700 dark:text-slate-300 font-semibold'>📅 Other requests scheduled on " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . ":</div>";
+                            $html .= "<div class='text-slate-700 dark:text-slate-300 font-semibold'>Other requests scheduled on " . \Carbon\Carbon::parse($travelDate)->format('M d, Y') . ":</div>";
                             $html .= "<ul class='list-disc list-inside space-y-1 text-slate-600 dark:text-slate-400'>";
                             foreach ($otherReqs as $otr) {
                                 $html .= "<li><strong>{$otr->request_number}</strong> ({$otr->department}) &rarr; {$otr->destination}</li>";
@@ -179,7 +201,7 @@ class VehicleRequestForm
                         return new \Illuminate\Support\HtmlString($html);
                     }),
                 \Filament\Forms\Components\Checkbox::make('show_all_vehicles')
-                    ->label('Do you want to see/request other cars currently on trip?')
+                    ->label('Do you want to see or request other cars currently on trip?')
                     ->live(),
 
                 Select::make('vehicle')
@@ -301,7 +323,7 @@ class VehicleRequestForm
                                 ->isNotEmpty();
 
                             if ($isOverlapping) {
-                                return new \Illuminate\Support\HtmlString('<span style="color: #dc2626; font-weight: bold; display: block; margin-top: 4px;">⚠️ Conflict: This vehicle is already booked during these hours. Please select another!</span>');
+                                return new \Illuminate\Support\HtmlString('<span style="color: #dc2626; font-weight: bold; display: block; margin-top: 4px;">Conflict: This vehicle is already booked during these hours. Please select another!</span>');
                             }
                         }
 
@@ -399,7 +421,7 @@ class VehicleRequestForm
                             })
                             ->nullable(),
                         Select::make('city_code')
-                            ->label('City / Municipality')
+                            ->label('City or Municipality')
                             ->options(fn (Get $get, ?VehicleRequest $record) => \App\Services\PhilippineAddressService::getCities($get('province_code') ?? (self::resolveAddressCodes($record?->destination)['province_code'] ?? null)))
                             ->live()
                             ->dehydrated(false)
@@ -416,13 +438,13 @@ class VehicleRequestForm
                             })
                             ->nullable(),
                         TextInput::make('destination')
-                            ->label('Destination (City / Province / Landmark)')
+                            ->label('Destination (City, Province, or Landmark)')
                             ->placeholder('e.g. Tuguegarao City, Cagayan')
                             ->suffixIcon('heroicon-m-map-pin')
                             ->suffixIconColor('primary')
                             ->dehydrated()
                             ->required()
-                            ->helperText('Auto-updates when selecting City/Province, or type/edit custom route directly.'),
+                            ->helperText('Auto-updates when selecting City and Province, or type custom route directly.'),
                     ])
                     ->columns(2),
 
@@ -514,7 +536,7 @@ class VehicleRequestForm
                                         }
                                     }
                                     if ($matches > 1) {
-                                        $fail("Duplicate passenger: '{$value}' is already in the list. Please differentiate (e.g. Jr./Sr.) or enter a different name.");
+                                        $fail("Duplicate passenger: '{$value}' is already in the list. Please differentiate (e.g. Jr. or Sr.) or enter a different name.");
                                     }
                                 },
                             ]),
@@ -542,7 +564,7 @@ class VehicleRequestForm
                     ->required()
                     ->helperText('Auto-calculated from passenger list, or adjust directly if needed.'),
                 Checkbox::make('has_other_passengers')
-                    ->label('Others (Include Students / External Passengers)')
+                    ->label('Others (Include Students or External Passengers)')
                     ->helperText('Check if the trip includes students, guests, or non-employee passengers.')
                     ->live()
                     ->default(false)
@@ -552,7 +574,7 @@ class VehicleRequestForm
                         }
                     }),
                 Textarea::make('other_passengers')
-                    ->label('Specify Other Passengers / Students')
+                    ->label('Specify Other Passengers or Students')
                     ->placeholder('e.g., 10 CICS Students for Regional Competition, Guest Speaker')
                     ->visible(fn (Get $get) => (bool) $get('has_other_passengers'))
                     ->required(fn (Get $get) => (bool) $get('has_other_passengers'))

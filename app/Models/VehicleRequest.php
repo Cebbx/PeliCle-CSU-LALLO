@@ -303,7 +303,7 @@ class VehicleRequest extends Model
             'ip_address' => request()->ip() ?? '127.0.0.1',
         ]);
 
-        // Notify Requester
+        // Notify Requester (In-App + SMS)
         if ($this->user) {
             try {
                 \Filament\Notifications\Notification::make()
@@ -312,6 +312,26 @@ class VehicleRequest extends Model
                     ->icon('heroicon-o-check-circle')
                     ->iconColor('success')
                     ->sendToDatabase($this->user);
+            } catch (\Throwable $e) {}
+        }
+
+        if ($sendSms) {
+            try {
+                $reqDate = $this->date ? \Carbon\Carbon::parse($this->date)->format('M d, Y') : 'N/A';
+                $reqTime = $this->time ? \Carbon\Carbon::parse($this->time)->format('g:i A') : 'N/A';
+                $vehInfo = $tripTicket ? $tripTicket->formatted_vehicle : ($this->vehicle ?? 'Assigned Vehicle');
+                $drvName = $tripTicket?->driver?->name ?? 'Assigned Driver';
+                $drvPhone = $tripTicket?->driver?->contact_number ? " ({$tripTicket->driver->contact_number})" : '';
+                $empVerifySms = "Hi {$this->employee_name}!\n"
+                              . "CEO DOCUMENT VERIFIED - TRIP READY\n"
+                              . "Req No: {$this->request_number}\n"
+                              . "Destination: {$this->destination}\n"
+                              . "Schedule: {$reqDate} ({$reqTime})\n"
+                              . "Vehicle: {$vehInfo}\n"
+                              . "Driver: {$drvName}{$drvPhone}\n"
+                              . "Status: {$statusLabel}\n"
+                              . "- PeliCle CSU LAL-LO";
+                $this->sendRequesterSms($empVerifySms);
             } catch (\Throwable $e) {}
         }
 
@@ -339,8 +359,34 @@ class VehicleRequest extends Model
             'success' => true,
             'status' => $this->status,
             'status_label' => $statusLabel,
-            'message' => "CEO signed document verified! SMS dispatched to driver. Status is now {$statusLabel}.",
+            'message' => "CEO signed document verified! SMS dispatched to driver and requester. Status is now {$statusLabel}.",
         ];
+    }
+
+    public function getRequesterPhoneAttribute(): ?string
+    {
+        if ($this->id) {
+            try {
+                $cached = \Illuminate\Support\Facades\Cache::get('vr_phone_' . $this->id);
+                if (!empty($cached)) {
+                    return (string) $cached;
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        return $this->user?->contact_number ?: null;
+    }
+
+    public function sendRequesterSms(string $message): bool
+    {
+        $phone = $this->requester_phone;
+        if (empty($phone)) {
+            return false;
+        }
+
+        $recipientName = $this->employee_name ?: ($this->user?->name ?? 'Employee Requester');
+
+        return \App\Services\SmsService::sendToPhone($phone, $recipientName, $message, $this->tripTicket?->driver_id);
     }
 
     public function getScheduledDepartureDateTime(): ?\Carbon\Carbon

@@ -26,7 +26,7 @@ class VehicleRequestForm
     {
         return $schema
             ->components([
-                Grid::make(3)
+                Grid::make(4)
                     ->columnSpanFull()
                     ->schema([
                         TextInput::make('request_number')
@@ -38,7 +38,7 @@ class VehicleRequestForm
                             ->required(),
 
                         TextInput::make('department')
-                            ->label('Department / Office')
+                            ->label('Department')
                             ->default(function () {
                                 $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
                                 if (!empty($user?->department)) {
@@ -87,7 +87,7 @@ class VehicleRequestForm
 
                         TextInput::make('employee_name')
                             ->label('Requester Name')
-                            ->placeholder('e.g. Dr. Juan Dela Cruz / Full Name')
+                            ->placeholder('e.g. Dr. Juan Dela Cruz')
                             ->helperText('Please enter the full name of requester')
                             ->default(function () {
                                 $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
@@ -101,6 +101,36 @@ class VehicleRequestForm
                                 return $name ?: null;
                             })
                             ->required(),
+
+                        TextInput::make('requester_phone')
+                            ->label('Mobile Number (For SMS)')
+                            ->placeholder('e.g. 09171234567')
+                            ->helperText('Receive SMS when Admin approves request')
+                            ->tel()
+                            ->default(function () {
+                                $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
+                                return $user?->contact_number;
+                            })
+                            ->afterStateHydrated(function (TextInput $component, ?\App\Models\VehicleRequest $record) {
+                                if ($record && !empty($record->requester_phone)) {
+                                    $component->state($record->requester_phone);
+                                }
+                            })
+                            ->dehydrated(false)
+                            ->saveRelationshipsUsing(function (?\App\Models\VehicleRequest $record, $state) {
+                                $phone = trim((string) $state);
+                                if ($phone !== '') {
+                                    $user = $record?->user ?? \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
+                                    if ($user) {
+                                        $user->updateQuietly(['contact_number' => $phone]);
+                                    }
+                                    if ($record?->id) {
+                                        try {
+                                            \Illuminate\Support\Facades\Cache::forever('vr_phone_' . $record->id, $phone);
+                                        } catch (\Throwable $e) {}
+                                    }
+                                }
+                            }),
                     ]),
 
                 Hidden::make('user_id')
@@ -132,7 +162,7 @@ class VehicleRequestForm
                             ->disabled(fn (Get $get) => empty($get('region_code')))
                             ->required(),
                         Select::make('city_code')
-                            ->label('City / Municipality')
+                            ->label('City or Municipality')
                             ->options(fn (Get $get) => \App\Services\PhilippineAddressService::getCities($get('province_code')))
                             ->live()
                             ->dehydrated(false)
@@ -265,7 +295,7 @@ class VehicleRequestForm
                             ->columnSpanFull(),
                     ]),
 
-                Fieldset::make('Passenger Manifest / Companions')
+                Fieldset::make('Passenger Manifest')
                     ->columnSpanFull()
                     ->schema([
                         Repeater::make('passenger_names')
@@ -292,7 +322,7 @@ class VehicleRequestForm
                                                 }
                                             }
                                             if ($matches > 1) {
-                                                $fail("Duplicate passenger: '{$value}' is already in the list. Please differentiate (e.g. Jr./Sr.) or enter a different name.");
+                                                $fail("Duplicate passenger: '{$value}' is already in the list. Please differentiate (e.g. Jr. or Sr.) or enter a different name.");
                                             }
                                         },
                                     ]),
@@ -320,7 +350,7 @@ class VehicleRequestForm
                                 ->helperText('Automatically computed based on the passenger list above.'),
 
                             Checkbox::make('has_other_passengers')
-                                ->label('Others (Include Students / External Passengers)')
+                                ->label('Others (Include Students or External Passengers)')
                                 ->helperText('Check if the trip includes students, guests, or non-employee passengers.')
                                 ->live()
                                 ->default(false)
@@ -332,7 +362,7 @@ class VehicleRequestForm
                         ]),
 
                         Textarea::make('other_passengers')
-                            ->label('Specify Other Passengers / Students')
+                            ->label('Specify Other Passengers or Students')
                             ->placeholder('e.g., 10 CICS Students for Regional Competition, Guest Speaker')
                             ->visible(fn (Get $get) => (bool) $get('has_other_passengers'))
                             ->required(fn (Get $get) => (bool) $get('has_other_passengers'))

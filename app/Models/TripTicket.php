@@ -192,18 +192,38 @@ class TripTicket extends Model
                     $allRequests = collect([$tripTicket->vehicleRequest]);
                 }
                 foreach ($allRequests as $req) {
-                    if ($req && $req->user) {
-                        \Filament\Notifications\Notification::make()
-                            ->title('✅ Request Approved & Ticketed')
-                            ->body("Your request {$req->request_number} to {$req->destination} was approved. Driver: {$driverName}, Vehicle: {$tripTicket->vehicle}.")
-                            ->icon('heroicon-o-check-circle')
-                            ->iconColor('success')
-                            ->actions([
-                                \Filament\Actions\Action::make('view')
-                                    ->label('View Status')
-                                    ->url('/employee/vehicle-requests'),
-                            ])
-                            ->sendToDatabase($req->user);
+                    if ($req) {
+                        if ($req->user) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('✅ Request Approved & Ticketed')
+                                ->body("Your request {$req->request_number} to {$req->destination} was approved. Driver: {$driverName}, Vehicle: {$tripTicket->vehicle}.")
+                                ->icon('heroicon-o-check-circle')
+                                ->iconColor('success')
+                                ->actions([
+                                    \Filament\Actions\Action::make('view')
+                                        ->label('View Status')
+                                        ->url('/employee/vehicle-requests'),
+                                ])
+                                ->sendToDatabase($req->user);
+                        }
+
+                        // Send SMS Notification directly to Employee / Requester mobile phone
+                        try {
+                            $reqDate = $req->date ? \Carbon\Carbon::parse($req->date)->format('M d, Y') : 'N/A';
+                            $reqTime = $req->time ? \Carbon\Carbon::parse($req->time)->format('g:i A') : 'N/A';
+                            $vehInfo = $tripTicket->formatted_vehicle;
+                            $empSms = "Hi {$req->employee_name}!\n"
+                                    . "CSU VEHICLE REQUEST APPROVED\n"
+                                    . "Req No: {$req->request_number}\n"
+                                    . "Trip ID: {$tripTicket->ticket_number}\n"
+                                    . "Destination: {$req->destination}\n"
+                                    . "Schedule: {$reqDate} ({$reqTime})\n"
+                                    . "Vehicle: {$vehInfo}\n"
+                                    . "Driver: {$driverName}\n"
+                                    . "Next Step: Please print your Requisition Form for CEO signature.\n"
+                                    . "- PeliCle CSU LAL-LO";
+                            $req->sendRequesterSms($empSms);
+                        } catch (\Throwable $e) {}
                     }
                 }
 
