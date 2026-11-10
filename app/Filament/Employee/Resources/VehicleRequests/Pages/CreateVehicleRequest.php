@@ -123,7 +123,7 @@ class CreateVehicleRequest extends CreateRecord
         $data['passenger_names'] = $validPassengers;
         $data['number_of_passengers'] = count($validPassengers);
 
-        if (!empty($data['requester_signature']) && $user && empty($user->signature)) {
+        if (!empty($data['requester_signature']) && $user) {
             try {
                 $user->updateQuietly(['signature' => $data['requester_signature']]);
             } catch (\Throwable $e) {}

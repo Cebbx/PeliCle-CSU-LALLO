@@ -88,9 +88,19 @@ class VehicleRequestForm
                         TextInput::make('employee_name')
                             ->label('Requester Name')
                             ->placeholder('e.g. Dr. Juan Dela Cruz')
-                            ->helperText('Please enter the full name of requester')
+                            ->helperText('Auto-filled from your previous request (editable)')
                             ->default(function () {
                                 $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
+                                if ($user) {
+                                    $lastReq = \App\Models\VehicleRequest::where('user_id', $user->id)
+                                        ->whereNotNull('employee_name')
+                                        ->where('employee_name', '!=', '')
+                                        ->latest('id')
+                                        ->first();
+                                    if ($lastReq && !empty($lastReq->employee_name)) {
+                                        return $lastReq->employee_name;
+                                    }
+                                }
                                 $name = $user?->name ?? '';
                                 $deptIndicators = ['College of', 'Office of', 'Department', 'Administration Office', 'Campus', 'Café Valena', 'CICS', 'CTE', 'CHM', 'COA', 'HRMO', 'MIS', 'DMST', 'Employee User'];
                                 foreach ($deptIndicators as $ind) {
@@ -105,11 +115,22 @@ class VehicleRequestForm
                         TextInput::make('requester_phone')
                             ->label('Mobile Number (For SMS)')
                             ->placeholder('e.g. 09171234567')
-                            ->helperText('Receive SMS when Admin approves request')
+                            ->helperText('Auto-saved for future requests (editable)')
                             ->tel()
                             ->default(function () {
                                 $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
-                                return $user?->contact_number;
+                                if (!empty($user?->contact_number)) {
+                                    return $user->contact_number;
+                                }
+                                if ($user) {
+                                    $lastReq = \App\Models\VehicleRequest::where('user_id', $user->id)
+                                        ->latest('id')
+                                        ->first();
+                                    if ($lastReq && !empty($lastReq->requester_phone)) {
+                                        return $lastReq->requester_phone;
+                                    }
+                                }
+                                return null;
                             })
                             ->afterStateHydrated(function (TextInput $component, ?\App\Models\VehicleRequest $record) {
                                 if ($record && !empty($record->requester_phone)) {
@@ -378,7 +399,20 @@ class VehicleRequestForm
                             ->view('filament.components.signature-pad')
                             ->default(function () {
                                 $user = \Filament\Facades\Filament::auth()->user() ?? auth('employee')->user() ?? auth()->user();
-                                return $user?->signature;
+                                if (!empty($user?->signature)) {
+                                    return $user->signature;
+                                }
+                                if ($user) {
+                                    $lastReq = \App\Models\VehicleRequest::where('user_id', $user->id)
+                                        ->whereNotNull('requester_signature')
+                                        ->where('requester_signature', '!=', '')
+                                        ->latest('id')
+                                        ->first();
+                                    if ($lastReq && !empty($lastReq->requester_signature)) {
+                                        return $lastReq->requester_signature;
+                                    }
+                                }
+                                return null;
                             })
                             ->columnSpanFull(),
                     ]),
