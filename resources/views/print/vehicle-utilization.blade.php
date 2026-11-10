@@ -57,44 +57,34 @@
 
     <!-- Top Action Bar (Sticky, Mobile Responsive, hidden on print) -->
     <div class="no-print sticky top-2 z-50 max-w-5xl mx-auto mb-4 bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3 flex-wrap">
-            <div>
-                <h1 class="text-gray-800 font-extrabold text-xs sm:text-base">Monthly Vehicle Utilization Report</h1>
-                <p class="text-[10px] sm:text-xs text-gray-500 font-mono">Period: {{ $monthName }} &bull; GSO Motorpool</p>
-            </div>
-
-            <!-- Month Dropdown Selector -->
-            <label class="text-xs font-bold text-gray-700 flex items-center gap-1.5 bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1.5 shadow-sm">
-                <span>📅 Month:</span>
-                <select onchange="changeMonth(this.value)" class="bg-white border border-gray-300 rounded px-2 py-1 text-xs font-semibold text-gray-800 cursor-pointer focus:ring-2 focus:ring-blue-500">
-                    @foreach($availableMonths as $val => $lbl)
-                        <option value="{{ $val }}" {{ ($year . '-' . $month) === $val ? 'selected' : '' }}>
-                            {{ $lbl }}
-                        </option>
-                    @endforeach
-                </select>
-            </label>
+        <div>
+            <h1 class="text-gray-800 font-extrabold text-xs sm:text-base">Monthly Vehicle Utilization Report &mdash; {{ $monthName }}</h1>
+            <p class="text-[10px] sm:text-xs text-gray-500 font-mono">Period: {{ $monthName }} &bull; GSO Motorpool</p>
         </div>
 
         <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
-            <!-- Switcher Button to Total Trips Logbook -->
-            <a href="{{ route('logbook.print', ['year' => $year, 'month' => $month]) }}" class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-2 px-3 rounded-lg text-xs transition border border-blue-200 flex items-center gap-1.5 shadow-sm">
-                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span>View Total Trips Logbook</span>
-            </a>
-
             <!-- Back Button -->
-            <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2 px-3 rounded-lg text-xs transition flex items-center gap-1.5 border border-gray-300">
+            <button onclick="if (window.history.length > 1) { window.history.back(); } else { window.close(); }" class="bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-bold py-2 px-3 rounded-lg text-xs transition flex items-center gap-1.5 border border-gray-300 cursor-pointer">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 <span>Back</span>
             </button>
 
+            <!-- Month Dropdown Selector -->
+            <div class="flex items-center gap-1.5 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 shadow-sm">
+                <span class="text-xs font-bold text-gray-700 hidden sm:inline flex items-center gap-1">📅 Month:</span>
+                <select onchange="changeMonth(this.value)" class="text-xs font-extrabold bg-transparent border-0 text-blue-900 focus:ring-0 cursor-pointer py-0.5 pr-6 pl-1 outline-none">
+                    @foreach($availableMonths as $val => $lbl)
+                        <option value="{{ $val }}" {{ ($year . '-' . $month) === $val ? 'selected' : '' }}>
+                            {{ $lbl }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
             <!-- Download PDF Button -->
-            <button id="btnDownloadPdf" onclick="downloadPDF(this)" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2 px-3.5 rounded-lg text-xs transition flex items-center gap-1.5 shadow">
+            <button id="btnDownloadPdf" onclick="downloadPDF(this)" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2 px-3.5 rounded-lg text-xs transition flex items-center gap-1.5 shadow cursor-pointer">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
@@ -102,7 +92,7 @@
             </button>
 
             <!-- Print Button -->
-            <button onclick="window.print()" class="bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-bold py-2 px-3.5 rounded-lg text-xs transition flex items-center gap-1.5 shadow">
+            <button onclick="window.print()" class="bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-bold py-2 px-3.5 rounded-lg text-xs transition flex items-center gap-1.5 shadow cursor-pointer">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
