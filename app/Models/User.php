@@ -31,7 +31,7 @@ class User extends Authenticatable implements FilamentUser
         }
 
         if ($panel->getId() === 'employee') {
-            return in_array($role, ['employee', 'staff', 'admin', 'user', 'driver']);
+            return in_array($role, ['employee', 'staff', 'admin', 'user', 'driver', 'guard']);
         }
 
         return true;
