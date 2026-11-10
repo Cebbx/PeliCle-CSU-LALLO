@@ -361,7 +361,7 @@
                         <span class="capability-pill">User Control</span>
                     </div>
                 </div>
-                <a href="/admin/users" class="role-bottom-btn">
+                <a href="/admin/users?activeTab=admins" class="role-bottom-btn">
                     <span>View Admin Users ({{ $adminCount ?? 0 }})</span>
                     <span>&rarr;</span>
                 </a>
@@ -392,7 +392,7 @@
                         <span class="capability-pill">Trip Ticket QR</span>
                     </div>
                 </div>
-                <a href="/admin/users" class="role-bottom-btn">
+                <a href="/admin/users?activeTab=employees" class="role-bottom-btn">
                     <span>View Employees ({{ $employeeCount ?? 0 }})</span>
                     <span>&rarr;</span>
                 </a>
@@ -458,11 +458,11 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 6px; margin-top: auto;">
-                    <a href="/admin/security-guards" class="role-bottom-btn" style="flex: 1;">
-                        <span>Manage Guards ({{ $guardCount ?? 3 }})</span>
+                    <a href="/admin/security-guards" class="role-bottom-btn" style="flex: 1; white-space: nowrap;">
+                        <span>View Guards ({{ $guardCount ?? 3 }})</span>
                         <span>&rarr;</span>
                     </a>
-                    <a href="/guard/scanner" target="_blank" class="role-bottom-btn" style="flex: 1;">
+                    <a href="/guard/scanner" target="_blank" class="role-bottom-btn" style="flex: 1; white-space: nowrap;">
                         <span>Gate Scanner</span>
                         <span>&rarr;</span>
                     </a>
@@ -478,7 +478,7 @@
                     <svg style="width: 16px; height: 16px; color: #f59e0b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>Module Authorization Matrix</span>
                 </div>
-                <span style="font-size: 10.5px; color: #94a3b8;">CSU Lal-lo Campus Security Policy v2.5</span>
+                <span style="font-size: 10.5px; color: #94a3b8;">CSU Lal-lo Campus Access Policy</span>
             </div>
 
             <div style="overflow-x: auto;">
