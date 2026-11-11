@@ -722,11 +722,6 @@
                title="Driver Availability: {{ $driverStats['available'] }} of {{ $driverStats['total'] }} Drivers Available ({{ $driverStats['available_pct'] }}%)">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
-                        <div class="card-icon-round bg-icon-green">
-                            <svg style="width: 12px; height: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
                         <span class="card-title-text">Driver Availability</span>
                     </div>
                 </div>
@@ -754,11 +749,6 @@
                title="Vehicle Availability: {{ $vehicleStats['available'] }} of {{ $vehicleStats['total'] }} Vehicles Available ({{ $vehicleStats['available_pct'] }}%)">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
-                        <div class="card-icon-round bg-icon-green">
-                            <svg style="width: 12px; height: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                            </svg>
-                        </div>
                         <span class="card-title-text">Vehicle Availability</span>
                     </div>
                 </div>
@@ -786,11 +776,6 @@
                title="Pending Requests: {{ $pendingRequests }} ({{ $statusBreakdown['pending_pct'] }}% of all requests)">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
-                        <div class="card-icon-round bg-icon-blue">
-                            <svg style="width: 12px; height: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
                         <span class="card-title-text">Pending Vehicle Requests</span>
                     </div>
                 </div>
@@ -816,11 +801,6 @@
                title="Approved Requests: {{ $approvedRequests }} ({{ $statusBreakdown['approved_pct'] }}% of all requests)">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
-                        <div class="card-icon-round bg-icon-green">
-                            <svg style="width: 12px; height: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
                         <span class="card-title-text">Approved Vehicle Requests</span>
                     </div>
                 </div>
@@ -849,11 +829,6 @@
             <a href="{{ \App\Filament\Resources\VehicleRequests\VehicleRequestResource::getUrl('index', ['tab' => 'on_trip']) }}" class="dash-card dash-card-link">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
-                        <div class="card-icon-round bg-icon-blue">
-                            <svg style="width: 13px; height: 13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-                            </svg>
-                        </div>
                         <span class="card-title-text">Active Trips (On Trip)</span>
                     </div>
                 </div>
@@ -873,11 +848,6 @@
             <a href="{{ \App\Filament\Resources\WithdrawalSlips\WithdrawalSlipResource::getUrl('index', ['tab' => 'pending']) }}" class="dash-card dash-card-link" style="padding-bottom: 8px;">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
-                        <div class="card-icon-round bg-icon-amber">
-                            <svg style="width: 12px; height: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
                         <span class="card-title-text">Pending Withdrawal Slips</span>
                     </div>
                 </div>
@@ -897,11 +867,6 @@
             <div @click="showTravelersModal = true" class="dash-card dash-card-link" style="padding-bottom: 8px; cursor: pointer;">
                 <div class="card-top-row">
                     <div class="card-badge-wrap">
-                        <div class="card-icon-round bg-icon-purple">
-                            <svg style="width: 13px; height: 13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                            </svg>
-                        </div>
                         <span class="card-title-text">Most Frequent Traveler</span>
                     </div>
                     @if(!empty($mostTravelers))
