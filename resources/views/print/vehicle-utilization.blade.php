@@ -156,46 +156,38 @@
             </h4>
 
             <div class="overflow-x-auto w-full">
-                <table class="w-full border-collapse border border-black text-[10px] min-w-[700px]">
+                <table class="w-full border-collapse border border-black text-[10.5px]">
                 <thead>
                     <tr class="bg-gray-100 font-bold text-center border-b border-black">
-                        <th class="border border-black p-1.5 w-8">#</th>
-                        <th class="border border-black p-1.5 text-left">PLATE NUMBER</th>
-                        <th class="border border-black p-1.5 text-left">BRAND & MODEL</th>
-                        <th class="border border-black p-1.5 text-center">TYPE</th>
-                        <th class="border border-black p-1.5 text-center">TOTAL TRIPS</th>
-                        <th class="border border-black p-1.5 text-center">COMPLETED</th>
-                        <th class="border border-black p-1.5 text-center">PASSENGERS</th>
-                        <th class="border border-black p-1.5 text-left">ASSIGNED DRIVER(S)</th>
+                        <th class="border border-black p-2 w-10">#</th>
+                        <th class="border border-black p-2 text-left">PLATE NUMBER</th>
+                        <th class="border border-black p-2 text-left">BRAND & MODEL</th>
+                        <th class="border border-black p-2 text-center">TYPE</th>
+                        <th class="border border-black p-2 text-center">TOTAL TRIPS</th>
+                        <th class="border border-black p-2 text-center">COMPLETED</th>
+                        <th class="border border-black p-2 text-center">PASSENGERS</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($vehicleStats as $idx => $stat)
                         <tr class="border-b border-black hover:bg-gray-50">
-                            <td class="border border-black p-1.5 text-center font-bold">{{ $idx + 1 }}</td>
-                            <td class="border border-black p-1.5 font-mono font-bold whitespace-nowrap">{{ $stat['plate'] }}</td>
-                            <td class="border border-black p-1.5 font-semibold">{{ $stat['brand_model'] }}</td>
-                            <td class="border border-black p-1.5 text-center uppercase text-[9px]">{{ $stat['type'] }}</td>
-                            <td class="border border-black p-1.5 text-center font-bold text-base {{ $stat['trips_count'] > 0 ? 'text-blue-900' : 'text-gray-400' }}">
+                            <td class="border border-black p-2 text-center font-bold">{{ $idx + 1 }}</td>
+                            <td class="border border-black p-2 font-mono font-bold whitespace-nowrap">{{ $stat['plate'] }}</td>
+                            <td class="border border-black p-2 font-semibold">{{ $stat['brand_model'] }}</td>
+                            <td class="border border-black p-2 text-center uppercase text-[10px]">{{ $stat['type'] }}</td>
+                            <td class="border border-black p-2 text-center font-bold text-base {{ $stat['trips_count'] > 0 ? 'text-blue-900' : 'text-gray-400' }}">
                                 {{ $stat['trips_count'] }}
                             </td>
-                            <td class="border border-black p-1.5 text-center font-bold text-emerald-800">
+                            <td class="border border-black p-2 text-center font-bold text-emerald-800">
                                 {{ $stat['completed_count'] }}
                             </td>
-                            <td class="border border-black p-1.5 text-center font-bold">
+                            <td class="border border-black p-2 text-center font-bold">
                                 {{ $stat['passengers'] }}
-                            </td>
-                            <td class="border border-black p-1.5 text-[9px]">
-                                @if(!empty($stat['frequent_drivers']))
-                                    {{ implode(', ', $stat['frequent_drivers']) }}
-                                @else
-                                    <span class="text-gray-400 italic">No Trips</span>
-                                @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="border border-black p-6 text-center text-gray-500 font-semibold">
+                            <td colspan="7" class="border border-black p-6 text-center text-gray-500 font-semibold">
                                 No vehicles recorded in the system.
                             </td>
                         </tr>
