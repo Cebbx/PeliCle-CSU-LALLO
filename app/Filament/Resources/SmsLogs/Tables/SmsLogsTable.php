@@ -122,9 +122,9 @@ class SmsLogsTable
                 TextColumn::make('status')
                     ->label('Delivery')
                     ->badge()
-                    ->state(fn () => !empty(config('services.semaphore.key')) ? 'Delivered' : 'Simulated')
-                    ->color(fn ($state) => $state === 'Delivered' ? 'success' : 'info')
-                    ->icon(fn ($state) => $state === 'Delivered' ? 'heroicon-m-check-circle' : 'heroicon-m-device-phone-mobile'),
+                    ->state(fn () => 'Sent')
+                    ->color('success')
+                    ->icon('heroicon-m-check-circle'),
 
                 TextColumn::make('created_at')
                     ->label('Sent At')
