@@ -293,6 +293,8 @@ class VehicleRequestForm
                                         $return = \Carbon\Carbon::parse($retDate . ' ' . $value, 'Asia/Manila');
                                         if ($return->lessThanOrEqualTo($departure)) {
                                             $fail('Expected return time must be later than the departure travel time.');
+                                        } elseif ($departure->diffInMinutes($return, false) < 60) {
+                                            $fail('Expected return time must be at least 1 hour after the departure travel time.');
                                         }
                                     }
                                 },
